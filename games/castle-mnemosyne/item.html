@@ -39,7 +39,7 @@ canvas.ic{image-rendering:pixelated;display:block;margin:0 auto 3px;background:#
 <div id="menu" class="ov" hidden><div class="pg">
 <h2>The Chamberlain's Ledger</h2>
 <div class="row"><button id="mResume">Back to the castle</button><button id="mBooks">Index of books</button><button id="mCab">Cabinet of Curiosities</button><button id="mPal">Palace mode</button><button id="mHunt">The Hunt</button><button id="mNew">Start a new Hunt</button></div>
-<div id="mStats" class="dim"></div>
+<div style="margin:8px 0">Controls: <button id="mBasic"></button><button id="mHL"></button><div id="mTip" style="font-size:13px;margin-top:4px"></div></div><div id="mStats" class="dim"></div>
 <h3>Seal your work</h3>
 <div class="dim">This tab can't save by itself: closing or reloading it loses the castle unless you save. Save to this file, or keep your save code.</div>
 <div class="row"><button id="fileSave">Save game to this file</button><span class="dim uds-msg"></span></div>
@@ -54,7 +54,7 @@ Randy's Etsy shop.<div class="url">https://www.etsy.com/shop/UberRandis</div>
 </div></div>
 <div id="title" class="ov"><h1>CASTLE MNEMOSYNE</h1>
 <p>A real memory palace. Walk red-carpeted halls by torchlight, write what you've learned into books, and shelve each one in a place you'll remember it.</p>
-<button id="tPal">Enter the Palace</button><button id="tHunt">The Hunt for the Lost Codex</button><br><button id="warnFile">Save to file</button><span class="uds-msg" style="color:#f2e6c0;text-shadow:1px 1px 0 #000"></span>
+<div style="margin:8px 0">Controls: <button id="tBasic"></button><button id="tHL"></button><div id="tTip" style="font-size:13px;margin-top:4px"></div></div><button id="tPal">Enter the Palace</button><button id="tHunt">The Hunt for the Lost Codex</button><br><button id="warnFile">Save to file</button><span class="uds-msg" style="color:#f2e6c0;text-shadow:1px 1px 0 #000"></span>
 <p style="font-size:12px">Inside the castle, press Esc for saving, your books and the shop.</p></div>
 </div>
 <script type="application/json" id="uds-save">""</script>
@@ -284,6 +284,7 @@ function tone(f,d,ty,v,sl){var a=ac();if(!a||muted)return;var o=a.createOscillat
 function noise(d,v,fq){var a=ac();if(!a||muted)return;var n=a.sampleRate*d|0,b=a.createBuffer(1,n,a.sampleRate),c=b.getChannelData(0);for(var i=0;i<n;i++)c[i]=Math.random()*2-1;var s=a.createBufferSource(),g=a.createGain(),fl=a.createBiquadFilter();fl.frequency.value=fq||800;s.buffer=b;g.gain.value=v;g.gain.exponentialRampToValueAtTime(.0005,a.currentTime+d);s.connect(fl);fl.connect(g);g.connect(a.destination);s.start()}
 function sfx(k){if(k=='step')noise(.07,.05,300);else if(k=='door'){tone(70,.5,'sawtooth',.05,45);noise(.4,.03,500)}else if(k=='coin'){tone(880,.09);setTimeout(function(){tone(1320,.14)},80)}else if(k=='bell'){tone(392,1.6,'sine',.12);tone(588,1.1,'sine',.06);tone(784,.7,'sine',.03)}else if(k=='bad')tone(110,.3,'sawtooth',.06,70);else if(k=='good'){[523,659,784,1046].forEach(function(f,i){setTimeout(function(){tone(f,.16,'triangle',.08)},i*90)})}else if(k=='scratch')noise(.05,.03,3500);else if(k=='page')noise(.14,.04,1800);else if(k=='fire')noise(.3,.05,1000);else if(k=='purr'){tone(32,.7,'sawtooth',.1)}else if(k=='secret'){[220,277,330,440,554].forEach(function(f,i){setTimeout(function(){tone(f,.2,'square',.05)},i*110)})}}
 // ---------- render ----------
+var CTL='basic',JZ=0,JV=0,lockOK=false,lockErr=false,lockLost=-1e9,lockClick=-1e9;
 var PX=21.5,PY=33.5,ANG=-Math.PI/2,DX,DY,CX,CY,vx=0,vy=0,vt=0,pitch=0,bob=0,bobA=0,thrust=0,T=0,zb=new Float32Array(VW),aim=null,tgt=null,hiFace=-1,hiSlot='',msg='',msgT=0,roomMsg='',roomT=0,lastRoom='',faceJoy=0,blink=0,showMap=false,mode='title',keys={},dyn=new Map(),seen=new Uint8Array(MW*MH);
 var SR=[],SG=[],SB2=[];for(var i=0;i<16;i++){var l=(i+1)/16;SR[i]=Math.min(256,l*1.28*256)|0;SG[i]=l*1.02*256|0;SB2[i]=l*l*.5*256+l*.32*256|0}
 var DITH=[0,.5,.75,.25];
@@ -303,23 +304,23 @@ function castAll(){var hor=(VH>>1)+(pitch|0),a=null;var tr=1+Math.sin(T*9)*.02+M
  for(var x=0;x<VW;x++){var cam=2*x/VW-1,rx=DX+CX*cam,ry=DY+CY*cam,mx=ix,my=iy,dx=Math.abs(1/rx),dy=Math.abs(1/ry),sx=rx<0?-1:1,sy=ry<0?-1:1,sdx=(rx<0?PX-mx:mx+1-PX)*dx,sdy=(ry<0?PY-my:my+1-PY)*dy,side=0,hitC=0,doorD=-1,doorI=-1,doorU=0,doorS=0;
   for(var n=0;n<80;n++){if(sdx<sdy){sdx+=dx;mx+=sx;side=0}else{sdy+=dy;my+=sy;side=1}if(mx<0||my<0||mx>=MW||my>=MH){hitC=1;break}var ci=my*MW+mx,c=SOL[ci];if(!(x&3))seen[ci]=1;if(c==1){hitC=1;break}if(c==2){var dr=DOORS[ci];if(dr.o<.02){hitC=2;break}if(doorD<0&&dr.o<.98){doorI=ci;doorS=side;doorD=side?sdy-dy:sdx-dx;var wv=side?PX+doorD*rx:PY+doorD*ry;doorU=wv-Math.floor(wv)}}}
   var perp=side?sdy-dy:sdx-dx;if(perp<.02)perp=.02;var wv=side?PX+perp*rx:PY+perp*ry;var u=wv-Math.floor(wv),f=side?(sy>0?2:3):(sx>0?0:1);if(f==1||f==2)u=1-u;
-  var ci=my*MW+mx,tex=hitC==2?doorTex(ci):wallTex(fk(mx,my,f),G[ci]||'#',mx,my),h=K/perp,top=hor-h/2,bot=top+h,tu=Math.min(63,u*64|0),d=tex.d;
+  var ci=my*MW+mx,tex=hitC==2?doorTex(ci):wallTex(fk(mx,my,f),G[ci]||'#',mx,my),h=K/perp,top=hor-h/2+JZ*h,bot=top+h,tu=Math.min(63,u*64|0),d=tex.d;
   var ly=(my+(side?-sy*.12:0)+(wv-Math.floor(wv))*(side?0:1))*4,lx=(mx+(side?0:-sx*.12))*4;var wl=side?FLI[(((my+(sy>0?-.1:1.1))*4|0)*MW*4)+((wv*4|0)|0)]:FLI[((wv*4|0)*MW*4)+((mx+(sx>0?-.1:1.1))*4|0)];
   var lv=(wl*fl+tr*.3/(1+perp*perp*.2));var y0=Math.max(0,top|0),y1=Math.min(VH,Math.ceil(bot));
   if(x==160){a={c:ci,f:f,u:u,dist:perp,top:top,h:h,kind:hitC,mx:mx,my:my}}
   for(var y=y0;y<y1;y++){var li=lv*15+DITH[(x&1)+((y&1)<<1)]|0;if(li>15)li=15;var v=((y-top)/h*64)|0;if(v>63)v=63;var q=d[v*64+tu];if(q>>>24==254)px[y*VW+x]=q+0x01000000;else px[y*VW+x]=0xFF000000+(((q>>16&255)*SB2[li]>>8)<<16)+(((q>>8&255)*SG[li]>>8)<<8)+((q&255)*SR[li]>>8)}
   // floor and ceiling
-  for(var y=y1;y<VH;y++){var rd=(K/2)/(y-hor+.5);if(rd<0)continue;var fx=PX+rx*rd,fy=PY+ry*rd,cx=fx|0,cy=fy|0,i=cy*MW+cx;if(i<0||i>=FT.length)continue;var q=FT[i][((fy-cy)*64&63)*64+((fx-cx)*64&63)],lf=FLI[(fy*4|0)*MW*4+(fx*4|0)]*fl+tr*.3/(1+rd*rd*.2),li=lf*15+DITH[(x&1)+((y&1)<<1)]|0;if(li>15)li=15;px[y*VW+x]=0xFF000000+(((q>>16&255)*SB2[li]>>8)<<16)+(((q>>8&255)*SG[li]>>8)<<8)+((q&255)*SR[li]>>8)}
-  for(var y=y0-1;y>=0;y--){var rd=(K/2)/(hor-y-.5);if(rd<0)continue;var fx=PX+rx*rd,fy=PY+ry*rd,cx=fx|0,cy=fy|0,i=cy*MW+cx;if(i<0||i>=CT.length)continue;var ct=CT[i];if(!ct){var an=(Math.atan2(ry,rx)/(2*Math.PI)+1)*512&511;px[y*VW+x]=SKY.d[Math.max(0,Math.min(127,y-hor+127))*512+an];continue}var q=ct[((fy-cy)*64&63)*64+((fx-cx)*64&63)],lf=FLI[(fy*4|0)*MW*4+(fx*4|0)]*fl*.8+tr*.22/(1+rd*rd*.2),li=lf*15+DITH[(x&1)+((y&1)<<1)]|0;if(li>15)li=15;px[y*VW+x]=0xFF000000+(((q>>16&255)*SB2[li]>>8)<<16)+(((q>>8&255)*SG[li]>>8)<<8)+((q&255)*SR[li]>>8)}
+  for(var y=y1;y<VH;y++){var rd=K*(.5+JZ)/(y-hor+.5);if(rd<0)continue;var fx=PX+rx*rd,fy=PY+ry*rd,cx=fx|0,cy=fy|0,i=cy*MW+cx;if(i<0||i>=FT.length)continue;var q=FT[i][((fy-cy)*64&63)*64+((fx-cx)*64&63)],lf=FLI[(fy*4|0)*MW*4+(fx*4|0)]*fl+tr*.3/(1+rd*rd*.2),li=lf*15+DITH[(x&1)+((y&1)<<1)]|0;if(li>15)li=15;px[y*VW+x]=0xFF000000+(((q>>16&255)*SB2[li]>>8)<<16)+(((q>>8&255)*SG[li]>>8)<<8)+((q&255)*SR[li]>>8)}
+  for(var y=y0-1;y>=0;y--){var rd=K*(.5-JZ)/(hor-y-.5);if(rd<0)continue;var fx=PX+rx*rd,fy=PY+ry*rd,cx=fx|0,cy=fy|0,i=cy*MW+cx;if(i<0||i>=CT.length)continue;var ct=CT[i];if(!ct){var an=(Math.atan2(ry,rx)/(2*Math.PI)+1)*512&511;px[y*VW+x]=SKY.d[Math.max(0,Math.min(127,y-hor+127))*512+an];continue}var q=ct[((fy-cy)*64&63)*64+((fx-cx)*64&63)],lf=FLI[(fy*4|0)*MW*4+(fx*4|0)]*fl*.8+tr*.22/(1+rd*rd*.2),li=lf*15+DITH[(x&1)+((y&1)<<1)]|0;if(li>15)li=15;px[y*VW+x]=0xFF000000+(((q>>16&255)*SB2[li]>>8)<<16)+(((q>>8&255)*SG[li]>>8)<<8)+((q&255)*SR[li]>>8)}
   zb[x]=perp;
-  if(doorD>=0&&doorD<perp){var dr=DOORS[doorI],t2=doorTex(doorI).d,hh=K/doorD,tp=hor-hh/2,lim=tp+hh*(1-dr.o),du=doorS?(sy>0?1-doorU:doorU):(sx>0?doorU:1-doorU),tu2=Math.min(63,du*64|0),y2=Math.min(VH,lim|0),ldr=(FLI[(((PY+doorD*ry)*4)|0)*MW*4+(((PX+doorD*rx)*4)|0)]*fl+tr*.3/(1+doorD*doorD*.2));
+  if(doorD>=0&&doorD<perp){var dr=DOORS[doorI],t2=doorTex(doorI).d,hh=K/doorD,tp=hor-hh/2+JZ*hh,lim=tp+hh*(1-dr.o),du=doorS?(sy>0?1-doorU:doorU):(sx>0?doorU:1-doorU),tu2=Math.min(63,du*64|0),y2=Math.min(VH,lim|0),ldr=(FLI[(((PY+doorD*ry)*4)|0)*MW*4+(((PX+doorD*rx)*4)|0)]*fl+tr*.3/(1+doorD*doorD*.2));
    for(var y=Math.max(0,tp|0);y<y2;y++){var li=ldr*15+DITH[(x&1)+((y&1)<<1)]|0;if(li>15)li=15;var v=(((y-tp)/hh+dr.o)*64)|0;if(v>63)v=63;var q=t2[v*64+tu2];if(q>>>24==0)continue;px[y*VW+x]=0xFF000000+(((q>>16&255)*SB2[li]>>8)<<16)+(((q>>8&255)*SG[li]>>8)<<8)+((q&255)*SR[li]>>8)}
    if(dr.o<.75)zb[x]=doorD;if(x==160&&dr.o<.7)a={c:doorI,f:-1,u:du,dist:doorD,top:tp,h:hh,kind:2,mx:doorI%MW,my:doorI/MW|0}}
  }
  aim=a;
  var list=[];for(var i=0;i<ENT.length;i++){var e=ENT[i];if(!active(e))continue;var ex=e.x-PX,ey=e.y-PY;e.d2=ex*ex+ey*ey;if(e.d2<256)list.push(e)}list.sort(function(a,b){return b.d2-a.d2});
  var inv=1/(CX*DY-CY*DX),spT=null,spD=1e9;
- list.forEach(function(e){var ex=e.x-PX,ey=e.y-PY,tx1=inv*(DY*ex-DX*ey),ty=inv*(-CY*ex+CX*ey);if(ty<.2)return;var fr=e.fr!=null?e.fr:e.frF?e.frF():(T*6|0)%e.tex.length,t=e.tex[fr]||e.tex[0],sxc=VW/2*(1+tx1/ty),hh=K*e.sc/ty,ww=hh*t.w/t.h,bot=e.top?hor-K/(2*ty)+hh:hor+K/(2*ty),top=bot-hh,x0=Math.max(0,sxc-ww/2|0),x1=Math.min(VW,sxc+ww/2|0),lf=FLI[(e.y*4|0)*MW*4+(e.x*4|0)]*fl+tr*.3/(1+ty*ty*.2);
+ list.forEach(function(e){var ex=e.x-PX,ey=e.y-PY,tx1=inv*(DY*ex-DX*ey),ty=inv*(-CY*ex+CX*ey);if(ty<.2)return;var fr=e.fr!=null?e.fr:e.frF?e.frF():(T*6|0)%e.tex.length,t=e.tex[fr]||e.tex[0],sxc=VW/2*(1+tx1/ty),hh=K*e.sc/ty,ww=hh*t.w/t.h,bot=(e.top?hor-K/(2*ty)+hh:hor+K/(2*ty))+JZ*K/ty,top=bot-hh,x0=Math.max(0,sxc-ww/2|0),x1=Math.min(VW,sxc+ww/2|0),lf=FLI[(e.y*4|0)*MW*4+(e.x*4|0)]*fl+tr*.3/(1+ty*ty*.2);
   if(e.name&&ty<2.3&&sxc-ww/2<160&&sxc+ww/2>160&&ty<zb[160]+.5&&ty<spD){spT=e;spD=ty}
   for(var x=x0;x<x1;x++){if(ty>=zb[x])continue;var tu=((x-(sxc-ww/2))/ww*t.w)|0;if(tu<0||tu>=t.w)continue;var y0=Math.max(0,top|0),y1=Math.min(VH,bot|0);for(var y=y0;y<y1;y++){var v=((y-top)/hh*t.h)|0;if(v<0||v>=t.h)continue;var q=t.d[v*t.w+tu];if(!(q>>>24))continue;if(e.ghost&&((x+y)&1))continue;if(q>>>24==254){px[y*VW+x]=q+0x01000000;continue}var li=(e.ghost?.95:lf)*15+DITH[(x&1)+((y&1)<<1)]|0;if(li>15)li=15;px[y*VW+x]=0xFF000000+(((q>>16&255)*SB2[li]>>8)<<16)+(((q>>8&255)*SG[li]>>8)<<8)+((q&255)*SR[li]>>8)}}});
  tgt=null;var nf=-1,ns='';
@@ -364,7 +365,7 @@ var stepT=0;function update(dt){T+=dt;msgT-=dt;roomT-=dt;faceJoy-=dt;thrust=Math
  var pl=(keys.KeyF?1:0)-(keys.KeyR?1:0);pitch=Math.max(-70,Math.min(70,pitch-pl*90*dt));vec();
  var fw=(keys.KeyW||keys.ArrowUp?1:0)-(keys.KeyS||keys.ArrowDown?1:0),st=(keys.KeyD?1:0)-(keys.KeyA?1:0),acc=run?30:17,ax=(DX*fw-DY*st),ay=(DY*fw+DX*st),l=Math.hypot(ax,ay)||1;vx+=ax/l*acc*dt*(fw||st?1:0);vy+=ay/l*acc*dt*(fw||st?1:0);var fr=Math.pow(.0009,dt);vx*=fr;vy*=fr;
  var nx=PX+vx*dt,ny=PY+vy*dt;if(!blocked(nx,PY))PX=nx;else vx=0;if(!blocked(PX,ny))PY=ny;else vy=0;
- var sp=Math.hypot(vx,vy);bob+=sp*dt*3.2;stepT+=sp*dt;if(stepT>1.1){stepT=0;sfx('step')}
+ if(JZ>0||JV>0){JZ+=JV*dt;JV-=5*dt;if(JZ<=0){JZ=0;JV=0;sfx('step')}}var sp=Math.hypot(vx,vy);bob+=sp*dt*3.2;stepT+=sp*dt;if(stepT>1.1){stepT=0;sfx('step')}
  var r=roomOf(PX|0,PY|0);if(r!=lastRoom){lastRoom=r;roomMsg=r;roomT=2.2}}
 function vec(){DX=Math.cos(ANG);DY=Math.sin(ANG);CX=-DY*.66;CY=DX*.66}
 // ---------- use ----------
@@ -386,7 +387,7 @@ function roomOfKey(sl){var c=+String(sl).split(':')[0]>>2;return roomOf(c%MW,c/M
 // ---------- panels ----------
 var ui=$('ui'),inUI=false;
 function open_(h){ui.innerHTML='<div class="pg">'+h+'</div>';ui.hidden=false;ui.scrollTop=0;inUI=true;mode='ui';keys={};paintIcons();sfx('page')}
-function closeUI(){ui.hidden=true;ui.innerHTML='';inUI=false;mode='play';$('menu').hidden=true;cv.focus();keys={}}
+function closeUI(){ui.hidden=true;ui.innerHTML='';inUI=false;mode='play';$('menu').hidden=true;cv.focus();keys={};lockTry()}
 function q(s){return ui.querySelector(s)}
 function bind(s,f){var n=ui.querySelectorAll(s);for(var i=0;i<n.length;i++)n[i].onclick=f}
 function note(h){open_(h+'<div class="row"><button id="uiX">Step back</button></div>');bind('#uiX',closeUI)}
@@ -463,17 +464,26 @@ function resetHuntWorld(){for(var k in DOORS){if(DOORS[k].lock){DOORS[k].opened=
 $('tPal').onclick=function(){startMode('palace')};$('tHunt').onclick=function(){startMode('hunt')};
 $('mCode').onclick=function(){$('code').value=saveCode();$('code').select()};
 $('mLoad').onclick=function(){var ok=loadCode($('code').value.trim());$('code').value=ok?'':'That code would not load.';if(ok)closeUI()};
-function saveCode(){S.x=PX;S.y=PY;S.a=ANG;S.seen=packSeen();dirty=false;return btoa(unescape(encodeURIComponent(JSON.stringify(S))))}
+function saveCode(){S.ctl=CTL;S.x=PX;S.y=PY;S.a=ANG;S.seen=packSeen();dirty=false;return btoa(unescape(encodeURIComponent(JSON.stringify(S))))}
 function packSeen(){var o=[];for(var i=0;i<seen.length;i++)if(seen[i])o.push(i);return o.join(',')}
-function loadCode(c){try{var d=JSON.parse(decodeURIComponent(escape(atob(c))));if(!d||!d.books||!d.owned)return false;S=Object.assign(fresh(),d);PX=S.x;PY=S.y;ANG=S.a;vec();seen.fill(0);String(S.seen||'').split(',').forEach(function(i){if(i)seen[+i]=1});dyn.clear();Object.keys(S.secrets).forEach(function(i){if(G[+i]=='X')openSecret(+i,true)});setupHunt();resetHuntWorld();dirty=false;$('tHunt').textContent=S.hunt?'Continue the Hunt':'The Hunt for the Lost Codex';return true}catch(e){return false}}
+function loadCode(c){try{var d=JSON.parse(decodeURIComponent(escape(atob(c))));if(!d||!d.books||!d.owned)return false;S=Object.assign(fresh(),d);if(d.ctl=='hl'||d.ctl=='basic')setCtl(d.ctl);PX=S.x;PY=S.y;ANG=S.a;vec();seen.fill(0);String(S.seen||'').split(',').forEach(function(i){if(i)seen[+i]=1});dyn.clear();Object.keys(S.secrets).forEach(function(i){if(G[+i]=='X')openSecret(+i,true)});setupHunt();resetHuntWorld();dirty=false;$('tHunt').textContent=S.hunt?'Continue the Hunt':'The Hunt for the Lost Codex';return true}catch(e){return false}}
 // ---------- input ----------
-addEventListener('keydown',function(e){if(mode=='title')return;if(e.code=='Escape'){e.preventDefault();if(inUI){closeUI()}else if(!$('menu').hidden)closeUI();else menu();return}if(inUI||mode!='play')return;var c=e.code;if(c=='Tab'){e.preventDefault();showMap=!showMap;return}if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].indexOf(c)>=0)e.preventDefault();if(c=='KeyE'||c=='Space'||c=='Enter'){if(!e.repeat)use();return}if(c=='KeyH'){$('ctl').hidden=!$('ctl').hidden;return}if(c=='KeyN'){muted=!muted;say(muted?'SOUND OFF':'SOUND ON');return}if(c=='KeyP'){menu();return}if(c=='KeyK'){$('fileSave').click();say('SEALING YOUR WORK INTO THIS FILE.');dirty=false;return}keys[c]=true});
+addEventListener('keydown',function(e){if(mode=='title')return;if(e.code=='Escape'){e.preventDefault();if(performance.now()-lockLost<300)return;if(inUI){closeUI()}else if(!$('menu').hidden)closeUI();else menu();return}if(inUI||mode!='play')return;var c=e.code;if(c=='Tab'){e.preventDefault();showMap=!showMap;return}if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].indexOf(c)>=0)e.preventDefault();if(c=='Space'&&CTL=='hl'){if(!e.repeat&&JZ<=0&&JV<=0)JV=1.3;return}if(c=='KeyE'||c=='Space'||c=='Enter'){if(!e.repeat)use();return}if(c=='KeyH'){$('ctl').hidden=!$('ctl').hidden;return}if(c=='KeyN'){muted=!muted;say(muted?'SOUND OFF':'SOUND ON');return}if(c=='KeyP'){menu();return}if(c=='KeyK'){$('fileSave').click();say('SEALING YOUR WORK INTO THIS FILE.');dirty=false;return}keys[c]=true});
 addEventListener('keyup',function(e){delete keys[e.code]});addEventListener('blur',function(){keys={}});
-var drag=null;cv.addEventListener('pointerdown',function(e){if(mode!='play')return;ac();cv.focus();drag={x:e.clientX,y:e.clientY,m:0};cv.setPointerCapture(e.pointerId)});
-cv.addEventListener('pointermove',function(e){if(!drag||mode!='play')return;var dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.m+=Math.abs(dx)+Math.abs(dy);ANG+=dx*.005;pitch=Math.max(-70,Math.min(70,pitch-dy*.35));drag.x=e.clientX;drag.y=e.clientY;vec()});
+var drag=null;cv.addEventListener('pointerdown',function(e){if(mode!='play')return;ac();cv.focus();if(CTL=='hl'){if(document.pointerLockElement===cv)use();else{lockClick=performance.now();lockTry();if(lockErr&&!lockOK)use()}return}drag={x:e.clientX,y:e.clientY,m:0};cv.setPointerCapture(e.pointerId)});
+cv.addEventListener('pointermove',function(e){if(CTL=='hl'){if(mode=='play'&&!inUI&&(document.pointerLockElement===cv||(lockErr&&!lockOK))){ANG+=Math.max(-150,Math.min(150,e.movementX))*.003;pitch=Math.max(-70,Math.min(70,pitch-Math.max(-150,Math.min(150,e.movementY))*.25));vec()}return}if(!drag||mode!='play')return;var dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.m+=Math.abs(dx)+Math.abs(dy);ANG+=dx*.005;pitch=Math.max(-70,Math.min(70,pitch-dy*.35));drag.x=e.clientX;drag.y=e.clientY;vec()});
 cv.addEventListener('pointerup',function(){if(drag&&drag.m<5&&mode=='play')use();drag=null});cv.tabIndex=0;
-$('ctl').textContent='W A S D / arrows  walk, turn\nShift  run\nmouse drag  look\nR / F  look up, down\nE / click  use, read, write\nTab  castle map\nEsc  save, shop, books\nK  quick save\nN  sound   H  hide this';
-var last=0;function loop(ts){var dt=Math.min(.05,(ts-last)/1000||0);last=ts;update(dt);frame();requestAnimationFrame(loop)}
+
+var HLTIP='W S move, A D strafe, mouse looks without holding a button, Space jumps. Click to grab the mouse, Esc to let it go.',BASICTIP='W A S D walk and sidestep, arrows turn, drag the mouse to look, Space or E to use.';
+function ctlShow(){$('ctl').textContent=CTL=='hl'?'W S  move\nA D  strafe\nmouse  look, turn\nSpace  jump\nShift  run\nE / click  use, read, write\nTab  castle map\nEsc  free the mouse, menu\nK  quick save\nN  sound   H  hide this':'W A S D / arrows  walk, turn\nShift  run\nmouse drag  look\nR / F  look up, down\nE / click  use, read, write\nTab  castle map\nEsc  save, shop, books\nK  quick save\nN  sound   H  hide this';['t','m'].forEach(function(p){$(p+'Basic').textContent=(CTL=='hl'?'[ ] ':'[x] ')+'Basic';$(p+'HL').textContent=(CTL=='hl'?'[x] ':'[ ] ')+'Half-Life style';$(p+'Tip').textContent=CTL=='hl'?HLTIP:BASICTIP})}
+function setCtl(v){CTL=v;if(v!='hl'&&document.pointerLockElement===cv)document.exitPointerLock();ctlShow()}
+function lockTry(){if(CTL!='hl'||!cv.requestPointerLock)return;try{var r=cv.requestPointerLock();if(r&&r.catch)r.catch(lockFail)}catch(e){lockFail()}}
+function lockFail(){if(performance.now()-lockClick<1500)lockErr=true}
+document.addEventListener('pointerlockerror',lockFail);
+document.addEventListener('pointerlockchange',function(){if(document.pointerLockElement===cv){lockOK=true}else{keys={};lockLost=performance.now();if(mode=='play'&&!inUI&&CTL=='hl')menu()}});
+['t','m'].forEach(function(p){$(p+'Basic').onclick=function(){setCtl('basic')};$(p+'HL').onclick=function(){setCtl('hl')}});
+ctlShow();
+var last=0;function loop(ts){var dt=Math.min(.05,(ts-last)/1000||0);last=ts;if(document.pointerLockElement===cv&&(inUI||mode!='play'))document.exitPointerLock();update(dt);frame();requestAnimationFrame(loop)}
 buildCells();buildLight();setupHunt();vec();
 udsFile.wire({buttons:['warnFile','fileSave'],get:saveCode,put:function(c){loadCode(c)}});
 if(!S.hunt)ANG=-Math.PI/2;vec();requestAnimationFrame(loop);

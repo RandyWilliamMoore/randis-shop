@@ -139,10 +139,10 @@ function playWindow(i) {
   let stop = () => {};
   const close = () => { stop(); location.hash = `#/${i.kind}/${i.slug}`; };
   // allow-scripts without allow-same-origin: the page can run, but it can't reach this site or its storage.
-  // allow-modals: games use confirm prompts. The player's own rules block ordinary loads from the internet.
+  // allow-modals: games use confirm prompts. allow-pointer-lock: mouse look in the 3D games. The player's own rules block ordinary loads from the internet.
   const start = page => {
     stop();
-    const frame = el("iframe", { src: "site/player.html", sandbox: "allow-scripts allow-modals", title: i.name, referrerpolicy: "no-referrer" });
+    const frame = el("iframe", { src: "site/player.html", sandbox: "allow-scripts allow-modals allow-pointer-lock", title: i.name, referrerpolicy: "no-referrer" });
     const hear = e => {
       if (e.source !== frame.contentWindow) return;
       if (e.data === "player-ready") {
