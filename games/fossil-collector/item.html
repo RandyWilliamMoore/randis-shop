@@ -1,0 +1,925 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Fossil Collector</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#1e1f22;color:#e6e6e6;font:14px system-ui,Segoe UI,sans-serif;padding:12px}
+h1{font-size:20px;margin:0 12px 0 0}h2{font-size:15px;margin:14px 0 6px}h3{font-size:13px;margin:10px 0 4px;color:#e2c67c}
+header{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+button{background:#2f3136;color:#e6e6e6;border:1px solid #4a4d55;border-radius:6px;padding:6px 10px;cursor:pointer;font:inherit}
+button:hover{background:#3a3d44}button:disabled{opacity:.45;cursor:default}
+button.on,button.go{background:#8a6a2c;border-color:#b08d3f}
+.warn{background:#3a3020;border:1px solid #6d5a2c;border-radius:6px;padding:7px 10px;margin-bottom:10px}
+.warn button{margin-left:6px;padding:2px 8px}
+.hide{display:none!important}.dim{color:#a2a6ad}.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0}
+.play{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start}.side{flex:1;min-width:260px}
+canvas{max-width:100%;display:block}
+#dig,#lab{background:#17181a;border-radius:8px;cursor:crosshair;touch-action:none;image-rendering:pixelated}
+.card{background:#2a2c31;border-radius:8px;padding:8px 10px;margin:6px 0}
+.bar{height:11px;background:#17181a;border-radius:6px;overflow:hidden;margin:3px 0 7px}.bar i{display:block;height:100%;background:#d99a2b}
+#toast{position:fixed;left:50%;top:12px;transform:translateX(-50%);background:#2b3a2b;border:1px solid #4d7a4d;border-radius:8px;padding:8px 14px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:20;max-width:90%}
+#toast.show{opacity:1}#toast.bad{background:#4a2420;border-color:#a0483a}
+.grid{display:flex;flex-wrap:wrap;gap:6px;min-height:30px}
+.sitecard{width:236px;text-align:left;background:#2a2c31;border:1px solid #3c3f46;border-radius:8px;padding:8px 10px;font-size:12px;line-height:1.35;color:#d7d7d7}
+.sitecard b{display:block;font-size:13px;color:#e2c67c}.sitecard:hover{border-color:#b08d3f;background:#34363c}
+.tile{width:112px;background:#2a2c31;border:1px solid #3c3f46;border-radius:8px;padding:5px 3px;text-align:center;font-size:10.5px;line-height:1.25;color:#e6e6e6}
+.tile:hover{border-color:#b08d3f}.tile canvas{margin:0 auto 3px;image-rendering:pixelated}
+.tool{width:100%;text-align:left;padding:5px 8px;margin-bottom:3px;font-size:12.5px}.tool.on{background:#8a6a2c;border-color:#d4ad58}
+.tool small{color:#a2a6ad;float:right}
+.opt{display:block;width:100%;text-align:left;margin:3px 0;padding:6px 9px;font-size:12.5px;line-height:1.35}
+.opt.on{background:#3d3620;border-color:#d4ad58}.opt small{display:block;color:#a2a6ad}
+textarea,input[type=text]{width:100%;background:#17181a;color:#e6e6e6;border:1px solid #4a4d55;border-radius:6px;padding:6px;font:13px system-ui,Segoe UI,sans-serif}
+textarea.code{height:110px;font:12px Consolas,monospace}
+.maker{background:#2a2c31;border-radius:8px;padding:8px 10px;margin:6px 0}.maker b{display:block}
+.url{user-select:all;color:#8ab4f8;font-family:Consolas,monospace;font-size:12px;word-break:break-all}
+/* The accession card and record */
+#ov{position:fixed;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:flex-start;justify-content:center;z-index:12;padding:14px;overflow:auto}
+#ovBox{background:#e7dcc0;background-image:repeating-linear-gradient(0deg,transparent 0 23px,rgba(70,90,150,.14) 23px 24px);color:#2a2115;border:1px solid #8a7648;border-radius:4px;box-shadow:0 12px 32px #000;padding:16px 18px;max-width:780px;width:100%;font:13px/1.45 Georgia,'Palatino Linotype',serif}
+#ovBox h2{margin:0 0 2px;font-size:19px;color:#5e1d14}#ovBox h3{color:#5e1d14;border-bottom:1px solid #a4905f;margin:12px 0 4px;font-size:13px;letter-spacing:.04em;text-transform:uppercase}
+#ovBox button{background:#3b2c18;color:#f0e6cb;border-color:#2a1e0f}#ovBox button:hover{background:#574224}
+#ovBox textarea,#ovBox input[type=text]{background:#f4ecd8;color:#2a2115;border-color:#a4905f;font:13px Georgia,serif}
+#ovBox button.opt{background:#ddd0ae;color:#2a2115;border-color:#a4905f}#ovBox button.opt small{color:#5e5236}#ovBox button.opt.on{background:#f1dfa4;border-color:#5e1d14;box-shadow:inset 0 0 0 1px #5e1d14}
+.recTop{display:flex;gap:12px;flex-wrap:wrap}.recTop canvas{border:5px solid #3b2c18;image-rendering:pixelated;background:#222}
+.kv{display:grid;grid-template-columns:128px 1fr;gap:1px 8px;font-size:12.5px}.kv b{color:#5e4a26;font-weight:600}
+.ty{font-family:Consolas,'Courier New',monospace;font-size:12px}
+.stamp{display:inline-block;border:2px solid #8a1c10;color:#8a1c10;padding:0 6px;transform:rotate(-3deg);font:700 12px Consolas,monospace;letter-spacing:.06em;margin-left:6px}
+.priceless{color:#8a1c10;font-weight:700;font-size:16px;letter-spacing:.04em}
+/* The archive halls */
+.hall{padding:12px;border-radius:6px;background:linear-gradient(#26231f,#191714);box-shadow:inset 0 0 40px #000;display:flex;gap:12px;flex-wrap:wrap;justify-content:center;align-items:flex-start}
+.cab{width:280px;padding:0 9px 10px;border-radius:5px 5px 2px 2px;box-shadow:0 10px 20px rgba(0,0,0,.7);background:repeating-linear-gradient(92deg,rgba(0,0,0,.09) 0 2px,transparent 2px 9px,rgba(255,220,170,.04) 9px 13px),linear-gradient(#5c3a20,#3c2412)}
+.crown{margin:0 -9px 8px;padding:5px 8px;border-radius:5px 5px 0 0;background:linear-gradient(#7d532e,#4c2e18);border-bottom:3px solid #231408;text-align:center;color:#e8d29a;font:600 12px Georgia,serif;letter-spacing:.05em}
+.drawer{margin-bottom:3px;background:#120b05}
+.front{width:100%;height:30px;display:flex;align-items:center;gap:6px;padding:0 7px;border:0;border-radius:2px;color:#26160a;background:repeating-linear-gradient(91deg,rgba(0,0,0,.08) 0 2px,transparent 2px 7px,rgba(255,225,180,.06) 7px 11px),linear-gradient(#a06c3a,#80532a);border-top:1px solid #c79a64;border-bottom:2px solid #331c0d;transition:transform .3s,box-shadow .3s}
+.front:hover{background:repeating-linear-gradient(91deg,rgba(0,0,0,.08) 0 2px,transparent 2px 7px,rgba(255,225,180,.06) 7px 11px),linear-gradient(#b67f47,#8e5f30)}
+.drawer.open .front{transform:scale(1.03);box-shadow:0 7px 10px rgba(0,0,0,.65);position:relative;z-index:1}
+.drawer.target .front{box-shadow:0 0 0 2px #ffd968,0 0 14px #ffd968}
+.plate{background:linear-gradient(#efe6cd,#d8cca8);border:2px solid #b08d3f;border-radius:2px;padding:0 5px;font:600 10.5px Georgia,serif;flex:1;text-align:left;white-space:nowrap;overflow:hidden}
+.count{font-size:11px;font-weight:600;min-width:15px;text-align:right}.pull{width:30px;height:9px;border-radius:2px 2px 9px 9px;background:linear-gradient(#f0d58a,#8c6a26);box-shadow:0 2px 3px rgba(0,0,0,.6)}
+.tray{background:#202f27;background-image:radial-gradient(rgba(255,255,255,.04) 1px,transparent 1px);background-size:4px 4px;box-shadow:inset 0 9px 12px -6px #000;padding:9px;display:flex;flex-wrap:wrap;gap:6px;color:#dfe8e0;font-size:11px}
+.well{width:76px;background:#16241d;border:0;border-radius:6px;padding:4px 2px;color:#dfe8e0;font-size:9.5px;line-height:1.2;text-align:center}
+.well:hover{background:#2a4a3b}.well canvas{margin:0 auto 2px;image-rendering:pixelated}
+.index td,.index th{padding:2px 7px;font-size:12px;text-align:left;border-bottom:1px solid #33363c}.index th{color:#e2c67c}.miss{color:#60646b}
+/* The museum */
+#mstage{position:relative;width:100%;max-width:1040px;aspect-ratio:8/5;margin:0 auto;background:#000;overflow:hidden;border-radius:6px}
+#mcv{width:100%;height:100%;image-rendering:pixelated;outline:0;cursor:grab}
+#mhud{position:absolute;left:8px;top:6px;font:12px/1.4 Consolas,monospace;color:#f4e7c4;text-shadow:1px 1px 0 #000;pointer-events:none}
+#mctl{position:absolute;right:8px;top:6px;font:11px/1.4 Consolas,monospace;color:#f4e7c4;text-shadow:1px 1px 0 #000;opacity:.55;text-align:right;pointer-events:none;white-space:pre}
+#mpro{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);background:rgba(20,14,6,.82);border:1px solid #b08d3f;border-radius:5px;color:#f4e7c4;padding:4px 10px;font:12px/1.35 Georgia,serif;text-align:center;max-width:82%;pointer-events:none}
+#mpro:empty{display:none}#mcross{position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px;border:1px solid rgba(255,240,200,.7);border-radius:50%;pointer-events:none}
+</style></head><body>
+<div id="toast"></div>
+<header><h1>Fossil Collector</h1>
+<button data-v="dig" class="on">Dig sites</button><button data-v="lab">Prep lab</button><button data-v="arc">Archive halls</button><button data-v="mus">Museum</button><button data-v="real">Real fossils</button><button data-v="save">Save / Load</button>
+<span style="margin-left:auto" class="dim">Funds <b id="funds" style="color:#e2c67c"></b> &nbsp; Season <b id="season"></b></span></header>
+<div class="warn" id="warn">This tab can't save by itself: closing or reloading it resets your collection. Save to this file, or keep your save code. <button id="warnFile">Save to file</button> <button id="warnGo">Get save code</button> <span class="uds-msg"></span></div>
+
+<section id="v-dig">
+<div id="siteList"><p class="dim" id="siteIntro"></p><div class="grid" id="sites"></div></div>
+<div id="digPlay" class="play hide">
+<canvas id="dig" width="704" height="480"></canvas>
+<div class="side">
+<div class="card"><b id="digName"></b><div class="dim" id="digForm"></div><div id="digStrat" style="margin-top:4px;font-size:12.5px"></div></div>
+<div>Field days left <b id="enT"></b></div><div class="bar"><i id="enB"></i></div>
+<div class="row"><button class="tool" id="ft0" style="width:auto">1 Trowel</button><button class="tool" id="ft1" style="width:auto">2 Pick</button><button class="tool" id="ft2" style="width:auto">3 Brush</button><button class="tool" id="ping" style="width:auto">Q Sound the rock (2 days)</button></div>
+<div class="dim" style="font-size:12px">Hold the mouse on the rock to dig that way, or use WASD or the arrow keys. J jackets the nearest find that is ready. Boulders fall if you dig under them.</div>
+<div class="dim" id="ftDesc" style="font-size:12px;min-height:34px;margin-top:4px"></div>
+<h3>Finds this season</h3><div id="finds" class="dim"></div>
+<div class="row"><button id="endDig">Break camp and ship the jackets</button></div>
+</div></div></section>
+
+<section id="v-lab" class="hide">
+<div id="labShelf"><h2>Receiving shelf: plaster jackets from the field</h2><div class="grid" id="shelf"></div>
+<p class="dim" id="shelfHint"></p><h3>Tool crib: what's in the shop, and what you can buy</h3><div class="grid" id="crib"></div></div>
+<div id="labBench" class="play hide">
+<div><canvas id="lab" width="660" height="432"></canvas><div class="dim" id="probe" style="min-height:36px;margin-top:5px;font-size:12.5px;max-width:660px"></div></div>
+<div class="side">
+<div class="card"><b id="benchT"></b><div class="dim" id="benchM" style="font-size:12px"></div></div>
+<div class="card" id="coach" style="background:#34301f;border:1px solid #6d5a2c;font-size:12.5px"></div>
+<div id="toolBox"></div>
+<div class="row" style="font-size:12px;margin:4px 0">Exposed <b id="mE"></b></div><div class="bar"><i id="bE"></i></div>
+<div class="row" style="font-size:12px;margin:4px 0">Bone integrity <b id="mI"></b></div><div class="bar"><i id="bI" style="background:#6fae6f"></i></div>
+<div class="dim" id="ringKey" style="font-size:12px">Ring colour: <b style="color:#8fe08f">green</b> is safe for this tool, <b style="color:#ffc861">amber</b> is close to bone, <b style="color:#ff7f6e">red</b> is hurting it.</div>
+<div class="row"><button id="ctBtn">Book a CT scan ($250)</button><button id="finPrep" class="go">Finish prep</button><button id="backShelf">Back to the shelf</button></div>
+</div></div>
+</section>
+
+<section id="v-arc" class="hide">
+<div class="row" id="hallBtns"></div>
+<div id="filing" class="card hide"></div>
+<div id="hallBody"></div>
+</section>
+
+<section id="v-mus" class="hide">
+<div id="mstage"><canvas id="mcv" width="320" height="200" tabindex="0"></canvas><div id="mhud"></div><div id="mctl">W S walk   A D sidestep
+Arrows or drag to look
+E or click: what's ahead
+Doors lead out to the gardens</div><div id="mcross"></div><div id="mpro"></div></div>
+<div class="dim" id="musStat" style="text-align:center;margin-top:6px"></div>
+</section>
+
+<section id="v-real" class="hide">
+<div class="maker"><b>Find real in-game items here:</b>Randy's Etsy shop.<div class="url">https://www.etsy.com/shop/UberRandis</div><div>If you would like to be a sponsor or host your items, goods, and products on my store, contact me:</div><div>Comments</div><div class="url">https://github.com/RandyWilliamMoore/randis-uds/discussions</div><div>Discord</div><div class="url">https://discord.gg/83RmuHcQTR</div><div>Ko-fi</div><div class="url">https://ko-fi.com/moorescombinatoricsmatrix</div></div>
+<p>Places to start if you want real fossils or casts. These come from web search results and the sellers' own descriptions. I did not test any of them. Before buying, ask where and how the fossil was collected, whether it was restored or built from several specimens, and who signed any certificate. Fossil laws differ by country and US state, and a seller's word is not proof.</p>
+<div class="maker"><b>FossilEra: real fossils</b>An online fossil shop. Read its FAQ first.<div class="url">https://fossilera.com/pages/fossilera-faq</div></div>
+<div class="maker"><b>Fossil Realm: real fossils</b>An online store with published store policies.<div class="url">https://fossilrealm.com/pages/store-policies</div></div>
+<div class="maker"><b>The Evolution Store: certificates of authenticity</b>Explains what its certificates cover.<div class="url">https://theevolutionstore.com/certificates-of-authenticity</div></div>
+<div class="maker"><b>Bone Clones: casts</b>Says each resin cast is hand-tooled and stained to match the original.<div class="url">https://boneclones.com/page/why-choose-bone-clones</div></div>
+<div class="maker"><b>The Bone Room: museum-quality casts</b>Sells casts and fossil plaques.<div class="url">https://boneroom.com/store/c87/Museum_Quality_Casts.html</div></div>
+<div class="maker"><b>Museumize: casts</b>Says its casts come from moulds of authenticated museum specimens.<div class="url">https://www.museumize.com/collections/fossil-casts-skeletal-reproductions</div></div>
+<div class="maker"><b>PBMNH replica catalog: custom work</b>Its catalog lists custom moulding of your own specimens, plus fossil preparation, restoration and mounting. Ask them directly about price and time.<div class="url">https://www.pbmnh.org/museum-store/wp-content/uploads/2016/11/ReplicacatalognewNov2016.pdf</div></div>
+<h2>Cast wish list from your best finds</h2><textarea id="brief" class="code" readonly></textarea><div class="row"><button id="copyBrief">Copy list</button></div>
+</section>
+
+<section id="v-save" class="hide"><h2>Your save code</h2><textarea id="code" class="code" readonly></textarea>
+<div class="row"><button id="copyCode">Copy save code</button></div>
+<p class="dim">Paste it somewhere safe, such as a text file, after a good session.</p>
+<h2>Save inside this file</h2><div class="row"><button id="fileSave">Save game to this file</button><span class="dim uds-msg"></span></div>
+<h2>Load a save code</h2><textarea id="loadBox" class="code" placeholder="Paste a save code here"></textarea>
+<div class="row"><button id="loadBtn">Load (replaces your current collection)</button><span id="loadMsg" class="dim"></span></div></section>
+
+<div id="ov" class="hide"><div id="ovBox"></div></div>
+<script type="application/json" id="uds-save">""</script>
+<script id="uds-save-kit">
+// Saving inside this file: the page as it was before the game ran, plus the game's script, plus the save.
+var udsFile=(function(){
+  var shell=document.documentElement.outerHTML,handle=null;
+  function say(t){[].forEach.call(document.querySelectorAll('.uds-msg'),function(e){e.textContent=t})}
+  function stored(){try{var c=JSON.parse(document.getElementById('uds-save').textContent);return typeof c==='string'?c:''}catch(e){return ''}}
+  function text(code){
+    var main=document.getElementById('game-main').outerHTML,
+        block='<script type="application/json" id="uds-save">'+JSON.stringify(code).replace(/</g,'\\u003c')+'<\/script>';
+    return '<!doctype html>\n'+shell.replace(/<script type="application\/json" id="uds-save">[\s\S]*?<\/script>/,function(){return block}).replace(/<\/body>\s*<\/html>\s*$/,function(){return main+'</body></html>'});
+  }
+  function name(){var p=decodeURIComponent(location.pathname.split('/').pop()||'');
+    return location.protocol==='file:'&&/\.html?$/i.test(p)?p:document.title.toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.html'}
+  function download(t){var a=document.createElement('a'),u=URL.createObjectURL(new Blob([t],{type:'text/html'}));a.href=u;a.download=name();document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},5000)}
+  async function save(get){
+    var t=text(get());
+    if(window.parent!==window){
+      var done=false;
+      var ack=function(e){if(e.source===parent&&e.data&&e.data.uds==='saved'){done=true;removeEventListener('message',ack);say(String(e.data.note||'Saved.'))}};
+      addEventListener('message',ack);parent.postMessage({uds:'save-file',text:t},'*');
+      setTimeout(function(){if(!done){removeEventListener('message',ack);say("Files can't be saved from here. Use the save code.")}},2500);
+      return;
+    }
+    if(window.showSaveFilePicker){
+      try{
+        if(!handle)handle=await showSaveFilePicker({suggestedName:name(),types:[{description:'Game file',accept:{'text/html':['.html','.htm']}}]});
+        var w=await handle.createWritable();await w.write(t);await w.close();say('Saved into '+handle.name+'.');return;
+      }catch(e){if(e&&e.name==='AbortError'){say('Not saved.');return}handle=null}
+    }
+    download(t);say('Saved as a new copy in your downloads.');
+  }
+  return {stored:stored,text:text,wire:function(o){
+    o.buttons.forEach(function(id){var b=document.getElementById(id);if(b)b.onclick=function(){save(o.get)}});
+    var c=stored();if(c)o.put(c);
+  }};
+})();
+</script>
+<script id="game-main">
+var $=function(i){return document.getElementById(i)};
+function el(t,c,x){var d=document.createElement(t);if(c)d.className=c;if(x!=null)d.textContent=x;return d}
+function each(q,f){Array.prototype.forEach.call(document.querySelectorAll(q),f)}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function rng(s){return function(){s=(s+0x6D2B79F5)>>>0;var t=s;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296}}
+function clamp(v,a,b){return v<a?a:v>b?b:v}
+function money(n){return '$'+Math.round(n).toLocaleString('en-US')}
+function toast(t,bad){var d=$('toast');d.textContent=t;d.className='show'+(bad?' bad':'');clearTimeout(toast.t);toast.t=setTimeout(function(){d.className=''},3000)}
+function newId(){return Math.floor(Math.random()*4e9).toString(36)+Date.now().toString(36)}
+
+var TIERS=['Common','Uncommon','Scarce','Rare','Exceptional','Legendary'],TIERC=['#a9adb3','#79b879','#6fa8dc','#b58ae0','#e8a33d','#ff6f5e'];
+var BASEV=[40,220,1400,9000,70000,950000];
+var ERAS=['Paleozoic','Mesozoic','Cenozoic'];
+var GROUPS={INV:'Invertebrata',PIS:'Pisces',REP:'Reptilia & Pterosauria',DIN:'Dinosauria & Aves',MAM:'Mammalia',PLA:'Plantae & Ichnofossilia'};
+var PERIODS=[['CAM','Cambrian',0],['ORD','Ordovician',0],['SIL','Silurian',0],['DEV','Devonian',0],['CAR','Carboniferous',0],['PER','Permian',0],
+['TRI','Triassic',1],['JRL','Lower Jurassic',1],['JRU','Upper Jurassic',1],['CRL','Lower Cretaceous',1],['CRU','Upper Cretaceous',1],
+['PAL','Paleocene',2],['EOC','Eocene',2],['OLI','Oligocene',2],['MIO','Miocene',2],['PLI','Pliocene',2],['PLE','Pleistocene',2]];
+function perOf(id){return PERIODS.filter(function(p){return p[0]===id})[0]}
+
+// Matrix: colour, hardness, and how well each tool bites it.
+var MATS={
+shale:{n:'Black shale',c:[56,56,64],hd:1,t:{hammer:1.3,scribe:1,pick:1,pin:1,abr:1.1,acid:.1,solv:.2},d:'Splits along its bedding, so a chisel lifts whole sheets. Soft enough for an air abrasive.'},
+slate:{n:'Roofing slate',c:[66,72,86],hd:1.25,t:{hammer:1.1,scribe:1.1,pick:.9,pin:.9,abr:.9,acid:.05,solv:.1},d:'Dense, cleaved and unforgiving. Fine work goes faster with an abrasive than a needle.'},
+lime:{n:'Plattenkalk limestone',c:[206,190,150],hd:1.2,t:{hammer:.9,scribe:1,pick:.8,pin:.8,abr:.5,acid:2.6,solv:.1},d:'Carbonate rock. Dilute acid eats it quickly, and will eat a calcite shell just as fast.'},
+iron:{n:'Siderite ironstone',c:[132,84,50],hd:1.8,t:{hammer:1,scribe:1.25,pick:.7,pin:.6,abr:.25,acid:.1,solv:.05},d:'A hard concretion. Only an air scribe makes good progress near the fossil.'},
+sand:{n:'Fluvial sandstone',c:[178,130,86],hd:.9,t:{hammer:1.1,scribe:1.2,pick:1,pin:.9,abr:1.2,acid:.3,solv:.2},d:'Gritty and even. Almost every tool works, so choose by what lies beneath.'},
+mud:{n:'Bentonitic mudstone',c:[122,110,94],hd:.7,t:{hammer:.9,scribe:1,pick:1.2,pin:1.2,abr:1.4,acid:.2,solv:1.7},d:'Swelling clay. A slaking solvent loosens it with no impact at all.'},
+tuff:{n:'Lacustrine tuff',c:[172,166,150],hd:.8,t:{hammer:1.2,scribe:.9,pick:1.1,pin:1.1,abr:1.4,acid:.2,solv:.4},d:'Fine volcanic ash, laid down in a still lake. It keeps feathers, and it splits badly under a chisel.'},
+phos:{n:'Phosphatic marl',c:[200,178,122],hd:.8,t:{hammer:1.1,scribe:1.1,pick:1.1,pin:1,abr:1.3,acid:1.3,solv:.3},d:'Soft, sandy and full of shark teeth. Dilute acid helps, since teeth and bone are phosphate.'},
+tar:{n:'Asphaltic sand',c:[36,31,29],hd:.6,t:{hammer:.3,scribe:.4,pick:.8,pin:.9,abr:.2,acid:.05,solv:3.2},d:'Sticky natural asphalt. Tools clog in it. A solvent wash floats the bones out.'},
+clay:{n:'Calvert clayey sand',c:[146,136,104],hd:.5,t:{hammer:1,scribe:1,pick:1.3,pin:1.2,abr:1.3,acid:.3,solv:1.5},d:'Barely rock at all. Heavy tools waste your care here.'}};
+
+// Prep tools. dmg is by tissue: 1 bone, 2 fine bone, 3 enamel, 4 soft-tissue film, 5 calcite shell. reach is how far shock travels through matrix.
+var TOOLS=[
+{id:'hammer',n:'Hammer and chisel',r:7,rate:1.1,dust:.6,reach:.3,dmg:[0,1.4,3,2.2,4,2.6],cost:0,own:1,d:'Clears overburden fast. Shock travels through the rock: stop once bone ghosts through.'},
+{id:'scribe',n:'Air scribe',r:3,rate:1.2,dust:.5,reach:.1,dmg:[0,.28,.9,.3,1.8,.4],cost:800,d:'A pneumatic needle, the workhorse of every lab. Best near solid bone and in hard rock.'},
+{id:'pick',n:'Dental pick',r:2.4,rate:1.2,dust:.3,reach:.05,dmg:[0,.08,.25,.05,.7,.12],cost:0,own:1,d:'Patient, precise lever work. Lifts rock off tooth enamel and shell without bruising them.'},
+{id:'pin',n:'Pin vise',r:1.6,rate:.9,dust:.15,reach:.02,dmg:[0,.02,.05,.01,.18,.03],cost:120,d:'A tungsten needle under the microscope. Slowest of all, and the only safe tool on film.'},
+{id:'abr',n:'Air abrasive',r:2.6,rate:1.05,dust:.05,reach:0,dmg:[0,.05,.12,.02,.35,.2],cost:2500,d:'A jet of fine powder. Lovely on fine bone in soft rock, useless in ironstone, cruel to film if you linger.'},
+{id:'acid',n:'Acid poultice',r:4,rate:.75,dust:0,reach:0,dmg:[0,.01,.01,0,.03,2.4],cost:400,d:'Dilute acetic acid. Leaves phosphate bone alone, dissolves limestone, and destroys calcite shell.'},
+{id:'solv',n:'Solvent wash',r:4,rate:.7,dust:0,reach:0,dmg:[0,0,0,0,.02,0],cost:300,d:'Dissolves asphalt and slakes clay with no impact. Does little to real rock.'},
+{id:'brush',n:'Soft brush',r:4,rate:0,dust:0,reach:0,dmg:[0,0,.002,0,.01,0],cost:0,own:1,d:'Clears dust so you can see, and flicks away the last crumbs.'},
+{id:'cons',n:'Paraloid B-72',r:3,rate:0,dust:0,reach:0,dmg:[0,0,0,0,0,0],cost:0,own:1,d:'Paint it on exposed fragile areas. A consolidated surface takes about a third of the damage.'}];
+function toolOf(id){return TOOLS.filter(function(t){return t.id===id})[0]}
+var FIT={1:{hammer:.2,scribe:1,pick:.9,pin:.9,abr:.9,acid:1,solv:1,brush:1,cons:1},2:{hammer:0,scribe:.3,pick:.8,pin:1,abr:1,acid:1,solv:1,brush:1,cons:1},3:{hammer:.1,scribe:.6,pick:1,pin:1,abr:.9,acid:1,solv:1,brush:1,cons:1},4:{hammer:0,scribe:.1,pick:.5,pin:1,abr:.7,acid:.7,solv:.9,brush:1,cons:1},5:{hammer:.1,scribe:.5,pick:1,pin:1,abr:.7,acid:0,solv:.8,brush:1,cons:1}};
+var ZONES=['','Bone','Fine bone','Tooth enamel','Soft-tissue film','Calcite shell'];
+
+// Each site: name, place, formation, period, millions of years, matrix, cost, lat, lon, bone colour, enamel, film, shell, blurb, strata, taxa.
+// Each taxon: name, common, group, plan, plan options, tier, flags, clue, lore.
+var SITES=[
+{id:'wal',n:'Walcott Quarry',pl:'Burgess Shale, British Columbia',fm:'Stephen Formation',p:'CAM',ma:508,m:'shale',cost:0,lat:51.42,lon:-116.47,b:[150,150,160],e:[190,190,200],f:[176,170,150],s:[160,160,168],
+ d:'High on a Rocky Mountain ridge. Charles Walcott found this quarry in 1909, and a whole strange ocean is pressed into its shale as silver film.',st:['Upper talus','Greater Phyllopod Bed','Mud-slide horizon'],tx:[
+ ['Ogygopsis klotzi','Burgess trilobite','INV','trilobite',{},0,'','Broad head shield, a large tail shield, eight thorax segments.','The commonest trilobite of the talus slopes. So many moulted on this seabed that collectors once mistook the slopes for a graveyard, when it was closer to a changing room.'],
+ ['Marrella splendens','Lace crab','INV','arthro',{horns:1,legs:20},1,'F','Two great backswept head spines over many feathery legs.','The first animal Walcott described from the quarry, and the commonest, with tens of thousands known. Reflective stains near its body may be the oldest record of a shimmering colour.'],
+ ['Wiwaxia corrugata','Wiwaxia','INV','wiwaxia',{},2,'F','An oval armoured with overlapping scales and two rows of tall blades.','A slug-shaped grazer in chain mail. Its scales keep turning up singly, and for decades nobody could agree what kind of animal wore them.'],
+ ['Hallucigenia sparsa','Hallucigenia','INV','worm',{spines:7},3,'F','A slender tube with paired stiff spines and paired soft legs.','Named for its dreamlike look and first reconstructed upside down and backwards, walking on its spines. Later specimens turned it over, and a head was only confirmed in 2015.'],
+ ['Opabinia regalis','Opabinia','INV','opabinia',{},4,'F','Five stalked eyes and a long flexible nozzle tipped with a claw.','When its reconstruction was first shown at a 1972 meeting in Oxford, the audience laughed. Five eyes and a fire-hose nose: it remains the textbook case of an animal that fits nowhere.'],
+ ['Anomalocaris canadensis','Strange shrimp','INV','anomalo',{},5,'F','Two big spined grasping limbs in front, a round mouth ring, swimming flaps.','An apex predator a metre long in a world of thumbnails. Its parts were first named as three separate animals: the limb a shrimp, the mouth a jellyfish, the body a sponge.']]},
+{id:'hun',n:'Bundenbach Quarries',pl:'Hunsruck Slate, Germany',fm:'Hunsruck Slate',p:'DEV',ma:405,m:'slate',cost:350,lat:49.84,lon:7.38,b:[196,170,90],e:[216,196,120],f:[176,150,84],s:[206,178,90],
+ d:'Roofing slate mines where pyrite replaced soft animals atom by atom. Beautiful, golden, and doomed to decay in damp air unless treated.',st:['Roofing slate','Kaub beds','Pyrite horizon'],tx:[
+ ['Chotecops ferdinandi','Golden trilobite','INV','trilobite',{},0,'P','Big-eyed head shield, gilded in pyrite.','Quarrymen splitting roof slate found these glinting in the sheets. X-rays by Wilhelm Sturmer, a Siemens engineer and radiologist, revealed legs and gills still inside the rock.'],
+ ['Furcaster palaeozoicus','Bundenbach brittle star','INV','star',{},1,'P','Small central disc, five thin, whip-like arms.','Whole herds of them were smothered at once, each with its arms still splayed where the mud came down.'],
+ ['Mimetaster hexagonalis','Star mimic','INV','arthro',{horns:1,legs:14},2,'PF','A six-rayed spiny head shield over a small jointed body.','A sea-floor arthropod with a head like a snowflake. It looks like a starfish wearing a crab.'],
+ ['Nahecaris stuertzi','Nahe shrimp','INV','arthro',{legs:10},3,'PF','A large bivalved shell, a long jointed tail with a fork at its end.','An early phyllocarid crustacean, preserved in gold with its legs intact. Each one is a small argument against throwing out old roof tiles.']]},
+{id:'cle',n:'Big Creek Shale Cuts',pl:'Cleveland, Ohio',fm:'Cleveland Shale',p:'DEV',ma:360,m:'iron',cost:900,lat:41.42,lon:-81.74,b:[86,70,62],e:[176,158,120],f:[120,92,68],s:[120,110,100],
+ d:'River cuts and old highway works through black shale. Fish lie inside iron concretions, and you may split a hundred for one good head.',st:['Chagrin transition','Black shale','Concretion layer'],tx:[
+ ['Ctenacanthus compressus','Comb-spine shark','PIS','spine',{},0,'L','A long ribbed fin spine with a smooth base.','Only the spine usually survives, since a shark is otherwise cartilage. Early collectors called these "ichthyodorulites", which roughly means "fish spear stones".'],
+ ['Orodus sp.','Crushing shark','PIS','tooth',{low:1},1,'','A low, wide, ridged tooth built for crushing.','A pavement of teeth like this ground up shelled prey. No one tooth means much, but the whole mouth would have been a millstone.'],
+ ['Cladodus sp.','Cladodont','PIS','tooth',{cusps:1},2,'','One tall cusp with smaller cusps beside it.','An old form of shark tooth with many points, a pattern for gripping rather than sawing.'],
+ ['Cladoselache fyleri','Cleveland shark','PIS','fish',{film:1,shark:1},4,'F','Sleek outline, terminal mouth, a stain of muscle and even kidney.','Among the best-known early sharks in the world, and the black shale kept traces of its muscle and kidney. Several specimens have fish in the gut, swallowed tail first.'],
+ ['Dunkleosteus terrelli','Armoured terror','PIS','dunkle',{},5,'L','A heavy armoured head with self-sharpening blade jaws, and no true teeth.','One of the first true super-predators, roughly the length of a bus by older accounts, though recent studies shrink it. It had no teeth: its bony jaw blades sharpened against each other.']]},
+{id:'maz',n:'Pit 11',pl:'Mazon Creek, Illinois',fm:'Francis Creek Shale',p:'CAR',ma:309,m:'iron',cost:600,lat:41.15,lon:-88.25,b:[72,48,32],e:[90,60,40],f:[60,40,28],s:[96,70,50],
+ d:'Strip mine spoil heaps. Each ironstone nodule holds one small creature from a Carboniferous delta. Winter frost does the first split for you.',st:['Spoil heap','Francis Creek Shale','Essex fauna horizon'],tx:[
+ ['Neuropteris ovata','Seed fern','PLA','fern',{},0,'F','A frond with rounded, tongue-shaped leaflets.','Looks like a fern, but it bore seeds. Coal is largely made of forests like this one, and the swamps of its time are still lighting cities.'],
+ ['Pecopteris miltonii','Tree fern frond','PLA','fern',{narrow:1},0,'F','A frond with small, comb-like, parallel leaflets.','A leaf from a true tree fern, the commonest tall plant in the late Carboniferous swamps.'],
+ ['Euproops danae','Mazon horseshoe crab','INV','horseshoe',{},1,'','A horseshoe head shield, a small spined tail plate and a thin spike.','A tiny cousin of the modern horseshoe crab. It may have climbed onto swamp plants, unusual behaviour in its family.'],
+ ['Essexella asherae','Mazon jellyfish','INV','jelly',{},2,'F','A broad bell and a frill of soft curtain below.','The commonest thing in some layers, and collectors call the nodules "blobs". Most are ignored. An expert eye sees a jellyfish in every blob.'],
+ ['Tullimonstrum gregarium','Tully Monster','INV','tully',{},4,'F','A long soft body, a claw on a thin arm, and eyes on a crossbar.','Found by amateur Francis Tully in 1955, and the official Illinois state fossil. Scientists still argue about whether it is a vertebrate or something else entirely.']]},
+{id:'lym',n:'Black Ven Undercliff',pl:'Lyme Regis, Dorset, England',fm:'Charmouth Mudstone',p:'JRL',ma:195,m:'shale',cost:700,lat:50.73,lon:-2.93,b:[70,56,44],e:[196,172,120],f:[110,96,72],s:[208,180,88],
+ d:'The cliffs Mary Anning walked after storms, risking landslips to sell curiosities. She found her first famous ichthyosaur as a girl of about twelve.',st:['Beach ledges','Shales with Beef','Black Ven Marls'],tx:[
+ ['Gryphaea arcuata',"Devil's toenail",'INV','gryphaea',{},0,'','A thick, curled oyster shell.',"Country people carried these in their pockets against joint pain, a cure chosen because they looked like a big arthritic toenail. It did not work."],
+ ['Passaloteuthis sp.','Belemnite guard','INV','belemnite',{},0,'','A straight solid bullet of calcite.','The rear guard of a squid-like animal. Folklore called them thunderbolts, fallen from storms. Anning showed that some still had ink sacs, and artists drew with the ink.'],
+ ['Promicroceras planicosta','Marston ammonite','INV','ammonite',{},1,'P','A small coil with strong simple ribs, in pyrite.','Packed in their hundreds into marble-like slabs. Pyritised ones shine like brass and then rot on the shelf, a slow tragedy known as pyrite decay.'],
+ ['Ichthyosaurus communis','Fish lizard','REP','marine',{teeth:1},3,'L','A dolphin-shaped body, a big ring of bone round the eye, a downward tail bend.','Anning sold her first one in 1812, and it astonished Regency London. The sharp bend in the tail puzzled people until soft-tissue fossils showed a fish-like tail fin.'],
+ ['Dimorphodon macronyx','Anning flyer','REP','flyer',{mem:1,big:1},4,'F','A huge deep skull, long tail, and two kinds of teeth.','Anning found this in 1828, the first pterosaur from Britain. Its head is comically big, but it was mostly hollow struts and very light.'],
+ ['Plesiosaurus dolichodeirus','Near-lizard','REP','marine',{neck:1,teeth:1},5,'L','A very long neck, a tiny head, and four long paddles.','Anning found the first complete skeleton in 1823. Georges Cuvier doubted the absurd neck and called it a possible fake, until he examined the bones and took it back.']]},
+{id:'hol',n:'Ohmden Quarries',pl:'Holzmaden, Germany',fm:'Posidonia Shale',p:'JRL',ma:183,m:'shale',cost:1100,lat:48.63,lon:9.53,b:[110,92,70],e:[210,190,150],f:[50,44,44],s:[190,170,100],
+ d:'A stagnant Jurassic sea with no scavengers at all. Some ichthyosaurs here still show their skin outline, which took generations of careful hands to reveal.',st:['Oil shale','Fleins','Toarcian floor'],tx:[
+ ['Dactylioceras commune','Snakestone','INV','ammonite',{},0,'P','Tight coil with many fine, forked ribs.','Abbots in Whitby were said to turn snakes to stone, and enterprising dealers carved heads on these to prove it.'],
+ ['Dapedium punctatum','Spotted lozenge fish','PIS','fish',{deep:1,film:1},1,'F','A deep body, thick shiny scales and crushing teeth.','A slow reef nibbler dressed in lacquered, enamel-like armour.'],
+ ['Seirocrinus subangularis','Driftwood sea lily','INV','crinoid',{},2,'F','A very long, whip-thin stem with a feathery crown.','Giant colonies hung upside down from floating logs, trailing up to many metres of stem. The great slabs at the Hauff Museum still show the whole raft.'],
+ ['Stenopterygius quadriscissus','Ichthyosaur with skin','REP','marine',{film:1,teeth:1},4,'FL','A slim skeleton inside a dark, dolphin-like body outline.','Bernhard Hauff spent years uncovering the skin outline in the 1890s, proving the fin shape at last. Some specimens have tiny embryos inside, and one seems caught in birth.']]},
+{id:'mor',n:'Cleveland-Lloyd Basin',pl:'Emery County, Utah',fm:'Morrison Formation',p:'JRU',ma:150,m:'mud',cost:1200,lat:39.32,lon:-110.69,b:[86,62,46],e:[190,170,130],f:[100,84,70],s:[120,100,80],
+ d:'River plains of giants, and a quarry packed with predators. The Bone Wars of Cope and Marsh were fought across this formation, with bribes, spies and dynamite.',st:['Brushy Basin Member','Salt Wash Member','Bone-bed'],tx:[
+ ['Agathoxylon hopperi','Petrified conifer','PLA','wood',{},0,'L','Woody grain and growth rings turned to agate.','Trunks turned to bright stone by silica from volcanic ash. Even now you can count its years and see which were dry.'],
+ ['Eubrontes sp.','Three-toed trackway','PLA','track',{},0,'L','Three toes, no bone at all.','A footprint is an animal caught in the act of being alive. It belongs to a different kind of science, since the track rarely tells you who made it.'],
+ ['Camarasaurus supremus','Chambered lizard vertebra','DIN','vertebra',{},1,'L','A hollowed vertebra with large air spaces.','The commonest sauropod of the Morrison. Its bones hold chambers for air sacs, a clever way to save weight at fifty feet long.'],
+ ['Allosaurus fragilis (manus)','Hand claw','DIN','claw',{},2,'','A big curved claw, with a groove and a bony grip.','From the hand of the top predator of its time. It was built for gripping and tearing, and the groove once carried blood vessels under a horn sheath.'],
+ ['Stegosaurus stenops','Plated lizard','DIN','plate',{},3,'L','A broad, thin kite-shaped plate with branching blood vessels.','Marsh thought the plates lay flat like a roof, hence the name. They actually stood upright. Whether for display or heat, no one is sure: the veins show they were alive with blood.'],
+ ['Allosaurus fragilis','Big Al\'s cousin','DIN','skull',{},4,'L','Long skull, a brow crest over each eye, blade-like teeth.','The Cleveland-Lloyd quarry holds more Allosaurus than anywhere on Earth, maybe trapped in a predator-trap bog. It used its head like a hatchet.'],
+ ['Diplodocus carnegii','Dippy','DIN','skel',{sauro:1},5,'L','A long whiplash tail and peg-like teeth at the front of a small head.','Andrew Carnegie paid for casts and gave them to kings and presidents across the world, who could hardly refuse. For many people in Europe, their first dinosaur was this same animal.']]},
+{id:'sol',n:'Eichstatt Plattenkalk',pl:'Solnhofen, Bavaria, Germany',fm:'Solnhofen Limestone',p:'JRU',ma:150,m:'lime',cost:1500,lat:48.89,lon:11.0,b:[130,82,44],e:[150,100,60],f:[150,120,86],s:[190,160,110],
+ d:'Lithography stone from warm salty lagoons. Every slab was once split for printers, and a few are the most precious rocks on Earth.',st:['Flagstone','Lithographic beds','Lagoon floor'],tx:[
+ ['Saccocoma tenella','Drifting sea lily','INV','star',{},0,'','A tiny, stemless, starry crinoid with fine feathered arms.','Thousands to the slab, like dust thrown across paper. Almost no-one looks twice, yet it may be the commonest fossil of the lagoon.'],
+ ['Leptolepides sprattiformis','Solnhofen sprat','PIS','fish',{},0,'','A small slender fish with neat ribs and a forked tail.','Whole shoals died together in lagoons too salty for life. Quarry workers have been setting aside good ones to sell for generations.'],
+ ['Aeger tipularius','Long-legged prawn','INV','arthro',{legs:12,antenna:1},1,'F','A slim prawn with very long, spiny front legs.','Occasionally found at the end of its own death-trail, a line of scratches where it staggered across the lethal lagoon floor.'],
+ ['Pterodactylus antiquus','Winged finger','REP','flyer',{mem:1},3,'F','A long jaw with few teeth, a short tail, and a very long fourth finger.','The first pterosaur ever named, in 1784, by Collini who thought it a sea creature. Cuvier recognised it as a flying reptile, and Sommerring insisted it was a bat.'],
+ ['Compsognathus longipes','Elegant jaw','DIN','skel',{small:1},4,'','A chicken-sized two-legged skeleton, thrown-back neck, a lizard in the stomach.','For a century the smallest dinosaur known. One of the two skeletons has a whole lizard, Bavarisaurus, inside its ribs.'],
+ ['Archaeopteryx lithographica','First bird','DIN','flyer',{feath:1},5,'F','Feathered wings around a toothed, clawed, long-tailed reptile skeleton.','Found just two years after On the Origin of Species, and bought by London for about 700 pounds. It remains the most valuable fossil ever to look up from a printer\'s stone.']]},
+{id:'yix',n:'Sihetun Lake Beds',pl:'Liaoning, China',fm:'Yixian Formation',p:'CRL',ma:125,m:'tuff',cost:2200,lat:41.6,lon:120.8,b:[72,54,44],e:[186,170,134],f:[58,46,40],s:[120,110,90],
+ d:'A forested lake, smothered in ash from nearby volcanoes again and again. These beds taught the world that many dinosaurs wore feathers.',st:['Jianshangou ash','Feather shales','Lower lake beds'],tx:[
+ ['Lycoptera davidi','Sun-eyed fish','PIS','fish',{},0,'','A small fish with a large eye and a slim, deep-forked tail.','Sold in tourist markets by the box, Lycoptera was often the first sign of a good bed. Local farmers once used the slabs as roof tiles.'],
+ ['Confuciusornis sanctus','Confucius bird','DIN','flyer',{feath:1,beak:1},1,'F','A true toothless beak with two very long tail streamers.','The first known bird with a horny beak. Hundreds of specimens are known, some apparently male and female in the same lake bed.'],
+ ['Archaefructus liaoningensis','Ancient fruit','PLA','leaf',{},2,'F','A weak stem with small seed pods near the top and thin leaves.','Described as one of the earliest flowering plants. It grew in water and had not yet got as far as petals.'],
+ ['Sinosauropteryx prima','Chinese lizard wing','DIN','skel',{small:1,film:1},3,'F','A small two-legged skeleton with a dark halo of fuzz.','In 1996 the first non-bird dinosaur seen with feather fuzz. Later work on pigment cells suggested a ginger body with a striped tail and a bandit mask.'],
+ ['Microraptor gui','Four-winged dinosaur','DIN','flyer',{feath:1,four:1},4,'F','Long feathers on the legs as well as the arms.','A crow-sized dinosaur with four wings. Its feathers had an iridescent black sheen, and one specimen was killed in the act of eating a fish.'],
+ ['Yutyrannus huali','Beautiful feathered tyrant','DIN','skel',{film:1},5,'FL','A big tyrannosauroid with long fibres all along the body.','Nine metres long, and feathered from end to end. It wrecked the old idea that big animals could not be fluffy.']]},
+{id:'gob',n:'Bayn Dzak Cliffs',pl:'Flaming Cliffs, Mongolia',fm:'Djadokhta Formation',p:'CRU',ma:75,m:'sand',cost:2600,lat:44.13,lon:103.73,b:[226,214,190],e:[240,232,214],f:[150,120,90],s:[160,140,120],
+ d:'Red sandstone dunes where sudden sandslides buried animals alive. Roy Chapman Andrews\' 1920s expeditions came here by camel and car and found the first famous nests.',st:['Windblown dune','Red sands','Interdune floor'],tx:[
+ ['Deltatheridium pretrituberculare','Gobi little beast','MAM','mskull',{tiny:1},1,'','A tiny skull with sharp, triangular cheek teeth.','Mammals lived under the feet of dinosaurs for a very long time. This small hunter was one of the fierce ones, and it may have eaten even smaller things.'],
+ ['Pinacosaurus grangeri','Plank lizard','DIN','plate',{armor:1},2,'L','A bony knobbed armour plate with a raised keel.','A young herd died all together in a sandstorm, packed side by side and facing the same way. It tells us these armoured animals were sociable.'],
+ ['Protoceratops andrewsi','First horned face','DIN','cer',{noh:1},2,'L','A parrot beak and a broad neck frill, no proper horns.','So common in the Gobi that some have suggested it inspired griffin stories, though historians dispute that idea. It has been called the sheep of the Cretaceous.'],
+ ['Citipati osmolskae','Sitting mother','DIN','eggs',{},3,'F','A ring of long, paired eggs laid in a circle.','In the 1920s the first nest was blamed on a passing "egg thief", Oviraptor. Decades later a brooding adult was found sitting on such a nest, and the name was left as an insult it never earned.'],
+ ['Velociraptor mongoliensis','Swift seizer','DIN','skull',{small:1},4,'F','A long, low, upturned skull with hooked teeth.','Actually the size of a large turkey, and it had quill knobs on its arm bones for feathers. Movies owe a lot to a much larger relative called Deinonychus.'],
+ ['Velociraptor vs Protoceratops','The Fighting Dinosaurs','DIN','fight',{},5,'LF','Two skeletons locked together: a sickle claw at a frilled throat.','Found by a Polish-Mongolian expedition in 1971. A sand dune fell on two animals in mid-battle and held them that way for 75 million years. It is a national treasure of Mongolia.']]},
+{id:'hel',n:'Sand Creek Badlands',pl:'Garfield County, Montana',fm:'Hell Creek Formation',p:'CRU',ma:67,m:'mud',cost:3000,lat:47.63,lon:-106.9,b:[58,42,34],e:[170,134,92],f:[82,68,54],s:[104,90,76],
+ d:'The last days of the dinosaurs, exposed in crumbling gumbo. Barnum Brown found the first Tyrannosaurus near here in 1902. Don\'t dig in the rain.',st:['Upper Hell Creek','Channel sands','Lower floodplain'],tx:[
+ ['Platanites sp.','Sycamore leaf','PLA','leaf',{broad:1},0,'F','A broad, veined leaf with a wavy edge.','The latest Cretaceous forest looks almost familiar. Tree leaves like this were here, watching.'],
+ ['Edmontosaurus annectens','Duckbill vertebra','DIN','vertebra',{},0,'L','A sturdy spool-shaped vertebra with a tall spine.','The commonest big dinosaur of the Hell Creek, and a favourite lunch. Some tail vertebrae even show healed tooth bites from a Tyrannosaurus.'],
+ ['Tyrannosaurus rex (dens)','Rex tooth','DIN','tooth',{ser:1},1,'','A thick serrated banana of a tooth.','Teeth were shed all the time and collectors can often buy one. Each serration is shaped to grip flesh, and the root you see here was once deep in a skull.'],
+ ['Triceratops horridus (cornu)','Brow horn','DIN','horn',{},2,'L','A long pointed bony core with blood-vessel grooves.','Marsh first named a horn like this a giant bison in 1887. A year or two later a skull showed him his mistake.'],
+ ['Ankylosaurus magniventris','Fused lizard','DIN','plate',{armor:1},3,'L','A heavy bony knob with a rough keeled surface.','Known from surprisingly few bones for how famous it is. Barnum Brown described it in 1908, and no complete skeleton has been found.'],
+ ['Triceratops horridus','Three-horned face','DIN','cer',{},4,'L','A short nose horn, two long brow horns, and a solid frill.','One of the last great dinosaurs alive, and the state fossil of South Dakota. Bite marks show T. rex tore these frills off to reach the neck.'],
+ ['Tyrannosaurus rex','Tyrant lizard king','DIN','skull',{big:1},5,'L','A huge, deep skull, thick spike teeth and forward-facing eyes.','The specimen known as Sue sold at auction in 1997 for over 8 million dollars, and in 2020 a skeleton called Stan fetched over 31 million. Scientists lose these sales more often than they win.']]},
+{id:'kho',n:'Oulad Abdoun Basin',pl:'Khouribga, Morocco',fm:'Oulad Abdoun Phosphates',p:'CRU',ma:70,m:'phos',cost:1800,lat:32.9,lon:-6.9,b:[120,86,50],e:[46,40,36],f:[150,130,90],s:[180,160,120],
+ d:'Vast phosphate mines. The same rock that feeds crops worldwide is thick with the teeth and bones of Cretaceous seas. Workers hand-sort what the machines turn up.',st:['Maastrichtian top','Phosphate couche','Lower couche'],tx:[
+ ['Enchodus libycus','Sabre-toothed herring','PIS','tooth',{thin:1},0,'','A very long, thin fang with a flat base.','A fish of no more than a metre with teeth far too large for its head. Its teeth are in every mine bucket in Khouribga.'],
+ ['Otodus obliquus','Early mega-tooth','PIS','tooth',{cusps:1},1,'','A big, smooth-edged triangular tooth with two side cusps.','An ancestor in the lineage that led to Megalodon. Over millions of years its side cusps shrank away and serrations grew in.'],
+ ['Mosasaurus beaugei (dentary)','Mosasaur jaw','REP','jaw',{},3,'L','A long lower jaw with conical teeth in a row.','Fully marine lizards, and their closest living relatives may be snakes and monitor lizards. Dealers often "improve" these jaws with teeth stuck in from elsewhere, so look carefully.'],
+ ['Mosasaurus hoffmannii','Meuse lizard','REP','marine',{big:1,teeth:1},5,'L','An enormous lizard head, double hinged jaws and a shark-like tail.','The first was dug from a Dutch chalk mine in about 1764. The French army seized it in 1794, and legend says they paid a ransom of 600 bottles of wine for it.']]},
+{id:'grn',n:'Fossil Lake Quarries',pl:'Kemmerer, Wyoming',fm:'Green River Formation',p:'EOC',ma:52,m:'lime',cost:1600,lat:41.79,lon:-110.67,b:[80,58,40],e:[140,110,80],f:[110,86,60],s:[140,120,90],
+ d:'A warm Eocene lake bed of paper-thin limestone. Fish come by the hundred, and every so often a bird, a bat or a stingray lies among them.',st:['Split-fish layer','18-inch layer','Lake floor'],tx:[
+ ['Knightia eocaena','Lake herring','PIS','fish',{},0,'','A small sardine-like fish with fine ribs and scales.','The state fossil of Wyoming, and probably the most sold fossil in the world. Mass deaths left whole slabs tiled with them.'],
+ ['Priscacara liops','Spiny perch','PIS','fish',{deep:1},1,'','A round, deep body with stout spines on top and bottom.','A little round perch from the warm shallows. Its stout spines may have saved it from gars, and sometimes did not.'],
+ ['Sabalites powellii','Palm frond','PLA','fern',{palm:1},2,'F','A huge fan-shaped leaf.','Palms in Wyoming, a sign of how warm the Eocene was. Some slabs are taller than a person and sell to hotel lobbies.'],
+ ['Heliobatis radians','Sun ray','PIS','ray',{},3,'F','A round disc with radiating bones and a long barbed tail.','A freshwater stingray, named by O. C. Marsh in 1877, in the middle of his feud with Cope.'],
+ ['Icaronycteris index','Dawn bat','MAM','flyer',{mem:1,bat:1},5,'F','A complete tiny skeleton with long finger bones and sharp teeth.','Among the oldest known bats, and it already looks like a bat. Whatever came before is still missing, one of the great gaps in the mammal record.']]},
+{id:'cal',n:'Calvert Cliffs',pl:'Chesapeake Bay, Maryland',fm:'Choptank Formation',p:'MIO',ma:15,m:'clay',cost:800,lat:38.45,lon:-76.42,b:[78,64,46],e:[60,52,50],f:[120,100,70],s:[190,172,130],
+ d:'Soft sea cliffs, dropping shark teeth onto the beach after every storm. Ecphora, the local star, is the state fossil of Maryland.',st:['Beach wash','Shell beds','Zone 10 bed'],tx:[
+ ['Ecphora gardnerae','Rust snail','INV','gastropod',{},0,'','A heavy spiral shell with four flat, rib-like blades.','Probably the first North American fossil to be pictured in a European book, in the late 1600s. Its shell is a rusty brown, the original colour, kept for 15 million years.'],
+ ['Balaenoptera sp. (bulla)','Whale ear bone','MAM','ear',{},1,'','A dense, curled, snail-like bone.','The densest bone in a whale, so it survives after the rest is gone. Beachcombers often mistake them for odd stones, or for a face.'],
+ ['Squalodon calvertensis','Shark-toothed dolphin','MAM','jaw',{},3,'L','A long jaw with front teeth like pegs and rear teeth like shark teeth.','An early toothed whale, with teeth that may fool you into thinking of a shark. Its family left no living descendants.'],
+ ['Otodus megalodon','Megalodon','PIS','tooth',{ser:1,big:1},3,'','A big serrated triangle wider than your palm, with a dark neck.','Teeth as big as a hand, from a shark of perhaps 15 metres or more. Its ancient teeth were once called tongue stones, or glossopetrae, and thought to be dragons\' tongues.'],
+ ['Otodus megalodon (columna)','Megalodon spine','PIS','column',{},5,'L','A long row of big round vertebrae, side by side.','Cartilage skeletons almost never fossilise, and a run of vertebrae is exceptionally rare. Almost everything else we know about this animal comes from its teeth.']]},
+{id:'lab',n:'Pit 91',pl:'Rancho La Brea, Los Angeles',fm:'Asphaltic Sands',p:'PLE',ma:.03,m:'tar',cost:1000,lat:34.06,lon:-118.36,b:[52,34,24],e:[90,62,34],f:[40,30,24],s:[60,50,40],
+ d:'Natural asphalt pools in the middle of a city. A bison gets stuck, the wolves come for it, and they get stuck too. It has been going on for 50,000 years.',st:['Upper seep','Pit deposit','Deep asphalt'],tx:[
+ ['Actinemys marmorata','Pond turtle','REP','turtle',{},0,'','A low oval shell with plates in a mosaic.','One of the smaller residents of the pits. Most animals here are predators, drawn by the trap, but some just lived in the ponds.'],
+ ['Aenocyon dirus','Dire wolf','MAM','mskull',{},1,'L','A broad wolf skull with a high crest and massive teeth.','Over 4,000 have come out of the pits, far more than any other mammal here. Genetic work suggests it was only a distant cousin of the grey wolf.'],
+ ['Paramylodon harlani (ungula)','Ground sloth claw','MAM','claw',{big:1},2,'L','A big curved digging claw, oval in section.','Ground sloths could reach the treetops and carried pebble-like bones in their skin. Thomas Jefferson once took a sloth claw for a giant lion\'s.'],
+ ['Smilodon fatalis','Sabre-toothed cat','MAM','mskull',{sabre:1},3,'L','Two long, flattened sabres and a huge jaw gape.','The state fossil of California. More than 2,000 skulls exist, yet nobody agrees quite how it used those fragile, knife-like teeth.'],
+ ['Aiolornis incredibilis','Incredible teratorn','DIN','flyer',{big:1,beak:1,mem:0},4,'F','Giant bird bones with a broad, hooked beak.','A soaring giant with a wingspan of perhaps five metres. Its smaller relatives are common in the pits, drawn down to feed on the trapped and dying.'],
+ ['Mammuthus columbi','Columbian mammoth','MAM','tusk',{},5,'L','A great curved tusk, ringed with growth lines.','Bigger than a woolly mammoth and almost hairless. This one is carefully cradled, as tusks crack apart when they dry. Each growth line in it is a year of a real life.']]}];
+SITES.forEach(function(s,si){s.tx=s.tx.map(function(a,ti){return {si:si,ti:ti,n:a[0],c:a[1],g:a[2],pl:a[3],o:a[4],tier:a[5],fl:a[6],clue:a[7],lore:a[8]}})});
+var THORNE={si:6,ti:99,n:'Mnemosaurus thornei',c:'The Ninth Drawer specimen',g:'DIN',pl:'skel',o:{film:1},tier:5,fl:'FL',clue:'A feathered, long-necked runner, unlike anything in the literature.',lore:'Invented for this game: no such animal exists. Dr Thorne\'s last find, withheld for ninety years, and now in your hands. Every drawer has a ninth in the end.'};
+function taxOf(si,ti){return ti===99?THORNE:SITES[si].tx[ti]}
+var ALLTAX=[];SITES.forEach(function(s){ALLTAX=ALLTAX.concat(s.tx)});
+
+var ANEC=['Spotted by the field cook while looking for a dropped spoon.','Found in the wall of a trench dug for something else.','Located after a thunderstorm stripped a metre of slope overnight.','The party nearly drove over it, twice.','The landowner says the family has used this rock as a doorstop.','Marked for jacketing just as the water ran out.','Found on the last day of the season, as is traditional.','Exposed by a wandering goat, credited in the field book.','A student insisted it was only a root. It was not a root.','The jacket fell off the truck once, and nobody will say by how much.','Hauled out by hand after the winch failed.','Found directly beneath the camp latrine, which was moved.','Field crew argued over this one for three days, until the rain settled it.','Discovered while looking for shade.','The GPS died, so the locality was fixed with a compass and bad language.','An older quarry mark was found nearby: somebody stopped short of it a century ago.'];
+var REMARKS=[['A workaday specimen, and a useful one. Collections are built on such things.','Good teaching material; expect it to be handled by generations of undergraduates.'],['A pleasing, honest specimen, worth a good label.','Worth keeping for comparison with the older material in the drawer.'],['Few collections have a good one of these. Keep it out of direct light.','Visiting researchers will ask for this by number.'],['Requests to study this will arrive within the year. Log every loan.','Rare enough that a poor preparation would be remembered against the institution.'],['A specimen to build a gallery around. It should not leave the building lightly.','Careers have been made from less. Insure it first.'],['Of national significance. Its export would be debated in parliament.','There is this one, and there is every other fossil in the building.']];
+var LETTERS=[
+['12 May 1926, Lyme','You will have heard I left the Royal Society meeting in a temper. It is quite true. They have filed the Black Ven specimens by donor instead of by stratum. I have told the Trustees I will have a proper archive of Deep Time, with drawers for every age, or none at all.'],
+['3 Aug 1926, Solnhofen','Herr Maxberg at the quarry says I look at his stone like a man reading a letter. I told him I am. Every slab is a page, and I do not think anyone has ever finished the book. I have begun a list of the drawers I will need. It runs to eight cabinets.'],
+['19 Oct 1927, Cleveland','Eleven weeks in a road cut, one good jaw blade. My assistant Pruitt asks why I bother to log the failures. Because the failures are data, Pruitt, and because I can\'t remember what I did on Tuesday without the book. Do log everything, whoever reads this.'],
+['2 Jul 1928, Flaming Cliffs','Andrews\' men gave me dried mutton and very little else. Their camel lines stretch to the horizon. I will not say what I found in the red sand beyond their last stake. It does not belong to any order I know.'],
+['14 Feb 1929, London','I had the find crated as "Sundry Reptilia". The Keeper asked for a Latin name for the ledger. I said I would give it one when it told me what it was. He said that is not how classification works. I said I have noticed.'],
+['30 Sep 1929, at the Museum','I keep the crate in the Mesozoic Hall now. I have asked the joiner for one more drawer in Cabinet Four, below the usual eight, unlabelled. He is a good man and he does not ask. Pruitt says the numbering will confuse people. Only the people who need confusing.'],
+['8 Mar 1930, at the Museum','I have consolidated it in shellac, God forgive me, as it was all I had that night. It will yellow. If you are reading this and you have Paraloid or some better thing that I cannot yet imagine, then be kinder to it than I was.'],
+['21 Nov 1930, at the Museum','The Trustees want the collection sold to settle the roof. I have taken the card out of the index and removed the number from the ledger. It cannot be sold if it does not exist. I am not ashamed of this, or at any rate not very.'],
+['4 Jan 1931, Lyme','Going down to the Undercliff again after the winter storms. Pruitt thinks the cliff is unsafe, and of course it is. It is the only honest place left. I have left the catalogue to whoever asks the right question of it.'],
+['Undated, in pencil','If you have found all my tins, you have dug as long as I did and you log your failures. Good. Open the ninth drawer. Her name is yours to keep or change. Tell them what she was. O.T.']];
+
+// Conservation choices. score(flags) gives 0..1; why(flags) explains.
+function has(f,c){return f.indexOf(c)>=0}
+var CONS=[
+{id:'cons',q:'Consolidant',opts:[
+ {id:'b72',n:'Paraloid B-72 in acetone',d:'The archive standard. Stable acrylic, does not yellow, removable with acetone for ever.',s:function(f){return 1},w:'Stable and fully reversible. Nobody will curse you in a hundred years.'},
+ {id:'but',n:'Butvar B-76 in ethanol',d:'A strong polyvinyl butyral. Reversible with effort, slightly less forgiving with age.',s:function(f){return has(f,'F')?.75:.9},w:'Sound, and reversible with care.'},
+ {id:'pva',n:'PVA emulsion (white glue)',d:'Cheap and water-based, widely used in the field. Goes soft in warm rooms and can trap dust.',s:function(f){return has(f,'P')?.05:has(f,'F')?.35:.65},w:'Water-borne glue. On pyrite it starts the decay you meant to stop; on film it can bleed.'},
+ {id:'cya',n:'Cyanoacrylate flood',d:'Superglue, soaked right through. Instant, strong, and practically irreversible.',s:function(f){return .2},w:'Strong, but no future curator can undo it. A black mark on the record.'},
+ {id:'shl',n:'Shellac and alcohol',d:'What the Victorians used. Glossy, yellows badly, and can crack the bone it was meant to save.',s:function(f){return .1},w:'A historic mistake, repeated. It will darken and shrink.'},
+ {id:'non',n:'No consolidant',d:'Leave the surface untreated. The best choice only for sound, dense specimens.',s:function(f){return has(f,'F')||has(f,'P')?.15:.85},w:'Clean, honest and reversible, as long as the surface can stand it.'}]},
+{id:'treat',q:'Stabilising treatment',opts:[
+ {id:'none',n:'None needed',d:'For chemically stable specimens.',s:function(f){return has(f,'P')?.05:1},w:'Correct for stable material. Pyrite, though, will rot if you do nothing.'},
+ {id:'eth',n:'Ethanolamine thioglycollate',d:'Neutralises active pyrite decay in an alcohol bath, the modern treatment.',s:function(f){return has(f,'P')?1:.4},w:'The right chemistry for pyrite, wasted on anything else.'},
+ {id:'amm',n:'Ammonia vapour',d:'An older pyrite treatment. It works and it is unpleasant.',s:function(f){return has(f,'P')?.75:.2},w:'Effective on pyrite if old-fashioned. Pointless and harsh otherwise.'},
+ {id:'deg',n:'Solvent degrease',d:'Lifts residual asphalt or oil out of pores before sealing.',s:function(f,t,si){return SITES[si].m==='tar'?1:.45},w:'Essential on tar-soaked bone, unnecessary elsewhere.'},
+ {id:'wash',n:'Water wash',d:'Soak it clean. Cheap and thorough.',s:function(f){return has(f,'P')?0:has(f,'F')?.2:.55},w:'Water is the enemy of pyrite and clay-held film.'},
+ {id:'cast',n:'Silicone mould and resin cast',d:'Moulds the specimen so a cast can stand in for it on loan. Adds a cast to the record.',s:function(f){return has(f,'F')?.2:.85},w:'Good insurance on robust bone. Moulding can pull fragile surfaces straight off.'}]},
+{id:'rep',q:'Repair',opts:[
+ {id:'none',n:'Leave breaks as found',d:'Record the breaks and do nothing. Honest, if not handsome.',s:function(f,t,si,dam){return dam>.1?.55:1},w:'Fine for a clean specimen, less so when pieces are loose.'},
+ {id:'par',n:'Paraloid B-72, 40% adhesive',d:'Glue the breaks with the same reversible acrylic. Slow to set.',s:function(f,t,si,dam){return has(f,'L')?.8:1},w:'Reversible, and the standard for all but the heaviest joins.'},
+ {id:'epo',n:'Tinted epoxy with a reversible barrier',d:'Structural joins for heavy bones, with a barrier coat so it can be undone.',s:function(f,t,si,dam){return has(f,'L')?1:.35},w:'Right for massive bones that bear weight. Overkill on small things.'},
+ {id:'cya',n:'Spot cyanoacrylate',d:'Fast repair of tiny breaks.',s:function(f){return .55},w:'Quick and common, but it ages badly.'},
+ {id:'fake',n:'Sculpted infill, not disclosed',d:'Sculpt the missing parts, tint them to match and say nothing. It will look perfect.',s:function(f){return 0},w:'This is how the Archaeoraptor scandal happened. The record now carries a warning.',flag:1}]},
+{id:'house',q:'Housing',opts:[
+ {id:'pla',n:'Plastazote cradle, acid-free tray',d:'Inert foam cut to the specimen\'s shape, in a tray for a drawer.',s:function(f){return has(f,'L')?.75:1},w:'Inert and supportive. The archive default.'},
+ {id:'sil',n:'Silica-gel microclimate box',d:'A sealed box at under 40% relative humidity, with an indicator card.',s:function(f){return has(f,'P')?1:.8},w:'Essential for pyrite, and good for anything.'},
+ {id:'pls',n:'Plaster field cradle',d:'A rigid support for heavy, awkward bones.',s:function(f){return has(f,'L')?1:has(f,'F')?.25:.5},w:'Right for big bones, too crude for delicate ones.'},
+ {id:'cot',n:'Cotton wool in a box',d:'Traditional, soft and cheap.',s:function(f){return has(f,'F')?.1:.4},w:'Fibres snag every fine edge, and they will take fragments away with them.'},
+ {id:'cdb',n:'Corrugated cardboard box',d:'Whatever was in the stores.',s:function(f){return .15},w:'Acidic and unsupportive. It gets a stern note from the registrar.'}]}];
+function optOf(cat,id){var c=CONS.filter(function(x){return x.id===cat})[0];return c.opts.filter(function(o){return o.id===id})[0]||c.opts[0]}
+// ---- Fossil shapes: every specimen is a tissue map on a 110 x 72 grid, drawn from its seed.
+var W=110,H=72;
+function Stamp(seed,o){this.g=new Uint8Array(W*H);this.k=new Uint8Array(W*H);var r=rng(seed);this.r=r;this.a=(r()-.5)*.28;this.fl=r()<.5?-1:1;this.s=.93+r()*.07;this.ux=0;this.uy=0;this.us=1;this.o=o||{}}
+Stamp.prototype.back=function(px,py){var dx=px-55,dy=py-36,c=Math.cos(-this.a),s=Math.sin(-this.a),x=(dx*c-dy*s)/this.s*this.fl,y=(dx*s+dy*c)/this.s;return [(x-this.ux)/this.us+55,(y-this.uy)/this.us+36]};
+Stamp.prototype.fill=function(fn,z){var y,x,q;for(y=0;y<H;y++)for(x=0;x<W;x++){q=this.back(x,y);if(fn(q[0],q[1])){var i=y*W+x;if(z==='m'){if(this.g[i])this.k[i]=1}else{this.g[i]=z;if(z===0)this.k[i]=0}}}};
+Stamp.prototype.ell=function(cx,cy,rx,ry,rot,z){var c=Math.cos(rot||0),s=Math.sin(rot||0);this.fill(function(x,y){var a=x-cx,b=y-cy,u=a*c+b*s,v=b*c-a*s;return u*u/(rx*rx)+v*v/(ry*ry)<=1},z)};
+Stamp.prototype.ln=function(x0,y0,x1,y1,w0,w1,z){if(w1==null)w1=w0;var dx=x1-x0,dy=y1-y0,L=dx*dx+dy*dy||1;this.fill(function(x,y){var t=clamp(((x-x0)*dx+(y-y0)*dy)/L,0,1),a=x-x0-dx*t,b=y-y0-dy*t,w=w0+(w1-w0)*t;return a*a+b*b<=w*w},z)};
+Stamp.prototype.pl=function(p,w,z,w2){for(var i=0;i<p.length-1;i++){var a=w2==null?w:w+(w2-w)*i/(p.length-1),b=w2==null?w:w+(w2-w)*(i+1)/(p.length-1);this.ln(p[i][0],p[i][1],p[i+1][0],p[i+1][1],a,b,z)}};
+Stamp.prototype.poly=function(p,z){this.fill(function(x,y){var c=false,i,j;for(i=0,j=p.length-1;i<p.length;j=i++){if((p[i][1]>y)!==(p[j][1]>y)&&x<(p[j][0]-p[i][0])*(y-p[i][1])/(p[j][1]-p[i][1])+p[i][0])c=!c}return c},z)};
+Stamp.prototype.sub=function(x,y,s){this.ux=x-55;this.uy=y-36;this.us=s};
+Stamp.prototype.tooth=function(x,y,dx,dy,w,z){this.poly([[x-w,y],[x+w,y],[x+dx,y+dy]],z||3)};
+function teethRow(B,x0,y0,x1,y1,n,len,w){for(var i=0;i<n;i++){var t=i/(n-1||1);B.tooth(x0+(x1-x0)*t,y0+(y1-y0)*t,0,len*(.75+.35*Math.sin(t*3.1)),w)}}
+function spiral(a,b,t0,t1,cx,cy){var p=[],t;for(t=t0;t<=t1;t+=.2)p.push([cx+Math.cos(t)*a*Math.exp(-b*t),cy+Math.sin(t)*a*Math.exp(-b*t)]);return p}
+function spineChain(B,pts,r0,r1,step){var i,t,n=pts.length-1,out=[];for(i=0;i<=n*step;i++){t=i/(n*step);var q=t*n,a=Math.min(n-1,q|0),f=q-a,x=pts[a][0]+(pts[a+1][0]-pts[a][0])*f,y=pts[a][1]+(pts[a+1][1]-pts[a][1])*f;out.push([x,y,r0+(r1-r0)*t])}out.forEach(function(p){B.ell(p[0],p[1],p[2],p[2],0,1)});return out}
+var PL={
+ammonite:function(B){B.ell(55,36,31,31,0,5);B.pl(spiral(31,.075,6.28,28,55,36),.55,'m');for(var t=6.3;t<26;t+=.34){var r=31*Math.exp(-.075*t),q=r*Math.exp(-.075*6.28);B.ln(55+Math.cos(t)*r,36+Math.sin(t)*r,55+Math.cos(t+.1)*q,36+Math.sin(t+.1)*q,.4,.4,'m')}B.ell(55,36,3,3,0,'m')},
+trilobite:function(B){B.ell(55,16,22,12,0,5);B.ln(36,18,27,38,3,.6,2);B.ln(74,18,83,38,3,.6,2);B.ell(44,14,4,3,0,3);B.ell(66,14,4,3,0,3);B.ell(55,13,7,8,0,'m');for(var i=0;i<10;i++){var w=24-i*1.3,y=27+i*2.9;B.ln(55-w,y,55+w,y,1.3,1.3,5);B.ln(55-w,y+1.4,55+w,y+1.4,.3,.3,'m')}B.ell(55,61,15,8,0,5);B.ln(48,27,48,56,.3,.3,'m');B.ln(62,27,62,56,.3,.3,'m')},
+arthro:function(B,o){var n=o.legs||12,i;B.ell(55,36,30,10,0,4);for(i=0;i<n;i++){var x=31+i*(48/n);B.ln(x,28,x-3,16-(i%3),.8,.3,2);B.ln(x,44,x-3,56+(i%3),.8,.3,2);B.ln(x,28,x,44,.35,.35,'m')}B.ell(30,36,10,9,0,5);B.ln(82,36,98,28,1.4,.5,2);B.ln(82,36,98,44,1.4,.5,2);if(o.horns){B.ln(30,30,12,10,1.6,.4,2);B.ln(30,42,12,62,1.6,.4,2)}if(o.antenna){B.ln(22,33,3,16,.7,.3,2);B.ln(22,39,3,56,.7,.3,2)}},
+wiwaxia:function(B){B.ell(55,36,32,18,0,4);for(var y=22;y<52;y+=5)for(var x=26;x<86;x+=6)B.ell(x+(y%10?3:0),y,3,2,.4,2);for(var i=0;i<8;i++){B.ln(32+i*7,24,28+i*7,5,1.4,.2,3);B.ln(32+i*7,48,28+i*7,67,1.4,.2,3)}},
+worm:function(B,o){B.pl([[10,44],[30,38],[55,40],[80,36],[100,40]],2.4,4);for(var i=0;i<(o.spines||6);i++){var x=22+i*10;B.ln(x,38,x+1,16,1.1,.2,2);B.ln(x+4,41,x+5,55,.7,.3,4)}B.ell(10,44,4,3,0,4)},
+opabinia:function(B){B.ell(56,38,27,8,0,4);for(var i=0;i<12;i++){var x=33+i*4;B.ln(x,30,x,44,.3,.3,'m');B.ln(x,31,x-2,23,1.5,.5,4);B.ln(x,45,x-2,52,1.5,.5,4)}[[28,18],[33,14],[38,18],[24,24],[42,24]].forEach(function(p){B.ln(34,32,p[0],p[1],.5,.5,2);B.ell(p[0],p[1],2,2,0,3)});B.pl([[30,40],[20,50],[12,58],[6,63]],1.3,2,.8);B.ln(6,63,2,59,.7,.3,3);B.ln(6,63,1,66,.7,.3,3);B.ln(82,38,102,24,2,.4,2);B.ln(82,38,102,52,2,.4,2)},
+anomalo:function(B){B.ell(60,36,28,14,0,4);for(var i=0;i<11;i++){var x=38+i*4.2;B.ln(x,22,x+3,8+(i%2),1.5,.3,4);B.ln(x,50,x+3,64-(i%2),1.5,.3,4);B.ln(x,24,x,48,.3,.3,'m')}[[-1],[1]].forEach(function(s){var d=s[0];var p=[[34,36+d*7],[22,36+d*15],[11,36+d*18],[5,36+d*11]];B.pl(p,2.3,2,.8);for(var j=1;j<9;j++){var a=11+j*2.7;B.ln(a,36+d*(15+Math.sin(j)*2),a-2,36+d*(9),.6,.2,3)}});B.ell(37,36,6,6,0,5);B.ell(37,36,2,2,0,0);B.ell(38,23,2.6,2.6,0,3);B.ell(38,49,2.6,2.6,0,3);B.ln(88,36,104,27,2,.4,4);B.ln(88,36,104,45,2,.4,4)},
+horseshoe:function(B){B.ell(46,32,26,19,0,5);B.ell(46,44,17,14,0,0);B.ell(38,22,2.4,1.6,0,3);B.ell(54,22,2.4,1.6,0,3);B.ell(46,44,13,10,0,5);for(var i=-2;i<=2;i++)B.ln(46+i*5,46,46+i*9,58,.7,.2,2);B.ln(46,52,46,70,1.1,.3,2)},
+jelly:function(B){B.ell(55,24,34,17,0,4);B.fill(function(x,y){return y>30&&y<46&&Math.abs(x-55)<28},4);for(var i=0;i<18;i++){var x=25+i*3.5;B.ln(x,40,x+Math.sin(i)*2,62,.45,.2,4)}for(var j=0;j<9;j++)B.ln(55,8,24+j*8,30,.25,.25,'m')},
+tully:function(B){B.pl([[60,38],[75,32],[90,38],[99,36]],5.5,4,2.5);B.pl([[60,38],[45,37],[33,39]],5,4);B.ell(99,36,4,8,0,4);B.pl([[33,39],[21,39],[10,42]],.8,2);B.ln(10,42,3,37,1.2,.3,3);B.ln(10,42,4,48,1.2,.3,3);B.ln(39,18,39,57,.9,.9,2);B.ell(39,18,3.2,3.2,0,3);B.ell(39,57,3.2,3.2,0,3);for(var i=0;i<12;i++)B.ln(38+i*5,31,38+i*5,44,.3,.3,'m')},
+fern:function(B,o){var i;if(o.palm){B.ln(55,70,55,44,1.6,1,4);for(i=0;i<17;i++){var a=-Math.PI*(i+.5)/17;B.ln(55,44,55+Math.cos(a)*40,44+Math.sin(a)*(38),1.8,.5,4)}return}B.ln(55,4,55,70,1,.5,2);for(i=0;i<13;i++){var y=9+i*4.7,L=7+Math.sin((i+1)/14*3.14)*26;[-1,1].forEach(function(s){B.ln(55,y,55+s*L,y-4,o.narrow?1.1:2,o.narrow?.6:1.2,4);if(!o.narrow)B.ln(55+s*(L*.3),y-1.2,55+s*L*.9,y-3.6,.15,.15,'m')})}},
+leaf:function(B,o){if(o.broad){B.poly([[55,3],[76,16],[92,32],[78,46],[66,60],[55,66],[44,60],[32,46],[18,32],[34,16]],4);B.ln(55,3,55,71,.8,.8,2);for(var i=0;i<6;i++){var y=12+i*8;B.ln(55,y+6,78-i*3,y,.25,.25,'m');B.ln(55,y+6,32+i*3,y,.25,.25,'m')}return}B.pl([[53,70],[52,50],[56,30],[54,8]],.8,2);for(var j=0;j<9;j++){var q=12+j*6,s=j%2?1:-1;B.ln(54,q,54+s*16,q-3,.5,.2,2);B.ell(54+s*19,q-3,3,1.4,0,4)}for(var k=0;k<4;k++)B.ell(50+k*3,5+k,1.8,3,0,5)},
+wood:function(B){B.pl([[6,44],[40,36],[75,36],[104,28]],15,1,12);for(var i=0;i<6;i++)B.pl([[6,34+i*4],[40,26+i*4.4],[75,27+i*4.2],[104,20+i*3.2]],.25,'m')},
+track:function(B){[[28,46],[72,28]].forEach(function(p){var x=p[0],y=p[1];B.ln(x,y,x+15,y,2.6,1,1);B.ln(x,y,x+11,y-12,2.4,.8,1);B.ln(x,y,x+11,y+12,2.4,.8,1);B.ell(x,y,4,4,0,1)})},
+vertebra:function(B){B.ell(55,47,17,15,0,1);B.ell(55,47,10,9,0,'m');B.ell(55,27,8,6,0,1);B.ell(55,27,3.4,3,0,0);B.poly([[49,24],[61,24],[58,3],[52,3]],1);B.ln(48,27,24,18,3.6,1,2);B.ln(62,27,86,18,3.6,1,2);B.ell(38,47,4,5,0,0);B.ell(72,47,4,5,0,0)},
+claw:function(B,o){var s=o.big?1.1:1;var p=[];for(var a=0;a<=20;a++){var t=a/20,th=2.9-t*2.4;p.push([55+Math.cos(th)*36*s,62-Math.sin(th)*48*s])}B.pl(p,10*s,1,1);B.pl(p.slice(13),3,3,.6);B.pl(p,.3,'m')},
+plate:function(B,o){if(o.armor){B.ell(55,38,32,24,0,1);B.ln(26,38,84,38,3,3,3);for(var i=0;i<12;i++)B.ln(30+i*5,20,30+i*5.2,58,.25,.25,'m');return}B.poly([[55,3],[85,30],[80,54],[62,68],[48,68],[30,54],[25,30]],1);for(var j=0;j<11;j++){B.ln(55,68,26+j*5.8,14+Math.abs(j-5)*5,.3,.3,'m')}},
+horn:function(B){B.poly([[16,30],[16,62],[50,60],[86,34],[100,14],[60,24]],1);for(var i=0;i<9;i++)B.ln(18+i*8,34+i*.6,100,14,.25,.25,'m')},
+tusk:function(B){var p=[];for(var a=0;a<=20;a++){var t=a/20;p.push([6+t*92,62-Math.sin(t*2.5)*46])}B.pl(p,8.5,3,1.8);for(var i=0;i<18;i++){var q=p[i+1];B.ln(q[0]-2,q[1]-8,q[0]+1,q[1]+8,.2,.2,'m')}},
+tooth:function(B,o){if(o.low){B.ell(55,32,40,14,0,3);for(var i=0;i<9;i++)B.ln(22+i*8,20,22+i*8,44,.3,.3,'m');B.ell(55,50,30,12,0,1);return}if(o.thin){B.poly([[46,60],[64,60],[60,30],[56,3],[52,30]],3);B.ell(55,62,16,6,0,1);return}var w=o.big?30:24;B.poly([[55-w,48],[55+w,48],[55,4]],3);B.poly([[55-w,48],[55+w,48],[55+w-4,66],[55-w+4,66]],1);if(o.cusps){B.tooth(55-w-7,50,-1,-15,5);B.tooth(55+w+7,50,1,-15,5)}if(o.ser)for(var j=0;j<14;j++){B.ln(55-w+j*w/14,48-j*44/14,55-w+j*w/14-1.6,48-j*44/14,.6,.2,0);B.ln(55+w-j*w/14,48-j*44/14,55+w-j*w/14+1.6,48-j*44/14,.6,.2,0)}B.ln(55,8,55,46,.3,.3,'m')},
+spine:function(B){B.ln(10,50,100,16,6,1,1);for(var i=0;i<8;i++)B.ln(14+i*10,44-i*3,102,16,.25,.25,'m')},
+skull:function(B,o){var s=o.big?1:o.small?.84:.94;B.sub(55,34,s);if(o.small){B.poly([[8,34],[40,20],[74,16],[96,24],[100,42],[72,44],[34,44]],1);B.ell(78,28,8,8,0,0);B.ell(52,32,8,5,.1,0);B.ell(18,36,3.4,2.2,0,0);B.pl([[10,48],[60,49],[96,52]],2.2,2)}else{B.poly([[6,30],[20,14],[48,8],[80,6],[102,18],[102,44],[78,46],[40,44],[10,42]],1);B.ell(82,20,o.big?8:7,o.big?9:6,0,0);B.ell(54,24,12,7,.05,0);B.ell(16,26,5,3,0,0);B.ln(60,32,88,36,1.5,1.5,0);B.pl([[10,50],[50,52],[96,50]],3,1,4);B.ln(30,50,76,50,.3,.3,'m')}teethRow(B,10,43,72,44,o.big?10:13,o.big?12:7,o.big?2.6:1.5);teethRow(B,14,48,58,49,9,-5,1.2);B.ln(20,12,100,12,.25,.25,'m')},
+cer:function(B,o){B.ell(72,26,29,23,.1,1);if(!o.noh){B.ell(72,26,6,5,0,0)}else{B.ell(72,24,6,5,0,0);B.ell(84,26,5,4,0,0)}B.poly([[6,42],[20,28],[60,24],[66,50],[30,56],[10,52]],1);B.ell(52,36,5,5,0,0);B.tooth(9,42,-6,9,3,3);if(!o.noh){B.poly([[46,28],[56,26],[28,0],[34,0]],2);B.poly([[28,28],[20,29],[14,13]],1)}B.pl([[14,58],[40,60],[64,52]],2.6,1);for(var i=0;i<14;i++){var a=-.55+i*.34;B.ln(72,26,72+Math.cos(a)*25,26+Math.sin(a)*21,.2,.2,'m')}},
+mskull:function(B,o){var s=o.tiny?.62:1;B.sub(55,34,s);B.ell(68,28,28,18,0,1);B.poly([[42,18],[42,44],[8,44],[12,28]],1);B.ell(46,28,8,7,0,0);B.pl([[58,44],[48,50],[28,44]],2,2);B.pl([[66,10],[90,10],[96,24]],1.6,2);if(o.sabre){B.poly([[20,44],[28,44],[20,72],[16,72]],3);B.pl([[10,58],[50,60],[76,44]],3,1)}else{B.pl([[12,56],[50,58],[78,44]],3,1);B.tooth(16,44,0,10,2.4);B.tooth(16,56,0,-6,1.8);teethRow(B,24,44,40,44,5,6,2)}B.ell(76,28,5,5,0,0);B.ln(44,14,92,14,.2,.2,'m')},
+marine:function(B,o){var p,hd,sc=o.big?1:.9;if(o.neck){p=[[6,50],[26,48],[46,42],[58,38],[68,28],[80,18],[94,12]];hd=[94,12]}else{p=[[4,52],[24,42],[44,38],[64,36],[78,36]];hd=[78,36]}if(o.film){B.pl([[8,48],[26,36],[50,30],[76,32]],12,4,10);B.poly([[52,22],[60,8],[66,22]],4);B.poly([[4,52],[2,34],[12,44]],4);B.poly([[4,52],[6,68],[12,48]],4)}var ch=spineChain(B,p,1.2,2.3,6);ch.forEach(function(q,i){if(i%2)return;if(q[0]>(o.neck?20:18)&&q[0]<(o.neck?60:68)){B.ln(q[0],q[1],q[0]-2,q[1]+13,.75,.3,2);B.ln(q[0],q[1],q[0]-1,q[1]-9,.6,.3,2)}});if(o.neck){B.ell(hd[0],hd[1],6,4,0,1);B.ln(hd[0],hd[1],hd[0]+8,hd[1]+1,1.5,.6,1)}else{var L=o.big?26:26,w=o.big?7:4.5;B.poly([[hd[0]-4,hd[1]-w],[hd[0]-4,hd[1]+w],[hd[0]+L,hd[1]+1.2],[hd[0]+L,hd[1]-.6]],1);B.ell(hd[0]+4,hd[1]-.5,3.2,3.2,0,0)}if(o.teeth&&!o.neck){teethRow(B,hd[0]+4,hd[1]+2,hd[0]+L-1,hd[1]+1.2,9,3,.8)}[[58,44,70,62],[28,44,18,64]].forEach(function(a){B.ln(a[0],a[1],a[2],a[3],4,1.4,2);for(var i=1;i<5;i++)B.ell(a[0]+(a[2]-a[0])*i/5,a[1]+(a[3]-a[1])*i/5,1.8,1.2,0,'m')})},
+jaw:function(B){B.pl([[6,52],[40,48],[80,42],[104,30]],6,1,4);for(var i=0;i<12;i++){var x=14+i*7.4,y=46-i*1.1;B.tooth(x,y,2,-15,2.5)}B.ln(10,54,96,36,.3,.3,'m')},
+skel:function(B,o){var sa=o.sauro,sm=o.small;if(o.film){B.pl([[92,34],[64,28],[42,32],[18,28],[6,38]],9,4,6);B.pl([[50,44],[52,58]],5,4)}if(sa){spineChain(B,[[2,46],[20,40],[40,30],[60,28],[72,26],[86,14],[104,5]],.9,2,5);B.ell(104,4,3,1.8,0,1);for(var i=0;i<8;i++)B.ln(40+i*4,28,38+i*3.6,44,.8,.4,2);[[44,34,42,68],[50,34,50,68],[64,34,66,66],[70,34,74,68]].forEach(function(a){B.ln(a[0],a[1],a[2],a[3],2.2,1.4,1)});B.ell(45,32,9,5,0,1)}else{var p=[[3,26],[22,28],[44,32],[62,30],[76,24],[85,14]];spineChain(B,p,.7,sm?1.3:1.8,5);B.ell(93,12,sm?7:9,sm?4:5.5,0,1);B.ell(95,11,2.2,2,0,0);if(!sm)teethRow(B,92,16,100,15,4,2.5,.5);for(var j=0;j<7;j++)B.ln(46+j*3.5,32,44+j*3.4,47,.6,.3,2);B.ell(44,36,6,4,.3,1);B.pl([[45,38],[52,50],[46,62],[52,68]],1.8,1,1);B.pl([[41,38],[36,50],[30,62],[36,68]],1.8,1,1);B.ln(52,68,60,69,.7,.2,3);B.ln(36,68,44,69,.7,.2,3);B.pl([[74,28],[82,38],[88,34]],.9,2);B.ln(88,34,93,38,.6,.2,3)}},
+flyer:function(B,o){var i;if(o.feath){for(i=0;i<14;i++){var a=2.2+i*.14;B.ln(38,28,38+Math.cos(a)*30,30+Math.sin(a)*(-26),.9,1.6,4);B.ln(72,28,72-Math.cos(a)*30,30+Math.sin(a)*(-26),.9,1.6,4)}for(i=0;i<(o.beak?3:12);i++){B.ln(53+i*.7,48,48+i*1.6,(o.beak?72:66),.6,1.4,4)}if(o.four){for(i=0;i<8;i++){B.ln(46,52,16+i*4,70,.7,1.2,4);B.ln(64,52,94-i*4,70,.7,1.2,4)}}}if(o.mem!==undefined&&o.mem){B.poly([[8,20],[46,28],[46,50],[8,36]],4);B.poly([[102,20],[64,28],[64,50],[102,36]],4)}spineChain(B,[[55,14],[55,30],[55,48],o.feath&&!o.beak?[55,66]:[55,52]],.8,1.2,6);for(i=0;i<5;i++){B.ln(55,28+i*3,44,30+i*3.5,.5,.3,2);B.ln(55,28+i*3,66,30+i*3.5,.5,.3,2)}B.pl([[53,26],[40,20],[24,24]],1,2);B.pl([[57,26],[70,20],[86,24]],1,2);if(o.bat){[8,14,20].forEach(function(x){B.ln(24,24,x,44,.6,.25,2);B.ln(86,24,110-x,44,.6,.25,2)})}else{B.ln(24,24,6,20,.8,.3,2);B.ln(86,24,104,20,.8,.3,2);B.ln(24,24,18,30,.5,.2,3);B.ln(86,24,92,30,.5,.2,3)}B.pl([[53,48],[46,58],[50,68]],1.2,1,.6);B.pl([[57,48],[64,58],[60,68]],1.2,1,.6);var hs=o.big?7:4.5;B.ell(55,8,hs,hs*.8,0,1);B.ell(57,7,1.6,1.6,0,0);B.ln(52,10,44,14,1.8,.4,o.beak?3:1);if(!o.beak)teethRow(B,51,12,45,14,3,1.8,.4)},
+eggs:function(B){var n=11;for(var i=0;i<n;i++){var a=i/n*6.283;B.ell(55+Math.cos(a)*28,36+Math.sin(a)*20,9,4.6,a,5);if(i%2)B.ell(55+Math.cos(a)*14,36+Math.sin(a)*10,7,3.6,a+.4,5)}B.ell(55,36,5,3,.2,1)},
+fight:function(B){B.sub(38,33,.72);PL.skel(B,{small:1});B.sub(71,44,.62);PL.cer(B,{noh:1});B.sub(0+55,36,1);B.pl([[50,22],[61,29]],1.2,3,.4);B.pl([[43,34],[58,41]],1,3,.4)},
+dunkle:function(B){B.poly([[8,22],[30,5],[74,5],[104,28],[92,50],[60,48],[26,48],[10,40]],1);B.ell(34,24,7,7,0,0);B.ell(70,16,7,4,.4,'m');B.poly([[8,40],[28,48],[38,70],[24,68]],3);B.poly([[8,30],[28,48],[10,46]],3);B.poly([[92,50],[70,48],[80,68],[100,64]],1);for(var i=0;i<5;i++)B.ln(40+i*12,8,50+i*9,48,.25,.25,'m')},
+ray:function(B){B.ell(46,34,30,29,0,4);for(var i=0;i<26;i++){var a=i/26*6.283;B.ln(46,34,46+Math.cos(a)*29,34+Math.sin(a)*27,.45,.3,2)}B.ell(46,34,10,14,0,1);B.pl([[46,48],[62,56],[84,62],[106,66]],1,1,.5);B.ln(86,62,91,68,.7,.2,3)},
+crinoid:function(B){B.pl([[4,66],[28,60],[50,50],[62,42],[72,30]],1.3,5);for(var i=0;i<30;i++){var t=i/30;B.ln(4+t*58,66-t*24,4+t*58,66-t*24,.1,.1,'m')}B.ell(72,28,5.5,5.5,0,5);for(var j=0;j<9;j++){var a=-2.8+j*.42,x=72+Math.cos(a)*30,y=28+Math.sin(a)*30+6;B.pl([[72,28],[72+Math.cos(a)*17,28+Math.sin(a)*17+1],[x,y]],.7,2,.3);for(var q=2;q<8;q++){var u=q/8;B.ln(72+Math.cos(a)*30*u,28+Math.sin(a)*30*u,72+Math.cos(a+.15)*30*u,28+Math.sin(a+.15)*30*u+3,.25,.2,2)}}},
+star:function(B){B.ell(55,36,8,8,0,5);for(var i=0;i<5;i++){var a=i/5*6.283-1.57,b=a+.5;var p=[[55+Math.cos(a)*7,36+Math.sin(a)*7],[55+Math.cos(a+.2)*24,36+Math.sin(a+.2)*20],[55+Math.cos(b)*42,36+Math.sin(b)*31]];B.pl(p,1.3,2,.4)}},
+gryphaea:function(B){var p=spiral(36,.11,0,10,48,40);B.pl(p,13,5,2);for(var i=0;i<6;i++)B.pl(spiral(36-i*2,.11,.2+i*.4,6,48,40).map(function(q){return [q[0]+i,q[1]]}),.25,'m')},
+belemnite:function(B){B.poly([[6,36],[14,28],[66,28],[104,36],[66,44],[14,44]],5);B.ln(8,36,104,36,.3,.3,'m');B.ell(14,36,7,5,0,1)},
+gastropod:function(B){for(var i=0;i<5;i++){var cy=14+i*11,r=8+i*5;B.ell(55,cy,r+4,6+i,0,5);B.ln(55-r-5,cy,55+r+5,cy,1,1,3);B.ln(55-r-2,cy+3,55+r+2,cy+3,.3,.3,'m')}},
+ear:function(B){B.pl(spiral(24,.05,0,11,55,36),8,1,3);B.pl(spiral(24,.05,0,11,55,36),.3,'m')},
+column:function(B){for(var i=0;i<9;i++){var x=9+i*11.5,r=10-Math.abs(i-4)*.55;B.ell(x,36-Math.sin(i*.6)*7,5,r*1.5,0,1);B.ell(x,36-Math.sin(i*.6)*7,1.8,r,0,'m')}},
+turtle:function(B){B.ell(52,36,34,26,0,1);B.ln(16,36,88,36,.3,.3,'m');for(var i=0;i<5;i++){B.ln(28+i*12,14,28+i*12,58,.3,.3,'m')}B.ln(30,24,76,24,.3,.3,'m');B.ln(30,48,76,48,.3,.3,'m');B.ell(92,36,8,6,0,1);[[28,14,20,3],[72,14,80,3],[28,58,20,68],[72,58,80,68]].forEach(function(a){B.ln(a[0],a[1],a[2],a[3],3,1.5,2)})},
+fish:function(B,o){var dp=o.deep?20:o.shark?10:11;if(o.film){B.ell(55,36,44,dp+5,0,4);B.poly([[92,36],[106,16],[100,36],[106,58]],4);if(o.shark){B.poly([[46,28],[62,9],[64,28]],4);B.poly([[30,44],[20,60],[42,46]],4)}}spineChain(B,[[22,36],[56,36],[92,36]],1.3,.8,10);B.ell(19,36,12,dp*.85,0,1);B.ell(14,32,3.4,3.4,0,o.shark?2:0);for(var i=0;i<20;i++){var x=31+i*3,t=1-Math.abs(x-48)/56,h=dp*t*1.15;B.ln(x,36,x-2,36-h,.45,.2,2);B.ln(x,36,x-2,36+h,.45,.2,2)}for(var j=0;j<9;j++){B.ln(92,36,106,20+j*4,.5,.25,2);if(!o.shark){B.ln(50+j*3,36-dp*1.05,48+j*3,36-dp*1.75,.45,.2,2);B.ln(58+j*2.5,36+dp*1.05,56+j*2.5,36+dp*1.6,.4,.2,2)}}if(o.shark)teethRow(B,8,40,22,42,5,3,.8);else{B.ln(12,41,24,43,.8,.8,3)}}
+};
+var FCACHE={};
+function genFossil(si,ti,seed){var k=si+'/'+ti+'/'+seed;if(FCACHE[k])return FCACHE[k];var t=taxOf(si,ti),B=new Stamp(seed,t.o);(PL[t.pl]||PL.vertebra)(B,t.o);var fc=0;for(var i=0;i<W*H;i++)if(B.g[i])fc++;var v={g:B.g,k:B.k,n:fc};FCACHE[k]=v;return v}
+var ZW=[0,1,1.3,1.2,1.5,1.1];
+function tissue(site,z){return z===3?site.e:z===4?site.f:z===5?site.s:z===2?[Math.min(255,site.b[0]+20),Math.min(255,site.b[1]+17),Math.min(255,site.b[2]+13)]:site.b}
+// Health is stored per fossil cell as run-lengths of letters a (lost) to j (perfect), and z for still under matrix.
+function packH(v,len,enc){var out='',i=0;while(i<len){var c=enc(i),n=1;while(i+n<len&&enc(i+n)===c)n++;out+=c+(n>1?n:'');i+=n}return out}
+function unpack(s,len,dec){var i=0,m=String(s||'').match(/[a-z][0-9]*/g)||[];m.forEach(function(p){var n=parseInt(p.slice(1)||'1',10);for(var q=0;q<n&&i<len;q++)dec(i++,p[0])})}
+var PCACHE={};
+// A finished specimen on its slab: one pixel per grid cell. The caller scales it up.
+function portrait(sp){if(PCACHE[sp.id])return PCACHE[sp.id];var site=SITES[sp.si],mat=MATS[site.m],f=genFossil(sp.si,sp.ti,sp.seed),cv=document.createElement('canvas');cv.width=W;cv.height=H;var x=cv.getContext('2d'),im=x.createImageData(W,H),r=rng(sp.seed+9),hv=new Float32Array(W*H);hv.fill(1);
+  var fi=[],i;for(i=0;i<W*H;i++)if(f.g[i])fi.push(i);unpack(sp.hc,fi.length,function(q,c){hv[fi[q]]=c==='z'?-1:(c.charCodeAt(0)-97)/9});
+  for(var yy=0;yy<H;yy++)for(var xx=0;xx<W;xx++){i=yy*W+xx;var z=f.g[i],n=.88+r()*.2,c=mat.c,cr=c[0]*n,cg=c[1]*n,cb=c[2]*n;
+    var up=yy>0&&xx>0?f.g[i-W-1]:0,dn=yy<H-1&&xx<W-1?f.g[i+W+1]:0;
+    if(!z&&dn){cr*=.62;cg*=.62;cb*=.62}
+    if(z&&hv[i]!==-1&&hv[i]>.02){var t=tissue(site,z),sh=(up?1:1.3)*(dn?1:.72)*(f.k[i]?.66:1)*(.92+r()*.14),a=z===4?.72:1,dm=.55+.45*hv[i];cr=cr*(1-a)+t[0]*sh*dm*a;cg=cg*(1-a)+t[1]*sh*dm*a;cb=cb*(1-a)+t[2]*sh*dm*a;if(z===3&&up===3&&r()<.05){cr+=40;cg+=40;cb+=40}}
+    else if(z&&hv[i]!==-1){cr*=.5;cg*=.5;cb*=.5}
+    var p=i*4;im.data[p]=cr;im.data[p+1]=cg;im.data[p+2]=cb;im.data[p+3]=255}
+  x.putImageData(im,0,0);PCACHE[sp.id]=cv;return cv}
+function drawPic(cv,sp,w,h){cv.width=w;cv.height=h;var c=cv.getContext('2d');c.imageSmoothingEnabled=false;c.drawImage(portrait(sp),0,0,w,h)}
+// ---- Game state
+function freshS(){return {v:1,funds:2500,season:1,nextAcc:1,jackets:[],specs:[],mus:{},letters:0,tools:['hammer','pick','brush','cons'],seen:{},job:null,visits:0,thorne:false}}
+var S=freshS(),view='dig',D=null,J=null,ft=0;
+function nowFunds(){$('funds').textContent=money(S.funds);$('season').textContent=S.season}
+var vbtn=document.querySelectorAll('header button');
+function show(v){view=v;['dig','lab','arc','mus','real','save'].forEach(function(k){$('v-'+k).classList.toggle('hide',k!==v)});Array.prototype.forEach.call(vbtn,function(b){b.classList.toggle('on',b.dataset.v===v)});
+  if(v==='dig')renderSites();if(v==='lab')renderShelf();if(v==='arc')renderArc();if(v==='save'||v==='real')renderSave();if(v==='mus')musEnter()}
+Array.prototype.forEach.call(vbtn,function(b){b.onclick=function(){show(b.dataset.v)}});
+
+// ---- Dig sites: walk your own shaft down through the strata, lamp in hand, the way the gem mine works.
+var DW=22,DH=62,DC=32,DAYS=170,digFx=[],digCam=0,digShake=0,digSwing=0,digFace=1,digP=null,digHov=null,digT=null,DKEYS={},digKeyT=0,digRing=null,digPhysT=0,digFlash=0,FSPR={},dctx=$('dig').getContext('2d');
+function stOf(y){return y<22?0:y<43?1:2}
+function renderSites(){nowFunds();$('siteIntro').textContent='Choose where to spend your field season. Each permit buys '+DAYS+' field days. You dig your own shaft: the deeper you go, the harder the rock and the rarer the finds. You won\'t know what you have until it\'s out of its jacket.';
+  var g=$('sites');g.innerHTML='';$('siteList').classList.toggle('hide',!!D);$('digPlay').classList.toggle('hide',!D);if(D){renderFinds();return}
+  SITES.forEach(function(s,i){var b=el('button','sitecard');var found=s.tx.filter(function(t){return S.seen[i+'/'+t.ti]}).length;b.innerHTML='<b>'+esc(s.n)+'</b><span class="dim">'+esc(s.pl)+'</span><br>'+esc(perOf(s.p)[1])+', '+(s.ma<1?'about 30,000 years':s.ma+' million years')+' &middot; '+esc(MATS[s.m].n)+'<br><span style="color:#d3c8ae">'+esc(s.d)+'</span><br>Permit: <b style="display:inline;color:'+(S.funds>=s.cost?'#8fce8f':'#e08a7a')+'">'+(s.cost?money(s.cost):'free')+'</b> &middot; Species logged '+found+'/'+s.tx.length;
+    b.onclick=function(){startDig(i)};g.appendChild(b)});
+  if(S.funds<350&&!S.specs.filter(function(x){return x.filed&&!x.priceless}).length&&!S.jackets.length){var gb=el('button',null,'Apply for a small outreach grant ($500)');gb.onclick=function(){S.funds+=500;renderSites();toast('The Trustees grant you $500, with a note about the roof.')};g.appendChild(gb)}}
+function pickTax(si,st){var s=SITES[si],tot=0,w=s.tx.map(function(t){var v=[50,30,16,8,4,1.3][t.tier]*(1+st*t.tier*.42);tot+=v;return v}),r=Math.random()*tot;for(var i=0;i<w.length;i++){r-=w[i];if(r<=0)return i}return 0}
+function startDig(si){var s=SITES[si];if(S.funds<s.cost){toast('Not enough funds for this permit. Sell a duplicate from the archive, or try a cheaper site.',true);return}S.funds-=s.cost;FSPR={};digFx=[];digCam=0;
+  var n=DW*DH,c=new Uint8Array(n),ty=new Uint8Array(n),own=new Int16Array(n).fill(-1),fl=new Uint8Array(n),pk=new Uint8Array(n),seen=new Uint8Array(n),echo=new Uint8Array(n),i,x,y,k;
+  for(y=0;y<DH;y++)for(x=0;x<DW;x++){i=y*DW+x;if(y<2){seen[i]=1;continue}var st=stOf(y),r=Math.random();if(y===DH-1){ty[i]=3;c[i]=9}else if(y>4&&r<.018+st*.012){ty[i]=2;c[i]=3}else if(r<.06+st*.03){ty[i]=1;c[i]=st+2}else c[i]=st+1}
+  for(k=0;k<9;k++){var cy=5+(Math.random()*(DH-8)|0),cx=1+(Math.random()*(DW-7)|0),len=2+(Math.random()*4|0);for(x=0;x<len;x++){i=cy*DW+cx+x;c[i]=0;ty[i]=0}}
+  D={si:si,c:c,ty:ty,own:own,fl:fl,pk:pk,seen:seen,echo:echo,en:DAYS,fnd:[],seed:Math.random()*4e9>>>0,me:{x:DW>>1,y:1},tr:{}};
+  var want=10+(Math.random()*3|0),tries=0,R=[[3,21],[23,42],[44,60]];
+  while(D.fnd.length<want&&tries++<500){var so=D.fnd.length%3,ti=pickTax(si,so),t=s.tx[ti],seed=Math.random()*4e9>>>0,F=genFossil(si,ti,seed),fw=5+(t.tier*.6|0)+(Math.random()*2|0)+(has(t.fl,'L')?1:0),fh=Math.max(3,Math.round(fw*.65)),top=R[so][0]+(Math.random()*(R[so][1]-R[so][0]-fh)|0),left=1+(Math.random()*(DW-fw-2)|0),cells=[],bad=false;
+    for(y=0;y<fh&&!bad;y++)for(x=0;x<fw;x++){var X0=x/fw*W|0,X1=(x+1)/fw*W|0,Y0=y/fh*H|0,Y1=(y+1)/fh*H|0,cnt=0;for(var yy=Y0;yy<Y1;yy++)for(var xx=X0;xx<X1;xx++)if(F.g[yy*W+xx])cnt++;if(cnt>=3){var q=(top+y)*DW+left+x;if(own[q]>=0){bad=true;break}cells.push(q)}}
+    if(bad||cells.length<6)continue;var id=D.fnd.length;cells.forEach(function(q){own[q]=id;c[q]=1;ty[q]=0});D.fnd.push({ti:ti,seed:seed,cells:cells,st:so,dmg:0,done:false,no:id+1,depth:Math.round((top-2)*5)/10,x:left,y:top,w:fw,h:fh,hit:false,ready:false})}
+  D.fnd.forEach(function(f){f.cells.forEach(function(q){for(var z=0;z<5;z++){var dx=(Math.random()*7|0)-3,dy=(Math.random()*7|0)-3,p=q+dy*DW+dx;if(Math.random()<.22&&p>=0&&p<n&&own[p]<0&&c[p])fl[p]=1}})});
+  function drop(kind,num){for(var g=0;g<400&&num>0;g++){var p=(3+(Math.random()*(DH-5)|0))*DW+(Math.random()*DW|0);if(own[p]<0&&c[p]&&ty[p]===0&&!pk[p]){pk[p]=kind;num--}}}
+  drop(1,16);drop(2,6);if(S.letters<LETTERS.length&&Math.random()<.5)drop(3,1);
+  digLight();show('dig');digLabels();setFt(1);renderFinds();nowFunds()}
+function digLabels(){var s=SITES[D.si];$('digName').textContent=s.n;$('digForm').textContent=s.pl+' · '+s.fm+' · '+perOf(s.p)[1];$('digStrat').textContent='Strata: '+s.st.join(' / ')+'. Matrix: '+MATS[s.m].n+'. '+MATS[s.m].d}
+function setFt(n){ft=n;[0,1,2].forEach(function(i){$('ft'+i).classList.toggle('on',i===n)});$('ftDesc').textContent=['Trowel, 1 day a stroke: a gentle cut that only scratches bone. It can\'t break hard bands or boulders.','Pick, 1 day a stroke: cuts twice as deep and breaks hard bands and boulders, but it chips any bone it hits.','Brush, half a day a stroke: safe on bone, and it clears rock you\'ve already cracked. Use it on the fossil itself.'][n]}
+[0,1,2].forEach(function(i){$('ft'+i).onclick=function(){setFt(i)}});
+function digLight(){var me=D.me;for(var dy=-4;dy<=4;dy++)for(var dx=-4;dx<=4;dx++){if(Math.hypot(dx,dy)>3.6)continue;var x=me.x+dx,y=me.y+dy;if(x>=0&&y>=0&&x<DW&&y<DH)D.seen[y*DW+x]=1}}
+function digBurst(x,y,col,n){for(var i=0;i<n;i++)digFx.push({x:x*DC+16,y:y*DC+16,vx:(Math.random()-.5)*150,vy:-40-Math.random()*110,l:.45+Math.random()*.3,col:col});if(digFx.length>120)digFx.splice(0,digFx.length-120)}
+function digFloat(x,y,t,col){digFx.push({x:x*DC+16,y:y*DC+6,vx:0,vy:-30,l:1.3,txt:t,col:col})}
+function digCollect(i,x,y){var p=D.pk[i];if(!p)return;D.pk[i]=0;if(p===1){var v=15+(Math.random()*50|0);S.funds+=v;nowFunds();digFloat(x,y,'+'+money(v)+' scrap','#ffe28a')}else if(p===2){D.en=Math.min(DAYS,D.en+6);digFloat(x,y,'+6 days: camp stores','#9fe39f')}else if(p===3){S.letters++;toast('You found a rusted field tin holding a letter from Dr Thorne. It is filed in the Reading Room.');digFloat(x,y,'A letter!','#ffd968');if(S.letters===LETTERS.length){S.thorne=true;toast('The last letter is in the Reading Room. Go and open the ninth drawer.')}}}
+function digMove(dx,dy){if(!D)return;if(dx)digFace=dx;var x=D.me.x+dx,y=D.me.y+dy;if(x<0||y<0||x>=DW||y>=DH)return;var i=y*DW+x,c=D.c[i],s=SITES[D.si];
+  if(D.ty[i]===3){toast('Bedrock. Nothing older down here.');return}
+  if(!c){D.me={x:x,y:y};digLight();return}
+  if(D.en<=0){toast('The field season is over. You can still jacket anything 60% exposed, then break camp.');return}
+  var o=D.own[i],ty=D.ty[i],isBone=o>=0,cost=1;
+  if(ft===2){if(ty===2||(!isBone&&(c>1||stOf(y)===0))){toast('Too firm for a brush. Crack it with the trowel or pick first.',true);return}cost=.5}
+  if(ft===0&&(ty===1||ty===2)){toast(ty===2?'A boulder. Only the pick will shift it.':'A hard band. Only the pick will break it.',true);return}
+  var pow=ft===1?2:1;D.en=Math.max(0,D.en-cost);digSwing=1;var m=MATS[s.m].c;
+  if(isBone){var f=D.fnd[o];if(ft===1){f.dmg+=.05;D.fl[i]=2;digFlash=1;digShake=4;digBurst(x,y,'#fff4d8',10);digFloat(x,y,'Bone chipped!','#ff9d8a')}else if(ft===0){f.dmg+=.012;digBurst(x,y,'#e6dcc0',5)}else digBurst(x,y,'#efe6cd',3);c=0;if(!f.hit){f.hit=true;toast('Bone! Change to the brush (3) to uncover the rest cleanly.')}}
+  else{c=Math.max(0,c-pow);digBurst(x,y,'rgb('+m+')',c?4:7);if(ft===1)digShake=Math.max(digShake,1.5)}
+  D.c[i]=c;if(!c){D.ty[i]=0;digCollect(i,x,y);D.me={x:x,y:y};digLight();if(isBone){var f2=D.fnd[o];if(!f2.ready&&expo(f2)>=.6){f2.ready=true;digFloat(x,y,'Ready to jacket: press J','#ffe28a')}}}
+  renderFinds();if(D.en<=0)toast('The field season is over. You can still jacket anything 60% exposed, then break camp.')}
+function digPing(){if(!D)return;if(D.en<2){toast('Not enough field days left to sound the rock.',true);return}D.en-=2;digRing={x:D.me.x*DC+16,y:D.me.y*DC+16,r:0};var best=null,bd=1e9,mx=D.me.x,my=D.me.y;for(var dy=-8;dy<=8;dy++)for(var dx=-8;dx<=8;dx++){if(Math.hypot(dx,dy)>8)continue;var x=mx+dx,y=my+dy;if(x<0||y<0||x>=DW||y>=DH)continue;var i=y*DW+x;if(D.own[i]>=0&&D.c[i]&&!D.fnd[D.own[i]].done){D.echo[i]=1;var dd=Math.hypot(dx,dy);if(dd<bd){bd=dd;best=[dx,dy]}}else if(D.pk[i]===3)D.echo[i]=1}
+  if(best)toast('The rock answers: something dense, about '+Math.max(1,Math.round(bd/2))+' m '+(Math.abs(best[1])>Math.abs(best[0])?(best[1]>0?'below you':'above you'):(best[0]>0?'to your right':'to your left'))+'.');else toast('Only solid rock answers. Try somewhere else.');renderFinds()}
+function expo(f){var n=0;f.cells.forEach(function(q){if(!D.c[q])n++});return n/f.cells.length}
+function digJacket(f){D.en=Math.max(0,D.en-5);f.done=true;var s=SITES[D.si];S.jackets.push({id:newId(),si:D.si,ti:f.ti,seed:f.seed,st:f.st,depth:f.depth,dmg:Math.min(.5,f.dmg),hol:Math.random()<.03,season:S.season,lat:Math.round((s.lat+(Math.random()-.5)*.04)*1e4)/1e4,lon:Math.round((s.lon+(Math.random()-.5)*.04)*1e4)/1e4,anec:ANEC[Math.random()*ANEC.length|0],no:'F'+S.season+'-'+f.no});toast('Plaster and burlap on, and it\'s on the truck. It\'s waiting on the shelf in the Prep lab.');renderFinds()}
+function digNearestJacket(){var b=null,bd=1e9;D.fnd.forEach(function(f){if(f.done||expo(f)<.6)return;var d=Math.hypot(f.x+f.w/2-D.me.x,f.y+f.h/2-D.me.y);if(d<bd){bd=d;b=f}});if(b)digJacket(b);else toast('Nothing is 60% exposed yet.',true)}
+function renderFinds(){if(!D)return;$('enT').textContent=Math.ceil(D.en);$('enB').style.width=(D.en/DAYS*100)+'%';var b=$('finds');b.innerHTML='';b.classList.remove('dim');var any=false;D.fnd.forEach(function(f){if(f.done||expo(f)<=0)return;any=true;var e=expo(f),r=el('div','row');r.style.margin='3px 0';r.appendChild(el('span',null,'Find '+f.no+': '+Math.round(e*100)+'% exposed, '+f.depth+' m'+(f.dmg>.08?', chipped':'')));var j=el('button',null,e<.6?'Jacket it (needs 60%)':'Jacket it (5 days)');j.disabled=e<.6;j.onclick=function(){digJacket(f)};r.appendChild(j);b.appendChild(r)});
+  if(!any){b.textContent='Nothing uncovered yet. Pale bone scraps in the rock mean a buried specimen is near. Sound the rock (Q) to feel for it.';b.classList.add('dim')}}
+function fossilSprite(f){var k=f.seed+'/'+f.ti;if(FSPR[k])return FSPR[k];var s=SITES[D.si],F=genFossil(D.si,f.ti,f.seed),cv=document.createElement('canvas');cv.width=W;cv.height=H;var x=cv.getContext('2d'),im=x.createImageData(W,H);for(var y=0;y<H;y++)for(var q=0;q<W;q++){var i=y*W+q,z=F.g[i];if(!z)continue;var t=tissue(s,z),lum=(t[0]+t[1]+t[2])/3,br=(lum<110?1.9:1)*(F.k[i]?.66:1)*((y>0&&!F.g[i-W])?1.25:1)*((y<H-1&&!F.g[i+W])?.72:1),p=i*4;im.data[p]=clamp(t[0]*br,0,255);im.data[p+1]=clamp(t[1]*br,0,255);im.data[p+2]=clamp(t[2]*br,0,255);im.data[p+3]=255}x.putImageData(im,0,0);FSPR[k]=cv;return cv}
+function digPiece(c,f,x,y,px,py){var cv=fossilSprite(f),sw=W/f.w,sh=H/f.h;c.drawImage(cv,(x-f.x)*sw,(y-f.y)*sh,sw,sh,px,py,DC,DC)}
+function digPhys(){var moved=false;for(var y=DH-3;y>=2;y--)for(var x=0;x<DW;x++){var i=y*DW+x;if(D.ty[i]!==2||!D.c[i])continue;var b=i+DW,o=D.own[b];if(D.c[b]||D.ty[b]===2||(o>=0&&D.fnd[o].done)){delete D.tr[i];continue}if(D.tr[i]==null){D.tr[i]=.72;continue}D.tr[i]-=.18;if(D.tr[i]>0)continue;delete D.tr[i];
+    var under=D.me.x===x&&D.me.y===y+1;if(under||o>=0){D.c[i]=0;D.ty[i]=0;digBurst(x,y+1,'#9a9080',14);digShake=7;if(under){D.en=Math.max(0,D.en-4);digFlash=1;digFloat(x,y,'Rockfall! -4 days','#ff9d8a');toast('Rockfall! You lose four days to bruises and bad language.',true)}else{D.fnd[o].dmg+=.06;D.fl[b]=2;digFloat(x,y+1,'Bone crushed!','#ff9d8a')}moved=true;continue}
+    D.c[b]=D.c[i];D.ty[b]=2;D.c[i]=0;D.ty[i]=0;D.tr[b]=0;moved=true}if(moved)renderFinds()}
+function drawDig(dt){if(view!=='dig'||!D)return;dt=dt||.016;
+  digPhysT+=dt;if(digPhysT>.18){digPhysT=0;digPhys()}digKeyT-=dt;if(digKeyT<=0){var kx=(DKEYS.KeyD||DKEYS.ArrowRight?1:0)-(DKEYS.KeyA||DKEYS.ArrowLeft?1:0),ky=(DKEYS.KeyS||DKEYS.ArrowDown?1:0)-(DKEYS.KeyW||DKEYS.ArrowUp?1:0);if(kx||ky){digMove(kx,kx?0:ky);digKeyT=.15}}
+  var c=dctx,s=SITES[D.si],m=MATS[s.m].c,Wp=704,Hp=480,x,y,t=performance.now()/1000,me=D.me;
+  digCam+=(clamp(me.y*DC-Hp/2+DC,0,DH*DC-Hp)-digCam)*.16;digShake=Math.max(0,digShake-dt*18);digSwing=Math.max(0,digSwing-dt*5);digFlash=Math.max(0,digFlash-dt*2.6);
+  c.save();c.fillStyle='#0b0b0d';c.fillRect(0,0,Wp,Hp);var cam=Math.round(digCam);c.translate(digShake?(Math.random()-.5)*digShake:0,-cam+(digShake?(Math.random()-.5)*digShake:0));c.imageSmoothingEnabled=false;
+  if(cam<DC*2){var g=c.createLinearGradient(0,0,0,64);g.addColorStop(0,'#6fa5d8');g.addColorStop(1,'#cfe2ec');c.fillStyle=g;c.fillRect(0,0,Wp,64);c.fillStyle='rgba(255,255,255,.8)';for(var q=0;q<4;q++){var cx=(q*190+t*5)%(Wp+60)-30;c.fillRect(cx,8+q*5,46,6);c.fillRect(cx+10,3+q*5,24,6)}
+    c.fillStyle='#d9c79a';c.beginPath();c.moveTo(70,64);c.lineTo(100,26);c.lineTo(130,64);c.fill();c.fillStyle='#8a7446';c.beginPath();c.moveTo(92,64);c.lineTo(100,42);c.lineTo(108,64);c.fill();c.fillStyle='#6d6f3a';c.fillRect(540,38,50,20);c.fillRect(590,46,22,12);c.fillStyle='#b9d6e4';c.fillRect(595,48,12,6);c.fillStyle='#1b1b1b';c.fillRect(548,58,10,6);c.fillRect(594,58,10,6);D.fnd.forEach(function(f,i){if(f.done){c.fillStyle='#e7e1d2';c.fillRect(544+((i%3)*15),30-((i/3|0)*7),13,8)}})}
+  var y0=Math.max(0,Math.floor(digCam/DC)-1),y1=Math.min(DH-1,y0+17);
+  for(y=Math.max(2,y0);y<=y1;y++)for(x=0;x<DW;x++){var i=y*DW+x,px=x*DC,py=y*DC,cc=D.c[i],ty=D.ty[i],o=D.own[i],f=o>=0?D.fnd[o]:null,st=stOf(y),h=((x*7+y*13)%9)/60;
+    if(!D.seen[i]&&!D.echo[i])continue;
+    if(!D.seen[i]){c.globalAlpha=.42;if(f&&cc&&!f.done)digPiece(c,f,x,y,px,py);else if(D.pk[i]===3){c.fillStyle='#d8a040';c.fillRect(px+10,py+11,12,10)}c.globalAlpha=1;continue}
+    if(!cc){c.fillStyle='rgb('+(m[0]*.3|0)+','+(m[1]*.3|0)+','+(m[2]*.3|0)+')';c.fillRect(px,py,DC,DC);if(f){if(f.done){c.fillStyle='#e7e1d2';c.fillRect(px,py,DC,DC);c.fillStyle='#bfb59c';c.fillRect(px+((x*5)%20),py+((y*7)%22),10,2);c.fillRect(px+((y*3)%18),py+((x*9)%25),8,2)}else{digPiece(c,f,x,y,px,py);if(D.fl[i]===2){c.strokeStyle='rgba(0,0,0,.75)';c.beginPath();c.moveTo(px+6,py+5);c.lineTo(px+15,py+16);c.lineTo(px+10,py+27);c.moveTo(px+15,py+16);c.lineTo(px+27,py+12);c.stroke()}}}continue}
+    var lift=m[0]+m[1]+m[2]<230?1.55:1,sh=(1-st*.12)*(.9+h)*lift,k=ty===1?.68:1;c.fillStyle='rgb('+clamp(m[0]*sh*k,0,255)+','+clamp(m[1]*sh*k,0,255)+','+clamp(m[2]*sh*k,0,255)+')';c.fillRect(px,py,DC,DC);c.fillStyle='rgba(0,0,0,.16)';c.fillRect(px,py+DC-1,DC,1);c.fillRect(px+DC-1,py,1,DC);
+    if(ty===3){c.fillStyle='#23252a';c.fillRect(px,py,DC,DC);c.fillStyle='#31343b';c.fillRect(px+3,py+6,14,3);c.fillRect(px+14,py+20,14,3);continue}
+    if(ty===1){c.fillStyle='rgba(0,0,0,.32)';c.fillRect(px+3,py+9,DC-6,3);c.fillRect(px+7,py+20,DC-10,3)}
+    var mx0=ty===1?st+2:ty===2?3:st+1;if(ty!==2&&!f&&cc<mx0){c.strokeStyle='rgba(0,0,0,.65)';c.lineWidth=1.5;c.beginPath();c.moveTo(px+6,py+8);c.lineTo(px+15,py+15);c.lineTo(px+11,py+25);c.moveTo(px+15,py+15);c.lineTo(px+26,py+12);c.stroke();c.lineWidth=1}
+    if(f&&!f.done&&(D.echo[i]||Math.hypot(x-me.x,y-me.y)<2.6)){c.globalAlpha=D.echo[i]?.5:.34;digPiece(c,f,x,y,px,py);c.globalAlpha=1}
+    if(D.fl[i]===1){c.fillStyle=m[0]+m[1]+m[2]>330?'#5b4632':'#e6dcc0';c.fillRect(px+9,py+11,7,4);c.fillRect(px+18,py+18,4,3)}
+    if(D.pk[i]===1){var gl=Math.sin(t*3+x*2+y)*.5+.5;c.fillStyle='#efe2bd';c.fillRect(px+11,py+12,10,7);c.fillStyle='rgba(255,255,255,'+gl+')';c.fillRect(px+20,py+8,3,3)}
+    if(D.pk[i]===2){c.fillStyle='#b0463a';c.fillRect(px+10,py+10,12,13);c.fillStyle='#e6e0c8';c.fillRect(px+10,py+14,12,4)}
+    if(D.pk[i]===3){c.fillStyle='#d8a040';c.fillRect(px+8,py+10,16,12);c.fillStyle='#6d3d10';c.fillRect(px+8,py+15,16,2)}
+    if(ty===2){var jig=D.tr[i]!=null&&D.tr[i]>0?(Math.random()-.5)*3:0;c.fillStyle='#857c6d';c.beginPath();c.arc(px+16+jig,py+16,14,0,7);c.fill();c.fillStyle='#a79e8d';c.beginPath();c.arc(px+12+jig,py+11,6,0,7);c.fill();c.strokeStyle='#4d463c';c.beginPath();c.arc(px+16+jig,py+16,14,0,7);c.stroke()}}
+  c.font='11px system-ui';[[22,1],[43,2]].forEach(function(b){c.fillStyle='rgba(255,226,138,.35)';c.fillRect(0,b[0]*DC,Wp,1);c.fillStyle='#ffe9a8';c.fillText(s.st[b[1]],6,b[0]*DC+13)});
+  // the next square a click would dig
+  if(digHov){var tg=digTarget(digHov);if(tg){var ti=tg[1]*DW+tg[0],bone=D.own[ti]>=0&&D.c[ti]&&(D.seen[ti]||D.echo[ti]);c.strokeStyle=bone&&ft===1?'#ff6f5e':bone&&ft===2?'#7fe07f':'#ffe28a';c.lineWidth=2;c.strokeRect(tg[0]*DC+1,tg[1]*DC+1,DC-2,DC-2);c.lineWidth=1}}
+  // the digger
+  var mx=me.x*DC+16,my=me.y*DC+16,bob=Math.sin(t*5)*.8;c.fillStyle='#5a4a35';c.fillRect(mx-6,my+1,12,12);c.fillStyle='#32281c';c.fillRect(mx-6,my+11,5,4);c.fillRect(mx+1,my+11,5,4);c.fillStyle='#e8b98e';c.beginPath();c.arc(mx,my-5+bob,7,0,7);c.fill();c.fillStyle='#b98f4a';c.fillRect(mx-11,my-8+bob,22,3);c.fillRect(mx-6,my-13+bob,12,6);c.fillStyle='#fff7c0';c.beginPath();c.arc(mx+digFace*5,my-9+bob,2,0,7);c.fill();
+  c.save();c.translate(mx+digFace*7,my+2);c.rotate(digFace*(.5-digSwing*1.5));if(ft===1){c.fillStyle='#7a5a35';c.fillRect(-1,-14,3,16);c.fillStyle='#b8bcc2';c.fillRect(-7,-16,15,3)}else if(ft===0){c.fillStyle='#7a5a35';c.fillRect(-1,-7,3,9);c.fillStyle='#c4c8ce';c.beginPath();c.moveTo(-4,-7);c.lineTo(5,-7);c.lineTo(1,-17);c.fill()}else{c.fillStyle='#7a5a35';c.fillRect(-1,-8,3,10);c.fillStyle='#e6d9a8';c.fillRect(-4,-14,9,7)}c.restore();
+  digFx=digFx.filter(function(p){p.l-=dt;if(p.l<=0)return false;p.x+=p.vx*dt;p.y+=p.vy*dt;if(!p.txt)p.vy+=380*dt;if(p.txt){c.font='bold 12px system-ui';c.globalAlpha=Math.min(1,p.l*1.5);c.fillStyle='#000';c.fillText(p.txt,p.x-29,p.y+1);c.fillStyle=p.col;c.fillText(p.txt,p.x-30,p.y);c.globalAlpha=1}else{c.fillStyle=p.col;c.fillRect(p.x,p.y,3,3)}return true});
+  if(digRing){digRing.r+=dt*340;var al=1-digRing.r/270;if(al<=0)digRing=null;else{c.strokeStyle='rgba(150,220,255,'+al+')';c.lineWidth=3;c.beginPath();c.arc(digRing.x,digRing.y,digRing.r,0,7);c.stroke();c.lineWidth=1}}
+  c.restore();
+  // lamp light and the read-out
+  var dark=Math.min(.5,Math.max(0,(me.y-2)*.07));if(dark>0){var lx=mx,ly=my-cam,lg=c.createRadialGradient(lx,ly,110,lx,ly,300);lg.addColorStop(0,'rgba(0,0,0,0)');lg.addColorStop(1,'rgba(0,0,0,'+dark+')');c.fillStyle=lg;c.fillRect(0,0,Wp,Hp)}
+  if(digFlash>0){c.fillStyle='rgba(220,60,40,'+digFlash*.25+')';c.fillRect(0,0,Wp,Hp)}
+  c.fillStyle='rgba(10,10,12,.7)';c.fillRect(6,6,250,22);c.fillStyle='#ffe9a8';c.font='12px system-ui';c.fillText('Depth '+Math.max(0,(me.y-1)*.5).toFixed(1)+' m   '+s.st[stOf(me.y)],13,21)}
+function digTarget(p){var r=$('dig').getBoundingClientRect(),px=(p.x-r.left)*704/r.width,py=(p.y-r.top)*480/r.height+digCam,dx=px-(D.me.x*DC+16),dy=py-(D.me.y*DC+16);if(Math.abs(dx)<14&&Math.abs(dy)<14)return null;var x=D.me.x,y=D.me.y;if(Math.abs(dx)>Math.abs(dy))x+=dx>0?1:-1;else y+=dy>0?1:-1;if(x<0||y<0||x>=DW||y>=DH)return null;return [x,y]}
+function digToward(){if(view!=='dig'||!digP||!D)return;var t=digTarget(digP);if(t)digMove(t[0]-D.me.x,t[1]-D.me.y)}
+function digStop(){digP=null;clearInterval(digT)}
+(function(){var cv=$('dig');cv.addEventListener('pointerdown',function(e){if(!D)return;digP={x:e.clientX,y:e.clientY};digHov=digP;try{cv.setPointerCapture(e.pointerId)}catch(_){}digToward();clearInterval(digT);digT=setInterval(digToward,170)});
+  cv.addEventListener('pointermove',function(e){digHov={x:e.clientX,y:e.clientY};if(digP)digP=digHov});cv.addEventListener('pointerup',digStop);cv.addEventListener('pointercancel',digStop);cv.addEventListener('pointerleave',function(){if(!digP)digHov=null})})();
+document.addEventListener('keydown',function(e){if(view!=='dig'||!D||/INPUT|TEXTAREA/.test((e.target||{}).tagName||''))return;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyW','KeyA','KeyS','KeyD'].indexOf(e.code)>=0){e.preventDefault();DKEYS[e.code]=true}if(!e.repeat&&e.code==='KeyQ')digPing();if(!e.repeat&&e.code==='KeyJ')digNearestJacket()});
+document.addEventListener('keyup',function(e){delete DKEYS[e.code]});addEventListener('blur',function(){DKEYS={};digStop()});
+$('ping').onclick=digPing;
+$('endDig').onclick=function(){if(!D)return;digStop();var left=D.fnd.filter(function(f){return !f.done&&expo(f)>.1}).length,sh=D.fnd.filter(function(f){return f.done}).length;endSeason();D=null;show('dig');toast(sh+' jacket'+(sh===1?'':'s')+' shipped to the lab.'+(left?' The rain took '+left+' you left exposed.':''))};
+function prestige(){var t=0;Object.keys(S.mus).forEach(function(k){var sp=specById(S.mus[k]);if(sp)t+=sp.priceless?60:Math.log10(Math.max(10,sp.value))*3+sp.tier*2});return Math.round(t)}
+function repName(p){return p<10?'A Provincial Cabinet':p<40?'A Town Museum':p<90?'A Respected Regional Museum':p<180?'A National Collection':p<300?'An Institution of World Renown':'The Museum of Deep Time'}
+function endSeason(){var p=prestige(),vis=Math.round((20+p*14)*(.85+Math.random()*.3)),inc=vis*12;S.visits+=vis;S.funds+=inc;S.season++;if(vis>0)toast('Season report: '+vis.toLocaleString()+' visitors brought in '+money(inc)+'.');nowFunds()}
+
+// ---- The prep lab
+var lctx=$('lab').getContext('2d'),LB=document.createElement('canvas');LB.width=W;LB.height=H;var lbx=LB.getContext('2d'),lim=lbx.createImageData(W,H);
+function renderShelf(){nowFunds();if(J){$('labShelf').classList.add('hide');$('labBench').classList.remove('hide');return}$('labShelf').classList.remove('hide');$('labBench').classList.add('hide');var g=$('shelf');g.innerHTML='';
+  S.jackets.forEach(function(j){var s=SITES[j.si],b=el('button','tile');b.style.width='150px';b.innerHTML='<div style="height:44px;border-radius:50% 40% 45% 50%/60% 50% 50% 40%;background:radial-gradient(#e7e1d2,#b7ad95);border:1px solid #7f7560;margin:0 auto 4px;width:80%;display:flex;align-items:center;justify-content:center;color:#3a3020;font:700 11px Consolas,monospace">'+esc(j.no)+'</div>'+esc(s.n)+'<br>'+esc(s.st[j.st])+' &middot; '+j.depth+' m'+(j.dmg>.08?'<br><span style="color:#e6a57a">Field damage noted</span>':'');b.onclick=function(){openJacket(j)};g.appendChild(b)});
+  $('shelfHint').textContent=S.jackets.length?'Click a jacket to saw it open. Work from coarse tools to fine ones, and let the rock tell you when to change tools.':'The shelf is empty. A find lands here the moment you press Jacket it at a dig. Or practise now on a training jacket from the Trustees.';
+  if(!S.jackets.length){var tb=el('button','go','Saw open a training jacket (free)');tb.onclick=function(){openJacket({id:newId(),si:0,ti:0,seed:Math.random()*4e9>>>0,st:0,depth:0,dmg:0,hol:false,season:S.season,lat:0,lon:0,anec:'A training jacket from the Trustees\' teaching stock.',no:'TRAIN'})};g.appendChild(tb)}
+  var cr=$('crib');cr.innerHTML='';TOOLS.forEach(function(t){var own=S.tools.indexOf(t.id)>=0,d=el('div','card');d.style.width='236px';d.style.margin='0';d.innerHTML='<b>'+esc(t.n)+'</b><br><span class="dim" style="font-size:12px">'+esc(t.d)+'</span><br>';if(own)d.appendChild(el('span',null,'In the shop'));else{var b=el('button',null,'Buy for '+money(t.cost));b.disabled=S.funds<t.cost;b.onclick=function(){S.funds-=t.cost;S.tools.push(t.id);toast(t.n+' added to the shop.');renderShelf()};d.appendChild(b)}cr.appendChild(d)})}
+function buildJob(jk){var F=genFossil(jk.si,jk.ti,jk.seed),m=new Float32Array(W*H),h=new Float32Array(W*H),hd=new Float32Array(W*H),r=rng(jk.seed+77),i,x,y,mat=MATS[SITES[jk.si].m];h.fill(1);
+  var a=r()*9,b=r()*9,n1=r()*6,n2=r()*6;for(y=0;y<H;y++)for(x=0;x<W;x++){i=y*W+x;var v=Math.sin(x*.09+a)*Math.cos(y*.11+b)+.5*Math.sin(x*.21+n1+y*.17)+.25*Math.sin(x*.47+y*.41+n2);m[i]=.82+v*.12+r()*.02;hd[i]=mat.hd*(1+Math.max(0,Math.sin(x*.16+n2)*Math.sin(y*.19+n1)-.55)*3)}
+  var n=Math.round(jk.dmg*30);for(var q=0;q<n;q++){var cx=r()*W|0,cy=r()*H|0,R=1+r()*4;for(y=Math.max(0,cy-5);y<Math.min(H,cy+6);y++)for(x=Math.max(0,cx-5);x<Math.min(W,cx+6);x++){if(Math.hypot(x-cx,y-cy)<R)h[y*W+x]=Math.min(h[y*W+x],.45+r()*.3)}}
+  return {jk:jk,g:F.g,k:F.k,n:F.n,m:m,h:h,hd:hd,c:new Uint8Array(W*H),d:new Float32Array(W*H),tool:'hammer',log:{},rev:{},ct:false,hx:-1,hy:-1,down:false,alert:0,flash:0,chips:[],mat:mat,site:SITES[jk.si]}}
+function openJacket(jk){S.jackets=S.jackets.filter(function(x){return x!==jk});J=buildJob(jk);S.job=null;startBench()}
+function startBench(){$('labShelf').classList.add('hide');$('labBench').classList.remove('hide');$('benchT').textContent=J.jk.no+': '+J.site.n;$('benchM').textContent=J.mat.n+'. '+J.mat.d;$('coach').textContent=coachText({e:0,i:1});$('probe').textContent='';renderTools();$('ctBtn').disabled=J.ct||S.funds<250;if(view!=='lab')show('lab')}
+function renderTools(){var b=$('toolBox');b.innerHTML='';TOOLS.forEach(function(t,i){if(S.tools.indexOf(t.id)<0)return;var x=el('button','tool'+(J.tool===t.id?' on':''));x.innerHTML=(i+1)+' '+esc(t.n)+'<small>'+(J.log[t.id]?Math.round(J.log[t.id]*2.4*10)/10+' h':'')+'</small>';x.title=t.d;x.onclick=function(){J.tool=t.id;renderTools();$('probe').textContent=t.d};b.appendChild(x)});
+  TOOLS.forEach(function(t){if(S.tools.indexOf(t.id)>=0)return;var x=el('button','tool','Buy '+t.n+' ('+money(t.cost)+')');x.title=t.d;x.style.opacity='.75';x.disabled=S.funds<t.cost;x.onclick=function(){S.funds-=t.cost;S.tools.push(t.id);J.tool=t.id;nowFunds();toast(t.n+' added to the shop.');renderTools();$('probe').textContent=t.d};b.appendChild(x)})}
+function riskAt(cx,cy,T){var worst=0,R=T.r,x0=Math.max(0,Math.floor(cx-R)),x1=Math.min(W-1,Math.ceil(cx+R)),y0=Math.max(0,Math.floor(cy-R)),y1=Math.min(H-1,Math.ceil(cy+R));for(var y=y0;y<=y1;y++)for(var x=x0;x<=x1;x++){if(Math.hypot(x-cx,y-cy)>R+.5)continue;var i=y*W+x,z=J.g[i];if(!z||J.h[i]<=0)continue;var dm=T.dmg[z];if(J.m[i]>0)dm=J.m[i]<T.reach?dm*.6*(1-J.m[i]/T.reach):0;if(dm>worst)worst=dm}return worst}
+function bestFor(z){var best=null,bs=-1;TOOLS.forEach(function(t){if(!t.rate||S.tools.indexOf(t.id)<0)return;var v=(FIT[z][t.id]==null?.5:FIT[z][t.id])+Math.min(.3,t.rate*(J.mat.t[t.id]||1)*t.r*.03);if(v>bs){bs=v;best=t}});return best}
+function coachText(st){var dust=0,i;for(i=0;i<W*H;i+=7)dust+=J.d[i];dust/=W*H/7;if(st.e<.02)return 'Press and hold on the rock to work it. One click is one tap of the tool. Pale shapes ghosting through mean bone is close.';if(dust>.35)return 'Dust is hiding the surface. Press 8 for the soft brush and sweep it off.';if(J.tool==='hammer')return 'Bone is showing. The hammer\'s shock will crack it, so change tool now: 3 for the dental pick, or 2 if you own an air scribe.';if(st.e<.4)return 'Keep going until 40% is exposed, then you can finish. Watch the ring colour, and change tool if it turns red.';if(st.e<.85)return 'You can press Finish prep now, but a more exposed fossil earns a better grade and a higher value.';return 'That is nearly all of it. Paint fragile parts with Paraloid (9), then press Finish prep.'}
+
+function jobStats(){var ex=0,hs=0,wt=0,i;for(i=0;i<W*H;i++){var z=J.g[i];if(!z)continue;if(J.m[i]<.03)ex++;hs+=J.h[i]*ZW[z];wt+=ZW[z]}return {e:ex/J.n,i:hs/wt}}
+function work(cx,cy,dt){var T=toolOf(J.tool),mul=T.rate?(J.mat.t[T.id]||1):0,R=T.r,x0=Math.max(0,Math.floor(cx-R-1)),x1=Math.min(W-1,Math.ceil(cx+R+1)),y0=Math.max(0,Math.floor(cy-R-1)),y1=Math.min(H-1,Math.ceil(cy+R+1)),x,y,hurt=0;
+  J.log[T.id]=(J.log[T.id]||0)+dt;
+  for(y=y0;y<=y1;y++)for(x=x0;x<=x1;x++){var dd=Math.hypot(x-cx,y-cy);if(dd>R+.5)continue;var f=1-dd/(R+1.5),i=y*W+x,z=J.g[i];
+    if(T.id==='cons'){if(J.m[i]<.15&&z)J.c[i]=1;continue}
+    if(T.id==='brush'){J.d[i]=Math.max(0,J.d[i]-dt*7*f);if(J.m[i]>0&&J.m[i]<.05){J.m[i]=0;if(z){J.rev.brush=J.rev.brush||{};J.rev.brush[z]=(J.rev.brush[z]||0)+1}}if(z&&J.h[i]>0){var bd=T.dmg[z]*dt*f;J.h[i]=Math.max(0,J.h[i]-bd)}continue}
+    if(J.m[i]>0){var rt=1.8*T.rate*mul/J.hd[i]*f*dt,was=J.m[i];J.m[i]=Math.max(0,was-rt);J.d[i]=Math.min(1,J.d[i]+rt*T.dust*1.5);if(z&&was>0&&J.m[i]===0){J.rev[T.id]=J.rev[T.id]||{};J.rev[T.id][z]=(J.rev[T.id][z]||0)+1}}
+    if(z&&J.h[i]>0){var dm=T.dmg[z];if(J.m[i]>0){dm=J.m[i]<T.reach?dm*.6*(1-J.m[i]/T.reach):0}if(dm>0){dm*=dt*f*(J.c[i]?.35:1);J.h[i]=Math.max(0,J.h[i]-dm);hurt+=dm}}}
+  if(T.id==='hammer'&&hurt>0&&Math.random()<dt*1.6){var a=Math.random()*6.28,L=8+Math.random()*16;for(var q=0;q<L;q++){var px=Math.round(cx+Math.cos(a)*q),py=Math.round(cy+Math.sin(a)*q);if(px<0||py<0||px>=W||py>=H)break;J.h[py*W+px]=Math.max(0,J.h[py*W+px]-.5);if(J.g[py*W+px])J.k[py*W+px]=1}toast('Crack! The shock ran along the bone.',true);J.flash=1}
+  if(hurt>.02&&performance.now()-J.alert>1400){J.alert=performance.now();J.flash=1;var zn=J.g[(cy|0)*W+(cx|0)];toast(T.n+' is too rough here'+(zn?' for '+ZNAME(zn):'')+'. Change tools.',true)}
+  if(T.dust>0&&Math.random()<.6)J.chips.push({x:cx,y:cy,vx:(Math.random()-.5)*14,vy:-8-Math.random()*10,l:.5});if(J.chips.length>40)J.chips.shift()}
+function ZNAME(z){return ZONES[z].toLowerCase()}
+function drawLab(dt){if(view!=='lab'||!J)return;if(J.down&&J.hx>=0)work(J.hx,J.hy,Math.min(.05,dt));var c=J.mat.c,d=lim.data,y,x,i,p;var rr=rng(J.jk.seed+5);
+  for(y=0;y<H;y++)for(x=0;x<W;x++){i=y*W+x;p=i*4;var m=J.m[i],z=J.g[i],n=.93+rr()*.14,lr=x>0?J.m[i-1]:m,up=y>0?J.m[i-W]:m,sl=1+clamp((m-lr+m-up)*3.2,-.35,.35),dpt=.72+.28*Math.min(1,m*1.5),R=c[0]*n*sl*dpt,G=c[1]*n*sl*dpt,B=c[2]*n*sl*dpt;
+    if(z){var a=m<=0?1:m<.7?(1-m/.7)*.85:0,t=tissue(J.site,z),hh=J.h[i],mk=J.k[i]?.66:1;if(a>0){if(hh<=.03){R*=.45;G*=.45;B*=.45}else{var sc=(.55+.45*hh)*mk,ed=(y>0&&!J.g[i-W]?1.25:1)*(y<H-1&&!J.g[i+W]?.74:1)*(x>0&&!J.g[i-1]?1.1:1);R=R*(1-a)+t[0]*sc*ed*a;G=G*(1-a)+t[1]*sc*ed*a;B=B*(1-a)+t[2]*sc*ed*a;if(J.c[i]&&m<=0){R+=12;G+=12;B+=16}}}}
+    if(J.ct&&z&&m>0){R=R*.55+30;G=G*.55+110;B=B*.55+160}
+    var du=J.d[i];if(du>0){R+=(216-R)*du*.45;G+=(208-G)*du*.45;B+=(190-B)*du*.45}
+    d[p]=R;d[p+1]=G;d[p+2]=B;d[p+3]=255}
+  lbx.putImageData(lim,0,0);var l=lctx;l.imageSmoothingEnabled=false;l.drawImage(LB,0,0,660,432);
+  J.chips.forEach(function(q){q.x+=q.vx*dt;q.y+=q.vy*dt;q.vy+=40*dt;q.l-=dt;if(q.l>0){l.fillStyle='#d8d0ba';l.fillRect(q.x*6,q.y*6,3,3)}});J.chips=J.chips.filter(function(q){return q.l>0});
+  if(J.hx>=0){var T=toolOf(J.tool),rk=riskAt(J.hx,J.hy,T);l.strokeStyle=rk>.2?'#ff5a48':rk>.03?'#ffc04a':'#79e079';l.lineWidth=J.down?3:2;l.beginPath();l.arc(J.hx*6,J.hy*6,(T.r+.5)*6,0,6.3);l.stroke();l.lineWidth=1}
+  if(J.flash>0){l.fillStyle='rgba(220,60,40,'+(J.flash*.28)+')';l.fillRect(0,0,660,432);J.flash=Math.max(0,J.flash-dt*2.4)}
+  J.tick=(J.tick||0)+dt;if(J.tick>.15){J.tick=0;var st=jobStats();$('mE').textContent=Math.round(st.e*100)+'%';$('bE').style.width=st.e*100+'%';$('mI').textContent=Math.round(st.i*100)+'%';$('bI').style.width=st.i*100+'%';$('finPrep').disabled=st.e<.4;$('coach').textContent=coachText(st);if(J.hx>=0){var q0=(J.hy|0)*W+(J.hx|0),zz=J.g[q0];var msg=J.mat.n+', '+(J.m[q0]>0?(J.m[q0]*12).toFixed(1)+' mm of rock here':'none left here');if(zz&&J.m[q0]<.7){msg+='. Under the tip: '+ZONES[zz]+(J.c[q0]?' (consolidated)':'');var bt=bestFor(zz);if(bt)msg+='. Best tool you own for this: '+bt.n}$('probe').textContent=msg+'.'}}}
+(function(){var cv=$('lab');function pos(e){var r=cv.getBoundingClientRect();J.hx=(e.clientX-r.left)/r.width*W;J.hy=(e.clientY-r.top)/r.height*H}
+  cv.addEventListener('pointerdown',function(e){if(!J)return;pos(e);J.down=true;try{cv.setPointerCapture(e.pointerId)}catch(_){}work(J.hx,J.hy,.09)});
+  cv.addEventListener('pointermove',function(e){if(J)pos(e)});cv.addEventListener('pointerup',function(){if(J){J.down=false;renderTools()}});cv.addEventListener('pointerleave',function(){if(J&&!J.down)J.hx=-1})})();
+$('ctBtn').onclick=function(){if(!J||J.ct)return;if(S.funds<250){toast('Not enough funds.',true);return}S.funds-=250;J.ct=true;nowFunds();this.disabled=true;toast('The local hospital ran it after hours. The fossil now shows blue through the rock.')};
+$('backShelf').onclick=function(){if(!J)return;if(!confirmOnce(this,'Back on the shelf loses this prep. Click again.'))return;S.jackets.push(J.jk);J=null;renderShelf()};
+function confirmOnce(btn,txt){if(btn.dataset.arm==='1'){btn.dataset.arm='0';btn.textContent=btn.dataset.txt;return true}btn.dataset.arm='1';btn.dataset.txt=btn.textContent;btn.textContent=txt;setTimeout(function(){if(btn.dataset.arm==='1'){btn.dataset.arm='0';btn.textContent=btn.dataset.txt}},3000);return false}
+$('finPrep').onclick=function(){if(!J)return;var st=jobStats();if(st.e<.4){toast('Expose at least 40% of the specimen first.',true);return}conserveForm(st)};
+document.addEventListener('keydown',function(e){if(e.target&&/INPUT|TEXTAREA/.test(e.target.tagName))return;if(view==='lab'&&J&&$('ov').classList.contains('hide')){var n=+e.key;if(n>=1&&n<=9){var t=TOOLS[n-1];if(S.tools.indexOf(t.id)>=0){J.tool=t.id;renderTools();$('probe').textContent=t.d}}}if(view==='dig'&&D){var n2=+e.key;if(n2>=1&&n2<=3)setFt(n2-1)}});
+
+function fitScore(){var good=0,all=0;Object.keys(J.rev).forEach(function(t){Object.keys(J.rev[t]).forEach(function(z){var c=J.rev[t][z];all+=c;good+=c*(FIT[z][t]==null?.5:FIT[z][t])})});return all?good/all:.5}
+function methodsText(log){var t=0;Object.keys(log).forEach(function(k){t+=log[k]});var a=Object.keys(log).filter(function(k){return k!=='cons'&&k!=='brush'}).sort(function(x,y){return log[y]-log[x]}).map(function(k){return toolOf(k).n+' ('+Math.round(log[k]/(t||1)*100)+'%)'});return a.join(', ')||'Not recorded'}
+// ---- The conservation bench, then the accession card
+function openOv(html){$('ovBox').innerHTML=html;$('ov').classList.remove('hide');$('ov').scrollTop=0}
+function closeOv(){$('ov').classList.add('hide');$('ovBox').innerHTML=''}
+function flagWords(jk,st){var t=taxOf(jk.si,jk.ti),w=[];if(has(t.fl,'P'))w.push('Pyrite present: bright metallic sulphide, reacts with damp air and oxygen.');if(has(t.fl,'F'))w.push('Fragile: fine or soft-tissue detail that will not forgive rough handling.');if(has(t.fl,'L'))w.push('Massive: the specimen is heavy and must carry its own weight.');if(SITES[jk.si].m==='tar')w.push('Tar-saturated: asphalt remains in the pores.');var dam=1-st.i;if(dam>.1)w.push('Breaks and losses: about '+Math.round(dam*100)+'% of the surface is affected.');if(!w.length)w.push('Chemically stable and physically sound.');return w}
+var CSEL=null,CST=null;
+function conserveForm(st){CST=st;CSEL={cons:null,treat:null,rep:null,house:null};var w=flagWords(J.jk,st),h='<h2>Conservation bench</h2><div class="dim" style="color:#5e5236">'+esc(J.jk.no)+' · Exposed '+Math.round(st.e*100)+'%, integrity '+Math.round(st.i*100)+'%. Choose one treatment for each line. Your choices go into the permanent record.</div><h3>Condition assessment</h3><ul style="margin:4px 0 4px 18px;padding:0">'+w.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>';
+  CONS.forEach(function(c){h+='<h3>'+esc(c.q)+'</h3><div>'+c.opts.map(function(o){return '<button class="opt" data-c="'+c.id+'" data-o="'+o.id+'">'+esc(o.n)+'<small>'+esc(o.d)+'</small></button>'}).join('')+'</div>'});
+  h+='<div class="row" style="margin-top:12px"><button id="consGo">Apply and write up the accession card</button><button id="consBack">Back to the bench</button></div>';openOv(h);
+  each('#ovBox .opt',function(b){b.onclick=function(){CSEL[b.dataset.c]=b.dataset.o;each('#ovBox .opt[data-c="'+b.dataset.c+'"]',function(q){q.classList.toggle('on',q===b)})}});
+  $('consBack').onclick=closeOv;$('consGo').onclick=function(){var miss=CONS.filter(function(c){return !CSEL[c.id]});if(miss.length){toast('Choose: '+miss[0].q.toLowerCase()+'.',true);return}accessionForm()}}
+function presScore(si,ti,sel,dam){var t=taxOf(si,ti),tot=0,lines=[];CONS.forEach(function(c){var o=optOf(c.id,sel[c.id]),s=o.s(t.fl,t,si,dam);tot+=s;lines.push({q:c.q,n:o.n,s:s,w:o.w})});return {score:tot/CONS.length,lines:lines}}
+function gradeWord(q){return q>=.92?'Museum grade':q>=.8?'Excellent':q>=.65?'Good':q>=.45?'Fair':'Poor'}
+function valueOf(sp){var r=rng(sp.seed+31),v=BASEV[sp.tier]*(.15+1.85*Math.pow(sp.q,3))*(.85+r()*.3);if(sp.type)v*=6;if(sp.misid)v*=.65;if(sp.fake)v*=.3;var pr=!sp.fake&&!sp.misid&&sp.q>=.82&&(sp.tier===5||(sp.type&&sp.tier>=3));return {v:Math.round(v/5)*5||5,pr:pr}}
+function shelfmark(t,si){var p=perOf(SITES[si].p);return ['PAL','MES','CEN'][p[2]]+'·'+t.g+'·'+p[0]}
+function accessionForm(){var jk=J.jk,t=taxOf(jk.si,jk.ti),st=CST,dam=1-st.i,ps=presScore(jk.si,jk.ti,CSEL,dam),fit=fitScore(),pq=.55*st.i+.25*st.e+.2*fit,q=clamp(.72*pq+.28*ps.score,0,1);
+  var site=SITES[jk.si],others=site.tx.filter(function(x){return x.ti!==t.ti&&x.pl===t.pl}).concat(site.tx.filter(function(x){return x.ti!==t.ti&&x.pl!==t.pl})).concat(ALLTAX.filter(function(x){return x.g===t.g&&x!==t&&x.si!==jk.si})).slice(0,2),cand=[t].concat(others).sort(function(){return Math.random()-.5});
+  var spc=document.createElement('canvas'),hc=(function(){var fi=[],i;for(i=0;i<W*H;i++)if(J.g[i])fi.push(i);return packH(null,fi.length,function(n){var c=fi[n];return J.m[c]>=.03?'z':String.fromCharCode(97+clamp(Math.round(J.h[c]*9),0,9))})})();
+  var fake=optOf('rep',CSEL.rep).flag===1;
+  var sp={id:newId(),acc:0,si:jk.si,ti:jk.ti,seed:jk.seed,hc:hc,i:st.i,e:st.e,fit:fit,pq:pq,ps:ps.score,q:q,sel:{cons:CSEL.cons,treat:CSEL.treat,rep:CSEL.rep,house:CSEL.house},log:J.log,hours:0,st:jk.st,depth:jk.depth,lat:jk.lat,lon:jk.lon,season:jk.season,no:jk.no,anec:jk.anec,nick:'',notes:'',idg:null,misid:false,type:!!jk.hol,sp:'',value:0,priceless:false,filed:false,fake:fake,tier:t.tier,ct:J.ct,casts:CSEL.treat==='cast'};
+  Object.keys(J.log).forEach(function(k){sp.hours+=J.log[k]*2.4});sp.hours=Math.round(sp.hours*10)/10;
+  var h='<h2>Accession card</h2><div class="dim" style="color:#5e5236">Compare the specimen with the diagnostic notes, then identify it. If you get it wrong, the error stays in the record until someone catches it.</div><div class="recTop" style="margin-top:8px"><canvas id="acPic" width="330" height="216"></canvas><div style="flex:1;min-width:240px"><div class="kv"><b>Prep result</b><span>'+Math.round(st.i*100)+'% intact, '+Math.round(st.e*100)+'% exposed, tool fit '+Math.round(fit*100)+'%</span><b>Conservation</b><span>'+Math.round(ps.score*100)+'/100</span><b>Grade</b><span>'+gradeWord(q)+'</span></div><h3>Conservator\'s report</h3><div style="font-size:12.5px">'+ps.lines.map(function(l){return '<div><b>'+esc(l.n)+':</b> '+esc(l.w)+'</div>'}).join('')+'</div></div></div><h3>Identification</h3><div>'+cand.map(function(c){return '<button class="opt" data-t="'+ALLTAX.indexOf(c)+'" data-th="'+(c===THORNE?1:0)+'"><i>'+esc(c.n)+'</i><small>'+esc(c.clue)+'</small></button>'}).join('')+'</div>';
+  if(sp.type)h+='<h3>Undescribed form</h3><div>This doesn\'t quite match any published description. You may name it, and it becomes a <b>holotype</b>.<input type="text" id="acSp" maxlength="40" placeholder="Your new species name, for example '+esc(t.n.split(' ')[0])+' collectorii"></div>';
+  h+='<h3>Nickname (optional)</h3><input type="text" id="acNick" maxlength="30" placeholder="Sue, Stan, Big Al, Dippy..."><h3>Curator\'s notes</h3><textarea id="acNotes" rows="3" placeholder="What you noticed, what you did, what the next person ought to know."></textarea><div class="row" style="margin-top:10px"><button id="acGo">Accession and send to filing</button></div>';
+  openOv(h);PCACHE[sp.id]=null;drawPicTo($('acPic'),sp,330,216);var chosen=null;each('#ovBox .opt',function(b){b.onclick=function(){chosen=b;each('#ovBox .opt',function(q){q.classList.toggle('on',q===b)})}});
+  $('acGo').onclick=function(){if(!chosen){toast('Identify the specimen first.',true);return}var c=ALLTAX[+chosen.dataset.t];sp.idg=c?ALLTAX.indexOf(c):-1;sp.misid=c!==t;if(jk.ti===99){sp.misid=false}sp.nick=$('acNick').value.trim().slice(0,30);sp.notes=$('acNotes').value.trim().slice(0,2000);if(sp.type){sp.sp=($('acSp').value.trim()||t.n.split(' ')[0]+' sp. nov.').slice(0,40)}sp.acc=S.nextAcc++;sp.sm=shelfmark(t,jk.si);var vv=valueOf(sp);sp.value=vv.v;sp.priceless=vv.pr;S.specs.push(sp);S.seen[jk.si+'/'+jk.ti]=1;J=null;closeOv();renderShelf();show('arc');pendingFile=sp.id;renderArc();toast('Accessioned as '+accNo(sp)+'. Now file it in the Archive.')};
+}
+function drawPicTo(cv,sp,w,h){drawPic(cv,sp,w,h)}
+function accNo(sp){var t=taxOf(sp.si,sp.ti),k=t.g==='INV'?'I':t.g==='PLA'?'P':'V';return 'MDT.'+k+'.'+String(sp.acc).padStart(4,'0')}
+function specById(id){return S.specs.filter(function(x){return x.id===id})[0]}
+// ---- The archive halls
+var pendingFile=null,hallSel=0,openDrawer=null;
+var HALLS=['Paleozoic Hall','Mesozoic Hall','Cenozoic Hall','Reading Room'];
+function unfiled(){return S.specs.filter(function(x){return !x.filed})}
+function renderArc(){nowFunds();var hb=$('hallBtns');hb.innerHTML='';HALLS.forEach(function(n,i){var b=el('button',i===hallSel?'on':null,n);b.onclick=function(){hallSel=i;openDrawer=null;renderArc()};hb.appendChild(b)});
+  var pend=unfiled();if(pendingFile&&!specById(pendingFile))pendingFile=null;if(!pendingFile&&pend.length)pendingFile=pend[0].id;var fb=$('filing');fb.classList.toggle('hide',!pend.length);fb.innerHTML='';
+  if(pend.length){var sp=specById(pendingFile),t=taxOf(sp.si,sp.ti),sm=sp.sm.split('·'),hallI=['PAL','MES','CEN'].indexOf(sm[0]);var d=el('div');d.innerHTML='<b style="color:#e2c67c">Filing tray:</b> '+pend.length+' specimen'+(pend.length>1?'s':'')+' waiting. Now filing <b>'+esc(accNo(sp))+'</b>, '+esc(spTitle(sp))+'. <span class="ty" style="background:#efe6cd;color:#26160a;padding:0 5px;border-radius:2px">Shelfmark '+esc(sp.sm)+'</span> <span class="dim">Go to the '+HALLS[hallI]+', the '+esc(GROUPS[t.g])+' cabinet, the '+esc(perOf(sm[2])[1])+' drawer. The drawer is lit when you\'re in the right hall.</span>';fb.appendChild(d);var g=el('div','row');pend.forEach(function(x){var b=el('button',x.id===pendingFile?'on':null,accNo(x));b.onclick=function(){pendingFile=x.id;renderArc()};g.appendChild(b)});fb.appendChild(g)}
+  var body=$('hallBody');body.innerHTML='';if(hallSel===3){renderRoom(body);return}
+  var hall=el('div','hall');Object.keys(GROUPS).forEach(function(g){var cab=el('div','cab');var cnt=S.specs.filter(function(x){return x.filed&&x.sm.split('·')[1]===g&&x.sm.split('·')[0]===['PAL','MES','CEN'][hallSel]}).length;cab.appendChild(el('div','crown',GROUPS[g]+(cnt?' ('+cnt+')':'')));
+    PERIODS.filter(function(p){return p[2]===hallSel}).forEach(function(p){var key=['PAL','MES','CEN'][hallSel]+'·'+g+'·'+p[0];cab.appendChild(makeDrawer(key,p[1]))});
+    if(hallSel===1&&g==='DIN'&&S.thorne)cab.appendChild(ninthDrawer());hall.appendChild(cab)});body.appendChild(hall)}
+function spTitle(sp){var t=taxOf(sp.si,sp.ti);var nm=sp.misid&&sp.idg>=0&&ALLTAX[sp.idg]?ALLTAX[sp.idg].n:t.n;return (sp.nick?'"'+sp.nick+'", ':'')+(sp.type&&sp.sp?sp.sp:nm)}
+function makeDrawer(key,label){var items=S.specs.filter(function(x){return x.filed&&x.sm===key}),d=el('div','drawer'+(openDrawer===key?' open':'')),sp=pendingFile&&specById(pendingFile),isT=sp&&!sp.filed&&sp.sm===key;if(isT)d.classList.add('target');var f=el('button','front');f.innerHTML='<span class="plate">'+esc(label)+'</span><span class="count">'+(items.length||'')+'</span><span class="pull"></span>';f.onclick=function(){openDrawer=openDrawer===key?null:key;renderArc()};d.appendChild(f);
+  if(openDrawer===key){var tr=el('div','tray');if(isT){var b=el('button',null,'File '+accNo(sp)+' here');b.style.flex='1 0 100%';b.className='go';b.onclick=function(){sp.filed=true;pendingFile=null;toast('Filed. The registrar stamps the card.');renderArc()};tr.appendChild(b)}if(!items.length&&!isT)tr.appendChild(el('span',null,'Empty. Acid-free tissue and a smell of old pine.'));items.sort(function(a,b){return a.acc-b.acc}).forEach(function(x){var w=el('button','well'),c=document.createElement('canvas');drawPic(c,x,66,43);w.appendChild(c);w.appendChild(document.createTextNode(accNo(x)));w.appendChild(el('br'));w.appendChild(document.createTextNode(spTitle(x).slice(0,22)));w.onclick=function(){openRecord(x.id)};tr.appendChild(w)});d.appendChild(tr)}return d}
+function ninthDrawer(){var d=el('div','drawer'),f=el('button','front');f.style.background='linear-gradient(#3a2a18,#23180e)';f.innerHTML='<span class="plate" style="background:#2a1d10;color:#c7a65e;border-color:#6a4e22">(unlabelled)</span><span class="pull"></span>';f.onclick=function(){S.thorne=false;var seed=Math.random()*4e9>>>0;S.jackets.push({id:newId(),si:6,ti:99,seed:seed,st:2,depth:0,dmg:.1,hol:true,season:S.season,lat:0,lon:0,anec:'Found in an unlabelled ninth drawer, still in Dr Thorne\'s crate, marked "Sundry Reptilia".',no:'THORNE'});toast('A crate slides out. It\'s on the Receiving shelf in the lab now.');renderArc()};d.appendChild(f);return d}
+function renderRoom(body){var h=el('div'),tot=S.specs.reduce(function(a,x){return a+(x.priceless?0:x.value)},0),pr=S.specs.filter(function(x){return x.priceless}).length;h.innerHTML='<h2>The Reading Room</h2><div class="card">Holdings: <b>'+S.specs.length+'</b> specimens, appraised at <b>'+money(tot)+'</b>'+(pr?' plus <b>'+pr+'</b> priceless':'')+'. Species logged: <b>'+Object.keys(S.seen).filter(function(k){return !/\/99$/.test(k)}).length+'/'+ALLTAX.length+'</b>.</div>';
+  var ld=el('h3',null,'Accession ledger');h.appendChild(ld);var tb=el('table','index'),hdr='<tr><th>No.</th><th>Specimen</th><th>Rarity</th><th>Grade</th><th>Valuation</th><th>Location</th></tr>';tb.innerHTML=hdr;S.specs.slice().sort(function(a,b){return b.acc-a.acc}).forEach(function(x){var tr=el('tr');tr.style.cursor='pointer';tr.innerHTML='<td class="ty">'+esc(accNo(x))+'</td><td><i>'+esc(spTitle(x))+'</i></td><td style="color:'+TIERC[x.tier]+'">'+TIERS[x.tier]+'</td><td>'+gradeWord(x.q)+'</td><td>'+(x.priceless?'<b style="color:#ff8d7a">Priceless</b>':money(x.value))+'</td><td>'+esc(placeOf(x))+'</td>';tr.onclick=function(){openRecord(x.id)};tb.appendChild(tr)});if(S.specs.length)h.appendChild(tb);else h.appendChild(el('div','dim','The ledger is blank. Everything begins with a jacket.'));
+  h.appendChild(el('h3',null,'Species register'));var reg=el('div','play');SITES.forEach(function(s,si){var c=el('div','card');c.style.flex='1 1 220px';c.style.fontSize='12px';c.innerHTML='<b>'+esc(s.n)+'</b>'+s.tx.map(function(t){var k=S.seen[si+'/'+t.ti];return '<div class="'+(k?'':'miss')+'">'+(k?'<i>'+esc(t.n)+'</i> <span style="color:'+TIERC[t.tier]+'">'+TIERS[t.tier]+'</span>':'Not yet logged: '+TIERS[t.tier].toLowerCase())+'</div>'}).join('');reg.appendChild(c)});h.appendChild(reg);
+  h.appendChild(el('h3',null,'The Thorne correspondence'));if(!S.letters)h.appendChild(el('div','dim','A folder labelled "O. Thorne, Keeper, 1926-1931". It\'s empty. Her tins must be out there, buried at your dig sites.'));for(var i=0;i<S.letters&&i<LETTERS.length;i++){var c2=el('div','card');c2.style.fontFamily='Georgia,serif';c2.innerHTML='<b style="color:#e2c67c">'+esc(LETTERS[i][0])+'</b><br>'+esc(LETTERS[i][1]);h.appendChild(c2)}
+  h.appendChild(el('h3',null,'The preparator\'s handbook'));var hb=el('div','card');hb.style.fontSize='12.5px';hb.innerHTML='<b>Choosing a tool.</b> '+esc('Hammer down to about a thumb of rock, then the air scribe near solid bone. Dental pick on enamel and shell. Pin vise and air abrasive on fine bone. Pin vise only, or a very light abrasive, on soft-tissue film. Acid only for phosphate bone in carbonate rock, never for calcite shell.')+'<br><b>Rock.</b> '+Object.keys(MATS).map(function(k){return esc(MATS[k].n)+': '+esc(MATS[k].d)}).join(' ')+'<br><b>Reading the stone.</b> '+esc('Bone ghosts through the rock when you are close. Shock travels, so the heavier the tool, the sooner you should stop. A CT scan shows where everything is, but the hospital bills you for it.');h.appendChild(hb);body.appendChild(h)}
+function placeOf(x){if(!x.filed)return 'Filing tray';var k=Object.keys(S.mus).filter(function(q){return S.mus[q]===x.id})[0];if(k){return 'On display: '+(ROOMNAMES[roomAt(+k.split(',')[0],+k.split(',')[1])]||'Museum')}return x.sm}
+function openRecord(id){var sp=specById(id);if(!sp)return;var t=taxOf(sp.si,sp.ti),s=SITES[sp.si],p=perOf(s.p),ps=presScore(sp.si,sp.ti,sp.sel,1-sp.i),rem=REMARKS[sp.tier][sp.seed%REMARKS[sp.tier].length],shown=sp.misid&&ALLTAX[sp.idg]?ALLTAX[sp.idg]:t,
+  chem=[];var maT=s.ma<1?'about 30,000 years':s.ma+' million years';chem=flagWords({si:sp.si,ti:sp.ti},{i:sp.i});
+  var html='<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><div class="ty">MUSEUM OF DEEP TIME &middot; ARCHIVE RECORD</div><div class="ty"><b>'+esc(accNo(sp))+'</b></div></div><h2><i>'+esc(sp.type&&sp.sp?sp.sp:shown.n)+'</i>'+(sp.type?'<span class="stamp">HOLOTYPE</span>':'')+(sp.misid?'':'')+(sp.fake?'<span class="stamp">UNDISCLOSED INFILL</span>':'')+'</h2><div>'+esc(shown.c)+(sp.nick?', known as "'+esc(sp.nick)+'"':'')+' &middot; <span style="color:'+darkTier(sp.tier)+';font-weight:700">'+TIERS[sp.tier]+'</span></div>';
+  html+='<div class="recTop" style="margin-top:8px"><canvas id="recPic" width="330" height="216"></canvas><div style="flex:1;min-width:250px"><div class="kv"><b>Shelfmark</b><span class="ty">'+esc(sp.sm)+'</span><b>Location</b><span>'+esc(placeOf(sp))+'</span><b>Classification</b><span>'+esc(GROUPS[t.g])+'</span><b>Age</b><span>'+esc(p[1])+', '+maT+'</span><b>Formation</b><span>'+esc(s.fm)+', '+esc(s.st[sp.st])+'</span><b>Locality</b><span>'+esc(s.n)+', '+esc(s.pl)+'</span>'+(sp.lat?'<b>Coordinates</b><span class="ty">'+sp.lat.toFixed(4)+', '+sp.lon.toFixed(4)+'</span><b>Depth</b><span>'+sp.depth+' m below datum</span>':'')+'<b>Field number</b><span class="ty">'+esc(sp.no)+', season '+sp.season+'</span><b>Matrix</b><span>'+esc(MATS[s.m].n)+'</span></div></div></div>';
+  html+='<h3>Appraisal</h3>'+(sp.priceless?'<div class="priceless">PRICELESS</div><div>A specimen of irreplaceable scientific and cultural importance. It cannot be appraised, sold or insured at any honest figure. It is never to be deaccessioned.</div>':'<div style="font-size:16px;font-weight:700">'+money(sp.value)+'</div>')+(sp.misid?'<div>A visiting specialist has queried the identification on this card. Value reduced until it is re-examined.</div>':'');
+  html+='<h3>Description</h3><div>'+esc(t.clue)+'</div><div style="margin-top:4px">'+esc(sp.misid?'[The note on file refers to a different taxon, and may be in error.] ':'')+esc(sp.misid?shown.lore:t.lore)+'</div><div style="margin-top:4px"><i>Registrar:</i> '+esc(rem)+'</div>';
+  html+='<h3>Preparation log</h3><div class="kv"><b>Result</b><span>'+gradeWord(sp.q)+': '+Math.round(sp.i*100)+'% of the surface intact, '+Math.round(sp.e*100)+'% exposed</span><b>Technique score</b><span>Tool fit '+Math.round(sp.fit*100)+'%</span><b>Tools used</b><span>'+esc(methodsText(sp.log))+'</span><b>Bench time</b><span>'+sp.hours+' hours under the lamp'+(sp.ct?'; CT scanned first':'')+'</span></div>';
+  html+='<h3>Conservation record</h3><div class="kv">'+ps.lines.map(function(l){return '<b>'+esc(l.q)+'</b><span>'+esc(l.n)+'. <span style="color:#5e5236">'+esc(l.w)+'</span></span>'}).join('')+'<b>Storage</b><span>'+(has(t.fl,'P')?'Under 40% RH, sealed; check the indicator card every 6 months':'18-20 C, 45-55% RH, dark drawer')+(sp.casts?'. Resin cast held for loans':'')+'</span></div>';
+  html+='<h3>Provenance</h3><div>Collected under field permit '+esc(s.id.toUpperCase())+'/'+sp.season+'/'+String(sp.acc).padStart(3,'0')+'. '+esc(sp.anec)+' Accessioned as '+esc(accNo(sp))+'; no prior ownership.</div>';
+  html+='<h3>Name and notes</h3><div class="row" style="margin:3px 0"><input type="text" id="reNick" maxlength="30" style="flex:1" placeholder="Nickname" value="'+esc(sp.nick)+'"></div><textarea id="reNotes" rows="3" placeholder="Curator\'s notes">'+esc(sp.notes)+'</textarea>';
+  html+='<div class="row" style="margin-top:10px"><button id="reClose">Close the record</button>'+(sp.misid?'<button id="reID">Re-examine the identification</button>':'')+(sp.priceless?'':'<button id="reSell">Deaccession and sell ('+money(sp.value*.6)+')</button>')+'</div>';
+  openOv(html);drawPic($('recPic'),sp,330,216);var store=function(){sp.nick=$('reNick').value.trim().slice(0,30);sp.notes=$('reNotes').value.slice(0,2000)};$('reClose').onclick=function(){store();closeOv();if(view==='arc')renderArc()};
+  if(sp.misid)$('reID').onclick=function(){store();sp.misid=false;sp.idg=ALLTAX.indexOf(t);var v=valueOf(sp);sp.value=v.v;sp.priceless=v.pr;toast('Corrected. The card now reads '+t.n+'.');openRecord(id)};
+  if($('reSell'))$('reSell').onclick=function(){if(!confirmOnce(this,'Sell for good? Click again.'))return;store();S.funds+=Math.round(sp.value*.6);Object.keys(S.mus).forEach(function(k){if(S.mus[k]===id){delete S.mus[k];musDirty()}});S.specs=S.specs.filter(function(x){return x!==sp});delete PCACHE[id];closeOv();nowFunds();if(view==='arc')renderArc();toast('Sold. A line goes through the ledger entry.')}}
+function darkTier(t){return ['#5a5e64','#2e6c2e','#25578a','#62358f','#a05f0a','#a02010'][t]}
+
+// ---- Real fossils tab and saving
+function brief(){var pr=S.specs.slice().sort(function(a,b){return (b.priceless?9e9:b.value)-(a.priceless?9e9:a.value)}).slice(0,8);if(!pr.length)return 'Accession some specimens first. Your best ones will appear here.';return 'Cast wish list from my Fossil Collector museum. Please tell me whether you can supply a cast or a real specimen of each, and where it comes from:\n\n'+pr.map(function(sp,i){var t=taxOf(sp.si,sp.ti),s=SITES[sp.si];return (i+1)+'. '+t.n+' ('+t.c+'), '+s.fm+', '+perOf(s.p)[1]}).join('\n')+'\n\nPlease state the casting material, the original it was moulded from, and any restoration.'}
+function saveCode(){var o=JSON.parse(JSON.stringify(S));if(D){var ap=function(v){return Array.prototype.join.call(v,'')};o.dig={si:D.si,en:D.en,seed:D.seed,me:D.me,c:ap(D.c),ty:ap(D.ty),fl:ap(D.fl),pk:ap(D.pk),seen:ap(D.seen),echo:ap(D.echo),fnd:D.fnd}}if(J){var fi=[],i;o.job={jk:J.jk,tool:J.tool,log:J.log,rev:J.rev,ct:J.ct,m:packH(null,W*H,function(n){return String.fromCharCode(97+clamp(Math.ceil(J.m[n]*15),0,25))}),h:packH(null,W*H,function(n){return String.fromCharCode(97+clamp(Math.round(J.h[n]*25),0,25))}),c:packH(null,W*H,function(n){return J.c[n]?'b':'a'})}}return btoa(unescape(encodeURIComponent(JSON.stringify(o))))}
+function num(v,a,b,d){v=+v;return isFinite(v)?clamp(v,a,b):d}
+function loadCode(txt){var o=JSON.parse(decodeURIComponent(escape(atob(txt.trim()))));if(!o||!Array.isArray(o.specs)||!Array.isArray(o.jackets))throw 0;var str=function(v,n){return String(v==null?'':v).slice(0,n)};
+  var okT=function(x){return x&&SITES[x.si]&&taxOf(x.si,x.ti)};var N=freshS();N.funds=num(o.funds,0,1e12,0);N.season=num(o.season,1,1e6,1)|0;N.nextAcc=num(o.nextAcc,1,1e7,1)|0;N.letters=num(o.letters,0,LETTERS.length,0)|0;N.visits=num(o.visits,0,1e12,0);N.thorne=!!o.thorne;N.seen={};Object.keys(o.seen||{}).forEach(function(k){if(/^\d+\/\d+$/.test(k))N.seen[k]=1});N.tools=TOOLS.filter(function(t){return t.own||(o.tools||[]).indexOf(t.id)>=0}).map(function(t){return t.id});
+  N.jackets=o.jackets.filter(okT).map(function(j){return {id:str(j.id,40),si:j.si,ti:j.ti,seed:num(j.seed,0,4294967296,0),st:num(j.st,0,2,0)|0,depth:num(j.depth,0,99,0),dmg:num(j.dmg,0,1,0),hol:!!j.hol,season:num(j.season,1,1e6,1)|0,lat:num(j.lat,-90,90,0),lon:num(j.lon,-180,180,0),anec:str(j.anec,200),no:str(j.no,16)}});
+  N.specs=o.specs.filter(okT).map(function(x){var sel={};CONS.forEach(function(c){sel[c.id]=optOf(c.id,x.sel&&x.sel[c.id]).id});var log={};TOOLS.forEach(function(t){if(x.log&&x.log[t.id])log[t.id]=num(x.log[t.id],0,1e7,0)});var y={id:str(x.id,40),acc:num(x.acc,0,1e7,0)|0,si:x.si,ti:x.ti,seed:num(x.seed,0,4294967296,0),hc:str(x.hc,20000).replace(/[^a-z0-9]/g,''),i:num(x.i,0,1,.5),e:num(x.e,0,1,.5),fit:num(x.fit,0,1,.5),pq:num(x.pq,0,1,.5),ps:num(x.ps,0,1,.5),q:num(x.q,0,1,.5),sel:sel,log:log,hours:num(x.hours,0,1e7,0),st:num(x.st,0,2,0)|0,depth:num(x.depth,0,99,0),lat:num(x.lat,-90,90,0),lon:num(x.lon,-180,180,0),season:num(x.season,1,1e6,1)|0,no:str(x.no,16),anec:str(x.anec,200),nick:str(x.nick,30),notes:str(x.notes,2000),idg:num(x.idg,-1,1e4,-1)|0,misid:!!x.misid,type:!!x.type,sp:str(x.sp,40),filed:!!x.filed,fake:!!x.fake,tier:taxOf(x.si,x.ti).tier,ct:!!x.ct,casts:!!x.casts};y.sm=shelfmark(taxOf(y.si,y.ti),y.si);var v=valueOf(y);y.value=v.v;y.priceless=v.pr;return y});
+  var ids={};N.specs.forEach(function(x){ids[x.id]=1});Object.keys(o.mus||{}).forEach(function(k){if(/^\d+,\d+$/.test(k)&&ids[o.mus[k]])N.mus[k]=o.mus[k]});
+  N.job=o.job&&okT(o.job.jk)?o.job:null;N.dig=o.dig||null;return N}
+function restoreDig(q){D=null;if(!q||!SITES[q.si]||!Array.isArray(q.fnd))return;var n=DW*DH,F={c:9,ty:3,fl:2,pk:3,seen:1,echo:1},o={},bad=false;Object.keys(F).forEach(function(k){if(typeof q[k]!=='string'||q[k].length!==n){bad=true;return}var a=new Uint8Array(n);for(var i=0;i<n;i++)a[i]=clamp((q[k].charCodeAt(i)-48)|0,0,F[k]);o[k]=a});if(bad)return;var own=new Int16Array(n).fill(-1),fnd=[];q.fnd.forEach(function(f){if(!f||!Array.isArray(f.cells)||!taxOf(q.si,f.ti))return;var cells=f.cells.filter(function(k){return k===(k|0)&&k>=0&&k<n});if(!cells.length)return;var id=fnd.length;cells.forEach(function(k){own[k]=id});fnd.push({ti:f.ti,seed:num(f.seed,0,4294967296,0),cells:cells,st:num(f.st,0,2,0)|0,dmg:num(f.dmg,0,1,0),done:!!f.done,no:id+1,depth:num(f.depth,0,99,0),x:num(f.x,0,DW,0)|0,y:num(f.y,0,DH,0)|0,w:num(f.w,1,DW,5)|0,h:num(f.h,1,DH,3)|0,hit:!!f.hit,ready:!!f.ready})});var mx=clamp((q.me&&q.me.x)|0,0,DW-1),my=clamp((q.me&&q.me.y)|0,0,DH-1);if(o.c[my*DW+mx]){mx=DW>>1;my=1}FSPR={};digFx=[];digCam=0;D={si:q.si,c:o.c,ty:o.ty,own:own,fl:o.fl,pk:o.pk,seen:o.seen,echo:o.echo,en:num(q.en,0,DAYS,0),fnd:fnd,seed:num(q.seed,0,4294967296,0),me:{x:mx,y:my},tr:{}}}
+function restoreJob(N){J=null;if(!N.job)return;var q=N.job,jk=N.jackets.filter(function(){return false})[0]||q.jk;var j=buildJob({id:String(jk.id).slice(0,40),si:jk.si,ti:jk.ti,seed:num(jk.seed,0,4294967296,0),st:num(jk.st,0,2,0)|0,depth:num(jk.depth,0,99,0),dmg:num(jk.dmg,0,1,0),hol:!!jk.hol,season:num(jk.season,1,1e6,1)|0,lat:num(jk.lat,-90,90,0),lon:num(jk.lon,-180,180,0),anec:String(jk.anec||'').slice(0,200),no:String(jk.no||'').slice(0,16)});j.tool=toolOf(q.tool)?q.tool:'hammer';TOOLS.forEach(function(t){if(q.log&&q.log[t.id])j.log[t.id]=num(q.log[t.id],0,1e7,0)});TOOLS.forEach(function(t){if(q.rev&&q.rev[t.id]){j.rev[t.id]={};[1,2,3,4,5].forEach(function(z){if(q.rev[t.id][z])j.rev[t.id][z]=num(q.rev[t.id][z],0,1e7,0)})}});j.ct=!!q.ct;unpack(q.m,W*H,function(i,c){j.m[i]=(c.charCodeAt(0)-97)/15});unpack(q.h,W*H,function(i,c){j.h[i]=(c.charCodeAt(0)-97)/25});unpack(q.c,W*H,function(i,c){j.c[i]=c==='b'?1:0});J=j;N.job=null}
+function renderSave(){$('code').value=saveCode();$('brief').value=brief()}
+function copy(box,btn){box.focus();box.select();var ok=false;try{ok=document.execCommand('copy')}catch(e){}btn.textContent=ok?'Copied':'Selected: press Ctrl+C'}
+$('copyCode').onclick=function(){copy($('code'),this)};$('copyBrief').onclick=function(){copy($('brief'),this)};$('warnGo').onclick=function(){show('save')};
+$('loadBtn').onclick=function(){try{var N=loadCode($('loadBox').value);restoreJob(N);restoreDig(N.dig);delete N.dig;S=N;pendingFile=null;openDrawer=null;PCACHE={};musDirty();$('loadMsg').textContent='Loaded '+S.specs.length+' specimens and '+S.jackets.length+' jackets.';nowFunds();show('dig');if(D){digLabels();setFt(1);renderFinds()}if(J){show('lab');startBench()}}catch(e){$('loadMsg').textContent='That save code did not work.'}};
+// ---- The museum: a walkable Doom-style building, drawn pixel by pixel.
+var MAP=[
+"##############.##############",
+"#.......#...........#.......#",
+"#.a...b.#.c...d...e.#.f...g.#",
+"#...........................#",
+"#.h...i.#...........#.j...k.#",
+"#.......#...L...N...#.......#",
+"#.......#...........#.......#",
+"####.########.########.######",
+"#.......#...........#.......#",
+"#.l...m.#...........#.n...o.#",
+"#.......#...........#.......#",
+"#.p...q.#.....O.....#.r...s.#",
+".............................",
+"#.t...u.#...........#.v...w.#",
+"#.......#...........#.......#",
+"#.......#...........#.......#",
+"####.########.########.######",
+"#.......#...........#.......#",
+"#.x...y.#...........#.Q...R.#",
+"#...........................#",
+"#.......#...........#.......#",
+"#.......#...........#.......#",
+"##############.##############"];
+var MW=29,MH=23,ROOMNAMES=['Hall of Ancient Seas','Hall of Mammals','Hall of Flight','Paleozoic Wing','The Great Rotunda','Mesozoic Wing','Thorne Memorial Room','Entrance Hall','The Treasury'];
+function roomAt(x,y){var c=x<8?0:x>20?2:1,r=y<7?0:y<16?1:2;if(x===8||x===20)c=x===8?(y===3||y===12||y===19?0:0):2;return r*3+c}
+var ROOMTINT=[[52,84,110],[92,104,60],[96,76,120],[46,92,92],[136,112,70],[124,60,50],[70,70,92],[116,92,70],[150,120,40]];
+var mcv=$('mcv'),mx=mcv.getContext('2d'),MIM=mx.createImageData(320,200),MP=new Uint32Array(MIM.data.buffer),ZB=new Float32Array(320);
+var OX=20,OY=16,GW=69,GH=63,PX=OX+14.5,PY=OY+31.5,PA=-Math.PI/2,keys={},plinths=[],sprites=[],visitors=[],prompted=null,mReady=false,visitorMsg=0,mtime=0;
+function rgba(r,g,b){return 0xFF000000|(b<<16)|(g<<8)|r}
+function tex(n,fn){var c=document.createElement('canvas');c.width=c.height=n;var x=c.getContext('2d');fn(x,n);var d=x.getImageData(0,0,n,n).data;return {n:n,d:new Uint32Array(d.buffer.slice(0))}}
+function wallTex(tint,label){return tex(64,function(x){var r=rng(tint[0]*7+tint[1]);x.fillStyle='rgb('+tint+')';x.fillRect(0,0,64,64);for(var i=0;i<140;i++){x.fillStyle='rgba(0,0,0,'+r()*.07+')';x.fillRect(r()*64,r()*42,2,2)}x.fillStyle='#d9c58c';x.fillRect(0,4,64,1);x.fillStyle='#3a2a18';x.fillRect(0,42,64,22);x.fillStyle='#5a4226';for(var p=0;p<64;p+=16){x.fillRect(p+2,46,12,14)}x.fillStyle='#b08d3f';x.fillRect(0,42,64,1);x.fillStyle='#1c130a';x.fillRect(0,63,64,1);if(label){x.fillStyle='#16110a';x.fillRect(8,10,48,26);x.strokeStyle='#d9c58c';x.strokeRect(8.5,10.5,47,25);label(x,r)}})}
+function artA(x,r){x.fillStyle='#223a50';x.fillRect(10,12,44,22);for(var i=0;i<4;i++){x.strokeStyle='#d9e2d0';x.beginPath();x.arc(20+i*8,24+(i%2)*3,3,0,6);x.stroke()}}
+function artB(x,r){x.fillStyle='#4a5a34';x.fillRect(10,12,44,22);x.fillStyle='#d9d0b0';x.fillRect(16,22,22,3);x.fillRect(36,18,6,6);x.fillRect(18,25,3,6);x.fillRect(32,25,3,6)}
+function artC(x,r){x.fillStyle='#7a5a8e';x.fillRect(10,12,44,22);x.fillStyle='#e5ddc8';x.beginPath();x.moveTo(14,20);x.lineTo(32,26);x.lineTo(50,20);x.lineTo(32,31);x.fill()}
+var ARTS=[artA,artB,artC,artA,artC,artB,artA,artC,artB];
+var WT=ROOMTINT.map(function(t){return wallTex(t,null)}),WTA=ROOMTINT.map(function(t,i){return wallTex(t,ARTS[i])});
+var FL1=tex(64,function(x){var r=rng(5);x.fillStyle='#b9ae98';x.fillRect(0,0,64,64);x.fillStyle='#6a5e4c';x.fillRect(0,0,32,32);x.fillRect(32,32,32,32);for(var i=0;i<90;i++){x.fillStyle='rgba(255,255,255,'+r()*.12+')';x.fillRect(r()*64,r()*64,r()*5,1)}x.fillStyle='rgba(0,0,0,.25)';x.fillRect(0,0,64,1);x.fillRect(0,0,1,64)});
+var FL2=tex(64,function(x){var r=rng(9);x.fillStyle='#7e2424';x.fillRect(0,0,64,64);x.fillStyle='#d3b160';x.strokeStyle='#d3b160';x.lineWidth=2;x.beginPath();x.arc(32,32,18,0,6.3);x.stroke();x.fillRect(30,6,4,8);x.fillRect(30,50,4,8);x.fillRect(6,30,8,4);x.fillRect(50,30,8,4);x.fillStyle='#34180e';x.fillRect(0,0,64,2);x.fillRect(0,0,2,64)});
+var FL3=tex(64,function(x){x.fillStyle='#1d1d26';x.fillRect(0,0,64,64);x.fillStyle='#2a2a36';x.fillRect(4,4,56,56);x.fillStyle='#b08d3f';x.fillRect(30,30,4,4)});
+var CE1=tex(64,function(x){x.fillStyle='#d8d0bc';x.fillRect(0,0,64,64);x.fillStyle='#b5ab94';x.fillRect(0,0,64,2);x.fillRect(0,0,2,64);x.fillStyle='#fff6d0';x.fillRect(26,26,12,12)});
+var CE2=tex(64,function(x){x.fillStyle='#6fa6d8';x.fillRect(0,0,64,64);x.fillStyle='#e8f1f7';x.fillRect(6,18,24,6);x.fillRect(32,40,20,5);x.fillStyle='#33291c';x.fillRect(0,0,64,4);x.fillRect(0,0,4,64)});
+function caseSprite(sp,kind){var big=kind==='M'||kind==='Q',n=big?128:64;return tex(n,function(x){x.imageSmoothingEnabled=false;
+  if(kind==='M'){x.fillStyle='#1a140c';x.fillRect(4,108,120,18);x.fillStyle='#6a5230';x.fillRect(6,108,116,3);x.fillStyle='#b08d3f';x.fillRect(0,124,128,3);[20,64,108].forEach(function(p){x.fillStyle='#8a8a8a';x.fillRect(p,80,2,28)});if(sp){x.drawImage(portrait(sp),0,10,128,84);x.strokeStyle='#3a2a18';x.lineWidth=3;x.strokeRect(1,10,126,84)}else{x.fillStyle='rgba(255,240,200,.25)';x.font='10px Georgia';x.fillText('Grand mount',32,80)}}
+  else if(kind==='Q'){x.fillStyle='#402a0e';x.fillRect(38,84,52,42);x.fillStyle='#d9b45a';x.fillRect(32,80,64,5);x.fillRect(32,122,64,5);x.fillStyle='rgba(230,240,255,.14)';x.fillRect(10,16,108,66);x.strokeStyle='#ffd968';x.lineWidth=3;x.strokeRect(10,16,108,66);if(sp)x.drawImage(portrait(sp),16,22,96,54)}
+  else{x.fillStyle='#2e2114';x.fillRect(18,40,28,24);x.fillStyle='#4a3620';x.fillRect(18,40,28,3);x.fillStyle='#b08d3f';x.fillRect(16,60,32,3);x.fillStyle='rgba(220,235,255,.16)';x.fillRect(5,8,54,33);x.strokeStyle='#c0a050';x.lineWidth=1;x.strokeRect(5.5,8.5,53,32);if(sp)x.drawImage(portrait(sp),8,11,48,28);else{x.fillStyle='#3a1820';x.fillRect(10,30,44,9)}x.fillStyle='rgba(255,255,255,.28)';x.fillRect(9,11,2,22)}})}
+var VIS=['#a84a4a','#4a7ab0','#4aa070','#b08a3a','#7a4ab0','#3a8a8a'].map(function(col,i){return tex(32,function(x){x.fillStyle=col;x.fillRect(12,9,8,10);x.fillStyle='#e0b896';if(i%2)x.fillStyle='#7a5238';x.fillRect(13,3,6,6);x.fillStyle=i%3?'#2a1e12':'#b09060';x.fillRect(13,2,6,2);x.fillStyle=i%2?'#333a4a':'#3a3226';x.fillRect(12,19,3,11);x.fillRect(17,19,3,11)})});
+var COMMENTS=['"Does it bite?" asks a small child.','A visitor whispers, "Is that real?"','Someone is reading the whole label. You feel seen.','"I had one of these in my garden," says a man, wrongly.','A school group counts the teeth and gets a different answer each time.','A volunteer is explaining the Bone Wars to nobody in particular.','"How old is it?" "Older than your father." "Older than GRANDAD?"','A researcher is taking notes and pretending not to be delighted.','Somebody has left a fingerprint on the glass.'];
+// ---- The grounds: gardens round the museum, with the far country painted on the sky.
+var FT=new Uint8Array(GW*GH),WL=new Uint8Array(GW*GH),SD=new Uint8Array(GW*GH),PROPS=[];
+var PU=new Int32Array(320),TOPY=new Int32Array(320),LZA=new Float32Array(320),LTA=new Int32Array(320),LZB=new Float32Array(320),LTB=new Int32Array(320),LZD=new Float32Array(320),LDB=new Int32Array(320),HITS=[];for(var hi=0;hi<8;hi++)HITS.push({d:0,side:0,x:0,y:0,w:0});
+function em(u){var d=Math.min(u,1024-u);return clamp((d-105)/70,0,1)}
+function gs(u,c,w){var d=Math.abs(u-c);if(d>512)d=1024-d;return Math.exp(-d*d/(2*w*w))}
+var PAN=(function(){var cv=document.createElement('canvas');cv.width=1024;cv.height=100;var x=cv.getContext('2d'),g=x.createLinearGradient(0,0,0,100),u,r=rng(21);g.addColorStop(0,'#4f8fd0');g.addColorStop(.62,'#a4cfe8');g.addColorStop(1,'#f5e7c6');x.fillStyle=g;x.fillRect(0,0,1024,100);
+  // the sun over the sea, due east
+  x.fillStyle='rgba(255,246,205,.35)';x.beginPath();x.arc(30,48,17,0,7);x.fill();x.fillStyle='#fff8d8';x.beginPath();x.arc(30,48,9,0,7);x.fill();
+  // snow mountains to the north
+  for(u=0;u<1024;u++){var w=gs(u,768,125),ht=em(u)*w*62*(.55+.28*Math.abs(Math.sin(u*.083))+.17*Math.abs(Math.sin(u*.31+1)));if(ht<1)continue;x.fillStyle='#7f94ae';x.fillRect(u,100-ht,1,ht);if(ht>30){x.fillStyle='#f4f6f8';x.fillRect(u,100-ht,1,(ht-30)*.55+1)}}
+  for(u=0;u<1024;u++){var ht2=em(u)*gs(u,768,170)*30*(.6+.4*Math.abs(Math.sin(u*.05+2)));if(ht2>1){x.fillStyle='#56738a';x.fillRect(u,100-ht2,1,ht2)}}
+  // a smoking volcano and dark forest to the west
+  for(u=0;u<1024;u++){var v=Math.max(0,1-Math.abs(u-528)/62)*40;if(v>0){x.fillStyle='#62606a';x.fillRect(u,100-v,1,v)}}x.fillStyle='#d7d4d0';for(var s=0;s<16;s++){var sz=2+s*.55;x.globalAlpha=.75-s*.035;x.beginPath();x.arc(528+s*1.5+r()*5,58-s*3.1,sz,0,7);x.fill()}x.globalAlpha=1;
+  for(u=0;u<1024;u++){var wf=gs(u,512,105)*17;if(wf>1){var tt=wf+(((u*7)%5)-2)*(wf>4?1:0);x.fillStyle='#254a35';x.fillRect(u,100-tt,1,tt)}}
+  // green hills, a village and a windmill to the south
+  for(u=0;u<1024;u++){var hh=em(u)*gs(u,256,125)*26*(.72+.28*Math.sin(u*.035));if(hh>1){x.fillStyle='#6f9a54';x.fillRect(u,100-hh,1,hh)}var h3=gs(u,256,85)*13*(.75+.25*Math.sin(u*.08+1));if(h3>1){x.fillStyle='#4f8246';x.fillRect(u,100-h3,1,h3)}}
+  for(var hs=0;hs<10;hs++){var hx=226+hs*6,hy=91-(hs%3);x.fillStyle=hs%2?'#e4d7bb':'#cdb995';x.fillRect(hx,hy,5,5);x.fillStyle='#964f36';x.fillRect(hx-1,hy-2,7,2)}x.fillStyle='#d9ceb6';x.fillRect(254,76,4,15);x.fillStyle='#6c6a70';x.beginPath();x.moveTo(253,76);x.lineTo(256,67);x.lineTo(259,76);x.fill();
+  x.fillStyle='#e2dacb';x.fillRect(306,78,5,12);x.strokeStyle='#5d4a33';x.beginPath();x.moveTo(301,72);x.lineTo(316,84);x.moveTo(316,72);x.lineTo(301,84);x.stroke();
+  // sails and an island on the sea
+  [[62,95],[1000,95],[1,96]].forEach(function(a){x.fillStyle='#f6f4ea';x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(a[0],a[1]-7);x.lineTo(a[0]+5,a[1]);x.fill();x.fillStyle='#5b4632';x.fillRect(a[0]-2,a[1],8,1)});x.fillStyle='#71928a';x.beginPath();x.moveTo(960,100);x.quadraticCurveTo(978,84,996,100);x.fill();
+  var d=x.getImageData(0,0,1024,100).data;return new Uint32Array(d.buffer.slice(0))})();
+var CLOUD=(function(){var cv=document.createElement('canvas');cv.width=1024;cv.height=100;var x=cv.getContext('2d'),r=rng(4);x.fillStyle='#fff';for(var i=0;i<26;i++){var cx=r()*1024,cy=8+r()*44,n=4+(r()*6|0);for(var j=0;j<n;j++){x.beginPath();x.arc(cx+j*7-n*3,cy+r()*4,3+r()*7,0,7);x.fill()}}var d=x.getImageData(0,0,1024,100).data,o=new Uint8Array(102400);for(var q=0;q<102400;q++)o[q]=d[q*4+3]>128?1:0;return o})();
+var F_LA=tex(64,function(x){var r=rng(31);x.fillStyle='#6fa24a';x.fillRect(0,0,64,64);for(var i=0;i<420;i++){x.fillStyle=r()<.5?'#5e9040':'#7cb054';x.fillRect(r()*64,r()*64,1,3)}});
+var F_LB=tex(64,function(x){var r=rng(32);x.fillStyle='#62953f';x.fillRect(0,0,64,64);for(var i=0;i<420;i++){x.fillStyle=r()<.5?'#538636':'#70a349';x.fillRect(r()*64,r()*64,1,3)}});
+var F_GR=tex(64,function(x){var r=rng(33);x.fillStyle='#cdbb94';x.fillRect(0,0,64,64);for(var i=0;i<520;i++){x.fillStyle=['#b8a67f','#dccba6','#a8987a','#e6d9bb'][r()*4|0];x.fillRect(r()*64,r()*64,2,2)}});
+var F_ST=tex(64,function(x){var r=rng(34);x.fillStyle='#c9c0ac';x.fillRect(0,0,64,64);for(var i=0;i<120;i++){x.fillStyle='rgba(90,80,60,'+r()*.12+')';x.fillRect(r()*64,r()*64,4,2)}x.fillStyle='#958a74';x.fillRect(0,0,64,1);x.fillRect(0,32,64,1);x.fillRect(0,0,1,32);x.fillRect(32,32,1,32)});
+var F_HG=tex(64,function(x){var r=rng(35);x.fillStyle='#2f5f2c';x.fillRect(0,0,64,64);for(var i=0;i<300;i++){x.fillStyle=r()<.5?'#26502a':'#3f7534';x.fillRect(r()*64,r()*64,3,3)}});
+var F_ME=tex(64,function(x){var r=rng(36);x.fillStyle='#8eaa58';x.fillRect(0,0,64,64);for(var i=0;i<160;i++){x.fillStyle=r()<.5?'#7f9b4e':'#a4bb68';x.fillRect(r()*64,r()*64,6,2)}});
+var F_FO=tex(64,function(x){var r=rng(37);x.fillStyle='#29503a';x.fillRect(0,0,64,64);for(var i=0;i<200;i++){x.fillStyle=r()<.5?'#1f4230':'#366246';x.fillRect(r()*64,r()*64,4,4)}});
+var F_FL=[['#e24a5a','#ffd14a'],['#8a5cd8','#f4f0ff'],['#ff8d3a','#e74a9b']].map(function(p,k){return tex(64,function(x){var r=rng(40+k);x.fillStyle='#3f6f35';x.fillRect(0,0,64,64);for(var i=0;i<230;i++){x.fillStyle=r()<.55?p[0]:p[1];x.fillRect(r()*62,r()*62,3,3)}})});
+var F_WA=tex(64,function(x){var r=rng(44);x.fillStyle='#3f7fa8';x.fillRect(0,0,64,64);for(var i=0;i<70;i++){x.fillStyle=r()<.55?'#5a9cc2':'#90c6de';x.fillRect(r()*60,r()*64,5+r()*8,1)}});
+var F_SE=tex(64,function(x){var r=rng(45);x.fillStyle='#2f6f9d';x.fillRect(0,0,64,64);for(var i=0;i<60;i++){x.fillStyle=r()<.7?'#3f84b0':'#c5e2ee';x.fillRect(r()*60,r()*64,4+r()*8,1)}});
+var FACADE=tex(128,function(x){var r=rng(46);x.fillStyle='#d3c4a3';x.fillRect(0,0,128,128);for(var i=0;i<16;i++){x.fillStyle='rgba(120,100,70,.28)';x.fillRect(0,i*8,128,1)}for(var j=0;j<300;j++){x.fillStyle='rgba(80,60,40,'+r()*.08+')';x.fillRect(r()*128,r()*128,3,2)}
+  x.fillStyle='#e8dcbf';x.fillRect(0,0,128,7);x.fillStyle='#8c7a58';x.fillRect(0,7,128,3);x.fillStyle='#bba982';for(var k=0;k<128;k+=10)x.fillRect(k,11,6,5);
+  x.fillStyle='#b9a883';x.fillRect(0,18,8,110);x.fillRect(120,18,8,110);x.fillStyle='#e4d7b8';x.fillRect(3,18,3,110);x.fillRect(123,18,3,110);
+  x.fillStyle='#2a3647';x.fillRect(38,30,52,56);x.beginPath();x.arc(64,30,26,3.1416,0);x.fill();x.fillStyle='#e6b95e';x.fillRect(43,38,18,44);x.fillRect(66,38,18,44);x.fillStyle='#2a3647';x.fillRect(51,38,2,44);x.fillRect(75,38,2,44);x.fillRect(43,58,41,2);x.fillStyle='#8c7a58';x.fillRect(34,86,60,4);x.fillStyle='#938260';x.fillRect(0,114,128,14);x.fillStyle='#6d5e44';x.fillRect(0,114,128,2)});
+var W_HG=tex(64,function(x){var r=rng(47);x.fillStyle='#2f6a30';x.fillRect(0,5,64,59);for(var i=0;i<380;i++){x.fillStyle=['#245527','#3b7c38','#4c8f40'][r()*3|0];x.fillRect(r()*62,5+r()*57,3,3)}for(var e=0;e<64;e+=4){x.fillStyle='#3b7c38';x.fillRect(e,2+r()*4,4,4)}});
+var W_BA=tex(64,function(x){x.fillStyle='#e0d6bf';x.fillRect(0,0,64,10);x.fillStyle='#a79a80';x.fillRect(0,9,64,2);x.fillStyle='#c8bda4';x.fillRect(0,54,64,10);for(var i=4;i<64;i+=16){x.fillStyle='#d7cdb5';x.beginPath();x.moveTo(i+1,11);x.lineTo(i+7,11);x.lineTo(i+6,20);x.lineTo(i+8,38);x.lineTo(i+6,54);x.lineTo(i+2,54);x.lineTo(i,38);x.lineTo(i+2,20);x.fill()}});
+function foliage(x,r,cx,cy,rx,ry,cols,n){for(var i=0;i<n;i++){var a=r()*6.283,d=Math.sqrt(r()),px=cx+Math.cos(a)*rx*d,py=cy+Math.sin(a)*ry*d,sh=(py-cy)/ry;x.fillStyle=cols[clamp(Math.floor((sh+1)/2*cols.length+r()*1.2-.6),0,cols.length-1)];x.beginPath();x.arc(px,py,3+r()*5,0,7);x.fill()}}
+var T_OAK=tex(128,function(x){var r=rng(50);x.fillStyle='#57402a';x.fillRect(58,70,12,58);foliage(x,r,64,48,50,44,['#74ab4e','#5a9440','#467e38','#2f6330'],260)});
+var T_OAK2=tex(128,function(x){var r=rng(51);x.fillStyle='#4c3a28';x.fillRect(59,76,10,52);foliage(x,r,64,54,44,44,['#d3a23f','#ad9238','#7a8c3a','#507636'],230)});
+var T_PINE=tex(128,function(x){x.fillStyle='#4c3724';x.fillRect(60,100,8,28);for(var i=0;i<6;i++){x.fillStyle=['#1f4e38','#29604a','#245840'][i%3];x.beginPath();x.moveTo(64,4+i*14);x.lineTo(64-18-i*6,38+i*14);x.lineTo(64+18+i*6,38+i*14);x.fill()}});
+var T_CYP=tex(128,function(x){var r=rng(53);x.fillStyle='#4c3724';x.fillRect(60,112,8,16);foliage(x,r,64,60,15,56,['#477a42','#2f6332','#234f2b'],240)});
+var T_MET=tex(128,function(x){var r=rng(54);x.fillStyle='#6d452b';x.fillRect(59,60,10,68);for(var i=0;i<9;i++){var w=7+i*4.2;foliage(x,r,64,8+i*11,w,7,['#d0924a','#b77f40','#946c38'],16+i*3)}});
+var T_GIN=tex(128,function(x){var r=rng(55);x.fillStyle='#65543c';x.fillRect(60,62,8,66);foliage(x,r,64,42,38,38,['#f2da55','#dfc748','#b9b53f'],240)});
+var T_CYC=tex(128,function(x){x.fillStyle='#5f4d33';x.fillRect(54,86,20,42);x.strokeStyle='#2f7038';x.lineWidth=4;for(var i=0;i<13;i++){var a=-3+i*.25;x.beginPath();x.moveTo(64,88);x.quadraticCurveTo(64+Math.cos(a)*30,84+Math.sin(a)*48,64+Math.cos(a)*56,92+Math.sin(a)*38);x.stroke()}});
+var T_TFN=tex(128,function(x){x.fillStyle='#4a3424';x.fillRect(59,50,10,78);x.strokeStyle='#4b9a42';x.lineWidth=3;for(var i=0;i<14;i++){var a=-3.05+i*.24;x.beginPath();x.moveTo(64,50);x.quadraticCurveTo(64+Math.cos(a)*24,30+Math.sin(a)*30,64+Math.cos(a)*54,58+Math.sin(a)*22);x.stroke()}});
+var T_HOR=tex(64,function(x){var r=rng(56);for(var i=0;i<16;i++){var px=8+r()*48,h=24+r()*34;x.fillStyle='#4f9148';x.fillRect(px,64-h,2,h);x.fillStyle='#1d3c20';for(var j=0;j<h;j+=6)x.fillRect(px,64-j,2,1)}});
+var T_MON=tex(128,function(x){x.fillStyle='#65503a';x.fillRect(60,14,8,114);x.strokeStyle='#24583a';x.lineWidth=5;for(var i=0;i<6;i++){var y=18+i*10,w=20+i*7;x.beginPath();x.moveTo(64,y);x.quadraticCurveTo(64-w*.6,y-7,64-w,y+6);x.moveTo(64,y);x.quadraticCurveTo(64+w*.6,y-7,64+w,y+6);x.stroke()}});
+var T_WOL=tex(128,function(x){var r=rng(57);x.fillStyle='#57412c';x.fillRect(60,50,7,78);for(var i=0;i<8;i++)foliage(x,r,64+(i%2?-12:12),12+i*10,12,5,['#2f6f4d','#245a3f'],25)});
+var T_TOP=tex(128,function(x){var g='#346f34',l='#4d9147';x.fillStyle=g;x.beginPath();x.ellipse(64,76,42,24,0,0,7);x.fill();x.fillRect(38,92,10,34);x.fillRect(80,92,10,34);x.beginPath();x.moveTo(28,74);x.lineTo(2,92);x.lineTo(30,88);x.fill();x.beginPath();x.ellipse(110,88,14,9,0,0,7);x.fill();x.fillStyle=l;for(var i=0;i<6;i++){x.beginPath();x.moveTo(30+i*12,62-Math.sin(i*.6)*5);x.lineTo(36+i*12,38-Math.sin(i*.6)*9);x.lineTo(42+i*12,62-Math.sin(i*.6)*5);x.fill()}x.fillStyle='#57412c';x.fillRect(32,122,64,6)});
+var T_STAT=tex(128,function(x){x.fillStyle='#b4aa94';x.fillRect(20,104,88,24);x.fillStyle='#d6cdb8';x.fillRect(14,100,100,5);var b='#4d6a60',l='#6f9184';x.fillStyle=b;x.beginPath();x.ellipse(70,70,34,20,0,0,7);x.fill();x.fillRect(46,80,10,20);x.fillRect(86,80,10,20);x.beginPath();x.moveTo(100,62);x.lineTo(124,86);x.lineTo(96,80);x.fill();x.fillStyle=l;x.beginPath();x.arc(36,52,20,0,7);x.fill();x.fillStyle=b;x.beginPath();x.ellipse(22,68,17,10,-.4,0,7);x.fill();x.fillStyle=l;x.beginPath();x.moveTo(24,50);x.lineTo(4,30);x.lineTo(30,42);x.fill();x.beginPath();x.moveTo(40,44);x.lineTo(28,18);x.lineTo(48,38);x.fill();x.beginPath();x.moveTo(8,66);x.lineTo(2,52);x.lineTo(14,60);x.fill()});
+var T_FOUN=[0,1].map(function(fr){return tex(128,function(x){x.fillStyle='#d4cab3';x.fillRect(58,44,12,70);x.beginPath();x.ellipse(64,44,26,6,0,0,7);x.fill();x.beginPath();x.ellipse(64,110,46,9,0,0,7);x.fill();x.fillStyle='#86c0dc';x.beginPath();x.ellipse(64,108,38,6,0,0,7);x.fill();x.fillStyle='#d4cab3';x.fillRect(60,20,8,24);x.fillStyle='#d9f0fa';var r=rng(60+fr);for(var i=0;i<46;i++){var t=r(),a=(i%2?1:-1)*(10+r()*26);x.fillRect(64+a*t,20+t*t*80-5,2,5)}})});
+var T_BEN=tex(64,function(x){x.fillStyle='#6b4a2c';x.fillRect(8,36,48,5);x.fillRect(8,22,48,4);x.fillRect(8,29,48,4);x.fillStyle='#2e2e2e';x.fillRect(10,24,4,38);x.fillRect(50,24,4,38)});
+var T_LAMP=tex(128,function(x){x.fillStyle='#2b2b30';x.fillRect(62,28,4,100);x.fillRect(56,122,16,6);x.fillStyle='#ffe9a8';x.fillRect(57,12,14,16);x.fillStyle='#2b2b30';x.fillRect(55,28,18,2);x.beginPath();x.moveTo(53,12);x.lineTo(64,4);x.lineTo(75,12);x.fill()});
+var T_STE=tex(64,function(x){x.fillStyle='#a79c85';x.fillRect(18,6,28,54);x.beginPath();x.arc(32,8,14,3.1416,0);x.fill();x.fillStyle='#7d7360';x.fillRect(12,58,40,6);x.fillStyle='#4a4134';for(var i=0;i<6;i++)x.fillRect(22,14+i*6,20,2)});
+var T_COL=tex(128,function(x){x.fillStyle='#e8dcbf';x.fillRect(48,10,32,108);x.fillStyle='#bcab85';for(var i=0;i<4;i++)x.fillRect(52+i*7,16,2,96);x.fillStyle='#d9ccac';x.fillRect(40,2,48,10);x.fillRect(40,116,48,12)});
+var T_BEL=tex(128,function(x){x.fillStyle='#57796e';x.beginPath();x.arc(64,44,42,3.1416,0);x.fill();x.fillStyle='#e6dabd';x.fillRect(16,44,96,7);x.fillRect(14,116,100,12);[20,50,70,100].forEach(function(p){x.fillRect(p,50,8,67)});x.fillStyle='#c3a544';x.fillRect(62,0,4,6)});
+var T_DOME=tex(128,function(x){x.fillStyle='#cdbd9c';x.fillRect(22,86,84,42);x.fillStyle='#8c7a58';for(var i=0;i<10;i++)x.fillRect(26+i*8,92,3,30);x.fillStyle='#e8dcbf';x.fillRect(18,82,92,5);var g=x.createLinearGradient(20,0,108,0);g.addColorStop(0,'#3f7267');g.addColorStop(.45,'#7fb5a3');g.addColorStop(1,'#37635a');x.fillStyle=g;x.beginPath();x.arc(64,82,42,3.1416,0);x.fill();x.strokeStyle='rgba(30,70,60,.55)';for(var a=0;a<7;a++){x.beginPath();x.ellipse(64,82,6+a*6,42,0,3.1416,6.283);x.stroke()}x.fillStyle='#e6dabd';x.fillRect(58,30,12,12);x.fillStyle='#d9b45a';x.fillRect(62,14,4,17);x.beginPath();x.arc(64,13,4,0,7);x.fill()});
+var T_FLO=[['#e24a5a','#ffd14a'],['#8a5cd8','#ffffff'],['#ff8d3a','#f5e255']].map(function(p,k){return tex(32,function(x){var r=rng(70+k);x.strokeStyle='#3b7d38';for(var i=0;i<7;i++){var px=4+r()*24;x.beginPath();x.moveTo(px,32);x.lineTo(px,18+r()*8);x.stroke();x.fillStyle=p[i%2];x.fillRect(px-2,15+r()*8,4,4)}})});
+var GLIVE=[['Ginkgo biloba',T_GIN,9,1,'Ginkgo. Trees very like this one grew in the Jurassic, and it has no close living relatives. Its leaves turn this butter yellow every autumn.'],
+['Metasequoia glyptostroboides',T_MET,14,4,'Dawn redwood. It was named from fossils in 1941, and living trees in China were then recognised as the same genus a few years later. It was a fossil before it was a tree.'],
+['Cycas revoluta',T_CYC,9,9,'A cycad. Cycads were so widespread in the Mesozoic that it is sometimes called the Age of Cycads. Stegosaurus would know the look of it.'],
+['Dicksonia antarctica',T_TFN,14,17,'Soft tree fern. Tree ferns grew in the Carboniferous swamps whose remains became coal, though this genus came much later.'],
+['Equisetum hyemale',T_HOR,9,16,'Rough horsetail. Its relatives grew as big as trees in the Carboniferous. This one comes up to your knee.'],
+['Araucaria araucana',T_MON,14,22,'Monkey puzzle. Its family is known from Jurassic rocks, and its sharp, armoured leaves may have been a defence against browsing animals.'],
+['Wollemia nobilis',T_WOL,9,25,'Wollemi pine. Known only from fossil relatives until 1994, when a small grove was found in a canyon in New South Wales.']];
+var GTIME=[['Cambrian: 508 million years ago','The Burgess Shale sea. Everything you can see from here, except the rock, is yet to come.'],
+['Devonian: 360 million years ago','Dunkleosteus hunts the shallow seas, and four-limbed animals are already paddling through the shallows.'],
+['Carboniferous: 309 million years ago','Great swamp forests lay down coal. Mazon Creek is a delta, and a Tully Monster is having an ordinary day.'],
+['Jurassic: 150 million years ago','Diplodocus crosses the Morrison plains, and an Archaeopteryx comes down in a Bavarian lagoon.'],
+['Cretaceous: 66 million years ago','A rock about ten kilometres across strikes the Yucatan. Hell Creek is the last chapter of the big dinosaurs.'],
+['Today','You, looking at some mountains. Walk back along the path. Each step here would be a great many years.']];
+function addProp(x,y,t,s,o){var p={x:x,y:y,t:t,s:s,solid:true};if(o)for(var k in o)p[k]=o[k];PROPS.push(p);if(p.solid&&x>=0&&y>=0&&x<GW&&y<GH)SD[y*GW+x]=1;return p}
+function buildGrounds(){var x,y,i,rect=function(x0,y0,x1,y1,fn){for(var b=Math.max(0,y0);b<=Math.min(GH-1,y1);b++)for(var a=Math.max(0,x0);a<=Math.min(GW-1,x1);a++)fn(b*GW+a,a,b)},floor=function(t){return function(q){FT[q]=t}},water=function(q){FT[q]=4;SD[q]=1};
+  FT.fill(1);rect(OX-2,OY-2,OX+30,OY+24,floor(5));
+  rect(OX-4,OY-4,OX+32,OY-4,floor(2));rect(OX-4,OY+26,OX+32,OY+26,floor(2));rect(OX-4,OY-4,OX-4,OY+26,floor(2));rect(OX+32,OY-4,OX+32,OY+26,floor(2));
+  rect(OX+13,OY+23,OX+15,GH-2,floor(2));rect(2,OY+35,GW-3,OY+37,floor(2));rect(2,OY+11,OX-1,OY+13,floor(2));rect(OX+29,OY+11,GW-3,OY+13,floor(2));rect(OX+13,2,OX+15,OY-1,floor(2));
+  var fx=OX+14,fy=OY+36;rect(fx-7,fy-7,fx+7,fy+7,function(q,a,b){if(Math.hypot(a-fx,b-fy)<6.6)FT[q]=2});rect(fx-4,fy-4,fx+4,fy+4,function(q,a,b){if(Math.hypot(a-fx,b-fy)<3.4)water(q)});
+  rect(OX+10,3,OX+11,OY-6,water);rect(OX+17,3,OX+18,OY-6,water);
+  rect(GW-14,OY+3,GW-2,OY+21,floor(5));rect(11,3,12,GH-3,floor(2));rect(4,OY+3,8,OY+7,water);
+  [[OX+1,OY+28,OX+9,OY+32],[OX+19,OY+28,OX+27,OY+32],[OX+1,OY+40,OX+9,OY+44],[OX+19,OY+40,OX+27,OY+44]].forEach(function(b){rect(b[0],b[1],b[2],b[3],function(q,a,c){SD[q]=1;if(a===b[0]||a===b[2]||c===b[1]||c===b[3]){FT[q]=6;WL[q]=2}else FT[q]=3})});
+  for(i=0;i<GW;i++){[0,GH-1].forEach(function(b){var q=b*GW+i;FT[q]=5;WL[q]=3;SD[q]=1})}for(i=0;i<GH;i++){var q0=i*GW;FT[q0]=6;WL[q0]=2;SD[q0]=1;var q1=i*GW+GW-1;FT[q1]=5;WL[q1]=3;SD[q1]=1}
+  for(y=0;y<MH;y++)for(x=0;x<MW;x++){var q=(y+OY)*GW+x+OX,c=MAP[y][x];FT[q]=0;WL[q]=c==='#'?1:(c==='.'&&(x===0||y===0||x===MW-1||y===MH-1))?4:0;SD[q]=c==='.'?0:1}
+  addProp(OX+14,OY+11,T_DOME,8,{solid:false,lift:1.9,over:true,dome:true});
+  addProp(OX+12,OY+23,T_COL,2,{});addProp(OX+16,OY+23,T_COL,2,{});addProp(OX+12,OY-1,T_COL,2,{});addProp(OX+16,OY-1,T_COL,2,{});
+  addProp(fx,fy,T_FOUN[0],2.1,{foun:true,sign:{n:'The Thorne Fountain',d:'Paid for, the plaque says, "by public subscription and one very embarrassed Trustee". The water comes from a spring under the east lawn.'}});
+  [OY+27,OY+31,OY+41,OY+45].forEach(function(b){addProp(OX+11,b,T_CYP,2.8,{});addProp(OX+17,b,T_CYP,2.8,{})});
+  [OY+24,OY+33,OY+39,OY+44].forEach(function(b){addProp(OX+12,b,T_LAMP,1.5,{});addProp(OX+16,b,T_LAMP,1.5,{})});
+  for(y=3;y<OY-5;y+=2){addProp(OX+8,y,T_CYP,2.8,{});addProp(OX+20,y,T_CYP,2.8,{})}
+  [[0,27],[28,27],[0,45],[28,45]].forEach(function(p,k){addProp(OX+p[0],OY+p[1],T_TOP,1.7,{sign:{n:'Topiary '+(k===3?'Stegosaurus, with hopes':'Stegosaurus'),d:'Cut from box hedge by the head gardener, who has never seen the plates in the right place and has stopped asking.'}})});
+  GTIME.forEach(function(g,k){addProp(OX+(k%2?16:12),3+(k>>1)*3,T_STE,1,{sign:{n:g[0],d:g[1]}})});
+  GLIVE.forEach(function(g){addProp(g[2],OY+g[3],g[1],g[1]===T_HOR?1:2.4,{sign:{n:g[0],d:g[4]}})});
+  addProp(GW-8,OY+7,T_STAT,2.2,{sign:{n:'Bronze Triceratops',d:'Life-size only from the shoulder forward, as the budget ran out at the hip and the sculptor was told to be creative.'}});
+  addProp(GW-8,OY+18,T_BEL,3,{sign:{n:'The Belvedere',d:'A little domed shelter with the whole sea in front of it. The staff say Dr Thorne came here to be cross in private.'}});
+  [OY+5,OY+8,OY+16,OY+19].forEach(function(b){addProp(GW-3,b,T_BEN,.9,{sign:{n:'A bench facing the sea',d:'You sit for a while. Much of what is in the cases behind you lived and died at the edge of water something like this.'}})});
+  addProp(OX+14,GH-3,T_BEN,.9,{sign:{n:'A bench with a view south',d:'Hills, a village, a windmill. The school parties come from down there, and they never count the teeth the same way twice.'}});addProp(OX+14,3,T_BEN,.9,{sign:{n:'A bench below the mountains',d:'From up here the snow looks permanent. Plenty of mountain rock was once laid down on a sea floor.'}});
+  var r=rng(1926),n=0,t;for(i=0;i<420&&n<120;i++){x=1+(r()*(GW-2)|0);y=1+(r()*(GH-2)|0);var cell=y*GW+x;if(FT[cell]!==1||SD[cell])continue;var far=true;PROPS.forEach(function(p){if(Math.abs(p.x-x)<2&&Math.abs(p.y-y)<2)far=false});if(!far)continue;var west=x<OX-4;t=west?[T_MET,T_PINE,T_OAK,T_MET][r()*4|0]:[T_OAK,T_OAK2,T_PINE,T_CYP][r()*4|0];addProp(x,y,t,t===T_CYP?2.8:2.6+r()*.9,{});n++}
+  for(i=0;i<70;i++){x=1+(r()*(GW-2)|0);y=1+(r()*(GH-2)|0);if(FT[y*GW+x]===1&&!SD[y*GW+x])PROPS.push({x:x+r()-.5,y:y+r()-.5,t:T_FLO[i%3],s:.5,solid:false})}
+}
+function isOut(x,y){var a=x|0,b=y|0;return a<0||b<0||a>=GW||b>=GH||FT[b*GW+a]!==0}
+function areaName(){var a=PX|0,b=PY|0;if(!isOut(PX,PY))return ROOMNAMES[roomAt(a-OX,b-OY)];if(b<OY-2)return 'The Deep Time Walk';if(a<OX-3)return 'The Living Fossil Walk';if(a>OX+31)return 'The Sea Terrace';if(b>OY+24)return 'The Entrance Gardens';return 'The Museum Terrace'}
+function buildMuseum(){buildGrounds();plinths=[];for(var y=0;y<MH;y++)for(var x=0;x<MW;x++){var c=MAP[y][x];if(c!=='#'&&c!=='.'){var kind=(c==='O'||c==='L'||c==='N')?'M':(c==='Q'||c==='R')?'Q':'c';plinths.push({x:x+OX,y:y+OY,key:x+','+y,kind:kind,tex:null,room:roomAt(x,y)})}}mReady=true;musDirty()}
+function musDirty(){if(!mReady)return;plinths.forEach(function(p){var id=S.mus[p.key],sp=id?specById(id):null;if(id&&!sp)delete S.mus[p.key];p.sp=sp;p.tex=caseSprite(sp,p.kind)});visitors=[];var n=Math.min(36,10+Object.keys(S.mus).length*2);for(var i=0;i<n;i++)visitors.push(newVisitor(i));statLine()}
+function statLine(){var p=prestige();$('musStat').textContent=repName(p)+' · Prestige '+p+' · '+Object.keys(S.mus).length+'/'+plinths.length+' cases filled · '+S.visits.toLocaleString()+' visitors so far. Fill your cases: at the end of each field season, your visitors pay into the funds.'}
+function isSolid(x,y){var a=Math.floor(x),b=Math.floor(y);if(a<0||b<0||a>=GW||b>=GH)return true;return SD[b*GW+a]===1}
+function newVisitor(i){var x,y,t=0;do{x=1+Math.random()*(GW-2);y=1+Math.random()*(GH-2)}while(isSolid(x,y)&&t++<200);return {x:x,y:y,a:Math.random()*6.3,k:VIS[i%VIS.length],w:0}}
+function musEnter(){if(!mReady)buildMuseum();else musDirty();mcv.focus();statLine()}
+function musUpdate(dt){mtime+=dt;var sp=(isOut(PX,PY)?3.4:2.4)*dt,ca=Math.cos(PA),sa=Math.sin(PA),mx0=0,my0=0;if(keys.KeyW||keys.ArrowUp){mx0+=ca;my0+=sa}if(keys.KeyS||keys.ArrowDown){mx0-=ca;my0-=sa}if(keys.KeyA){mx0+=sa;my0-=ca}if(keys.KeyD){mx0-=sa;my0+=ca}if(keys.ArrowLeft)PA-=dt*1.9;if(keys.ArrowRight)PA+=dt*1.9;
+  var rad=.22;if(mx0||my0){var nx=PX+mx0*sp,ny=PY+my0*sp;if(!isSolid(nx+(mx0>0?rad:-rad),PY))PX=nx;if(!isSolid(PX,ny+(my0>0?rad:-rad)))PY=ny}
+  visitors.forEach(function(v){v.w-=dt;if(v.w<0){v.a=Math.random()*6.3;v.w=1+Math.random()*4;v.stop=Math.random()<.4}if(v.stop)return;var q=dt*.55,nx=v.x+Math.cos(v.a)*q,ny=v.y+Math.sin(v.a)*q;if(isSolid(nx,ny))v.w=0;else{v.x=nx;v.y=ny}});
+  var best=null,bd=9;plinths.forEach(function(p){var dx=p.x+.5-PX,dy=p.y+.5-PY,d=Math.hypot(dx,dy),rg=p.kind==='c'?2.1:3;if(d>rg)return;var an=Math.atan2(dy,dx)-PA;an=Math.atan2(Math.sin(an),Math.cos(an));if(Math.abs(an)<.42&&d<bd){best=p;bd=d}});
+  PROPS.forEach(function(p){if(!p.sign)return;var dx=p.x+.5-PX,dy=p.y+.5-PY,d=Math.hypot(dx,dy);if(d>(p.foun?5.5:3))return;var an=Math.atan2(dy,dx)-PA;an=Math.atan2(Math.sin(an),Math.cos(an));if(Math.abs(an)<.42&&d<bd){best=p;bd=d}});prompted=best;
+  var pro=$('mpro');$('mhud').textContent=areaName();
+  var txt='';if(prompted){if(prompted.sign){txt=prompted.sign.n+' · E: read'}else if(prompted.sp){var s=prompted.sp;txt=spTitle(s)+' — '+(s.priceless?'PRICELESS':money(s.value))+' · '+TIERS[s.tier]+' · E: read the plaque'}else{txt=(prompted.kind==='M'?'An empty mount':prompted.kind==='Q'?'An empty Treasury case':'An empty case')+'. E: place a specimen'}}
+  else{visitorMsg-=dt;if(visitorMsg<-14){visitorMsg=6;if(visitors.length>2&&Object.keys(S.mus).length>0)musMsg=COMMENTS[Math.random()*COMMENTS.length|0]}if(visitorMsg>0&&musMsg)txt=musMsg}
+  if(pro.textContent!==txt)pro.textContent=txt}
+var musMsg='';
+function mix(c,h,a){var b=1-a;return 0xFF000000|((((c>>16&255)*b+(h>>16&255)*a)|0)<<16)|((((c>>8&255)*b+(h>>8&255)*a)|0)<<8)|(((c&255)*b+(h&255)*a)|0)}
+function mdraw(){var w=320,h=200,hh=100,ca=Math.cos(PA),sa=Math.sin(PA),pl=.66,dx0=ca+sa*pl,dy0=sa-ca*pl,dx1=ca-sa*pl,dy1=sa+ca*pl,x,y,i,cOff=(mtime*3)|0,wOff=(mtime*5)|0,HAZE=PAN[99*1024+256];
+  for(x=0;x<w;x++){var cm=x/w;PU[x]=((Math.atan2(dy0+(dy1-dy0)*cm,dx0+(dx1-dx0)*cm)/6.28318+1)*1024|0)&1023;var hz=PAN[99*1024+PU[x]];MP[99*w+x]=hz;MP[100*w+x]=hz}
+  // floor, ceiling and sky
+  for(y=hh+1;y<h;y++){var rd=hh/(y-hh),sx=(dx1-dx0)*rd/w,sy=(dy1-dy0)*rd/w,fx=PX+rd*dx0,fy=PY+rd*dy0,sh=Math.min(1,1.25/(1+rd*.14)),row=y*w,top=(h-1-y),tp=top*w,tb=top*1024,hazeA=Math.min(.82,rd/46);
+    for(x=0;x<w;x++){var cx=Math.floor(fx),cy=Math.floor(fy),tu=((fx-cx)*64)&63,tv=((fy-cy)*64)&63;fx+=sx;fy+=sy;var pu=PU[x];
+      if(cx<0||cy<0||cx>=GW||cy>=GH){var far=cx>=GW?F_SE:cx<0?F_FO:F_ME,tv3=far===F_SE?(tv+wOff)&63:tv;MP[row+x]=mix(far.d[tv3*64+tu],HAZE,hazeA);MP[tp+x]=CLOUD[tb+((pu+cOff)&1023)]?0xFFFFFFFF:PAN[tb+pu];continue}
+      var q=cy*GW+cx,ty=FT[q];
+      if(ty===0){var rm=roomAt(cx-OX,cy-OY),ft=rm===4||rm===7?FL2:rm===8?FL3:FL1,ct=(rm===4&&(cx-OX>=12&&cx-OX<=16&&cy-OY>=9&&cy-OY<=13))?CE2:CE1;MP[row+x]=sc(ft.d[tv*64+tu],sh);MP[tp+x]=sc(ct.d[tv*64+tu],ct===CE2?1:sh*.92);continue}
+      var t,tvv=tv;if(ty===1)t=(cx+cy)&1?F_LA:F_LB;else if(ty===2)t=F_GR;else if(ty===3)t=F_FL[(cx*3+cy*5)%3];else if(ty===4){t=F_WA;tvv=(tv+wOff)&63}else if(ty===5)t=F_ST;else t=F_HG;
+      MP[row+x]=mix(t.d[tvv*64+tu],HAZE,hazeA);MP[tp+x]=CLOUD[tb+((pu+cOff)&1023)]?0xFFFFFFFF:PAN[tb+pu]}}
+  // walls, with low hedges and balustrades seen in passing
+  for(x=0;x<w;x++){var cam=x/w,rx=dx0+(dx1-dx0)*cam,ry=dy0+(dy1-dy0)*cam,mapX=PX|0,mapY=PY|0,ddx=Math.abs(1/(rx||1e-9)),ddy=Math.abs(1/(ry||1e-9)),stx=rx<0?-1:1,sty=ry<0?-1:1,sdx=(rx<0?PX-mapX:mapX+1-PX)*ddx,sdy=(ry<0?PY-mapY:mapY+1-PY)*ddy,side=0,lx=mapX,ly=mapY,g=0,nl=0,full=false,prev=0,dist;
+    LZA[x]=1e9;LZB[x]=1e9;LTA[x]=9999;LTB[x]=9999;TOPY[x]=-1;ZB[x]=1e9;LZD[x]=1e9;LDB[x]=0;
+    while(g++<170){lx=mapX;ly=mapY;if(sdx<sdy){sdx+=ddx;mapX+=stx;side=0}else{sdy+=ddy;mapY+=sty;side=1}if(mapX<0||mapY<0||mapX>=GW||mapY>=GH)break;var wc=WL[mapY*GW+mapX];if(wc===1){full=true;break}
+      if(wc>=2&&wc!==prev&&nl<8){if(wc!==4||FT[ly*GW+lx]!==0){dist=side===0?(mapX-PX+(1-stx)/2)/rx:(mapY-PY+(1-sty)/2)/ry;var H0=HITS[nl++];H0.d=dist<.05?.05:dist;H0.side=side;H0.w=wc;H0.x=mapX;H0.y=mapY}}prev=wc}
+    if(full){dist=side===0?(mapX-PX+(1-stx)/2)/rx:(mapY-PY+(1-sty)/2)/ry;if(dist<.05)dist=.05;ZB[x]=dist;var lh=h/dist,wx=side===0?PY+dist*ry:PX+dist*rx;wx-=Math.floor(wx);var outs=FT[ly*GW+lx]!==0;
+      if(outs){var ds0=hh-lh*1.5,de0=hh+lh*.5,sd0=side?.8:1,tu0=(wx*128)&127,y00=Math.max(0,ds0|0),y10=Math.min(h,de0|0);TOPY[x]=y00;var hz0=Math.min(.45,dist/90);for(y=y00;y<y10;y++){var tv0=(((y-ds0)*64/lh)|0)&127;MP[y*w+x]=mix(sc(FACADE.d[tv0*128+tu0],sd0),HAZE,hz0)}}
+      else{var ds=(h-lh)/2|0,de=ds+(lh|0),rm2=roomAt(lx-OX,ly-OY),hash=(mapX*7+mapY*13)%5,tt=hash===0?WTA[rm2]:WT[rm2],tu2=(wx*64)&63,sd=(side?.82:1)*Math.min(1,1.3/(1+dist*.13)),y0=Math.max(0,ds),y1=Math.min(h,de);for(y=y0;y<y1;y++){var tv2=(((y-ds)*64/lh)|0)&63;MP[y*w+x]=sc(tt.d[tv2*64+tu2],sd)}}}
+    for(i=nl-1;i>=0;i--){var H1=HITS[i];if(full&&H1.d>=ZB[x])continue;var d1=H1.d,lh1=h/d1,w1=H1.side===0?PY+d1*ry:PX+d1*rx;w1-=Math.floor(w1);var hzz=Math.min(.6,d1/70);
+      if(H1.w===4){var dt0=hh-lh1*1.5,db0=hh-lh1*.5,tuL=(w1*128)&127,ya=Math.max(0,dt0|0),yb=Math.min(h,db0|0);if(TOPY[x]<0||ya<TOPY[x])TOPY[x]=ya;if(d1<LZD[x]){LZD[x]=d1;LDB[x]=yb}for(y=ya;y<yb;y++){var tvL=(((y-dt0)*64/lh1)|0)&127;MP[y*w+x]=mix(sc(FACADE.d[tvL*128+tuL],H1.side?.8:1),HAZE,hzz)}continue}
+      var hf=H1.w===2?.62:.46,db=hh+lh1/2,dt1=db-lh1*hf,tl=H1.w===2?W_HG:W_BA,tu1=(w1*64)&63,yy0=Math.max(0,dt1|0),yy1=Math.min(h,db|0),sdw=H1.side?.84:1;for(y=yy0;y<yy1;y++){var tv1=(((y-dt1)*64/(lh1*hf))|0)&63,c1=tl.d[tv1*64+tu1];if(c1>>>24>128)MP[y*w+x]=mix(sc(c1,sdw),HAZE,hzz)}
+      if(d1<LZA[x]){LZB[x]=LZA[x];LTB[x]=LTA[x];LZA[x]=d1;LTA[x]=yy0}else if(d1<LZB[x]){LZB[x]=d1;LTB[x]=yy0}}}
+  // sprites: cases, visitors, trees and statues
+  var list=[],ind=!isOut(PX,PY),fr=(mtime*6|0)&1;
+  plinths.forEach(function(p){var ix=p.x+.5,iy=p.y+.5,dq=(ix-PX)*(ix-PX)+(iy-PY)*(iy-PY);if(dq<1600)list.push({x:ix,y:iy,t:p.tex,s:p.kind==='c'?1:1.55,lift:0,sh:true,d:dq})});
+  PROPS.forEach(function(p){if(p.dome&&ind)return;var ix=p.solid===false&&!p.dome?p.x+.5:p.x+.5,iy=p.y+.5,dq=(ix-PX)*(ix-PX)+(iy-PY)*(iy-PY);list.push({x:ix,y:iy,t:p.foun?T_FOUN[fr]:p.t,s:p.s,lift:p.lift||0,over:p.over,d:dq})});
+  visitors.forEach(function(v){var dq=(v.x-PX)*(v.x-PX)+(v.y-PY)*(v.y-PY);list.push({x:v.x,y:v.y,t:v.k,s:.82,lift:0,sh:!isOut(v.x,v.y),d:dq})});
+  list.sort(function(a,b){return b.d-a.d});
+  var plx=(dx1-dx0)/2,ply=(dy1-dy0)/2,det=1/(plx*sa-ply*ca);
+  list.forEach(function(q){var rx=q.x-PX,ry=q.y-PY,tx=det*(sa*rx-ca*ry),ty=det*(-ply*rx+plx*ry);if(ty<=.15)return;var unit=h/ty,scr=(w/2)*(1+tx/ty),sz=(unit*q.s)|0,floor=hh+unit/2-(q.lift||0)*unit,ds=floor-sz,x0=(scr-sz/2)|0,x1=x0+sz,t=q.t,sd=q.sh?Math.min(1,1.3/(1+ty*.13)):1;if(sz<=0||!t||x1<0||x0>=w)return;var hz=q.sh?0:Math.min(.55,ty/70),over=q.over,ya=Math.max(0,ds|0),yb=Math.min(h,floor|0);
+    for(var xx=Math.max(0,x0);xx<Math.min(w,x1);xx++){var blocked=ty>=ZB[xx],beyond=ty>LZD[xx];if(over&&beyond)blocked=true;if(blocked&&!over)continue;var u=((xx-x0)*t.n/sz)|0,za=ty>LZA[xx]?LTA[xx]:9999,zb=ty>LZB[xx]?LTB[xx]:9999,lim=Math.min(za,zb,yb);if(blocked)lim=Math.min(lim,TOPY[xx]);for(var yy=beyond&&!over?Math.max(ya,LDB[xx]):ya;yy<lim;yy++){var v=((yy-ds)*t.n/sz)|0,c=t.d[v*t.n+u];if(c>>>24>40){var o=c>>>24>=240?sc(c,sd):blend(MP[yy*w+xx],c,sd);MP[yy*w+xx]=hz?mix(o,HAZE,hz):o}}}});
+  mx.putImageData(MIM,0,0)}
+function sc(c,f){var r=(c&255)*f,g=(c>>8&255)*f,b=(c>>16&255)*f;return 0xFF000000|((b|0)<<16)|((g|0)<<8)|(r|0)}
+function blend(d,c,f){var a=(c>>>24)/255,r=(c&255)*f*a+(d&255)*(1-a),g=(c>>8&255)*f*a+(d>>8&255)*(1-a),b=(c>>16&255)*f*a+(d>>16&255)*(1-a);return 0xFF000000|((b|0)<<16)|((g|0)<<8)|(r|0)}
+function musInteract(){if(!prompted)return;var p=prompted;if(p.sign){openOv('<div class="ty">'+esc(areaName())+'</div><h2><i>'+esc(p.sign.n)+'</i></h2><div>'+esc(p.sign.d)+'</div><div class="row" style="margin-top:10px"><button id="sgX">Walk on</button></div>');$('sgX').onclick=function(){closeOv();mcv.focus()};return}if(p.sp)plaque(p);else placeMenu(p)}
+function placeMenu(p){var on={};Object.keys(S.mus).forEach(function(k){on[S.mus[k]]=1});var list=S.specs.filter(function(x){return x.filed&&!on[x.id]}).sort(function(a,b){return (b.priceless?9e12:b.value)-(a.priceless?9e12:a.value)});
+  var h='<h2>'+esc(ROOMNAMES[p.room])+'</h2><div>Pick a filed specimen for this '+(p.kind==='M'?'grand mount':p.kind==='Q'?'Treasury case':'case')+'. Only filed specimens can leave the archive.</div><div class="grid" id="pmG" style="margin-top:8px"></div><div class="row" style="margin-top:10px"><button id="pmX">Leave it empty</button></div>';openOv(h);var g=$('pmG');
+  if(!list.length)g.appendChild(el('div',null,'Nothing is available. File specimens in the Archive Halls first.'));list.forEach(function(sp){var b=el('button','tile'),c=document.createElement('canvas');drawPic(c,sp,100,65);b.style.color='#e6e6e6';b.appendChild(c);b.appendChild(document.createTextNode(spTitle(sp).slice(0,28)));b.appendChild(el('br'));b.appendChild(document.createTextNode(sp.priceless?'Priceless':money(sp.value)));b.onclick=function(){S.mus[p.key]=sp.id;closeOv();musDirty();mcv.focus();toast('Placed. The docents practise pronouncing it.')};g.appendChild(b)});$('pmX').onclick=function(){closeOv();mcv.focus()}}
+function plaque(p){var sp=p.sp,t=taxOf(sp.si,sp.ti),s=SITES[sp.si],h='<div class="ty">'+esc(ROOMNAMES[p.room])+' &middot; '+esc(accNo(sp))+'</div><h2><i>'+esc(spTitle(sp))+'</i></h2><div>'+esc(t.c)+'. '+esc(perOf(s.p)[1])+', '+esc(s.fm)+', '+esc(s.pl)+'.</div><div class="recTop" style="margin:8px 0"><canvas id="plPic" width="440" height="288"></canvas></div><div>'+esc(t.lore)+'</div><div style="margin-top:6px"><b>Valuation:</b> '+(sp.priceless?'<span class="priceless">Priceless</span>':money(sp.value))+' &middot; '+TIERS[sp.tier]+' &middot; '+gradeWord(sp.q)+'</div>'+(sp.notes?'<div style="margin-top:6px"><i>Curator\'s note:</i> '+esc(sp.notes)+'</div>':'')+'<div class="row" style="margin-top:10px"><button id="plX">Back to the gallery</button><button id="plRec">Open the archive record</button><button id="plOut">Return it to the drawer</button></div>';openOv(h);drawPic($('plPic'),sp,440,288);$('plX').onclick=function(){closeOv();mcv.focus()};$('plRec').onclick=function(){openRecord(sp.id)};$('plOut').onclick=function(){delete S.mus[p.key];closeOv();musDirty();mcv.focus()}}
+document.addEventListener('keydown',function(e){if(view!=='mus'||!$('ov').classList.contains('hide')||/INPUT|TEXTAREA/.test((e.target||{}).tagName||''))return;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].indexOf(e.code)>=0)e.preventDefault();keys[e.code]=true;if(e.code==='KeyE'&&!e.repeat)musInteract()});
+document.addEventListener('keyup',function(e){delete keys[e.code]});addEventListener('blur',function(){keys={}});
+(function(){var drag=false,moved=0,lx=0;mcv.addEventListener('pointerdown',function(e){drag=true;moved=0;lx=e.clientX;mcv.focus();try{mcv.setPointerCapture(e.pointerId)}catch(_){}});mcv.addEventListener('pointermove',function(e){if(!drag)return;var d=e.clientX-lx;lx=e.clientX;moved+=Math.abs(d);PA+=d*.0065});mcv.addEventListener('pointerup',function(){if(drag&&moved<5)musInteract();drag=false})})();
+// ---- Main loop
+var lastT=performance.now();function loop(now){var dt=Math.min(.05,Math.max(0,(now-lastT)/1000));lastT=now;drawDig(dt);drawLab(dt);if(view==='mus'&&$('ov').classList.contains('hide')&&mReady){musUpdate(dt);mdraw()}else keys=view==='mus'?{}:keys;requestAnimationFrame(loop)}
+nowFunds();buildMuseum();renderSites();renderSave();requestAnimationFrame(loop);
+udsFile.wire({buttons:['warnFile','fileSave'],get:saveCode,put:function(c){$('loadBox').value=c;$('loadBtn').click();$('loadBox').value=''}});
+</script></body></html>

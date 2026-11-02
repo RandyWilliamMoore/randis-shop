@@ -1,0 +1,435 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Gem Collector</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#1e1f22;color:#e6e6e6;font:14px system-ui,Segoe UI,sans-serif;padding:12px}
+h1{font-size:20px;margin:0 12px 0 0}h2{font-size:15px;margin:14px 0 6px}
+header{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+button{background:#2f3136;color:#e6e6e6;border:1px solid #4a4d55;border-radius:6px;padding:6px 10px;cursor:pointer;font:inherit}
+button:hover{background:#3a3d44}button:disabled{opacity:.45;cursor:default}
+button.on,button.go{background:#3b6fd4;border-color:#3b6fd4}
+.warn{background:#3a3020;border:1px solid #6d5a2c;border-radius:6px;padding:7px 10px;margin-bottom:10px}
+.warn button{margin-left:6px;padding:2px 8px}
+.hide{display:none!important}.dim{color:#a2a6ad}.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0}
+.play{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start}.side{flex:1;min-width:250px}
+canvas#mine,canvas#mach{max-width:100%;background:#17181a;border-radius:10px;display:block}
+canvas#mine{cursor:pointer;touch-action:none}
+.grid{display:flex;flex-wrap:wrap;gap:6px;min-height:40px}
+.tile{width:92px;background:#2a2c31;border:1px solid #3c3f46;border-radius:8px;padding:5px 3px;text-align:center;font-size:10px;line-height:1.25;color:#e6e6e6}
+.tile:hover{border-color:#8a8f9c}.tile.sel{border-color:#f2c94c;background:#3a3620}.tile canvas{display:block;margin:0 auto 3px}
+.bar{height:12px;background:#17181a;border-radius:6px;overflow:hidden;margin:4px 0 8px}.bar i{display:block;height:100%;background:#d99a2b}
+#toast{position:fixed;left:50%;top:12px;transform:translateX(-50%);background:#2b3a2b;border:1px solid #4d7a4d;border-radius:8px;padding:8px 14px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:9}
+#toast.show{opacity:1}
+input[type=range]{width:210px;vertical-align:middle}
+#hold{background:#a2562a;border-color:#c26d3a;padding:12px 20px;font-weight:600;user-select:none;touch-action:none}
+#hold.down{background:#d9772f}
+#tiers{list-style:none;padding:0;margin:6px 0;font-size:12px}#tiers li{padding:2px 0;color:#a2a6ad}#tiers li.now{color:#f2c94c;font-weight:600}#tiers li.ok{color:#7fbf7f}
+.card{background:#2a2c31;border-radius:8px;padding:8px 10px;margin:6px 0}
+textarea{width:100%;height:110px;background:#17181a;color:#e6e6e6;border:1px solid #4a4d55;border-radius:6px;padding:6px;font:12px Consolas,monospace}
+.maker{background:#2a2c31;border-radius:8px;padding:8px 10px;margin:6px 0}.maker b{display:block}
+.url{user-select:all;color:#8ab4f8;font-family:Consolas,monospace;font-size:12px;word-break:break-all}
+#ov{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:8;padding:12px}
+#ovBox{background:#25272b;border:1px solid #4a4d55;border-radius:12px;padding:16px;max-width:560px;width:100%;max-height:96vh;overflow:auto;display:flex;gap:14px;flex-wrap:wrap}
+#ovBox canvas{background:#17181a;border-radius:10px}#ovFacts{flex:1;min-width:210px;font-size:13px;line-height:1.5}
+#ovFacts input{width:100%;background:#17181a;color:#e6e6e6;border:1px solid #4a4d55;border-radius:6px;padding:5px;font:inherit;font-weight:600}
+/* the cabinet */
+.cab{max-width:780px;margin:6px auto;padding:0 14px 14px;border-radius:6px 6px 3px 3px;box-shadow:0 12px 26px rgba(0,0,0,.6);
+ background:repeating-linear-gradient(92deg,rgba(0,0,0,.09) 0 2px,transparent 2px 9px,rgba(255,220,170,.04) 9px 13px),linear-gradient(#6d4325,#4c2d17)}
+.crown{height:22px;margin:0 -14px 12px;border-radius:6px 6px 0 0;background:linear-gradient(#90613a,#5f3a1f);border-bottom:3px solid #2e1a0c}
+.drawer{margin-bottom:3px;background:#1c1009}
+.tray{max-height:0;overflow:hidden auto;transition:max-height .5s cubic-bezier(.3,.8,.3,1);background:#1f3a2e;
+ background-image:radial-gradient(rgba(255,255,255,.04) 1px,transparent 1px);background-size:4px 4px;box-shadow:inset 0 10px 14px -6px rgba(0,0,0,.85),inset 8px 0 8px -6px rgba(0,0,0,.7),inset -8px 0 8px -6px rgba(0,0,0,.7)}
+.trayIn{padding:14px;display:flex;flex-wrap:wrap;gap:10px}
+.well{width:84px;background:radial-gradient(#142a20 55%,#1a3328);border:0;border-radius:8px;padding:6px 2px;color:#dfe8e0;font-size:10px;line-height:1.25;text-align:center}
+.well:hover{background:#2a4a3b}.well canvas{display:block;margin:0 auto 3px}
+.front{width:100%;height:28px;display:flex;align-items:center;gap:10px;padding:0 12px;border:0;border-radius:2px;cursor:pointer;color:#26160a;
+ background:repeating-linear-gradient(91deg,rgba(0,0,0,.08) 0 2px,transparent 2px 7px,rgba(255,225,180,.06) 7px 11px),linear-gradient(#a8743f,#8a5a2e);
+ border-top:1px solid #c79a64;border-bottom:2px solid #3a2110;transition:box-shadow .35s,transform .35s}
+.front:hover{background:repeating-linear-gradient(91deg,rgba(0,0,0,.08) 0 2px,transparent 2px 7px,rgba(255,225,180,.06) 7px 11px),linear-gradient(#b67f47,#946233)}
+.drawer.open .front{transform:scale(1.025);box-shadow:0 8px 12px rgba(0,0,0,.65);position:relative;z-index:1}
+.plate{background:linear-gradient(#efe6cd,#d8cca8);border:2px solid #b08d3f;border-radius:2px;padding:0 8px;font-size:11px;font-weight:600;min-width:170px;text-align:left;box-shadow:0 1px 2px rgba(0,0,0,.5)}
+.count{font-size:11px;font-weight:600}
+.pull{margin-left:auto;margin-right:30%;width:62px;height:10px;border-radius:2px 2px 12px 12px;background:linear-gradient(#f0d58a,#8c6a26);box-shadow:0 2px 3px rgba(0,0,0,.6)}
+</style></head><body>
+<div id="toast"></div>
+<header><h1>Gem Collector</h1>
+<button data-v="mine" class="on">Mine</button><button data-v="lap">Lapping machine</button><button data-v="cab">Cabinet</button>
+<button data-v="real">Real gems</button><button data-v="save">Save / Load</button></header>
+<div class="warn" id="warn">This tab can't save by itself: closing or reloading it resets your gems. Save to this file, or keep your save code. <button id="warnFile">Save to file</button> <button id="warnGo">Get save code</button> <span class="uds-msg"></span></div>
+
+<section id="v-mine" class="play">
+<canvas id="mine" width="640" height="448"></canvas>
+<div class="side">
+<div>Depth: <b id="depth">0</b> m &nbsp; Rough found this shift: <b id="found">0</b></div>
+<div class="dim">Energy <span id="enT"></span></div><div class="bar"><i id="enB"></i></div>
+<div class="row"><button id="shift">New shift (new mine)</button></div>
+<p class="dim">Arrow keys or WASD, or hold the mouse on the rock. Rock gets harder as you go down, and the rare stones only start deeper: uncommon from 24 m, rare 56 m, epic 80 m, legendary 104 m. Gems sparkle when your lamp reaches them.</p>
+<div class="grid" id="foundG"></div>
+</div></section>
+
+<section id="v-lap" class="hide">
+<div id="pick">
+<h2>1. Pick a rough stone</h2><div class="grid" id="tray"></div>
+<h2>2. Pick a cut</h2><div class="grid" id="cuts"></div>
+<div class="card" id="cutInfo"></div>
+<div class="row"><button class="go" id="mount">Mount on the dop and start cutting</button></div>
+</div>
+<div id="job" class="play hide">
+<canvas id="mach" width="660" height="380"></canvas>
+<div class="side">
+<div class="card"><b id="stepT"></b><div id="stepD" class="dim"></div></div>
+<div id="tierCtl">
+<div class="row">Lap: <button data-lap="260">260 fast</button><button data-lap="600">600</button><button data-lap="1200">1200 slow</button></div>
+<div class="row">Mast angle <input type="range" id="ang" min="0" max="90" step=".25"><b id="angT"></b><button id="angD">-</button><button id="angU">+</button></div>
+<div class="row">Index gear <input type="range" id="idx" min="1" max="96" step="1"><b id="idxT"></b></div>
+<label class="row"><input type="checkbox" id="auto"> Apprentice sets the angle and index (best grade drops)</label>
+</div>
+<div id="polCtl" class="row hide">Polish: <button data-c="0">Cerium oxide</button><button data-c="1">Alumina</button><button data-c="2">Diamond</button></div>
+<div class="row"><button id="hold">Hold to lower stone</button><span class="dim">or hold Space</span></div>
+<div id="jobMsg" style="min-height:38px"></div>
+<ul id="tiers"></ul>
+<button id="abandon">Stop and return the rough</button>
+</div></div>
+</section>
+
+<section id="v-cab" class="hide">
+<div class="row" style="justify-content:center">File drawers by: <button data-s="sp">Species</button><button data-s="cut">Cut</button><button data-s="t">Rarity</button><span class="dim" id="cabStat"></span></div>
+<div class="cab"><div class="crown"></div><div id="drawers"></div></div>
+</section>
+
+<section id="v-real" class="hide">
+<div class="maker"><b>Find real in-game items here:</b>Randy's Etsy shop.<div class="url">https://www.etsy.com/shop/UberRandis</div><div>If you would like to be a sponsor or host your items, goods, and products on my store, contact me:</div><div>Comments</div><div class="url">https://github.com/RandyWilliamMoore/randis-uds/discussions</div><div>Discord</div><div class="url">https://discord.gg/83RmuHcQTR</div><div>Ko-fi</div><div class="url">https://ko-fi.com/moorescombinatoricsmatrix</div></div>
+<p>Cutters to test for real versions. A web search found no online ordering service or API for this, so for now this path is a person sending a cutter the brief below and getting a quote. These come from search results and their own descriptions. I did not test any of them. Ask about price, minimums and where the rough comes from. Custom cutting is usually expensive.</p>
+<div class="maker"><b>Folk Market Gems: try first</b>Says it makes custom designs to your specification and takes consultation requests.<div class="url">https://www.folkmarketgems.com/pages/gemstone-cutting-services</div></div>
+<div class="maker"><b>Maikurumoto Gems</b>Sturbridge, Massachusetts. Its International Gem Society listing says it takes custom commissions from select rough.<div class="url">https://www.gemsociety.org/business/maikurumoto-gems/</div></div>
+<div class="maker"><b>Holts Lapidary</b>Its trade page says it can cut and polish a loose stone to any required shape.<div class="url">https://www.holtsgems.com/pages/trade-services</div></div>
+<div class="maker"><b>Crystal Myths</b>UK. Offers custom cutting and asks you to get in touch to plan the cut.<div class="url">https://crystalmyths.co.uk/lapidary</div></div>
+<div class="maker"><b>International Gem Society faceting diagrams</b>Published diagrams for real stones. The angles in this game are simplified for play, so a real cutter should use a proper diagram.<div class="url">https://main.gemsociety.org/jewelry-lapidary/faceting-diagrams</div></div>
+<h2>Order brief for your prized set</h2><textarea id="brief" readonly></textarea><div class="row"><button id="copyBrief">Copy brief</button></div>
+</section>
+
+<section id="v-save" class="hide"><h2>Your save code</h2><textarea id="code" readonly></textarea>
+<div class="row"><button id="copyCode">Copy save code</button></div>
+<p class="dim">Paste it somewhere safe, such as a text file, after a good session.</p>
+<h2>Save inside this file</h2><div class="row"><button id="fileSave">Save game to this file</button><span class="dim uds-msg"></span></div>
+<h2>Load a save code</h2><textarea id="loadBox" placeholder="Paste a save code here"></textarea>
+<div class="row"><button id="loadBtn">Load (replaces current gems)</button><span id="loadMsg" class="dim"></span></div></section>
+
+<div id="ov" class="hide"><div id="ovBox"><canvas id="ovC" width="230" height="230"></canvas><div id="ovFacts"></div></div></div>
+
+<script type="application/json" id="uds-save">""</script>
+<script id="uds-save-kit">
+// Saving inside this file: the page as it was before the game ran, plus the game's script, plus the save.
+var udsFile=(function(){
+  var shell=document.documentElement.outerHTML,handle=null;
+  function say(t){[].forEach.call(document.querySelectorAll('.uds-msg'),function(e){e.textContent=t})}
+  function stored(){try{var c=JSON.parse(document.getElementById('uds-save').textContent);return typeof c==='string'?c:''}catch(e){return ''}}
+  function text(code){
+    var main=document.getElementById('game-main').outerHTML,
+        block='<script type="application/json" id="uds-save">'+JSON.stringify(code).replace(/</g,'\\u003c')+'<\/script>';
+    return '<!doctype html>\n'+shell.replace(/<script type="application\/json" id="uds-save">[\s\S]*?<\/script>/,function(){return block}).replace(/<\/body>\s*<\/html>\s*$/,function(){return main+'</body></html>'});
+  }
+  function name(){var p=decodeURIComponent(location.pathname.split('/').pop()||'');
+    return location.protocol==='file:'&&/\.html?$/i.test(p)?p:document.title.toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.html'}
+  function download(t){var a=document.createElement('a'),u=URL.createObjectURL(new Blob([t],{type:'text/html'}));a.href=u;a.download=name();document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},5000)}
+  async function save(get){
+    var t=text(get());
+    if(window.parent!==window){
+      var done=false;
+      var ack=function(e){if(e.source===parent&&e.data&&e.data.uds==='saved'){done=true;removeEventListener('message',ack);say(String(e.data.note||'Saved.'))}};
+      addEventListener('message',ack);parent.postMessage({uds:'save-file',text:t},'*');
+      setTimeout(function(){if(!done){removeEventListener('message',ack);say("Files can't be saved from here. Use the save code.")}},2500);
+      return;
+    }
+    if(window.showSaveFilePicker){
+      try{
+        if(!handle)handle=await showSaveFilePicker({suggestedName:name(),types:[{description:'Game file',accept:{'text/html':['.html','.htm']}}]});
+        var w=await handle.createWritable();await w.write(t);await w.close();say('Saved into '+handle.name+'.');return;
+      }catch(e){if(e&&e.name==='AbortError'){say('Not saved.');return}handle=null}
+    }
+    download(t);say('Saved as a new copy in your downloads.');
+  }
+  return {stored:stored,text:text,wire:function(o){
+    o.buttons.forEach(function(id){var b=document.getElementById(id);if(b)b.onclick=function(){save(o.get)}});
+    var c=stored();if(c)o.put(c);
+  }};
+})();
+</script>
+<script id="game-main">
+var $=function(i){return document.getElementById(i)};
+function el(t,c,x){var d=document.createElement(t);if(c)d.className=c;if(x!=null)d.textContent=x;return d}
+function each(q,f){Array.prototype.forEach.call(document.querySelectorAll(q),f)}
+var TIERS=['Common','Uncommon','Rare','Epic','Legendary'],MIND=[0,12,28,40,52],WT=[50,25,12,6,2],SIZE=[1,.9,.7,.5,.35];
+// name, Mohs, refractive index, hue, sat, light, tier, pavilion offset, crown offset, points per carat, colour-change hue
+var SP=[['Clear Quartz',7,1.55,200,10,82,0,2,4,3],['Amethyst',7,1.55,275,60,52,0,2,4,5],['Citrine',7,1.55,42,88,56,0,2,4,5],['Smoky Quartz',7,1.55,30,30,38,0,2,4,3],
+['Almandine Garnet',7.25,1.79,350,70,30,1,0,1,12],['Peridot',6.75,1.67,78,70,46,1,1,2,14],['Aquamarine',7.75,1.58,190,60,66,1,1.5,3,18],['Blue Topaz',8,1.62,205,78,58,1,1,2,12],['Tourmaline',7.25,1.63,335,65,52,1,1,2,20],
+['Morganite',7.75,1.59,348,55,76,2,1.5,3,30],['Spinel',8,1.72,345,80,42,2,.5,1,50],['Tanzanite',6.5,1.7,245,60,45,2,.5,1,60],['Imperial Topaz',8,1.63,28,88,56,2,1,2,55],
+['Emerald',7.75,1.58,145,75,36,3,1.5,3,150],['Sapphire',9,1.77,222,80,38,3,.5,1,160],['Ruby',9,1.77,348,88,38,3,.5,1,200],
+['Alexandrite',8.5,1.75,155,50,38,4,.5,1,400,320],['Padparadscha Sapphire',9,1.77,12,78,66,4,.5,1,420],['Paraiba Tourmaline',7.25,1.63,178,90,52,4,1,2,500],['Diamond',10,2.42,200,12,90,4,-.25,.5,600]
+].map(function(a){return {n:a[0],m:a[1],ri:a[2],h:a[3],s:a[4],l:a[5],t:a[6],po:a[7],co:a[8],v:a[9],cc:a[10]}});
+function G(n,st){return {l:'Girdle preform',side:'G',a:90,fix:true,n:n,st:st,g:'o'}}
+function T(l,side,a,n,st,g,x){return {l:l,side:side,a:a,n:n,st:st,g:g,main:x==='m',fix:x==='f'}}
+function tblT(){return T('Table','C',0,1,96,'t','f')}
+function bT(pa,ca){return [G(16,3),T('Pavilion breaks','P',pa+1,16,3,'p'),T('Pavilion mains','P',pa,8,12,'p','m'),T('Crown bezels','C',ca,8,12,'b'),T('Crown stars','C',ca-14,8,6,'s'),T('Upper girdles','C',ca+6,16,3,'u'),tblT()]}
+function sT(n){var s=96/n;return [G(n,s),T('Lower pavilion step','P',36,n,s,'p'),T('Middle pavilion step','P',42,n,s,'p','m'),T('Upper pavilion step','P',50,n,s,'p'),T('Upper crown step','C',42,n,s,'u'),T('Middle crown step','C',30,n,s,'b'),T('Top crown step','C',18,n,s,'s'),tblT()]}
+var CUTS=[
+{id:'round',n:'Round Brilliant',sh:'round',pat:'b',y:.4,t:bT(41,34),d:'The classic diamond shape. Lots of sparkle, lots of waste.'},
+{id:'oval',n:'Oval',sh:'oval',pat:'b',y:.42,t:bT(41,34),d:'A stretched brilliant that looks bigger for its weight.'},
+{id:'cushion',n:'Cushion',sh:'cushion',pat:'b',y:.48,t:bT(42,36),d:'Soft pillow corners. Very common for coloured stones.'},
+{id:'mine',n:'Old Mine',sh:'cushion',pat:'b',y:.46,t:bT(43,40),d:'A candlelight-era cushion with a tall crown.'},
+{id:'princess',n:'Princess',sh:'square',pat:'b',y:.5,t:bT(42,35),d:'A square brilliant with sharp corners.'},
+{id:'radiant',n:'Radiant',sh:'radiant',pat:'b',y:.48,t:bT(42,35),d:'A rectangle with clipped corners and brilliant facets.'},
+{id:'emerald',n:'Emerald',sh:'emerald',pat:'s',y:.52,t:sT(8),d:'Long flat steps. Shows colour, and shows every flaw.'},
+{id:'asscher',n:'Asscher',sh:'asscher',pat:'s',y:.45,t:sT(8),d:'A square step cut with deep clipped corners.'},
+{id:'baguette',n:'Baguette',sh:'baguette',pat:'s',y:.55,t:sT(4),d:'A narrow rectangle with simple steps.'},
+{id:'pear',n:'Pear',sh:'pear',pat:'b',y:.38,t:bT(41,34),d:'A teardrop with a single point. Keep that point safe.'},
+{id:'marquise',n:'Marquise',sh:'marquise',pat:'b',y:.35,t:bT(41,34),d:'A long boat shape with two points. Lots of waste.'},
+{id:'heart',n:'Heart',sh:'heart',pat:'b',y:.33,t:bT(41,34),d:'A pear with a cleft, and the most waste of all.'},
+{id:'trillion',n:'Trillion',sh:'trillion',pat:'b',y:.4,t:[G(3,32),T('Pavilion mains','P',41,3,32,'p','m'),T('Pavilion breaks','P',42,6,16,'p'),T('Crown bezels','C',34,3,32,'b'),T('Crown stars','C',20,6,16,'s'),T('Upper girdles','C',40,6,16,'u'),tblT()],d:'A triangle with curved sides.'},
+{id:'rose',n:'Rose',sh:'round',pat:'r',y:.55,t:[G(12,8),T('Lower dome','C',50,12,8,'u'),T('Upper dome','C',35,6,16,'b'),T('Peak','C',20,6,8,'t')],d:'An old domed cut with a flat back and no table.'},
+{id:'cab',n:'Cabochon',sh:'oval',pat:'c',y:.6,t:[G(8,12),T('Dome shoulders','C',50,8,12,'b'),T('Dome middle','C',30,8,12,'s'),T('Dome top','C',12,8,12,'t')],d:'Smooth, no facets in the finished stone. A classic for cloudy rough.'}];
+function cutOf(id){return CUTS.filter(function(c){return c.id===id})[0]}
+function facetsOf(c){return c.t.reduce(function(a,t){return t.side==='G'?a:a+t.n},0)}
+var LAPS={260:{rate:42,w:5},600:{rate:28,w:8},1200:{rate:16,w:12}},COMP=['Cerium oxide','Alumina','Diamond'],COMPC=['#d9c9a6','#ededed','#c9d3e6'];
+function compFor(sp){return sp.m<=7.5?0:sp.m<=8.5?1:2}
+var S={rough:[],gems:[]},view='mine',cabMode='sp',openKey=null,job=null,picked=null,pickedCut='round',detail=null,phase=0;
+
+function rng(s){return function(){s=(s+0x6D2B79F5)>>>0;var t=s;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296}}
+function hex(h,s,l){s/=100;l/=100;var f=function(n){var k=(n+h/30)%12,a=s*Math.min(l,1-l),v=l-a*Math.max(-1,Math.min(k-3,9-k,1));return('0'+Math.round(255*v).toString(16)).slice(-2)};return '#'+f(0)+f(8)+f(4)}
+function toast(t){var d=$('toast');d.textContent=t;d.className='show';clearTimeout(toast.t);toast.t=setTimeout(function(){d.className=''},2600)}
+function newId(){return Math.floor(Math.random()*4e9).toString(36)+Date.now().toString(36)}
+function mkRough(i,depth){var sp=SP[i],s=Math.floor(Math.random()*4e9),r=rng(s);
+  return {id:newId(),sp:i,seed:s,ct:Math.round((1+Math.pow(r(),2)*14+depth/8)*SIZE[sp.t]*100)/100,cl:Math.round((.25+.75*Math.pow(r(),.7))*100)/100,depth:depth}}
+function pickSp(depth){var tot=0,w=SP.map(function(s){var x=depth>=MIND[s.t]?WT[s.t]*(1+depth/64*s.t*2):0;tot+=x;return x}),r=Math.random()*tot,i;
+  for(i=0;i<w.length;i++){r-=w[i];if(r<=0&&w[i]>0)return i}return 0}
+function clarityWord(c){return c>.85?'Eye-clean':c>.65?'Lightly included':c>.45?'Included':'Heavily included'}
+
+// ---- shapes: each gives a radius for any direction from the centre
+function octR(a,b,k){return function(t){var c=Math.abs(Math.cos(t)),s=Math.abs(Math.sin(t));return 1/Math.max(c/a,s/b,(c/a+s/b)/k)}}
+function ptsLut(fn){var L=[],i,n=3000;for(i=0;i<n;i++){var p=fn(i/n*Math.PI*2),d=Math.round(Math.atan2(p[1],p[0])*180/Math.PI+360)%360,r=Math.hypot(p[0],p[1]);if(!(L[d]>r))L[d]=r}
+  for(i=0;i<720;i++)if(L[i%360]===undefined)L[i%360]=L[(i+359)%360]||.8;return function(t){var d=Math.round(t*180/Math.PI);return L[((d%360)+360)%360]}}
+var R_W=.46,R_R=(1+R_W*R_W)/(2*R_W);
+var SH={round:function(){return 1},oval:function(t){var c=Math.cos(t),s=Math.sin(t);return 1/Math.sqrt(c*c/.55+s*s)},
+ cushion:function(t){return .94/Math.pow(Math.pow(Math.abs(Math.cos(t)),4)+Math.pow(Math.abs(Math.sin(t)),4),.25)},
+ square:function(t){return .8/Math.max(Math.abs(Math.cos(t)),Math.abs(Math.sin(t)))},radiant:octR(.68,.92,1.72),emerald:octR(.66,.94,1.62),asscher:octR(.82,.82,1.55),
+ baguette:function(t){return 1/Math.max(Math.abs(Math.cos(t))/.48,Math.abs(Math.sin(t))/.96)},
+ pear:ptsLut(function(t){return [.92*Math.sin(t)*Math.sin(t/2),-Math.cos(t)]}),
+ marquise:ptsLut(function(t){var y=Math.cos(t),x=Math.sqrt(R_R*R_R-y*y)-(R_R-R_W);return [Math.sin(t)<0?-x:x,y]}),
+ heart:ptsLut(function(t){var s=Math.sin(t);return [16*s*s*s/17,-(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t))/17+.12]}),
+ trillion:function(t){var m=0,i;for(i=0;i<3;i++)m=Math.max(m,Math.cos(t+Math.PI/2+i*Math.PI*2/3));return Math.min(.94,.5/m)}};
+function P(sh,t,a){var r=SH[sh](a)*t;return [Math.cos(a)*r,Math.sin(a)*r]}
+function octC(a,b,k){var o=[[a,b*(k-1)],[a*(k-1),b],[-a*(k-1),b],[-a,b*(k-1)],[-a,-b*(k-1)],[-a*(k-1),-b],[a*(k-1),-b],[a,-b*(k-1)]];return o.map(function(p){return Math.atan2(p[1],p[0])})}
+var CORN={emerald:octC(.66,.94,1.62),asscher:octC(.82,.82,1.55),baguette:[Math.atan2(.96,.48),Math.atan2(.96,-.48),Math.atan2(-.96,-.48),Math.atan2(-.96,.48)]};
+var FC={};
+function facets(c){if(FC[c.id])return FC[c.id];var f=[],sh=c.sh,i,k=Math.PI/4,E=1.35;
+  if(c.pat==='b'){var a0=Math.PI/8;for(i=0;i<16;i++)f.push({g:'p',p:[[0,0],P(sh,E,i*k/2),P(sh,E,(i+1)*k/2)]});
+    var tb=[];for(i=0;i<8;i++){var a=a0+i*k,m=a+k/2,b=a+k,st=P(sh,.74,m),pv=P(sh,.74,a-k/2);tb.push(P(sh,.54,a));
+      f.push({g:'b',p:[P(sh,.54,a),pv,P(sh,E,a),st]});f.push({g:'s',p:[P(sh,.54,a),P(sh,.54,b),st]});
+      f.push({g:'u',p:[st,P(sh,E,a),P(sh,E,m)]});f.push({g:'u',p:[st,P(sh,E,m),P(sh,E,b)]})}
+    f.push({g:'t',p:tb})}
+  else if(c.pat==='s'){var C=CORN[sh],rs=[E,.82,.66,.5],gs=['u','b','s'],n=C.length,j;
+    for(i=0;i<n;i++)f.push({g:'p',p:[[0,0],P(sh,E,C[i]),P(sh,E,C[(i+1)%n])]});
+    for(j=0;j<3;j++)for(i=0;i<n;i++)f.push({g:gs[j],p:[P(sh,rs[j],C[i]),P(sh,rs[j],C[(i+1)%n]),P(sh,rs[j+1],C[(i+1)%n]),P(sh,rs[j+1],C[i])]});
+    f.push({g:'t',p:C.map(function(a){return P(sh,.5,a)})})}
+  else if(c.pat==='r'){var q=Math.PI/3;for(i=0;i<6;i++){var A=i*q,B=A+q,M=A+q/2;
+      f.push({g:'t',p:[[0,0],P(sh,.42,A),P(sh,.42,B)]});f.push({g:'b',p:[P(sh,.42,A),P(sh,.42,B),P(sh,.78,M)]});
+      f.push({g:'u',p:[P(sh,.78,M),P(sh,E,A),P(sh,E,B)]});f.push({g:'u',p:[P(sh,.42,A),P(sh,.78,M),P(sh,E,A)]});f.push({g:'u',p:[P(sh,.42,B),P(sh,.78,M),P(sh,E,B)]})}}
+  FC[c.id]=f;return f}
+function outline(c,x,y,R,sh){c.beginPath();for(var i=0;i<180;i++){var p=P(sh,1,i/180*Math.PI*2);c[i?'lineTo':'moveTo'](x+p[0]*R,y+p[1]*R)}c.closePath()}
+function hsla(sp,l,a,gl,ph){var h=sp.h;if(sp.cc&&ph!=null){var w=Math.sin(ph*.35)*.5+.5;h=sp.h+(sp.cc-sp.h)*w}
+  return 'hsla('+h+','+sp.s*(.45+.55*gl)+'%,'+Math.max(5,Math.min(97,l*gl+(1-gl)*(sp.l*.5+28)))+'%,'+a+')'}
+var GALPHA={p:1,b:.62,s:.62,u:.62,t:.42},GL={p:-9,b:3,s:6,u:0,t:9};
+// show: how visible each facet group is (absent = fully cut); gl: 0 ground matte, 1 polished; ph: animated sparkle
+function drawGem(c,x,y,R,g,show,gl,ph){var cut=cutOf(g.cut),sp=SP[g.sp],seed=g.seed;if(gl==null)gl=1;c.save();outline(c,x,y,R,cut.sh);c.clip();
+  c.fillStyle=hsla(sp,sp.l-6,1,gl,ph);c.fillRect(x-R*1.4,y-R*1.4,R*2.8,R*2.8);
+  if(cut.pat==='c'){var dm=c.createRadialGradient(x-R*.25,y-R*.35,R*.05,x,y,R*1.05);dm.addColorStop(0,hsla(sp,sp.l+24,1,gl,ph));dm.addColorStop(.55,hsla(sp,sp.l,1,gl,ph));dm.addColorStop(1,hsla(sp,sp.l-20,1,gl,ph));
+    c.fillStyle=dm;c.fillRect(x-R*1.4,y-R*1.4,R*2.8,R*2.8);
+    if(gl>.5){var hl=c.createRadialGradient(x-R*.28,y-R*.42,0,x-R*.28,y-R*.42,R*.42);hl.addColorStop(0,'rgba(255,255,255,'+(.8*gl)+')');hl.addColorStop(1,'rgba(255,255,255,0)');c.fillStyle=hl;c.fillRect(x-R*1.4,y-R*1.4,R*2.8,R*2.8)}}
+  else facets(cut).forEach(function(f,i){var vis=show?(show[f.g]||0):1;if(vis<=.01)return;var v=rng(seed+i*7)(),tw=ph!=null?Math.sin(ph*1.3+v*40)*.5+.5:v;
+    var li=sp.l+GL[f.g]+(v-.5)*34+(tw>.86?20:0);c.beginPath();f.p.forEach(function(p,n){c[n?'lineTo':'moveTo'](x+p[0]*R,y+p[1]*R)});c.closePath();
+    c.fillStyle=hsla(sp,li,GALPHA[f.g]*vis,gl,ph);c.fill();c.lineWidth=Math.max(.5,R/110);c.strokeStyle='rgba(255,255,255,'+((.1+.2*gl)*vis)+')';c.stroke()});
+  var q=rng(seed),n=Math.floor((1-g.cl)*16);for(var i=0;i<n;i++){var aa=q()*6.28,dd=Math.sqrt(q())*R*.8;c.fillStyle='rgba(30,25,20,'+(.2+.3*q())+')';c.fillRect(x+Math.cos(aa)*dd,y+Math.sin(aa)*dd,Math.max(1,R*.03),Math.max(1,R*.03))}
+  c.restore();outline(c,x,y,R,cut.sh);c.lineWidth=Math.max(.7,R/70);c.strokeStyle='rgba(255,255,255,'+(.25+.35*gl)+')';c.stroke()}
+function drawRough(c,x,y,R,r,fade){var sp=SP[r.sp],a=[],q=rng(r.seed+3),b=rng(r.seed),i;for(i=0;i<9;i++)a.push(.68+b()*.32);c.save();c.globalAlpha=fade==null?1:fade;
+  function pt(k){var t=k/9*6.283+.2;return [x+Math.cos(t)*R*a[k%9],y+Math.sin(t)*R*a[k%9]]}
+  for(i=0;i<9;i++){var p=pt(i),o=pt(i+1);c.beginPath();c.moveTo(x-R*.12,y-R*.12);c.lineTo(p[0],p[1]);c.lineTo(o[0],o[1]);c.closePath();
+    c.fillStyle='hsl('+sp.h+','+sp.s*.65+'%,'+(sp.l*.72+q()*16)+'%)';c.fill();c.strokeStyle='rgba(0,0,0,.28)';c.lineWidth=1;c.stroke()}c.restore()}
+function canv(n){var c=el('canvas');c.width=c.height=n;return c}
+function tile(cls,canvasN,draw,lines,fn){var d=el('button',cls),c=canv(canvasN);draw(c.getContext('2d'),canvasN);d.appendChild(c);lines.forEach(function(t,i){if(i)d.appendChild(el('br'));d.appendChild(document.createTextNode(t))});if(fn)d.onclick=fn;return d}
+function roughTile(r,cls,fn){return tile(cls,44,function(c,n){drawRough(c,n/2,n/2,n/2-2,r)},[SP[r.sp].n,r.ct+' ct rough',TIERS[SP[r.sp].t]],fn)}
+function gemTile(g,cls,fn){return tile(cls,60,function(c,n){drawGem(c,n/2,n/2,n/2-3,g)},[(g.prized?'★ ':'')+g.name,g.ct+' ct '+cutOf(g.cut).n],fn)}
+
+// ---- the mine
+var MW=20,MH=66,CELL=32,grid=[],me={x:10,y:0},energy=0,shiftFound=[],mctx=$('mine').getContext('2d'),camY=0,digT=null,digP=null;
+function newShift(){grid=[];shiftFound=[];energy=170;me={x:10,y:0};camY=0;var x,y;
+  for(y=0;y<MH;y++){grid[y]=[];for(x=0;x<MW;x++){if(y===0){grid[y][x]={sky:true,open:true,seen:true};continue}
+    var bed=y===MH-1,h=y<16?1:y<38?2:3,ch=.045+y/MH*.03;
+    grid[y][x]={h:h,max:h,bed:bed,seen:false,open:false,g:!bed&&Math.random()<ch?mkRough(pickSp(y),y):null}}}
+  light();renderMine()}
+function light(){for(var dy=-4;dy<=4;dy++)for(var dx=-4;dx<=4;dx++){if(Math.hypot(dx,dy)>3.6)continue;var r=grid[me.y+dy];if(r&&r[me.x+dx])r[me.x+dx].seen=true}}
+function mv(dx,dy){var c=(grid[me.y+dy]||[])[me.x+dx];if(!c||c.bed)return;
+  if(!c.open){if(energy<=0){toast('Out of energy. Start a new shift: your rough is safe.');return}
+    energy--;c.h--;if(c.h>0){renderMine();return}c.open=true;
+    if(c.g){S.rough.push(c.g);shiftFound.push(c.g);toast('Found rough '+SP[c.g.sp].n+', '+c.g.ct+' ct ('+TIERS[SP[c.g.sp].t]+')');c.g=null;renderSave()}}
+  me.x+=dx;me.y+=dy;light();renderMine()}
+function renderMine(){$('depth').textContent=me.y*2;$('found').textContent=shiftFound.length;$('enT').textContent=energy+' / 170';$('enB').style.width=energy/1.7+'%';
+  var g=$('foundG');if(g.childNodes.length!==shiftFound.length){g.textContent='';shiftFound.forEach(function(r){g.appendChild(roughTile(r,'tile'))})}}
+function drawMine(){var c=mctx,W=640,H=448,x,y,t=Date.now()/300;camY+=(Math.max(0,me.y*CELL-H/2+CELL)-camY)*.18;c.clearRect(0,0,W,H);c.save();c.translate(0,-Math.round(camY));
+  var y0=Math.floor(camY/CELL),y1=Math.min(MH-1,y0+15);
+  for(y=y0;y<=y1;y++)for(x=0;x<MW;x++){var m=grid[y][x],px=x*CELL,py=y*CELL;
+    if(m.sky){c.fillStyle='#5b7da3';c.fillRect(px,py,CELL,CELL);continue}
+    if(!m.seen){c.fillStyle='#0d0e10';c.fillRect(px,py,CELL,CELL);continue}
+    if(m.open){c.fillStyle='#17130f';c.fillRect(px,py,CELL,CELL);continue}
+    var tone=m.bed?'#222':y<16?'hsl(28,32%,'+(30+(x*7+y*13)%5)+'%)':y<38?'hsl(215,6%,'+(36+(x*5+y*11)%6)+'%)':'hsl(255,9%,'+(24+(x*3+y*7)%5)+'%)';
+    c.fillStyle=tone;c.fillRect(px,py,CELL,CELL);c.strokeStyle='rgba(0,0,0,.22)';c.strokeRect(px+.5,py+.5,CELL-1,CELL-1);
+    if(m.h<m.max){c.strokeStyle='rgba(0,0,0,.65)';c.lineWidth=1.5;c.beginPath();c.moveTo(px+6,py+8);c.lineTo(px+15,py+15);c.lineTo(px+11,py+25);c.moveTo(px+15,py+15);c.lineTo(px+26,py+12);c.stroke();c.lineWidth=1}
+    if(m.g){drawRough(c,px+16,py+16,10,m.g);var sp=Math.sin(t+x*2+y)*.5+.5;c.fillStyle='rgba(255,255,255,'+sp+')';c.fillRect(px+20,py+8,3,3);c.fillRect(px+10,py+21,2,2)}}
+  var mx=me.x*CELL+16,my=me.y*CELL+16;c.fillStyle='#e8b98e';c.beginPath();c.arc(mx,my,9,0,7);c.fill();c.fillStyle='#e2b93b';c.beginPath();c.arc(mx,my-3,10,3.14,6.28);c.fill();c.fillRect(mx-12,my-4,24,3);c.fillStyle='#fff7c0';c.beginPath();c.arc(mx,my-8,3,0,7);c.fill();
+  c.restore()}
+function digToward(){if(view!=='mine'||!digP)return;var r=$('mine').getBoundingClientRect(),px=(digP.x-r.left)*640/r.width,py=(digP.y-r.top)*448/r.height+camY,dx=px-(me.x*CELL+16),dy=py-(me.y*CELL+16);
+  if(Math.abs(dx)<14&&Math.abs(dy)<14)return;if(Math.abs(dx)>Math.abs(dy))mv(dx>0?1:-1,0);else mv(0,dy>0?1:-1)}
+$('mine').onpointerdown=function(e){digP={x:e.clientX,y:e.clientY};digToward();clearInterval(digT);digT=setInterval(digToward,170)};
+$('mine').onpointermove=function(e){if(digP)digP={x:e.clientX,y:e.clientY}};
+function digStop(){digP=null;clearInterval(digT)}
+
+// ---- the lapping machine
+function tierAngle(t,sp){return t.fix?t.a:t.a+(t.side==='P'?sp.po:t.side==='C'?sp.co:0)}
+function critical(sp){return Math.asin(1/sp.ri)*180/Math.PI}
+function renderPick(){var tr=$('tray');tr.textContent='';if(picked&&S.rough.indexOf(picked)<0)picked=null;if(!picked&&S.rough.length)picked=S.rough[0];
+  if(!S.rough.length)tr.appendChild(el('span','dim','No rough stones. Go down the mine.'));
+  S.rough.forEach(function(r){tr.appendChild(roughTile(r,'tile'+(r===picked?' sel':''),function(){picked=r;renderPick()}))});
+  var cs=$('cuts');cs.textContent='';CUTS.forEach(function(c){var pv=picked||{sp:0,seed:5};cs.appendChild(tile('tile'+(c.id===pickedCut?' sel':''),44,function(x,n){drawGem(x,n/2,n/2,n/2-2,{cut:c.id,sp:pv.sp,seed:pv.seed,cl:1})},[c.n,c.pat==='c'?'no facets':facetsOf(c)+' facets'],function(){pickedCut=c.id;renderPick()}))});
+  var cc=cutOf(pickedCut),inf=$('cutInfo');inf.textContent='';inf.appendChild(el('b',null,cc.n+'. '));inf.appendChild(document.createTextNode(cc.d+' Keeps about '+Math.round(cc.y*100)+'% of the rough'+(picked?', so about '+(picked.ct*cc.y).toFixed(2)+' ct here':'')+'.'));
+  if(picked){var sp=SP[picked.sp];inf.appendChild(el('div','dim',sp.n+': Mohs '+sp.m+', refractive index '+sp.ri+', critical angle '+critical(sp).toFixed(1)+'°, '+clarityWord(picked.cl).toLowerCase()+'.'))}
+  $('mount').disabled=!picked}
+function mount(){if(!picked)return;job={r:picked,cut:cutOf(pickedCut),i:0,depth:0,lap:600,angle:45,idx:96,comp:null,polish:false,hold:false,scores:[],loss:0,show:{},rev:{},gl:0,auto:$('auto').checked,used:false,win:false,formed:false,rot:0,msg:''};
+  $('pick').className='hide';$('job').className='play';applyAuto();renderJob()}
+function curT(){return job.cut.t[job.i]}
+function applyAuto(){if(job.auto&&!job.polish){var t=curT();job.angle=tierAngle(t,SP[job.r.sp]);job.idx=t.st;job.used=true}}
+function win(){return job.polish?{c:70,w:9}:{c:62,w:LAPS[job.lap].w}}
+function renderJob(){var sp=SP[job.r.sp],D=$('stepD');$('tierCtl').className=job.polish?'hide':'';$('polCtl').className=job.polish?'row':'row hide';
+  if(job.polish){$('stepT').textContent='Final polish';D.textContent='Pick the compound that suits Mohs '+sp.m+': cerium oxide up to 7.5, alumina up to 8.5, diamond above that. Then lower the stone until the gauge is in the green.'}
+  else{var t=curT(),a=tierAngle(t,sp);$('stepT').textContent='Step '+(job.i+1)+' of '+job.cut.t.length+': '+t.l;
+    D.textContent='Set '+a+'° and index '+t.st+'. The machine repeats it every '+(96/t.n)+' teeth for '+t.n+' facet'+(t.n>1?'s':'')+'.'+(t.main?' Stay above the '+critical(sp).toFixed(1)+'° critical angle or light leaks out.':'')}
+  each('[data-lap]',function(b){b.className=+b.getAttribute('data-lap')===job.lap?'on':''});each('[data-c]',function(b){b.className=+b.getAttribute('data-c')===job.comp?'on':''});
+  $('ang').value=job.angle;$('angT').textContent=job.angle+'°';$('idx').value=job.idx;$('idxT').textContent=job.idx;$('auto').checked=job.auto;$('ang').disabled=$('idx').disabled=job.auto;
+  $('hold').disabled=job.polish&&job.comp===null;$('jobMsg').textContent=job.msg;
+  var ul=$('tiers');ul.textContent='';job.cut.t.forEach(function(t,i){ul.appendChild(el('li',i<job.i||job.polish?'ok':i===job.i?'now':'',(i<job.i||job.polish?'✓ ':'')+t.l+' ('+t.n+')'))});ul.appendChild(el('li',job.polish?'now':'','Polish'))}
+function setHold(on){if(!job||(job.polish&&job.comp===null))return;if(on&&!job.hold){job.hold=true;$('hold').className='down'}else if(!on&&job.hold){job.hold=false;$('hold').className='';release()}}
+function release(){var w=win(),sp=SP[job.r.sp];job.depth=Math.min(100,job.depth+Math.random()*3);
+  if(job.depth<w.c-w.w){job.msg='Not there yet. Lower again in short taps.';renderJob();return}
+  var over=job.depth>w.c+w.w,ds=over?.55:1-.25*Math.abs(job.depth-w.c)/w.w;
+  if(job.polish){var good=job.comp===compFor(sp);job.polScore=ds*(good?1:.5);finish(good,over);return}
+  var t=curT(),a=tierAngle(t,sp),err=Math.abs(job.angle-a),aS=1-.6*Math.min(1,err/3),st=96/t.n,iOk=((job.idx-t.st)%st+st)%st===0,notes=[];
+  if(over){job.loss+=.05;notes.push('Overcut: lost some weight.')}
+  if(job.lap===260&&sp.m<7.5&&Math.random()<.35){job.loss+=.05;notes.push('The coarse lap chipped this soft stone.')}
+  if(err>.5)notes.push('Angle was off by '+err.toFixed(2)+'°.');if(!iOk)notes.push('Wrong index: facets are misaligned.');
+  if(t.main&&job.angle<critical(sp)){job.win=true;notes.push('Below the critical angle: this stone will have a window.')}
+  job.scores.push(ds*aS*(iOk?1:.8));job.rev[t.g]=1;if(t.g==='o')job.formed=true;
+  job.i++;job.depth=0;if(job.i>=job.cut.t.length){job.polish=true;job.msg=(notes.join(' ')+' All facets cut. Now polish.').trim()}else{applyAuto();job.msg=notes.join(' ')||'Clean facets. The meets look good.'}renderJob()}
+function finish(good,over){var r=job.r,sp=SP[r.sp],cutS=job.scores.reduce(function(a,b){return a+b},0)/job.scores.length;if(job.used)cutS*=.93;
+  var q=cutS*.7+job.polScore*.3,g={id:newId(),sp:r.sp,cut:job.cut.id,seed:r.seed,cl:r.cl,ct:Math.round(r.ct*job.cut.y*(1-job.loss)*100)/100,roughCt:r.ct,grade:Math.round(q*100)/100,polish:good?(over?'Slightly rounded':'Mirror'):'Hazy',win:job.win,prized:false,name:sp.n+' '+job.cut.n+' cut'};
+  S.gems.push(g);S.rough.splice(S.rough.indexOf(r),1);picked=null;job=null;$('hold').className='';$('pick').className='';$('job').className='play hide';renderPick();renderSave();openDetail(g,true)}
+function drawMach(dt){if(!job)return;var c=$('mach').getContext('2d'),sp=SP[job.r.sp],W=660,H=380,mx=330,L=175,lx=200,ly=288,rx=140,ry=38,a=job.angle*Math.PI/180,w=win(),i;
+  c.clearRect(0,0,W,H);job.rot+=dt*(job.polish?3:7);
+  if(job.hold){var rate=job.polish?18:LAPS[job.lap].rate;job.depth=Math.min(100,job.depth+rate/(1+(sp.m-7)*.15)*dt);if(job.polish)job.gl=Math.min(1,job.depth/w.c);if(job.depth>=100){setHold(false);if(!job)return}}
+  for(var k in job.rev)job.show[k]=Math.min(1,(job.show[k]||0)+dt*1.6);
+  // bench and lap
+  c.fillStyle='#2c2e33';c.fillRect(20,ly+30,350,46);c.fillStyle='#3a3d44';c.fillRect(20,ly+30,350,6);
+  c.fillStyle='#55595f';c.beginPath();c.ellipse(lx,ly+8,rx,ry,0,0,7);c.fill();
+  var lapCol=job.polish?(job.comp===null?'#6d7076':COMPC[job.comp]):{260:'#6b6f76',600:'#8a8f98',1200:'#b0b4bb'}[job.lap];
+  c.fillStyle=lapCol;c.beginPath();c.ellipse(lx,ly,rx,ry,0,0,7);c.fill();
+  c.strokeStyle='rgba(0,0,0,.2)';c.lineWidth=1.5;for(i=0;i<14;i++){var t=job.rot+i*.449;c.beginPath();c.moveTo(lx+Math.cos(t)*rx*.2,ly+Math.sin(t)*ry*.2);c.lineTo(lx+Math.cos(t)*rx*.92,ly+Math.sin(t)*ry*.92);c.stroke()}
+  c.fillStyle='#2c2e33';c.beginPath();c.ellipse(lx,ly,10,4,0,0,7);c.fill();
+  c.fillStyle='#e6e6e6';c.font='12px system-ui';c.textAlign='center';c.fillText(job.polish?(job.comp===null?'pick a polish':COMP[job.comp]+' lap'):job.lap+' grit lap',lx,ly+60);
+  // mast, arm and quadrant
+  var lift=job.hold?0:16,sx=mx-L*Math.cos(a),sy=ly-8-lift,hx=mx,hy=sy-L*Math.sin(a);
+  c.fillStyle='#777b83';c.fillRect(mx-4,28,9,ly+4);
+  c.strokeStyle='#c7ccd4';c.lineWidth=7;c.beginPath();c.moveTo(hx,hy);c.lineTo(sx,sy);c.stroke();
+  c.fillStyle=hsla(sp,sp.l,1,1);c.beginPath();c.moveTo(sx-9,sy+1);c.lineTo(sx+9,sy+1);c.lineTo(sx+6,sy-11);c.lineTo(sx-6,sy-11);c.closePath();c.fill();
+  c.strokeStyle='#d7b35a';c.lineWidth=2;c.beginPath();c.arc(hx,hy,46,Math.PI/2,Math.PI);c.stroke();
+  c.lineWidth=1;for(i=0;i<=18;i++){var qa=i*5*Math.PI/180,o=i%3?50:54;c.beginPath();c.moveTo(hx-Math.cos(qa)*46,hy+Math.sin(qa)*46);c.lineTo(hx-Math.cos(qa)*o,hy+Math.sin(qa)*o);c.stroke()}
+  c.fillStyle='#f2c94c';c.font='bold 14px system-ui';c.textAlign='left';c.fillText(job.angle+'°',hx+14,hy+5);
+  c.fillStyle='#3a3d44';c.beginPath();c.arc(hx,hy,11,0,7);c.fill();c.strokeStyle='#d7b35a';c.stroke();
+  if(job.hold){c.strokeStyle='rgba(255,240,200,.75)';c.lineWidth=1;for(i=0;i<8;i++){var d=Math.random()*3.14,n=8+Math.random()*22;c.beginPath();c.moveTo(sx,sy+1);c.lineTo(sx+Math.cos(d)*n,sy+1-Math.sin(d)*n*.35);c.stroke()}
+    c.fillStyle='rgba(130,190,255,.8)';c.fillRect(sx-1,sy-30+(Date.now()/4%26),2,5)}
+  // stone close-up and index gear
+  var zx=490,zy=140,zr=88,tick,cur=job.polish?null:curT();
+  for(tick=1;tick<=96;tick++){var ta=tick/96*6.283-1.571,big=tick%12===0;c.strokeStyle=big?'#e6e6e6':'#6b6f76';c.lineWidth=1;c.beginPath();c.moveTo(zx+Math.cos(ta)*(zr+12),zy+Math.sin(ta)*(zr+12));c.lineTo(zx+Math.cos(ta)*(zr+(big?21:17)),zy+Math.sin(ta)*(zr+(big?21:17)));c.stroke()}
+  if(cur){var st=96/cur.n;c.fillStyle='#4fbf6f';for(i=0;i<cur.n;i++){var ga=(cur.st+i*st)/96*6.283-1.571;c.beginPath();c.arc(zx+Math.cos(ga)*(zr+8),zy+Math.sin(ga)*(zr+8),2,0,7);c.fill()}}
+  var ia=job.idx/96*6.283-1.571;c.strokeStyle='#f2c94c';c.lineWidth=3;c.beginPath();c.moveTo(zx+Math.cos(ia)*(zr+6),zy+Math.sin(ia)*(zr+6));c.lineTo(zx+Math.cos(ia)*(zr+23),zy+Math.sin(ia)*(zr+23));c.stroke();
+  var cf=job.formed?Math.min(1,job.show.o||0):0;if(cf<1)drawRough(c,zx,zy,zr,job.r,1-cf);
+  if(cf>0){c.save();c.globalAlpha=cf;drawGem(c,zx,zy,zr*.92,{cut:job.cut.id,sp:job.r.sp,seed:job.r.seed,cl:job.r.cl},job.show,Math.max(.12,job.gl),job.polish?phase:null);c.restore()}
+  c.fillStyle='#a2a6ad';c.font='11px system-ui';c.textAlign='center';c.fillText(cur?'Index '+job.idx+' of 96. Green dots: teeth to cut.':'Polishing',zx,zy+zr+40);
+  // depth gauge
+  var gx=622,gy=40,gh=260,yOf=function(v){return gy+gh-(v/100)*gh};
+  c.fillStyle='#2f3136';c.fillRect(gx,gy,20,gh);c.fillStyle='#3e8f55';c.fillRect(gx,yOf(w.c+w.w),20,yOf(w.c-w.w)-yOf(w.c+w.w));c.fillStyle='#8ee6a8';c.fillRect(gx,yOf(w.c)-1,20,2);
+  c.fillStyle='#f2c94c';c.fillRect(gx-4,yOf(job.depth)-2,28,4);c.fillStyle='#a2a6ad';c.fillText(job.polish?'Polish':'Depth',gx+10,gy-8)}
+function gradeWord(q){return q>=.93?'Excellent':q>=.82?'Very good':q>=.68?'Good':q>=.5?'Fair':'Poor'}
+function points(g){var sp=SP[g.sp];return Math.round(sp.v*Math.pow(g.ct,1.25)*(.3+.7*g.grade)*(.4+.6*g.cl)*(g.win?.7:1))}
+
+// ---- the cabinet
+function drawerList(){var d=[{k:'rough',l:'Uncut rough',items:S.rough,rough:true},{k:'prize',l:'★ Prized set',items:S.gems.filter(function(g){return g.prized})}];
+  function by(key,l,f){d.push({k:key,l:l,items:S.gems.filter(f)})}
+  if(cabMode==='sp')SP.forEach(function(s,i){by('s'+i,s.n,function(g){return g.sp===i})});
+  else if(cabMode==='cut')CUTS.forEach(function(c){by('c'+c.id,c.n,function(g){return g.cut===c.id})});
+  else TIERS.forEach(function(t,i){by('t'+i,t,function(g){return SP[g.sp].t===i})});return d}
+function renderCab(){var box=$('drawers');box.textContent='';drawerList().forEach(function(D){var w=el('div','drawer'+(D.k===openKey?' open':'')),tray=el('div','tray'),inner=el('div','trayIn'),f=el('button','front');
+    f.appendChild(el('span','plate',D.l));f.appendChild(el('span','count',D.items.length?D.items.length+(D.items.length===1?' stone':' stones'):'empty'));f.appendChild(el('span','pull'));
+    f.onclick=function(){var was=openKey===D.k;each('.drawer',function(o){o.className='drawer';o.firstChild.style.maxHeight='0'});openKey=was?null:D.k;
+      if(!was){fillTray(inner,D);w.className='drawer open';tray.style.maxHeight=Math.min(inner.scrollHeight+4,430)+'px'}};
+    tray.appendChild(inner);w.appendChild(tray);w.appendChild(f);box.appendChild(w);
+    if(D.k===openKey){fillTray(inner,D);setTimeout(function(){tray.style.maxHeight=Math.min(inner.scrollHeight+4,430)+'px'},0)}});
+  var tot=S.gems.reduce(function(a,g){return a+points(g)},0);$('cabStat').textContent=S.gems.length+' cut stones, '+tot+' collector points';
+  each('[data-s]',function(b){b.className=b.getAttribute('data-s')===cabMode?'on':''})}
+function fillTray(inner,D){inner.textContent='';if(!D.items.length){inner.appendChild(el('span','dim','Nothing filed here yet.'));return}
+  D.items.forEach(function(it){inner.appendChild(D.rough?roughTile(it,'well',function(){openRough(it)}):gemTile(it,'well',function(){openDetail(it)}))})}
+function closeOv(){detail=null;$('ov').className='hide';$('ovFacts').textContent=''}
+function factLine(box,t,dim){box.appendChild(el('div',dim?'dim':'',t))}
+function openDetail(g,fresh){detail=g;var b=$('ovFacts'),sp=SP[g.sp],cut=cutOf(g.cut);b.textContent='';$('ov').className='';
+  if(fresh)b.appendChild(el('b',null,'Cut finished!'));var inp=el('input');inp.type='text';inp.value=g.name;inp.maxLength=40;inp.oninput=function(){g.name=inp.value;renderSave()};b.appendChild(inp);
+  factLine(b,sp.n+' ('+TIERS[sp.t]+'), '+cut.n+' cut');factLine(b,g.ct+' ct, from '+g.roughCt+' ct of rough');factLine(b,'Cut grade: '+gradeWord(g.grade)+' ('+Math.round(g.grade*100)+'%)');factLine(b,'Polish: '+g.polish+(g.win?'. Has a window.':''));
+  factLine(b,'Clarity: '+clarityWord(g.cl));factLine(b,'Mohs '+sp.m+', refractive index '+sp.ri+', critical angle '+critical(sp).toFixed(1)+'°',true);factLine(b,points(g)+' collector points',true);
+  if(sp.cc)factLine(b,'Alexandrite shifts colour between daylight and lamplight.',true);
+  var r=el('div','row'),st=el('button',null,g.prized?'★ Remove from prized':'☆ Add to prized set');st.onclick=function(){g.prized=!g.prized;st.textContent=g.prized?'★ Remove from prized':'☆ Add to prized set';renderSave()};
+  var cl=el('button','go',fresh?'File in the cabinet':'Close');cl.onclick=function(){closeOv();if(fresh)show('cab');else renderCab()};r.appendChild(st);r.appendChild(cl);b.appendChild(r)}
+function openRough(rr){detail={rough:rr};var b=$('ovFacts'),sp=SP[rr.sp];b.textContent='';$('ov').className='';b.appendChild(el('b',null,'Rough '+sp.n));factLine(b,rr.ct+' ct, '+clarityWord(rr.cl));factLine(b,TIERS[sp.t]+', found at '+rr.depth*2+' m');
+  var r=el('div','row'),go=el('button','go','Take to the lap');go.onclick=function(){picked=rr;closeOv();show('lap')};var cl=el('button',null,'Close');cl.onclick=closeOv;r.appendChild(go);r.appendChild(cl);b.appendChild(r)}
+function drawOv(){if(!detail)return;var c=$('ovC').getContext('2d');c.clearRect(0,0,230,230);if(detail.rough)drawRough(c,115,115,95,detail.rough);else drawGem(c,115,115,100,detail,null,detail.polish==='Hazy'?.7:1,phase)}
+
+// ---- save, brief, wiring
+function brief(){var pr=S.gems.filter(function(g){return g.prized});if(!pr.length)return 'Add some gems to your prized set in the Cabinet first.';
+  return 'Custom gemstone cutting request\nPlease quote for one of each stone below, with your suggested rough, minimums and lead time.\n\n'+pr.map(function(g,i){var sp=SP[g.sp];return (i+1)+'. '+g.name+': '+sp.n+', '+cutOf(g.cut).n+' cut, about '+g.ct+' ct, colour close to '+hex(sp.h,sp.s,sp.l)}).join('\n')}
+function saveCode(){return btoa(unescape(encodeURIComponent(JSON.stringify({v:1,rough:S.rough,gems:S.gems}))))}
+function num(v,lo,hi,d){v=Number(v);return v>=lo&&v<=hi?v:d}
+function loadCode(txt){var o=JSON.parse(decodeURIComponent(escape(atob(txt.trim()))));if(!o||!Array.isArray(o.rough)||!Array.isArray(o.gems))throw 0;
+  function base(x){if(!x||!(x.sp>=0&&x.sp<SP.length)||typeof x.seed!=='number')throw 0;return {id:String(x.id),sp:Math.floor(x.sp),seed:x.seed,cl:num(x.cl,0,1,.5),ct:num(x.ct,.01,9999,1)}}
+  return {rough:o.rough.map(function(x){var b=base(x);b.depth=num(x.depth,0,100,0);return b}),
+    gems:o.gems.map(function(x){var b=base(x);if(!cutOf(x.cut))throw 0;b.cut=x.cut;b.roughCt=num(x.roughCt,.01,9999,b.ct);b.grade=num(x.grade,0,1,.5);b.polish=['Mirror','Slightly rounded','Hazy'].indexOf(x.polish)>=0?x.polish:'Mirror';b.win=!!x.win;b.prized=!!x.prized;b.name=String(x.name).slice(0,40);return b})}}
+function renderSave(){$('code').value=saveCode();$('brief').value=brief()}
+function show(v){view=v;['mine','lap','cab','real','save'].forEach(function(n){$('v-'+n).className=n===v?(n==='mine'?'play':''):'hide'});
+  each('[data-v]',function(b){b.className=b.getAttribute('data-v')===v?'on':''});if(v==='lap'&&!job)renderPick();if(v==='cab')renderCab();renderSave()}
+each('[data-v]',function(b){b.onclick=function(){show(b.getAttribute('data-v'))}});
+each('[data-s]',function(b){b.onclick=function(){cabMode=b.getAttribute('data-s');openKey=null;renderCab()}});
+each('[data-lap]',function(b){b.onclick=function(){if(job){job.lap=+b.getAttribute('data-lap');renderJob()}}});
+each('[data-c]',function(b){b.onclick=function(){if(job){job.comp=+b.getAttribute('data-c');job.depth=0;job.gl=0;renderJob()}}});
+$('ang').oninput=function(){if(job){job.angle=+this.value;$('angT').textContent=job.angle+'°'}};$('idx').oninput=function(){if(job){job.idx=+this.value;$('idxT').textContent=job.idx}};
+function nudge(d){if(job&&!job.auto){job.angle=Math.max(0,Math.min(90,job.angle+d));renderJob()}}
+$('angD').onclick=function(){nudge(-.25)};$('angU').onclick=function(){nudge(.25)};
+$('auto').onchange=function(){if(job){job.auto=this.checked;applyAuto();renderJob()}};
+$('hold').onpointerdown=function(e){e.preventDefault();setHold(true)};
+window.addEventListener('pointerup',function(){setHold(false);digStop()});window.addEventListener('pointercancel',function(){setHold(false);digStop()});window.addEventListener('blur',function(){setHold(false);digStop()});
+$('abandon').onclick=function(){job=null;$('pick').className='';$('job').className='play hide';renderPick()};
+$('mount').onclick=mount;$('shift').onclick=newShift;
+document.addEventListener('keydown',function(e){var tag=e.target.tagName;if(tag==='TEXTAREA'||(tag==='INPUT'&&e.target.type==='text'))return;
+  if(view==='mine'&&!detail){var k={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1],a:[-1,0],d:[1,0],w:[0,-1],s:[0,1]}[e.key];if(k){e.preventDefault();mv(k[0],k[1])}}
+  if(view==='lap'&&job&&e.key===' '){e.preventDefault();if(!e.repeat)setHold(true)}});
+document.addEventListener('keyup',function(e){if(e.key===' ')setHold(false)});
+function copy(box,btn){box.focus();box.select();var ok=false;try{ok=document.execCommand('copy')}catch(e){}btn.textContent=ok?'Copied':'Selected: press Ctrl+C'}
+$('copyCode').onclick=function(){copy($('code'),this)};$('copyBrief').onclick=function(){copy($('brief'),this)};$('warnGo').onclick=function(){show('save')};
+$('loadBtn').onclick=function(){try{if(job){$('loadMsg').textContent='Finish or stop the cut first.';return}var o=loadCode($('loadBox').value);S=o;picked=null;openKey=null;$('loadMsg').textContent='Loaded '+S.gems.length+' gems and '+S.rough.length+' rough.';renderPick();renderCab();renderSave()}catch(e){$('loadMsg').textContent="That code didn't work. Nothing changed."}};
+var last=performance.now();
+function loop(now){var dt=Math.min(.05,Math.max(0,(now-last)/1000));last=now;phase+=dt;if(view==='mine')drawMine();if(view==='lap')drawMach(dt);drawOv();requestAnimationFrame(loop)}
+S.rough.push(mkRough(0,0),mkRough(1,0),mkRough(2,0));newShift();renderPick();renderCab();renderSave();requestAnimationFrame(loop);
+udsFile.wire({buttons:['warnFile','fileSave'],get:saveCode,put:function(c){$('loadBox').value=c;$('loadBtn').click();$('loadBox').value=''}});
+</script></body></html>

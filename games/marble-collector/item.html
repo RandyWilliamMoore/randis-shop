@@ -1,0 +1,522 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Marble Collector</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#1e1f22;color:#e6e6e6;font:14px system-ui,Segoe UI,sans-serif;padding:12px}
+h1{font-size:20px;margin:0 12px 0 0}h2{font-size:15px;margin:14px 0 6px}
+header{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+button{background:#2f3136;color:#e6e6e6;border:1px solid #4a4d55;border-radius:6px;padding:6px 10px;cursor:pointer;font:inherit}
+button:hover{background:#3a3d44}button:disabled{opacity:.45;cursor:default}
+button.on,button.go{background:#3b6fd4;border-color:#3b6fd4}
+select{background:#2f3136;color:#e6e6e6;border:1px solid #4a4d55;border-radius:6px;padding:5px;font:inherit;max-width:100%}
+.warn{background:#3a3020;border:1px solid #6d5a2c;border-radius:6px;padding:7px 10px;margin-bottom:10px}
+.warn button{margin-left:6px;padding:2px 8px}
+.play{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start}
+canvas#arena{width:min(100%,520px);max-width:520px;background:#26282c;border-radius:10px;touch-action:none;cursor:crosshair}
+.side{flex:1;min-width:260px}
+.grid{display:flex;flex-wrap:wrap;gap:6px;min-height:50px}
+.tile{width:74px;background:#2a2c31;border:1px solid #3c3f46;border-radius:8px;padding:5px 3px;text-align:center;cursor:pointer;font-size:10px;line-height:1.2;color:#e6e6e6}
+.tile:hover{border-color:#8a8f9c}.tile.fixed{cursor:default}.tile canvas{display:block;margin:0 auto 3px}
+#status{font-size:15px;min-height:42px;margin-bottom:6px}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.dim{color:#a2a6ad}
+textarea{width:100%;height:110px;background:#17181a;color:#e6e6e6;border:1px solid #4a4d55;border-radius:6px;padding:6px;font:12px Consolas,monospace}
+.maker{background:#2a2c31;border-radius:8px;padding:8px 10px;margin:6px 0}.maker b{display:block}
+.url{user-select:all;color:#8ab4f8;font-family:Consolas,monospace;font-size:12px;word-break:break-all}
+.hide{display:none}
+.room{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start}
+.pouch{width:200px}.pouch canvas#pouch{display:block;cursor:pointer}
+.wallet{font-size:15px;margin:6px 0}.wallet b{color:#f2c94c}
+.bagwin{background:linear-gradient(#3a3226,#29241c);border:2px solid #7a6642;border-radius:8px;padding:8px;box-shadow:0 6px 18px rgba(0,0,0,.5);animation:pop .25s ease-out}
+@keyframes pop{from{transform:scale(.85);opacity:0}to{transform:none;opacity:1}}
+.wintitle{display:flex;justify-content:space-between;align-items:center;font-weight:600;color:#f0d9a0;margin-bottom:6px}
+.wintitle button{padding:0 7px;background:#6d2a22;border-color:#a0483c}
+.slots{display:grid;grid-template-columns:repeat(8,50px);gap:3px}
+.slot{width:50px;height:50px;background:#17150f;border:2px solid #4a4230;border-radius:5px;position:relative;box-shadow:inset 0 0 8px #000;touch-action:none;user-select:none}
+.slot canvas{position:absolute;left:1px;top:1px;width:44px;height:44px;pointer-events:none}
+.slot.has{cursor:grab}.slot.has:hover{filter:brightness(1.25)}.slot.sel{outline:2px solid #fff}
+.slot.wait canvas,.slot.wait i{visibility:hidden}
+.slot i{position:absolute;font:bold 10px system-ui;font-style:normal;text-shadow:0 0 3px #000,0 0 3px #000;pointer-events:none}
+.slot i.lv{right:2px;bottom:0}.slot i.en{right:2px;top:0;color:#7CFC7C}.slot i.st{left:2px;top:0;color:#f2c94c}
+.r0{border-color:#8d8d8d}.r1{border-color:#2fbf3a}.r2{border-color:#2f7fe0}.r3{border-color:#a335ee}.r4{border-color:#ff8000}
+.c0{color:#fff}.c1{color:#3ee04a}.c2{color:#5aa2ff}.c3{color:#c070ff}.c4{color:#ff9a33}.cg{color:#7CFC7C}.cd{color:#a2a6ad}.cy{color:#f2c94c}
+.tip{position:fixed;z-index:50;max-width:250px;background:rgba(12,14,30,.96);border:1px solid #8a8f9c;border-radius:6px;padding:7px 9px;font-size:12px;line-height:1.35;pointer-events:none}
+.tip b{font-size:14px;display:block}
+.card{width:240px;background:#2a2c31;border-radius:8px;padding:10px;font-size:13px;line-height:1.35}.card b.nm{font-size:15px;display:block}
+.card button{width:100%;margin-top:5px;text-align:left;font-size:12px}
+.team{display:flex;gap:4px}.fly{position:fixed;left:0;top:0;z-index:40;pointer-events:none}
+</style></head><body>
+<header><h1>Marble Collector</h1>
+<button data-v="bag" class="on">Bag</button><button data-v="play">Games</button>
+<button data-v="real">Real marbles</button><button data-v="save">Save / Load</button></header>
+<div class="warn" id="warn">This tab can't save by itself: closing or reloading it resets your marbles. Save to this file, or keep your save code. <button id="warnFile">Save to file</button> <button id="warnGo">Get save code</button> <span class="uds-msg"></span></div>
+
+<section id="v-bag" class="room">
+<div class="pouch"><canvas id="pouch" width="190" height="220"></canvas>
+<div id="pouchHint" class="dim"></div>
+<div class="wallet">Coins: <b id="coins"></b></div>
+<button id="buyBtn">Buy a pouch of 3 (40 coins)</button><div id="shopMsg" class="dim"></div>
+<h2>Battle team</h2><div class="team" id="teamSlots"></div>
+<p class="dim">Drag a marble here, or between bag slots.</p></div>
+<div id="win" class="bagwin hide"><div class="wintitle"><span id="winTitle"></span><button id="winX" title="Close the bag">X</button></div><div class="slots" id="slots"></div></div>
+<div class="card" id="card"></div>
+</section>
+
+<section id="v-play" class="play hide">
+<canvas id="arena" width="520" height="520"></canvas>
+<div class="side">
+<div class="row" id="gameBtns"><button data-g="ringer">Ringer</button><button data-g="battle">Battle</button><button data-g="lag">Bullseye</button><button data-g="sol">Solitaire</button></div>
+<div id="status"></div>
+<div class="row"><button id="startBtn" class="go">Start</button><button id="undoBtn" class="hide">Undo move</button><button id="quitBtn" class="hide">Give up</button></div>
+<div id="set-ringer"><div class="row"><button id="ruleV">Vanilla rules</button><button id="ruleP">Powered rules</button><button id="poolBtn">+ Free pool marble</button></div>
+<div id="shootRow" class="row"><label>Shooter (never at risk): <select id="shootSel"></select></label></div>
+<h2>Your stake (<span id="stakeN"></span>/6)</h2><div class="grid" id="stakeG"></div>
+<h2>Your bag: click to stake</h2><div class="grid" id="bagG"></div>
+<p class="dim">Knock marbles out of the ring to keep them. Vanilla: every marble plays the same, with no abilities or XP. Powered: your shooter uses its ability and earns XP, and the opponent gets one too. Prized marbles are never staked.</p></div>
+<div id="set-battle"><h2>Team (up to 3): click to remove</h2><div class="grid" id="teamG"></div><h2>Your bag: click to add</h2><div class="grid" id="teamPick"></div>
+<p class="dim">Flick the glowing marble into enemies. Harder hits do more damage. Abilities, levels and enhancements all count here, and marbles are never lost. <span id="bestLine"></span></p></div>
+<div id="set-lag"><p class="dim">A vanilla game. Roll closest to the middle of the target over 3 ends, 2 shots each. Marbles can knock each other away. Abilities don't count. Blue ring is yours, red is the opponent's.</p></div>
+<div id="set-sol"><p class="dim">Classic vanilla marble solitaire. Jump a marble over its neighbour into an empty hole to remove the neighbour. Leave as few as you can: 1 left pays 100 coins.</p></div>
+<div id="live" class="hide"><h2>You knocked out</h2><div class="grid" id="mineG"></div><h2>Opponent knocked out</h2><div class="grid" id="oppG"></div></div>
+</div></section>
+
+<section id="v-real" class="hide">
+<div class="maker"><b>Find real in-game items here:</b>Randy's Etsy shop.<div class="url">https://www.etsy.com/shop/UberRandis</div><div>If you would like to be a sponsor or host your items, goods, and products on my store, contact me:</div><div>Comments</div><div class="url">https://github.com/RandyWilliamMoore/randis-uds/discussions</div><div>Discord</div><div class="url">https://discord.gg/83RmuHcQTR</div><div>Ko-fi</div><div class="url">https://ko-fi.com/moorescombinatoricsmatrix</div></div>
+<p>Marble makers to test for real versions. I found no marble print-on-demand service or ordering API, so for now this path is a person emailing a maker with the brief below. Ask each one about price, minimums and whether they'll match a design.</p>
+<div class="maker"><b>Solid Space Glass: try first</b>Handmade glass. Its FAQ says it takes commissions through its contact form.<div class="url">https://solidspaceglass.bigcartel.com/faq</div></div>
+<div class="maker"><b>Marble King</b>US factory in Paden City, West Virginia, reported to make over a million marbles a day. Custom runs not confirmed, and its site wouldn't load when checked.<div class="url">https://www.marbleking.com/</div></div>
+<div class="maker"><b>House of Marbles</b>Describes itself as a maker and seller, with trade accounts. Its pages don't mention custom work, so ask.<div class="url">https://www.houseofmarbles.com/wholesale</div></div>
+<div class="maker"><b>Moon Marble Company</b>Kansas shop whose owner makes marbles and which sells work by several dozen glass artists. Its pages don't mention custom orders, so ask.<div class="url">https://www.moonmarble.com/t-contact.aspx</div></div>
+<h2>Order brief for your prized set</h2><textarea id="brief" readonly></textarea><div class="row"><button id="copyBrief">Copy brief</button></div>
+</section>
+
+<section id="v-save" class="hide"><h2>Your save code</h2><textarea id="code" readonly></textarea>
+<div class="row"><button id="copyCode">Copy save code</button></div>
+<p class="dim">Paste it somewhere safe, such as a text file, after a good session.</p>
+<h2>Save inside this file</h2><div class="row"><button id="fileSave">Save game to this file</button><span class="dim uds-msg"></span></div>
+<h2>Load a save code</h2><textarea id="loadBox" placeholder="Paste a save code here"></textarea>
+<div class="row"><button id="loadBtn">Load (replaces current marbles)</button><span id="loadMsg" class="dim"></span></div></section>
+<div id="tip" class="tip hide"></div>
+
+<script type="application/json" id="uds-save">""</script>
+<script id="uds-save-kit">
+// Saving inside this file: the page as it was before the game ran, plus the game's script, plus the save.
+var udsFile=(function(){
+  var shell=document.documentElement.outerHTML,handle=null;
+  function say(t){[].forEach.call(document.querySelectorAll('.uds-msg'),function(e){e.textContent=t})}
+  function stored(){try{var c=JSON.parse(document.getElementById('uds-save').textContent);return typeof c==='string'?c:''}catch(e){return ''}}
+  function text(code){
+    var main=document.getElementById('game-main').outerHTML,
+        block='<script type="application/json" id="uds-save">'+JSON.stringify(code).replace(/</g,'\\u003c')+'<\/script>';
+    return '<!doctype html>\n'+shell.replace(/<script type="application\/json" id="uds-save">[\s\S]*?<\/script>/,function(){return block}).replace(/<\/body>\s*<\/html>\s*$/,function(){return main+'</body></html>'});
+  }
+  function name(){var p=decodeURIComponent(location.pathname.split('/').pop()||'');
+    return location.protocol==='file:'&&/\.html?$/i.test(p)?p:document.title.toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.html'}
+  function download(t){var a=document.createElement('a'),u=URL.createObjectURL(new Blob([t],{type:'text/html'}));a.href=u;a.download=name();document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},5000)}
+  async function save(get){
+    var t=text(get());
+    if(window.parent!==window){
+      var done=false;
+      var ack=function(e){if(e.source===parent&&e.data&&e.data.uds==='saved'){done=true;removeEventListener('message',ack);say(String(e.data.note||'Saved.'))}};
+      addEventListener('message',ack);parent.postMessage({uds:'save-file',text:t},'*');
+      setTimeout(function(){if(!done){removeEventListener('message',ack);say("Files can't be saved from here. Use the save code.")}},2500);
+      return;
+    }
+    if(window.showSaveFilePicker){
+      try{
+        if(!handle)handle=await showSaveFilePicker({suggestedName:name(),types:[{description:'Game file',accept:{'text/html':['.html','.htm']}}]});
+        var w=await handle.createWritable();await w.write(t);await w.close();say('Saved into '+handle.name+'.');return;
+      }catch(e){if(e&&e.name==='AbortError'){say('Not saved.');return}handle=null}
+    }
+    download(t);say('Saved as a new copy in your downloads.');
+  }
+  return {stored:stored,text:text,wire:function(o){
+    o.buttons.forEach(function(id){var b=document.getElementById(id);if(b)b.onclick=function(){save(o.get)}});
+    var c=stored();if(c)o.put(c);
+  }};
+})();
+</script>
+<script id="game-main">
+var $=function(i){return document.getElementById(i)};
+function has(o,k){return Object.prototype.hasOwnProperty.call(o,k)}
+var TIERS=['Common','Uncommon','Rare','Epic','Legendary'];
+var ADJ=['Misty','Ember','Frost','Lunar','Solar','Velvet','Storm','Coral','Ghost','Amber','Neon','Tidal','Dusk','Royal','Wild','Quiet'];
+var NOUN=['Comet','Pearl','Drift','Orbit','Eye','Bloom','Spark','Wave','Nova','Shard','Ripple','Halo','Moth','Flame','Glow','Dream'];
+var STYLES={
+ clearie:{n:'Clearie',pat:'clear tinted glass with tiny air bubbles'},
+ clambroth:{n:'Clambroth',pat:'opaque milk glass with thin evenly spaced coloured lines'},
+ aggie:{n:'Aggie',pat:'opaque banded agate look'},
+ swirl:{n:'Swirl',pat:'translucent glass with two-colour swirl ribbons'},
+ catseye:{n:"Cat's-eye",pat:"clear glass with a standard three-blade cat's-eye vane"},
+ banana:{n:"Banana cat's-eye",pat:"clear glass with one wide two-colour cat's-eye vane"},
+ mica:{n:'Mica',pat:'clear tinted glass with silver mica flecks'},
+ steelie:{n:'Steelie',pat:'polished steel ball'},
+ corkscrew:{n:'Corkscrew',pat:'translucent glass with a two-colour corkscrew twist'},
+ onionskin:{n:'Onionskin',pat:'dense multi-colour streaks under clear glass'},
+ lutz:{n:'Lutz',pat:'tinted glass with bands of gold dust'},
+ galaxy:{n:'Galaxy',pat:'dark translucent glass with star speckles and a nebula'},
+ opal:{n:'Opal',pat:'milky translucent glass with pastel rainbow patches'}};
+var POOLS=[['clearie','clambroth','aggie','swirl'],['swirl','catseye','banana','mica','steelie'],['catseye','corkscrew','onionskin','aggie','steelie'],['lutz','galaxy','onionskin','opal','corkscrew'],['galaxy','opal','lutz']];
+var ABIL={
+ heavy:{n:'Iron Core',d:'Heavy shot. Ringer: shoves marbles harder. Battle: more damage.'},
+ surge:{n:'Surge',d:'Shots leave up to 30% faster, and more with Charge.'},
+ nova:{n:'Nova',d:'The first hit of a shot sends out a blast. Battle: the blast also damages nearby enemies.'},
+ twin:{n:'Twin',d:'Fires a second, lighter copy alongside the shot. Battle: the copy does half damage.'},
+ hook:{n:'Homing',d:'The shot curves toward the nearest target until it hits something.'},
+ rubber:{n:'Rubber',d:'Ringer: bounces back off the ring edge up to 3 times. Battle: keeps its speed off walls, and hits harder after a bounce.'},
+ frost:{n:'Frost',d:'Ringer: struck marbles slide further. Battle: struck enemies miss their next turn.'},
+ leech:{n:'Leech',d:'Ringer: one miss per match keeps your turn. Battle: heals by part of the damage dealt.'},
+ lucky:{n:'Lucky',d:'Ringer and Battle pay 50% more coins, and Battle gives 50% more XP.'}};
+var ABK=Object.keys(ABIL);
+var ENCH={a:'Polish (+2 ATK)',h:'Temper (+8 HP)',p:'Charge (stronger ability)'};
+var CX=260,CY=260,R=220,MR=13,PULL=120,TX=260,TY=190,LX=260,LY=485;
+var ctx=$('arena').getContext('2d'),pctx=$('pouch').getContext('2d');
+var bag=[],stake=[],team=[],coins=30,best=0,M=null,run=null,game='ringer',rules='v',shooterId='',view='bag';
+var msg='Pick a game. Your bag holds everything you own.',angle=Math.PI/2,aim=null,sel=null,sellArm=null;
+var bagOpen=false,bagBusy=false,bagO=0,bagT=0,hide={},sprites={},iconEls={};
+
+function rng(s){return function(){s=(s+0x6D2B79F5)>>>0;var t=s;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296}}
+function traits(s,tier){var r=rng(s),o={h1:Math.floor(r()*360),h2:Math.floor(r()*360),name:ADJ[Math.floor(r()*ADJ.length)]+' '+NOUN[Math.floor(r()*NOUN.length)]};
+  var p=POOLS[tier];o.style=p[Math.floor(r()*p.length)];var roll=r(),pick=ABK[Math.floor(r()*ABK.length)];
+  o.ab=tier===0?'':(tier===1&&roll>.6?'':pick);if(o.style==='steelie')o.ab='heavy';return o}
+function mk(tier){var s=Math.floor(Math.random()*4e9),o=traits(s,tier);o.id=s.toString(36)+Date.now().toString(36);o.t=tier;o.seed=s;o.lv=1;o.xp=0;o.ench={a:0,h:0,p:0};return o}
+function roll(){var r=Math.random();return r<.6?0:r<.85?1:r<.95?2:r<.99?3:4}
+function look(seed,h1,h2,style){return {id:'look'+seed,seed:seed,t:1,h1:h1,h2:h2,style:style,ab:'',lv:1,xp:0,ench:{a:0,h:0,p:0},name:'Plain shooter'}}
+var LOOK_YOU=look(7,210,50,'swirl'),LOOK_OPP=look(99,0,50,'swirl');
+function hex(h,s,l){s/=100;l/=100;var f=function(n){var k=(n+h/30)%12,a=s*Math.min(l,1-l),v=l-a*Math.max(-1,Math.min(k-3,9-k,1));return('0'+Math.round(255*v).toString(16)).slice(-2)};return '#'+f(0)+f(8)+f(4)}
+function hsla(h,s,l,a){return 'hsla('+h+','+s+'%,'+l+'%,'+a+')'}
+function need(lv){return 20+lv*15}
+function maxHp(m){return 30+m.lv*5+m.t*6+m.ench.h*8}
+function atkOf(m){return Math.round(6+m.lv*1.5+m.t*2+m.ench.a*2)}
+function pot(m){return 1+.15*m.ench.p+.02*(m.lv-1)+(m.t===4?.25:0)}
+function enTotal(m){return m.ench.a+m.ench.h+m.ench.p}
+function addXp(m,n){var ups=0;m.xp+=Math.round(n);while(m.lv<20&&m.xp>=need(m.lv)){m.xp-=need(m.lv);m.lv++;ups++}if(m.lv>=20)m.xp=0;return ups}
+function sellVal(m){return 4*(m.t+1)*(m.t+1)+m.lv*2+enTotal(m)*5}
+function byId(id){for(var i=0;i<bag.length;i++)if(bag[i].id===id)return bag[i];return null}
+function teamList(){return team.map(byId).filter(Boolean)}
+
+// ---- Marble art: the body rolls, the gloss stays put, and glass lets the table show through ----
+function lens(c,x,y,r,a,w){var ca=Math.cos(a),sa=Math.sin(a),nx=-sa*w,ny=ca*w;c.beginPath();c.moveTo(x+ca*r,y+sa*r);c.quadraticCurveTo(x+nx,y+ny,x-ca*r,y-sa*r);c.quadraticCurveTo(x-nx,y-ny,x+ca*r,y+sa*r);c.fill()}
+function ribbon(c,x,y,r,q){var a=q()*6.28,b=a+1.5+q()*2;c.beginPath();c.moveTo(x+Math.cos(a)*r,y+Math.sin(a)*r);c.quadraticCurveTo(x+(q()-.5)*r,y+(q()-.5)*r,x+Math.cos(b)*r,y+Math.sin(b)*r);c.stroke()}
+function flecks(c,x,y,r,q,n,col){for(var i=0;i<n;i++){var a=q()*6.28,d=Math.sqrt(q())*r,z=Math.max(1,r*.06*(.6+q()));c.fillStyle=col(q());c.fillRect(x+Math.cos(a)*d,y+Math.sin(a)*d,z,z)}}
+function glass(c,x,y,r,a,b){var g=c.createRadialGradient(x,y,r*.1,x,y,r);g.addColorStop(0,a);g.addColorStop(1,b);c.fillStyle=g;c.fillRect(x-r,y-r,r*2,r*2)}
+function paintBody(c,x,y,r,m){var q=rng(m.seed^0x5bd1),h=m.h1,k=m.h2,i,a;c.save();c.beginPath();c.arc(x,y,r,0,7);c.clip();
+  var tint=function(){glass(c,x,y,r,hsla(h,75,62,.2),hsla(h,80,36,.78))};
+  switch(m.style){
+  case 'clambroth':glass(c,x,y,r,'#f4efe4','#b9b3a6');c.strokeStyle=hsla(h,75,42,.9);c.lineWidth=Math.max(1,r*.09);for(i=0;i<10;i++){a=i/10*3.14;c.beginPath();c.moveTo(x,y-r);c.quadraticCurveTo(x+Math.cos(a)*r*1.9,y,x,y+r);c.stroke()}break;
+  case 'aggie':glass(c,x,y,r,hsla(h,45,42,1),hsla(h,50,22,1));for(i=0;i<7;i++){c.strokeStyle=hsla((h+(q()-.5)*40+360)%360,40,20+q()*55,.8);c.lineWidth=r*(.1+q()*.25);ribbon(c,x,y,r*1.2,q)}break;
+  case 'swirl':tint();for(i=0;i<3;i++){c.strokeStyle=hsla(k,85,62,.8);c.lineWidth=r*.2;ribbon(c,x,y,r,q);c.strokeStyle='rgba(255,255,255,.65)';c.lineWidth=r*.08;ribbon(c,x,y,r,q)}break;
+  case 'catseye':glass(c,x,y,r,hsla(h,60,75,.1),hsla(h,70,45,.55));a=q()*3.14;for(i=0;i<3;i++){c.fillStyle=hsla(k,92,55,.96);lens(c,x,y,r*.92,a+i*1.047,r*.24);c.fillStyle=hsla(k,95,78,.9);lens(c,x,y,r*.75,a+i*1.047,r*.07)}break;
+  case 'banana':glass(c,x,y,r,hsla(h,60,75,.1),hsla(h,70,45,.55));a=q()*3.14;c.fillStyle=hsla(k,92,55,.96);lens(c,x,y,r*.95,a,r*.62);c.fillStyle=hsla((k+50)%360,95,60,.95);lens(c,x,y,r*.85,a,r*.25);break;
+  case 'mica':tint();flecks(c,x,y,r,q,r*2+8,function(v){return 'rgba(235,240,255,'+(.45+v*.5)+')'});break;
+  case 'steelie':a=c.createLinearGradient(x,y-r,x,y+r);a.addColorStop(0,'#eef1f4');a.addColorStop(.47,'#858b93');a.addColorStop(.53,'#2d3036');a.addColorStop(1,'#a9afb7');c.fillStyle=a;c.fillRect(x-r,y-r,r*2,r*2);break;
+  case 'corkscrew':tint();[[k,0],[(k+150)%360,3.14]].forEach(function(p){c.strokeStyle=hsla(p[0],90,60,.9);c.lineWidth=r*.2;c.beginPath();for(var n=-r;n<=r;n+=r/10){var y2=y+Math.sin(n/r*5+p[1])*r*.45;if(n===-r)c.moveTo(x+n,y2);else c.lineTo(x+n,y2)}c.stroke()});break;
+  case 'onionskin':glass(c,x,y,r,hsla(h,70,62,.3),hsla(h,75,32,.8));for(i=0;i<34;i++){a=q()*6.28;c.strokeStyle=q()<.2?'rgba(255,255,255,.6)':hsla(q()<.5?h:k,90,58,.65);c.lineWidth=Math.max(.8,r*.09*q());c.beginPath();c.moveTo(x+Math.cos(a)*r*.1,y+Math.sin(a)*r*.1);c.lineTo(x+Math.cos(a+.3)*r,y+Math.sin(a+.3)*r);c.stroke()}break;
+  case 'lutz':tint();c.strokeStyle='rgba(242,201,76,.35)';c.lineWidth=r*.26;ribbon(c,x,y,r,q);ribbon(c,x,y,r,q);flecks(c,x,y,r,q,r*3+10,function(v){return v<.7?'#f2c94c':'#fff3b0'});break;
+  case 'galaxy':glass(c,x,y,r,hsla(h,70,32,.55),hsla(h,80,8,.94));a=c.createRadialGradient(x+(q()-.5)*r,y+(q()-.5)*r,0,x,y,r*.9);a.addColorStop(0,hsla(k,90,60,.55));a.addColorStop(1,hsla(k,90,60,0));c.fillStyle=a;c.fillRect(x-r,y-r,r*2,r*2);flecks(c,x,y,r,q,r*3+10,function(v){return v<.6?'#fff':hsla(k,90,78,1)});break;
+  case 'opal':glass(c,x,y,r,'rgba(250,250,255,.45)','rgba(205,212,232,.82)');for(i=0;i<9;i++){var bx=x+(q()-.5)*r*1.6,by=y+(q()-.5)*r*1.6,br=r*(.25+q()*.35);a=c.createRadialGradient(bx,by,0,bx,by,br);var ph=Math.floor(q()*360);a.addColorStop(0,hsla(ph,95,70,.6));a.addColorStop(1,hsla(ph,95,70,0));c.fillStyle=a;c.fillRect(x-r,y-r,r*2,r*2)}break;
+  default:tint();for(i=0;i<5;i++){var ba=q()*6.28,bd=q()*r*.8;c.strokeStyle='rgba(255,255,255,.4)';c.lineWidth=.8;c.beginPath();c.arc(x+Math.cos(ba)*bd,y+Math.sin(ba)*bd,Math.max(.8,r*.07*q()),0,7);c.stroke()}}
+  c.restore()}
+function paintGloss(c,x,y,r,m){c.save();c.beginPath();c.arc(x,y,r,0,7);c.clip();
+  var g=c.createRadialGradient(x,y,r*.68,x,y,r);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.38)');c.fillStyle=g;c.fillRect(x-r,y-r,r*2,r*2);
+  if(m.style!=='steelie'){g=c.createRadialGradient(x+r*.38,y+r*.42,0,x+r*.38,y+r*.42,r*.72);g.addColorStop(0,hsla(m.h1,95,86,.6));g.addColorStop(1,hsla(m.h1,95,86,0));c.fillStyle=g;c.fillRect(x-r,y-r,r*2,r*2)}
+  g=c.createRadialGradient(x-r*.4,y-r*.45,0,x-r*.4,y-r*.45,r*.5);g.addColorStop(0,'rgba(255,255,255,.92)');g.addColorStop(.5,'rgba(255,255,255,.25)');g.addColorStop(1,'rgba(255,255,255,0)');c.fillStyle=g;c.fillRect(x-r,y-r,r*2,r*2);
+  c.fillStyle='rgba(255,255,255,.55)';c.beginPath();c.arc(x+r*.5,y+r*.55,Math.max(.7,r*.07),0,7);c.fill();c.restore();
+  c.beginPath();c.arc(x,y,r-(m.t===4?1:.5),0,7);c.lineWidth=m.t===4?2:1;c.strokeStyle=m.t===4?'#f2c94c':'rgba(255,255,255,.22)';c.stroke();
+  if(enTotal(m)>=5){c.save();c.shadowColor=hsla(m.h2,95,65,1);c.shadowBlur=r*.5;c.strokeStyle=hsla(m.h2,95,70,.9);c.lineWidth=1;c.beginPath();c.arc(x,y,r+.5,0,7);c.stroke();c.restore()}}
+function sprite(m,r){var key=m.seed+'|'+m.style+'|'+m.t+'|'+r+'|'+(enTotal(m)>=5?1:0),s=sprites[key];if(s)return s;
+  var S=Math.ceil(r*2+12),mkc=function(){var n=document.createElement('canvas');n.width=n.height=S;return n},b=mkc(),g=mkc();
+  paintBody(b.getContext('2d'),S/2,S/2,r,m);paintGloss(g.getContext('2d'),S/2,S/2,r,m);s={b:b,g:g,S:S};sprites[key]=s;return s}
+function drawMarble(c,x,y,r,m,rot,shadow){var s=sprite(m,r);
+  if(shadow){c.fillStyle='rgba(0,0,0,.28)';c.beginPath();c.ellipse(x+r*.25,y+r*.4,r*.95,r*.8,0,0,7);c.fill()}
+  c.save();c.translate(x,y);c.rotate(rot||0);c.drawImage(s.b,-s.S/2,-s.S/2);c.restore();c.drawImage(s.g,x-s.S/2,y-s.S/2)}
+function iconCanvas(m,size){var c=document.createElement('canvas');c.width=c.height=size;drawMarble(c.getContext('2d'),size/2,size/2,size/2-2,m,0,false);return c}
+
+// ---- Item text, used by the tooltip and the item card ----
+function itemLines(m){var e=enTotal(m),L=[];
+  L.push(['b','c'+m.t,m.name+(e?' +'+e:'')]);
+  L.push(['','cd',(m.pool?'Pool':TIERS[m.t])+' '+STYLES[m.style].n]);
+  if(!m.pool){L.push(['','cy','Level '+m.lv+(m.lv<20?' ('+m.xp+'/'+need(m.lv)+' XP)':' (max)')]);
+  L.push(['','','HP '+maxHp(m)+'   ATK '+atkOf(m)])}
+  if(m.ab)L.push(['','cg',ABIL[m.ab].n+': '+ABIL[m.ab].d]);else L.push(['','cd','Vanilla marble: no ability.']);
+  if(e)L.push(['','cg','Polish '+m.ench.a+'/5, Temper '+m.ench.h+'/5, Charge '+m.ench.p+'/5']);
+  if(m.prized)L.push(['','cy','★ Prized: never staked']);
+  return L}
+function writeLines(box,m){itemLines(m).forEach(function(l){var d=document.createElement(l[0]==='b'?'b':'div');d.className=(l[1]||'')+(l[0]==='b'?' nm':'');d.textContent=l[2];box.appendChild(d)})}
+function tipOn(el,m){el.onpointerenter=function(e){var t=$('tip');t.textContent='';writeLines(t,m);t.className='tip';var x=Math.min(e.clientX+14,innerWidth-260),y=Math.min(e.clientY+14,innerHeight-t.offsetHeight-6);t.style.left=x+'px';t.style.top=Math.max(4,y)+'px'};el.onpointerleave=tipOff}
+function tipOff(){$('tip').className='tip hide'}
+
+function tile(m,fn,mark){var d=document.createElement('button');d.className='tile'+(fn?'':' fixed');d.appendChild(iconCanvas(m,44));
+  d.appendChild(document.createTextNode((mark||'')+m.name));d.appendChild(document.createElement('br'));
+  d.appendChild(document.createTextNode(m.pool?'Pool':TIERS[m.t]+' Lv'+m.lv));if(fn)d.onclick=fn;tipOn(d,m);return d}
+function fill(id,list,fn,mark){var g=$(id);g.textContent='';list.forEach(function(m){g.appendChild(tile(m,fn?function(){fn(m)}:null,mark))})}
+function take(a,m){a.splice(a.indexOf(m),1)}
+
+// ---- The bag: slots, dragging, the item card ----
+function assignSlots(){var used={},free=0;bag.forEach(function(m){if(typeof m.slot!=='number'||used[m.slot])m.slot=-1;else used[m.slot]=1});
+  bag.forEach(function(m){if(m.slot<0){while(used[free])free++;m.slot=free;used[free]=1}})}
+function fillSlot(d,m){d.classList.add('has','r'+m.t);if(sel===m.id)d.classList.add('sel');if(hide[m.id])d.classList.add('wait');iconEls[m.id]=d;d.appendChild(iconCanvas(m,44));
+  var tag=function(c,t){var i=document.createElement('i');i.className=c;i.textContent=t;d.appendChild(i)};
+  if(m.prized)tag('st','★');if(enTotal(m))tag('en','+'+enTotal(m));tag('lv c'+m.t,m.lv>1?m.lv:'');tipOn(d,m);d.onpointerdown=function(e){if(!e.button)dragStart(e,m)}}
+function renderInv(){var g=$('slots'),byS={},mx=0;assignSlots();iconEls={};bag.forEach(function(m){byS[m.slot]=m;mx=Math.max(mx,m.slot)});
+  var n=Math.max(40,Math.ceil((mx+1)/8)*8);g.textContent='';
+  for(var i=0;i<n;i++){var d=document.createElement('div');d.className='slot';d.setAttribute('data-slot',i);if(byS[i])fillSlot(d,byS[i]);g.appendChild(d)}
+  $('winTitle').textContent='Marble Bag ('+bag.length+' marbles)';
+  var ts=$('teamSlots');ts.textContent='';for(var t=0;t<3;t++){var s=document.createElement('div');s.className='slot';s.setAttribute('data-team',t);var tm=byId(team[t]);if(tm)fillSlot(s,tm);ts.appendChild(s)}}
+function dragStart(e,m){var sx=e.clientX,sy=e.clientY,ghost=null;
+  function mv(ev){if(!ghost&&Math.hypot(ev.clientX-sx,ev.clientY-sy)>6){ghost=iconCanvas(m,44);ghost.className='fly';document.body.appendChild(ghost);tipOff()}
+    if(ghost)ghost.style.transform='translate('+(ev.clientX-22)+'px,'+(ev.clientY-22)+'px)'}
+  function up(ev){removeEventListener('pointermove',mv);removeEventListener('pointerup',up);
+    if(!ghost){sel=m.id;sellArm=null;render();return}
+    ghost.remove();var el=document.elementFromPoint(ev.clientX,ev.clientY),t=el&&el.closest?el.closest('.slot'):null;if(!t)return;
+    var sl=t.getAttribute('data-slot'),tm=t.getAttribute('data-team');
+    if(sl!==null){var other=bag.filter(function(o){return o.slot===Number(sl)})[0];if(other)other.slot=m.slot;m.slot=Number(sl)}
+    else if(tm!==null&&team.indexOf(m.id)<0){team[Number(tm)]=m.id;team=team.slice(0,3)}
+    render()}
+  addEventListener('pointermove',mv);addEventListener('pointerup',up)}
+function btn(box,label,fn,off){var b=document.createElement('button');b.textContent=label;b.onclick=fn;b.disabled=!!off;box.appendChild(b)}
+function renderCard(){var c=$('card'),m=byId(sel);c.textContent='';
+  if(!m){c.textContent=bagOpen?'Click a marble to see it, enhance it, or sell it. Hover for a quick look.':'Open the bag to see your marbles.';return}
+  var big=iconCanvas(m,96);big.style.display='block';big.style.margin='0 auto 6px';c.appendChild(big);writeLines(c,m);
+  btn(c,m.prized?'★ Remove from prized set':'★ Add to prized set',function(){m.prized=!m.prized;render()});
+  var on=team.indexOf(m.id)>=0;btn(c,on?'Take off battle team':'Add to battle team',function(){if(on)team.splice(team.indexOf(m.id),1);else{team=teamList().map(function(o){return o.id});team.push(m.id)}render()},!on&&teamList().length>=3);
+  ['a','h','p'].forEach(function(k){var n=m.ench[k],cost=15*(n+1)*(m.t+1);
+    btn(c,n>=5?ENCH[k]+': maxed':ENCH[k]+' '+(n+1)+'/5: '+cost+' coins',function(){coins-=cost;m.ench[k]++;render()},n>=5||coins<cost||(k==='p'&&!m.ab))});
+  btn(c,sellArm===m.id?'Click again to sell for '+sellVal(m)+' coins':'Sell ('+sellVal(m)+' coins)',function(){if(sellArm!==m.id){sellArm=m.id;render();return}
+    coins+=sellVal(m);take(bag,m);var i=team.indexOf(m.id);if(i>=0)team.splice(i,1);sel=null;sellArm=null;render()},m.prized)}
+
+function flyAll(out,done){var list=bag.slice().sort(function(a,b){return a.slot-b.slot}),n=list.length;if(!n){done();return}
+  var left=n,gap=Math.min(40,800/n),p=$('pouch').getBoundingClientRect(),mx=p.left+95-22,my=p.top+58-22;
+  list.forEach(function(m,i){var d=iconEls[m.id],f=iconCanvas(m,44),r=d?d.getBoundingClientRect():{left:mx,top:my,width:50,height:50};f.className='fly';document.body.appendChild(f);
+    var ex=r.left+(r.width-44)/2,ey=r.top+(r.height-44)/2,ax=out?mx:ex,ay=out?my:ey,bx=out?ex:mx,by=out?ey:my;
+    var a=f.animate([{transform:'translate('+ax+'px,'+ay+'px) scale('+(out?.35:1)+')'},{transform:'translate('+(ax+bx)/2+'px,'+(Math.min(ay,by)-70)+'px) scale(1.1)',offset:.55},{transform:'translate('+bx+'px,'+by+'px) scale('+(out?1:.35)+')'}],{duration:470,delay:i*gap,easing:'ease-out',fill:'both'});
+    a.onfinish=function(){f.remove();if(out){delete hide[m.id];var e=iconEls[m.id];if(e)e.classList.remove('wait')}if(--left===0)done()}})}
+function toggleBag(){if(bagBusy)return;bagBusy=true;tipOff();
+  if(!bagOpen){bagOpen=true;bagT=1;assignSlots();bag.forEach(function(m){hide[m.id]=1});$('win').className='bagwin';render();
+    setTimeout(function(){flyAll(true,function(){hide={};bagBusy=false;render()})},380)}
+  else{bag.forEach(function(m){hide[m.id]=1});render();flyAll(false,function(){bagOpen=false;bagT=0;hide={};sel=null;bagBusy=false;$('win').className='bagwin hide';render()})}}
+function drawBag(){var c=pctx,o=bagO,cx=95,ny=72-o*12,nw=17+o*44,base=212,ry=2+o*13;c.clearRect(0,0,190,220);
+  var lea=c.createLinearGradient(20,0,170,0);lea.addColorStop(0,'#5a3a1d');lea.addColorStop(.45,'#a0703c');lea.addColorStop(1,'#4b2f17');
+  if(o<.7){var f=1-o/.7;c.fillStyle=lea;c.beginPath();c.moveTo(cx-nw,ny);c.quadraticCurveTo(cx-20,ny-14*f,cx-34,ny-30*f);c.quadraticCurveTo(cx-14,ny-24*f,cx,ny-34*f);c.quadraticCurveTo(cx+14,ny-24*f,cx+34,ny-30*f);c.quadraticCurveTo(cx+20,ny-14*f,cx+nw,ny);c.fill()}
+  if(o>.05){c.fillStyle='#1b120a';c.beginPath();c.ellipse(cx,ny,nw,ry,0,0,7);c.fill();c.strokeStyle='#c49a62';c.lineWidth=2;c.stroke();
+    if(o>.3)bag.slice(0,5).forEach(function(m,i){drawMarble(c,cx-26+i*13,ny+2-(i%2)*6*o,9,m,0,false)})}
+  c.fillStyle=lea;c.beginPath();c.moveTo(cx-nw,ny);c.bezierCurveTo(cx-nw-12,ny+40,cx-84,base-40,cx-48,base);c.lineTo(cx+48,base);c.bezierCurveTo(cx+84,base-40,cx+nw+12,ny+40,cx+nw,ny);c.quadraticCurveTo(cx,ny+ry*2,cx-nw,ny);c.fill();
+  c.setLineDash([4,4]);c.strokeStyle='rgba(240,217,160,.55)';c.lineWidth=1.5;c.beginPath();c.moveTo(cx-54,base-9);c.quadraticCurveTo(cx,base-1,cx+54,base-9);c.stroke();c.beginPath();c.moveTo(cx-nw+3,ny+ry+5);c.quadraticCurveTo(cx,ny+ry*2+7,cx+nw-3,ny+ry+5);c.stroke();c.setLineDash([]);
+  c.strokeStyle='#e0c58f';c.lineWidth=3;c.beginPath();c.moveTo(cx-nw,ny+2);c.quadraticCurveTo(cx,ny+ry*2+3,cx+nw,ny+2);c.stroke();
+  c.lineWidth=2;c.beginPath();c.moveTo(cx+nw-2,ny+5);c.quadraticCurveTo(cx+nw+6,ny+28,cx+nw-6,ny+44);c.moveTo(cx+nw-2,ny+5);c.quadraticCurveTo(cx+nw+14,ny+20,cx+nw+10,ny+38);c.stroke();
+  c.fillStyle='#f2c94c';c.beginPath();c.arc(cx+nw-6,ny+46,3.5,0,7);c.arc(cx+nw+10,ny+40,3.5,0,7);c.fill()}
+
+// ---- Rendering the page ----
+function render(){tipOff();var inM=!!M,free=bag.filter(function(m){return !m.prized}),i;
+  $('status').textContent=(M&&M.note?M.note+' ':'')+msg;$('coins').textContent=coins;
+  $('pouchHint').textContent=bagOpen?'Click the bag to put them back.':'Click the bag to open it ('+bag.length+' inside).';$('buyBtn').disabled=coins<40;
+  renderInv();renderCard();
+  ['ringer','battle','lag','sol'].forEach(function(g){$('set-'+g).className=!inM&&game===g?'':'hide'});
+  Array.prototype.forEach.call(document.querySelectorAll('[data-g]'),function(b){b.className=b.getAttribute('data-g')===game?'on':'';b.disabled=inM});
+  $('live').className=inM&&M.kind==='ringer'?'':'hide';if(M&&M.kind==='ringer'){fill('mineG',M.mine);fill('oppG',M.opp)}
+  $('startBtn').className=inM?'hide':'go';$('quitBtn').className=inM?'':'hide';$('undoBtn').className=inM&&M.kind==='sol'?'':'hide';
+  var label={ringer:'Start match',battle:'Fight wave '+(run?run.wave:1),lag:'Start Bullseye',sol:'Start board'}[game];$('startBtn').textContent=label;
+  $('startBtn').disabled=(game==='ringer'&&!stake.length)||(game==='battle'&&!teamList().length);
+  $('ruleV').className=rules==='v'?'on':'';$('ruleP').className=rules==='p'?'on':'';$('shootRow').className=rules==='p'?'row':'hide';
+  $('stakeN').textContent=stake.length;$('poolBtn').disabled=stake.length>=6;
+  fill('stakeG',stake,function(m){take(stake,m);if(!m.pool)bag.push(m);render()});
+  fill('bagG',free,function(m){if(stake.length<6){take(bag,m);stake.push(m);render()}});
+  var ss=$('shootSel');ss.textContent='';var o0=document.createElement('option');o0.value='';o0.textContent='Plain shooter (no ability)';ss.appendChild(o0);
+  bag.forEach(function(m){if(!m.ab)return;var o=document.createElement('option');o.value=m.id;o.textContent=m.name+' Lv'+m.lv+': '+ABIL[m.ab].n;ss.appendChild(o)});ss.value=byId(shooterId)?shooterId:'';
+  var tl=teamList();fill('teamG',tl,function(m){team.splice(team.indexOf(m.id),1);render()});
+  fill('teamPick',bag.filter(function(m){return tl.indexOf(m)<0}),function(m){if(teamList().length<3){team=teamList().map(function(o){return o.id});team.push(m.id);render()}});
+  $('bestLine').textContent=best?'Best wave cleared: '+best+'.':'';
+  $('brief').value=brief(bag.filter(function(m){return m.prized}));$('code').value=saveCode()}
+function brief(pr){if(!pr.length)return 'Star some marbles in your bag first: open the bag, click a marble, then Add to prized set.';
+  return 'Custom glass marble request\nPlease quote for one of each design below, with your minimum order, size options and lead time.\n\n'+
+  pr.map(function(m,i){return (i+1)+'. '+m.name+': '+STYLES[m.style].pat+', main colour '+hex(m.h1,75,50)+(m.style==='clearie'||m.style==='steelie'?'':', accent colour '+hex(m.h2,85,60))}).join('\n')}
+function saveCode(){var keep=bag.concat(stake.filter(function(m){return !m.pool}));
+  if(M&&M.kind==='ringer'){M.balls.forEach(function(b){if(b.owner==='you'&&!b.m.pool&&!b.shooter)keep.push(b.m)});M.mine.forEach(function(m){keep.push(m)})}
+  return btoa(JSON.stringify({v:2,bag:keep,coins:coins,team:team,best:best}))}
+function clean(o){if(!o||typeof o.seed!=='number'||!(o.t>=0&&o.t<=4))throw 0;var t=Math.floor(o.t),d=traits(o.seed,t),e=o.ench||{},cl=function(v){return Math.max(0,Math.min(5,Math.floor(Number(v)||0)))};
+  return {id:String(o.id),t:t,seed:o.seed,h1:Number(o.h1)||0,h2:Number(o.h2)||0,name:String(o.name).replace(/[^\x20-\x7e]/g,'').slice(0,40),prized:!!o.prized,
+    style:has(STYLES,o.style)?o.style:['clearie','swirl','catseye','galaxy','galaxy'][t],ab:o.ab===undefined?d.ab:(has(ABIL,o.ab)?o.ab:''),
+    lv:Math.max(1,Math.min(20,Math.floor(Number(o.lv)||1))),xp:Math.max(0,Math.floor(Number(o.xp)||0)),ench:{a:cl(e.a),h:cl(e.h),p:cl(e.p)},slot:typeof o.slot==='number'?o.slot:-1}}
+function loadCode(txt){var d=JSON.parse(atob(txt.trim())),old=Array.isArray(d);if(!old&&(!d||!Array.isArray(d.bag)))throw 0;
+  return {bag:(old?d:d.bag).map(clean),coins:old?coins:Math.max(0,Math.floor(Number(d.coins)||0)),team:old||!Array.isArray(d.team)?[]:d.team.map(String).slice(0,3),best:old?best:Math.max(0,Math.floor(Number(d.best)||0))}}
+
+// ---- Shared physics ----
+function newBall(x,y,m,owner){return {x:x,y:y,vx:0,vy:0,m:m,owner:owner,mass:1,rot:0}}
+function nearest(b){var bd=1e9,t=null;M.balls.forEach(function(o){if(o===b||o.shot||o.dead||(M.kind==='battle'&&o.owner===b.owner))return;var d=Math.hypot(o.x-b.x,o.y-b.y);if(d<bd){bd=d;t=o}});return t}
+function physics(){var B=M.balls,i,j,moving=false;M.frame=(M.frame||0)+1;
+  for(i=0;i<B.length;i++){var b=B[i];
+    if(b.shot&&b.ab==='hook'&&!b.hooked){var t=nearest(b),sp=Math.hypot(b.vx,b.vy);if(t&&sp>.5){var da=Math.atan2(t.y-b.y,t.x-b.x)-Math.atan2(b.vy,b.vx);da=Math.atan2(Math.sin(da),Math.cos(da));var lim=.035*b.pot,na=Math.atan2(b.vy,b.vx)+Math.max(-lim,Math.min(lim,da));b.vx=Math.cos(na)*sp;b.vy=Math.sin(na)*sp}}
+    b.x+=b.vx;b.y+=b.vy;b.rot+=Math.hypot(b.vx,b.vy)/MR*(b.vx>=0?1:-1);var f=b.fric||.985;b.vx*=f;b.vy*=f;if(Math.hypot(b.vx,b.vy)<.05){b.vx=b.vy=0}else moving=true}
+  for(i=0;i<B.length;i++)for(j=i+1;j<B.length;j++){var p=B[i],q=B[j],dx=q.x-p.x,dy=q.y-p.y,d=Math.hypot(dx,dy);
+    if(p.shot&&q.shot)continue;
+    if(d>0&&d<MR*2){var nx=dx/d,ny=dy/d,ia=1/p.mass,ib=1/q.mass,o=(MR*2-d)/(ia+ib);p.x-=nx*o*ia;p.y-=ny*o*ia;q.x+=nx*o*ib;q.y+=ny*o*ib;
+      var rel=(q.vx-p.vx)*nx+(q.vy-p.vy)*ny;if(rel<0){var imp=-rel*1.94/(ia+ib);p.vx-=nx*imp*ia;p.vy-=ny*imp*ia;q.vx+=nx*imp*ib;q.vy+=ny*imp*ib;onHit(p,q,-rel)}}}
+  return moving}
+function walls(rubberKeeps){M.balls.forEach(function(b){var e=b.shot&&b.ab==='rubber'&&rubberKeeps?1:.72,lo=MR+1,hi=520-MR-1,hit=false;
+  if(b.x<lo){b.x=lo;b.vx=Math.abs(b.vx)*e;hit=true}if(b.x>hi){b.x=hi;b.vx=-Math.abs(b.vx)*e;hit=true}if(b.y<lo){b.y=lo;b.vy=Math.abs(b.vy)*e;hit=true}if(b.y>hi){b.y=hi;b.vy=-Math.abs(b.vy)*e;hit=true}
+  if(hit&&b.shot)b.bounced=true})}
+function fireShot(b,vx,vy,ab,p){M.fired=true;M.novaUsed=false;b.shot=true;b.ab=ab;b.pot=p;b.bounces=ab==='rubber'?3:0;b.bounced=false;b.hooked=false;
+  if(ab==='surge'){var s=1+.3*p;vx*=s;vy*=s}
+  if(ab==='heavy'&&M.kind==='ringer')b.mass=1+p;
+  b.vx=vx;b.vy=vy;if(M.balls.indexOf(b)<0)M.balls.push(b);
+  if(ab==='twin'){var l=Math.hypot(vx,vy)||1,t=newBall(b.x-vy/l*28,b.y+vx/l*28,b.m,b.owner),ca=Math.cos(.18),sa=Math.sin(.18);t.shooter=t.twin=t.shot=true;t.ab='';t.pot=p;t.mass=.6;t.atk=b.atk;t.src=b;t.vx=vx*ca-vy*sa;t.vy=vx*sa+vy*ca;M.balls.push(t)}}
+function blast(s,o){if(M.novaUsed)return;M.novaUsed=true;var rad=70+10*s.pot;M.fx.push({x:o.x,y:o.y,r:6,max:rad});
+  M.balls.forEach(function(b){if(b===s||b.shooter)return;var dx=b.x-o.x,dy=b.y-o.y,d=Math.hypot(dx,dy);if(d>=rad)return;
+    if(d>0&&b!==o){var f=(1-d/rad)*6*s.pot;b.vx+=dx/d*f;b.vy+=dy/d*f}
+    if(M.kind==='battle'&&b!==o&&b.owner!==s.owner&&!b.dead)hurt(b,Math.round(s.atk*.5))})}
+function hurt(b,n){b.hp-=n;M.txt.push({x:b.x,y:b.y-16,t:'-'+n,col:'#ff8a7a',life:45});if(b.hp<=0){b.hp=0;b.dead=true}}
+function onHit(p,q,speed){var s=p.shot?p:(q.shot?q:null);if(!s)return;var o=s===p?q:p;s.hooked=true;
+  if(M.kind==='ringer'){if(o.shooter)return;if(s.ab==='frost')o.fric=.993;if(s.ab==='nova')blast(s,o)}
+  else if(M.kind==='battle'&&o.owner!==s.owner&&!o.dead){if(M.frame<(o.cd||0))return;o.cd=M.frame+10;
+    var dm=s.atk*Math.max(.4,Math.min(1.6,speed/9));if(s.ab==='heavy')dm*=1+.3*s.pot;if(s.ab==='rubber'&&s.bounced)dm*=1+.25*s.pot;if(s.twin)dm*=.5;dm=Math.max(1,Math.round(dm));hurt(o,dm);
+    if(s.ab==='frost'&&!o.dead){o.frozen=1;M.txt.push({x:o.x,y:o.y+22,t:'Frozen',col:'#8ad4ff',life:45})}
+    if(s.ab==='leech'){var h=s.src||s,g=Math.round(dm*.4*s.pot);h.hp=Math.min(h.maxhp,h.hp+g);M.txt.push({x:h.x,y:h.y-16,t:'+'+g,col:'#7CFC7C',life:45})}
+    if(s.ab==='nova')blast(s,o)}}
+
+// ---- Ringer: knock them out and keep them ----
+function startRinger(){var used=[],all=[],powered=rules==='p',sp=powered?byId(shooterId):null,om=powered?mk(2):null;
+  stake.forEach(function(m){all.push({m:m,owner:'you'});var t=m.t;if(Math.random()<.3&&t<4)t++;var e=mk(t);if(!powered)e.ab='';all.push({m:e,owner:'opp'})});
+  M={kind:'ringer',balls:[],mine:[],opp:[],turn:'you',shooter:null,fired:false,hit:false,wait:0,maxv:15,fx:[],txt:[],powered:powered,leech:{},
+    side:{you:sp?{m:sp,ab:sp.ab,pot:pot(sp)}:{m:LOOK_YOU,ab:'',pot:1},opp:om?{m:om,ab:om.ab,pot:1}:{m:LOOK_OPP,ab:'',pot:1}},spMarble:sp};
+  all.forEach(function(o){var x,y,n=0;do{var a=Math.random()*6.28,d=Math.sqrt(Math.random())*(R-45);x=CX+Math.cos(a)*d;y=CY+Math.sin(a)*d;n++}
+    while(n<200&&used.some(function(u){return Math.hypot(u.x-x,u.y-y)<MR*2+6}));
+    var b=newBall(x,y,o.m,o.owner);used.push(b);M.balls.push(b)});
+  stake=[];if(powered)M.note='Opponent shooter: '+ABIL[om.ab].n+'.';setTurn('you');render()}
+function setTurn(w){M.turn=w;M.fired=false;M.hit=false;aim=null;var s=M.side[w];
+  M.shooter=newBall(0,0,s.m,w);M.shooter.shooter=true;
+  if(w==='you'){place(angle);msg='Your shot: drag back from your shooter and let go. Click outside the ring to move it.'+(s.ab?' Ability: '+ABIL[s.ab].n+'.':'')}
+  else{M.wait=45;place(Math.random()*6.28);msg='Opponent is lining up...'}}
+function place(a){angle=a;M.shooter.x=CX+Math.cos(a)*(R+MR+2);M.shooter.y=CY+Math.sin(a)*(R+MR+2)}
+function aiRinger(){var best2=null,bd=-1;M.balls.forEach(function(b){var d=Math.hypot(b.x-CX,b.y-CY)+(b.owner==='you'?40:0);if(d>bd){bd=d;best2=b}});
+  var a=Math.atan2(best2.y-CY,best2.x-CX);place(a+Math.PI);
+  var dir=Math.atan2(best2.y-M.shooter.y,best2.x-M.shooter.x)+(Math.random()-.5)*.14,v=10+Math.random()*4,s=M.side.opp;fireShot(M.shooter,Math.cos(dir)*v,Math.sin(dir)*v,s.ab,s.pot)}
+function stepRinger(){var moving=physics(),B=M.balls;
+  for(var i=B.length-1;i>=0;i--){var c=B[i],dx=c.x-CX,dy=c.y-CY,out=Math.hypot(dx,dy);
+    if(c.shooter){if(c.bounces>0&&out>R+MR&&dx*c.vx+dy*c.vy>0){var nx=dx/out,ny=dy/out,dot=c.vx*nx+c.vy*ny;c.vx-=2*dot*nx;c.vy-=2*dot*ny;c.bounces--}
+      else if(c.x<-30||c.y<-30||c.x>550||c.y>550){c.vx=c.vy=0;B.splice(i,1)}}
+    else if(out>R){B.splice(i,1);M.hit=true;(M.turn==='you'?M.mine:M.opp).push(c.m);render()}}
+  if(!moving&&M.fired)endRinger()}
+function endRinger(){M.balls=M.balls.filter(function(b){return !b.shooter});
+  if(!M.balls.length){finishRinger();return}
+  var t=M.turn,s=M.side[t],again=M.hit;if(!again&&s.ab==='leech'&&!M.leech[t]){M.leech[t]=true;again=true}
+  setTurn(again?t:(t==='you'?'opp':'you'));render()}
+function finishRinger(){var won=M.mine.length,lost=0,c=0,lucky=M.side.you.ab==='lucky',xpLine='';
+  M.mine.forEach(function(m){delete m.pool;bag.push(m);c+=3+m.t*3;if(!M.powered)return});M.opp.forEach(function(m){if(!m.pool&&m.seed&&m._mine!==false)lost++});
+  lost=M.lost!==undefined?M.lost:M.opp.filter(function(m){return M.mineIds?0:m.owned}).length;
+  if(lucky)c=Math.round(c*1.5);coins+=c;
+  if(M.powered&&M.spMarble&&won){var u=addXp(M.spMarble,won*6);xpLine=' '+M.spMarble.name+' gained '+won*6+' XP'+(u?' and levelled up!':'.')}
+  msg='Match over: you keep '+won+' marble'+(won===1?'':'s')+' and earned '+c+' coins.'+xpLine+' Save your code if you got something good.';M=null;render()}
+
+// ---- Battle: levels, enhancements and abilities all count ----
+function battleBall(m,x,y,owner,hp){var b=newBall(x,y,m,owner);b.maxhp=maxHp(m);b.hp=hp===undefined?b.maxhp:Math.max(1,Math.min(b.maxhp,hp));b.atk=atkOf(m);b.ab=m.ab;b.pot=pot(m);if(m.ab==='heavy')b.mass=1+b.pot*.8;return b}
+function startBattle(){if(!run)run={wave:1,hp:{}};var w=run.wave,tl=teamList(),n=Math.min(3,1+Math.floor((w+1)/2));
+  M={kind:'battle',balls:[],turn:'opp',fired:false,wait:0,maxv:14,fx:[],txt:[],idx:{you:-1,opp:-1},active:null,lucky:tl.some(function(m){return m.ab==='lucky'}),team:tl};
+  tl.forEach(function(m,i){M.balls.push(battleBall(m,90,130+i*130,'you',run.hp[m.id]))});
+  for(var i=0;i<n;i++){var t=Math.min(4,Math.floor(w/3)+(Math.random()<.25?1:0)),e=mk(t);e.lv=Math.max(1,w+Math.floor(Math.random()*2)-1);M.balls.push(battleBall(e,430,130+i*130,'opp'))}
+  nextTurn();render()}
+function sideOf(w){return M.balls.filter(function(b){return b.owner===w&&!b.dead&&!b.twin})}
+function nextTurn(){for(var n=0;n<12;n++){M.turn=M.turn==='you'?'opp':'you';var l=sideOf(M.turn);if(!l.length)return;M.idx[M.turn]=(M.idx[M.turn]+1)%l.length;var b=l[M.idx[M.turn]];
+    if(b.frozen){b.frozen=0;continue}
+    M.active=b;M.fired=false;aim=null;
+    if(M.turn==='you')msg='Wave '+run.wave+'. Your turn: drag back from '+b.m.name+' and let go.'+(b.ab?' Ability: '+ABIL[b.ab].n+'.':'');else{msg='Enemy '+b.m.name+' is lining up...';M.wait=45}
+    return}}
+function aiBattle(){var b=M.active,t=null,bd=1e9;sideOf('you').forEach(function(o){var d=Math.hypot(o.x-b.x,o.y-b.y);if(d<bd){bd=d;t=o}});if(!t){endBattle();return}
+  var a=Math.atan2(t.y-b.y,t.x-b.x)+(Math.random()-.5)*.22,v=Math.min(13,bd*.018+5);fireShot(b,Math.cos(a)*v,Math.sin(a)*v,b.ab,b.pot)}
+function stepBattle(){var moving=physics();walls(true);M.balls=M.balls.filter(function(b){return !b.dead});if(!moving&&M.fired)endBattle()}
+function endBattle(){M.balls=M.balls.filter(function(b){return !b.twin&&!b.dead});M.balls.forEach(function(b){b.shot=false;b.bounced=false});
+  var you=sideOf('you').length,op=sideOf('opp').length;
+  if(!op&&you){winWave();return}if(!you){loseRun('Your team fell on wave '+run.wave+'. Your marbles are safe, and a new run starts at wave 1.');return}
+  nextTurn();render()}
+function winWave(){var w=run.wave,xp=10+w*5,c=10+w*5,ups=[];if(M.lucky){c=Math.round(c*1.5);xp=Math.round(xp*1.5)}
+  var hp={};M.team.forEach(function(m){var b=null;M.balls.forEach(function(o){if(o.m===m)b=o});if(addXp(m,xp))ups.push(m.name);hp[m.id]=(b?b.hp:0)+Math.round(maxHp(m)*.3)});
+  coins+=c;best=Math.max(best,w);run={wave:w+1,hp:hp};msg='Wave '+w+' cleared: +'+c+' coins, +'+xp+' XP.'+(ups.length?' Level up: '+ups.join(', ')+'!':'')+' Fallen marbles get back up, and everyone heals a bit.';M=null;render()}
+function loseRun(t){run=null;msg=t;M=null;render()}
+
+// ---- Bullseye: vanilla, closest to the middle ----
+function startLag(){var mine=bag.length?bag[Math.floor(Math.random()*bag.length)]:LOOK_YOU;
+  M={kind:'lag',balls:[],turn:'opp',fired:false,wait:0,maxv:8,fx:[],txt:[],end:1,left:{you:2,opp:2},score:{you:0,opp:0},look:{you:mine,opp:mk(0)},shooter:null};lagNext();render()}
+function lagNext(){var o=M.turn==='you'?'opp':'you';if(!M.left.you&&!M.left.opp){lagScore();if(!M)return}
+  o=M.turn==='you'?'opp':'you';if(!M.left[o])o=M.turn;M.turn=o;M.left[o]--;M.fired=false;aim=null;M.shooter=newBall(LX,LY,M.look[o],o);
+  if(o==='you')msg='End '+M.end+' of 3. Your shot: drag back from your marble. Score: you '+M.score.you+', opponent '+M.score.opp+'.';else{msg='Opponent is rolling...';M.wait=40}}
+function lagPts(b){var d=Math.hypot(b.x-TX,b.y-TY);return d<22?5:d<55?3:d<95?2:d<135?1:0}
+function lagScore(){var e={you:0,opp:0};M.balls.forEach(function(b){e[b.owner]+=lagPts(b)});M.score.you+=e.you;M.score.opp+=e.opp;M.note='End '+M.end+': you '+e.you+', opponent '+e.opp+'.';
+  if(M.end>=3){var y=M.score.you,o=M.score.opp,c=y>o?25:y===o?10:5;coins+=c;msg='Final: you '+y+', opponent '+o+'. '+(y>o?'You win':y===o?'A tie':'You lost')+': +'+c+' coins.';M=null;render();return}
+  M.end++;M.balls=[];M.left={you:2,opp:2};M.turn='opp'}
+function aiLag(){var dx=TX-LX,dy=TY-LY,d=Math.hypot(dx,dy),a=Math.atan2(dy,dx)+(Math.random()-.5)*.1,v=d*.015*(.9+Math.random()*.2);fireShot(M.shooter,Math.cos(a)*v,Math.sin(a)*v,'',1)}
+function stepLag(){var moving=physics();walls(false);if(!moving&&M.fired){M.balls.forEach(function(b){b.shot=false});lagNext();render()}}
+
+// ---- Marble solitaire ----
+function solOK(r,c){return r>=0&&r<7&&c>=0&&c<7&&((r>=2&&r<=4)||(c>=2&&c<=4))}
+function startSol(){var b=[],n=0;for(var r=0;r<7;r++){b.push([]);for(var c=0;c<7;c++){var m=null;if(solOK(r,c)&&!(r===3&&c===3)){m=bag.length?bag[n%bag.length]:null;if(!m)m=mk(0);n++}b[r].push(m)}}
+  M={kind:'sol',board:b,sel:null,hist:[],maxv:0,fx:[],txt:[]};msg='Click a marble, then an empty hole two steps away.';render()}
+function solMoves(){var b=M.board,D=[[0,2],[0,-2],[2,0],[-2,0]],out=[];for(var r=0;r<7;r++)for(var c=0;c<7;c++)if(b[r][c])D.forEach(function(d){var R2=r+d[0],C2=c+d[1];if(solOK(R2,C2)&&!b[R2][C2]&&b[r+d[0]/2][c+d[1]/2])out.push([r,c,R2,C2])});return out}
+function solCount(){var n=0;M.board.forEach(function(row){row.forEach(function(m){if(m)n++})});return n}
+function solClick(p){var c=Math.floor((p.x-36)/64),r=Math.floor((p.y-36)/64);if(!solOK(r,c))return;var b=M.board,s=M.sel;
+  if(b[r][c]){M.sel=[r,c];return}
+  if(s&&((Math.abs(r-s[0])===2&&c===s[1])||(Math.abs(c-s[1])===2&&r===s[0]))){var mr=(r+s[0])/2,mc=(c+s[1])/2;if(!b[mr][mc])return;
+    M.hist.push([s[0],s[1],r,c,mr,mc,b[s[0]][s[1]],b[mr][mc]]);b[r][c]=b[s[0]][s[1]];b[s[0]][s[1]]=null;b[mr][mc]=null;M.sel=null;
+    var n=solCount();msg=n+' marbles left.';
+    if(!solMoves().length){var pay=n===1?100:n<=3?40:n<=6?15:5;coins+=pay;msg='No moves left, with '+n+' marble'+(n===1?'':'s')+' on the board: +'+pay+' coins.';M=null}
+    render()}}
+
+// ---- Drawing the arena ----
+function aimLine(o){ctx.beginPath();ctx.moveTo(o.x,o.y);ctx.lineTo(o.x+aim.x*1.4,o.y+aim.y*1.4);ctx.lineWidth=3;ctx.strokeStyle='#f2c94c';ctx.stroke()}
+function ownerRing(b){ctx.beginPath();ctx.arc(b.x,b.y,MR+2.5,0,7);ctx.lineWidth=2;ctx.strokeStyle=b.owner==='you'?'#5aa2ff':'#ff6b5e';ctx.stroke()}
+function effects(){if(!M)return;M.fx=M.fx.filter(function(f){f.r+=4;ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,7);ctx.lineWidth=3;ctx.strokeStyle='rgba(255,220,120,'+Math.max(0,1-f.r/f.max)+')';ctx.stroke();return f.r<f.max});
+  ctx.font='bold 14px system-ui';ctx.textAlign='center';M.txt=M.txt.filter(function(t){t.y-=.5;t.life--;ctx.fillStyle=t.col;ctx.fillText(t.t,t.x,t.y);return t.life>0})}
+function idle(t){ctx.fillStyle='#a2a6ad';ctx.font='15px system-ui';ctx.textAlign='center';ctx.fillText(t,CX,CY+(game==='lag'?150:0))}
+function drawRing(){ctx.beginPath();ctx.arc(CX,CY,R,0,7);ctx.fillStyle='#31343a';ctx.fill();ctx.lineWidth=3;ctx.strokeStyle='#8a8f9c';ctx.stroke()}
+function drawTarget(){ctx.fillStyle='#31343a';ctx.fillRect(0,0,520,520);[[135,'#3b4a5e'],[95,'#47607c'],[55,'#5a7ea3'],[22,'#f2c94c']].forEach(function(t){ctx.beginPath();ctx.arc(TX,TY,t[0],0,7);ctx.fillStyle=t[1];ctx.fill()});
+  ctx.fillStyle='#17181a';ctx.font='12px system-ui';ctx.textAlign='center';ctx.fillText('5',TX,TY+4);ctx.fillStyle='#e6e6e6';ctx.fillText('3',TX,TY-37);ctx.fillText('2',TX,TY-74);ctx.fillText('1',TX,TY-114)}
+function drawSol(){ctx.beginPath();ctx.arc(CX,CY,250,0,7);ctx.fillStyle='#4a3524';ctx.fill();ctx.lineWidth=4;ctx.strokeStyle='#7a5a3c';ctx.stroke();
+  for(var r=0;r<7;r++)for(var c=0;c<7;c++)if(solOK(r,c)){var x=68+c*64,y=68+r*64;ctx.beginPath();ctx.arc(x,y,20,0,7);ctx.fillStyle='#2a1d13';ctx.fill();
+    if(M&&M.board[r][c])drawMarble(ctx,x,y,24,M.board[r][c],0,true);
+    if(M&&M.sel&&M.sel[0]===r&&M.sel[1]===c){ctx.beginPath();ctx.arc(x,y,27,0,7);ctx.lineWidth=3;ctx.strokeStyle='#f2c94c';ctx.stroke()}}}
+function draw(){ctx.clearRect(0,0,520,520);var g=M?M.kind:game;
+  if(g==='sol'){drawSol();if(!M){ctx.fillStyle='#e6e6e6';ctx.font='15px system-ui';ctx.textAlign='center';ctx.fillText('Press Start board',CX,CY+5)}return}
+  if(g==='lag')drawTarget();else if(g==='ringer')drawRing();else{ctx.fillStyle='#2b2d33';ctx.fillRect(0,0,520,520);ctx.lineWidth=3;ctx.strokeStyle='#8a8f9c';ctx.strokeRect(2,2,516,516)}
+  if(!M){idle(g==='ringer'?'Knock marbles out of the ring to keep them':g==='battle'?'Pick a team and fight':'Press Start Bullseye');return}
+  M.balls.forEach(function(b){if(M.kind==='lag')ownerRing(b);if(M.kind==='battle'){ownerRing(b);if(b.frozen){ctx.beginPath();ctx.arc(b.x,b.y,MR+5,0,7);ctx.lineWidth=2;ctx.strokeStyle='#8ad4ff';ctx.stroke()}}
+    drawMarble(ctx,b.x,b.y,MR,b.m,b.rot,true);
+    if(M.kind==='battle'&&!b.twin){ctx.fillStyle='#111';ctx.fillRect(b.x-16,b.y-24,32,4);ctx.fillStyle=b.owner==='you'?'#4fd25a':'#e0574a';ctx.fillRect(b.x-16,b.y-24,32*b.hp/b.maxhp,4)}});
+  if(M.kind==='battle'){if(!M.fired&&M.active){ctx.beginPath();ctx.arc(M.active.x,M.active.y,MR+6+Math.sin(Date.now()/150)*1.5,0,7);ctx.lineWidth=2;ctx.strokeStyle='#f2c94c';ctx.stroke();if(aim)aimLine(M.active)}}
+  else if(!M.fired&&M.shooter){if(M.kind==='lag')ownerRing(M.shooter);drawMarble(ctx,M.shooter.x,M.shooter.y,MR,M.shooter.m,0,true);if(aim)aimLine(M.shooter)}
+  effects()}
+function loop(){if(M){if(M.kind!=='sol'){if(M.wait>0){if(--M.wait===0){if(M.kind==='ringer')aiRinger();else if(M.kind==='lag')aiLag();else aiBattle()}}
+      else if(M.fired){if(M.kind==='ringer')stepRinger();else if(M.kind==='lag')stepLag();else stepBattle()}}}
+  if(bagO!==bagT){bagO=bagT>bagO?Math.min(bagT,bagO+.05):Math.max(bagT,bagO-.05);drawBag()}
+  if(view==='play')draw();requestAnimationFrame(loop)}
+
+// ---- Input ----
+function pos(e){var r=$('arena').getBoundingClientRect();return {x:(e.clientX-r.left)*520/r.width,y:(e.clientY-r.top)*520/r.height}}
+function origin(){return M.kind==='battle'?M.active:M.shooter}
+function canAct(){return M&&M.kind!=='sol'&&M.turn==='you'&&!M.fired&&!M.wait&&origin()}
+$('arena').onpointerdown=function(e){var p=pos(e);if(M&&M.kind==='sol'){solClick(p);return}if(!canAct())return;var o=origin();
+  if(Math.hypot(p.x-o.x,p.y-o.y)<34){aim={x:0,y:0};$('arena').setPointerCapture(e.pointerId)}
+  else if(M.kind==='ringer'&&Math.hypot(p.x-CX,p.y-CY)>R)place(Math.atan2(p.y-CY,p.x-CX))};
+$('arena').onpointermove=function(e){if(!aim||!canAct())return;var p=pos(e),o=origin(),x=o.x-p.x,y=o.y-p.y,l=Math.hypot(x,y);if(l>PULL){x*=PULL/l;y*=PULL/l}aim={x:x,y:y}};
+$('arena').onpointerup=function(){if(!aim||!canAct())return;var l=Math.hypot(aim.x,aim.y),a=aim,o=origin();aim=null;if(l<=8)return;var k=M.maxv/PULL,s=M.kind==='ringer'?M.side.you:{ab:M.kind==='battle'?o.ab:'',pot:M.kind==='battle'?o.pot:1};fireShot(o,a.x*k,a.y*k,s.ab,s.pot);msg='Rolling...';render()};
+
+function show(v){view=v;['bag','play','real','save'].forEach(function(n){$('v-'+n).className=n===v?(n==='play'?'play':n==='bag'?'room':''):'hide'});
+  Array.prototype.forEach.call(document.querySelectorAll('[data-v]'),function(b){b.className=b.getAttribute('data-v')===v?'on':''});render()}
+Array.prototype.forEach.call(document.querySelectorAll('[data-v]'),function(b){b.onclick=function(){show(b.getAttribute('data-v'))}});
+Array.prototype.forEach.call(document.querySelectorAll('[data-g]'),function(b){b.onclick=function(){if(M)return;game=b.getAttribute('data-g');msg={ringer:'Stake some marbles, then start a match.',battle:'Pick up to 3 marbles and fight waves of enemies.',lag:'Roll closest to the middle.',sol:'A puzzle for one.'}[game];render()}});
+function copy(box,btn){box.focus();box.select();var ok=false;try{ok=document.execCommand('copy')}catch(e){}btn.textContent=ok?'Copied':'Selected: press Ctrl+C'}
+$('copyCode').onclick=function(){copy($('code'),this)};$('copyBrief').onclick=function(){copy($('brief'),this)};
+$('warnGo').onclick=function(){show('save')};
+$('pouch').onclick=toggleBag;$('winX').onclick=toggleBag;
+$('buyBtn').onclick=function(){if(coins<40)return;coins-=40;var names=[];for(var i=0;i<3;i++){var m=mk(roll());bag.push(m);names.push(TIERS[m.t]+' '+m.name)}$('shopMsg').textContent='In your bag: '+names.join(', ')+'.';render()};
+$('ruleV').onclick=function(){rules='v';render()};$('ruleP').onclick=function(){rules='p';render()};
+$('shootSel').onchange=function(){shooterId=this.value};
+$('poolBtn').onclick=function(){if(stake.length<6){var m=mk(0);m.pool=true;stake.push(m);render()}};
+$('startBtn').onclick=function(){M=null;if(game==='ringer'){if(stake.length)startRinger()}else if(game==='battle'){if(teamList().length)startBattle()}else if(game==='lag')startLag();else startSol()};
+$('undoBtn').onclick=function(){if(!M||M.kind!=='sol'||!M.hist.length)return;var h=M.hist.pop(),b=M.board;b[h[0]][h[1]]=h[6];b[h[4]][h[5]]=h[7];b[h[2]][h[3]]=null;M.sel=null;msg=solCount()+' marbles left.';render()};
+$('quitBtn').onclick=function(){if(!M)return;
+  if(M.kind==='ringer'){M.balls.forEach(function(b){if(!b.shooter)M.opp.push(b.m)});M.balls=[];finishRinger()}
+  else if(M.kind==='battle')loseRun('You ended the run. Your marbles are safe.');
+  else{msg='Game ended.';M=null;render()}};
+$('loadBtn').onclick=function(){try{if(M){$('loadMsg').textContent='Finish the game first.';return}if(bagBusy){$('loadMsg').textContent='Wait for the bag to finish moving.';return}var d=loadCode($('loadBox').value);bag=d.bag;coins=d.coins;team=d.team;best=d.best;stake=[];run=null;sel=null;$('loadMsg').textContent='Loaded '+bag.length+' marbles.';render();drawBag()}catch(e){$('loadMsg').textContent="That code didn't work. Nothing changed."}};
+
+for(var i=0;i<5;i++)bag.push(mk(0));bag.push(mk(1));bag.push(mk(2));
+render();drawBag();loop();
+udsFile.wire({buttons:['warnFile','fileSave'],get:saveCode,put:function(c){$('loadBox').value=c;$('loadBtn').click();$('loadBox').value=''}});
+</script></body></html>

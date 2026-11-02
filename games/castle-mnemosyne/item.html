@@ -1,0 +1,480 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Castle Mnemosyne</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#1e1f22;color:#e6e6e6;overflow:hidden;font:14px Georgia,'Palatino Linotype',serif}
+#stage{position:relative;width:min(100vw,160vh);height:min(100vh,62.5vw);margin:0 auto;background:#000;overflow:hidden}
+#cv{width:100%;height:100%;display:block;outline:none;image-rendering:pixelated;cursor:crosshair}
+#ctl{position:absolute;right:8px;top:8px;font:11px/1.45 Consolas,monospace;color:#f2e6c0;opacity:.42;pointer-events:none;text-align:right;text-shadow:1px 1px 0 #000;white-space:pre}
+.ov{position:absolute;inset:0;overflow:auto;padding:14px;display:flex;justify-content:center;align-items:flex-start}
+.ov[hidden],#title[hidden],#ctl[hidden]{display:none}
+.pg{width:100%;max-width:780px;background:#d9c49a;background-image:repeating-linear-gradient(0deg,#d9c49a 0 3px,#d4bd90 3px 6px);color:#2b1d12;border:6px ridge #6b4423;padding:12px 16px;box-shadow:0 0 0 3px #1a0f08}
+.pg h2{margin:0 0 6px;font-size:20px;color:#6d1420;border-bottom:2px double #6b4423;padding-bottom:3px}
+.pg h3{margin:10px 0 4px;font-size:14px;color:#6d1420}
+button{background:#4a3018;color:#f2e6c0;border:2px outset #8a5a2b;padding:4px 9px;font:13px Georgia,serif;cursor:pointer;margin:2px}
+button:hover{background:#6b4423}button:disabled{opacity:.45;cursor:default}
+input,textarea,select{background:#efe2c2;color:#2b1d12;border:1px solid #6b4423;font:14px Georgia,serif;padding:4px}
+textarea{width:100%;height:200px;resize:vertical}
+.bk{display:flex;gap:12px;flex-wrap:wrap}.bk>div{flex:1;min-width:240px}
+.read{min-height:200px;white-space:pre-wrap;line-height:1.45;font-size:15px}
+.cap{float:left;font-size:42px;line-height:40px;padding:3px 7px;margin:2px 6px 0 0;background:#6d1420;color:#f2c84b;border:2px solid #f2c84b;font-weight:bold}
+.tiles{display:flex;flex-wrap:wrap;gap:6px}
+.tile{width:92px;background:#c8b184;border:2px solid #8a5a2b;padding:4px;text-align:center;font-size:11px;cursor:pointer;line-height:1.15}
+.tile:hover{border-color:#6d1420;background:#e6d3a8}.tile.none{cursor:default;opacity:.55}
+canvas.ic{image-rendering:pixelated;display:block;margin:0 auto 3px;background:#2a1a0e}
+.dim{color:#5c4730;font-size:12px}.wide{display:block;width:100%}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.sw{width:22px;height:22px;border:2px solid #2b1d12;cursor:pointer;display:inline-block}.sw.on{outline:3px solid #f2c84b}
+.url{font:12px Consolas,monospace;user-select:all;color:#1f3a8a;margin-bottom:3px;word-break:break-all}
+#title{background:radial-gradient(#0000 25%,#000d);text-align:center;display:block;padding-top:7%}
+#title h1{font:bold clamp(26px,7vw,62px) Georgia,serif;color:#f2c84b;margin:0;text-shadow:3px 3px 0 #6d1420,6px 6px 0 #000;letter-spacing:2px}
+#title p{color:#f2e6c0;margin:6px auto;max-width:620px;text-shadow:1px 1px 0 #000}
+#title button{font-size:17px;padding:8px 18px;margin:5px}
+.wheel{display:inline-block;text-align:center;margin:4px 8px;font-size:30px;font-weight:bold;color:#6d1420}
+.wheel button{display:block;width:44px;margin:2px auto}
+</style></head><body>
+<div id="stage"><canvas id="cv" width="320" height="200"></canvas>
+<div id="ctl"></div>
+<div id="ui" class="ov" hidden></div>
+<div id="menu" class="ov" hidden><div class="pg">
+<h2>The Chamberlain's Ledger</h2>
+<div class="row"><button id="mResume">Back to the castle</button><button id="mBooks">Index of books</button><button id="mCab">Cabinet of Curiosities</button><button id="mPal">Palace mode</button><button id="mHunt">The Hunt</button><button id="mNew">Start a new Hunt</button></div>
+<div id="mStats" class="dim"></div>
+<h3>Seal your work</h3>
+<div class="dim">This tab can't save by itself: closing or reloading it loses the castle unless you save. Save to this file, or keep your save code.</div>
+<div class="row"><button id="fileSave">Save game to this file</button><span class="dim uds-msg"></span></div>
+<textarea id="code" style="height:60px" placeholder="Save code appears here"></textarea>
+<div class="row"><button id="mCode">Show save code</button><button id="mLoad">Load the code in the box</button></div>
+<h3>Find real in-game items here</h3>
+Randy's Etsy shop.<div class="url">https://www.etsy.com/shop/UberRandis</div>
+<div>If you would like to be a sponsor or host your items, goods, and products on my store, contact me:</div>
+<div>Comments</div><div class="url">https://github.com/RandyWilliamMoore/randis-uds/discussions</div>
+<div>Discord</div><div class="url">https://discord.gg/83RmuHcQTR</div>
+<div>Ko-fi</div><div class="url">https://ko-fi.com/moorescombinatoricsmatrix</div>
+</div></div>
+<div id="title" class="ov"><h1>CASTLE MNEMOSYNE</h1>
+<p>A real memory palace. Walk red-carpeted halls by torchlight, write what you've learned into books, and shelve each one in a place you'll remember it.</p>
+<button id="tPal">Enter the Palace</button><button id="tHunt">The Hunt for the Lost Codex</button><br><button id="warnFile">Save to file</button><span class="uds-msg" style="color:#f2e6c0;text-shadow:1px 1px 0 #000"></span>
+<p style="font-size:12px">Inside the castle, press Esc for saving, your books and the shop.</p></div>
+</div>
+<script type="application/json" id="uds-save">""</script>
+<script id="uds-save-kit">
+// Saving inside this file: the page as it was before the game ran, plus the game's script, plus the save.
+var udsFile=(function(){
+  var shell=document.documentElement.outerHTML,handle=null;
+  function say(t){[].forEach.call(document.querySelectorAll('.uds-msg'),function(e){e.textContent=t})}
+  function stored(){try{var c=JSON.parse(document.getElementById('uds-save').textContent);return typeof c==='string'?c:''}catch(e){return ''}}
+  function text(code){
+    var main=document.getElementById('game-main').outerHTML,
+        block='<script type="application/json" id="uds-save">'+JSON.stringify(code).replace(/</g,'\\u003c')+'<\/script>';
+    return '<!doctype html>\n'+shell.replace(/<script type="application\/json" id="uds-save">[\s\S]*?<\/script>/,function(){return block}).replace(/<\/body>\s*<\/html>\s*$/,function(){return main+'</body><\/html>'});
+  }
+  function name(){var p=decodeURIComponent(location.pathname.split('/').pop()||'');
+    return location.protocol==='file:'&&/\.html?$/i.test(p)?p:document.title.toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.html'}
+  function download(t){var a=document.createElement('a'),u=URL.createObjectURL(new Blob([t],{type:'text/html'}));a.href=u;a.download=name();document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},5000)}
+  async function save(get){
+    var t=text(get());
+    if(window.parent!==window){
+      var done=false;
+      var ack=function(e){if(e.source===parent&&e.data&&e.data.uds==='saved'){done=true;removeEventListener('message',ack);say(String(e.data.note||'Saved.'))}};
+      addEventListener('message',ack);parent.postMessage({uds:'save-file',text:t},'*');
+      setTimeout(function(){if(!done){removeEventListener('message',ack);say("Files can't be saved from here. Use the save code.")}},2500);
+      return;
+    }
+    if(window.showSaveFilePicker){
+      try{
+        if(!handle)handle=await showSaveFilePicker({suggestedName:name(),types:[{description:'Game file',accept:{'text/html':['.html','.htm']}}]});
+        var w=await handle.createWritable();await w.write(t);await w.close();say('Saved into '+handle.name+'.');return;
+      }catch(e){if(e&&e.name==='AbortError'){say('Not saved.');return}handle=null}
+    }
+    download(t);say('Saved as a new copy in your downloads.');
+  }
+  return {stored:stored,text:text,wire:function(o){
+    o.buttons.forEach(function(id){var b=document.getElementById(id);if(b)b.onclick=function(){save(o.get)}});
+    var c=stored();if(c)o.put(c);
+  }};
+})();
+</script>
+<script id="game-main">
+var $=function(i){return document.getElementById(i)},cv=$('cv'),ctx=cv.getContext('2d'),VW=320,VH=168,SH=200,K=242;
+var img=ctx.createImageData(VW,SH),px=new Uint32Array(img.data.buffer);
+function C(h,e){var n=parseInt(h.slice(1),16);return ((e?0xFE:0xFF)*16777216+((n&255)<<16|(n&0xff00)|n>>16))}
+var seed=4242;function rnd(){seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296}
+function mul(c,f){var a=c>>>24,r=Math.min(255,(c&255)*f)|0,g=Math.min(255,(c>>8&255)*f)|0,b=Math.min(255,(c>>16&255)*f)|0;return a*16777216+(b<<16|g<<8|r)}
+function tx(w,h){return{w:w,h:h||w,d:new Uint32Array(w*(h||w))}}
+function R(t,x,y,w,h,c){if(typeof c=='string')c=C(c);for(var j=Math.max(0,y);j<Math.min(t.h,y+h);j++)for(var i=Math.max(0,x);i<Math.min(t.w,x+w);i++)t.d[j*t.w+i]=c}
+function speck(t,a){for(var i=0;i<t.d.length;i++){var c=t.d[i];if(c>>>24==255)t.d[i]=mul(c,1+(rnd()-.5)*a)}}
+function copy(t){var n=tx(t.w,t.h);n.d.set(t.d);return n}
+function blit(t,s,x,y){for(var j=0;j<s.h;j++)for(var i=0;i<s.w;i++){var c=s.d[j*s.w+i];if(c>>>24&&x+i>=0&&x+i<t.w&&y+j>=0&&y+j<t.h)t.d[(y+j)*t.w+x+i]=c}}
+function flame(t,x,y,f,s){s=s||1;var w=[1,2,3,3,4,4,5,4,3],n=w.length;for(var i=0;i<n;i++){var ww=w[i]*s,sw=Math.round(Math.sin(i*.9+f*2.1)*(n-i)*.22*s),hh=s,yy=y-(n-i)*s;
+ R(t,x-(ww>>1)+sw,yy,ww,hh,C(i<3?'#e04010':'#ff9a20',1));if(i>2)R(t,x-(ww>>2)+sw,yy,Math.max(1,ww>>1),hh,C(i>5?'#fff6b0':'#ffd040',1))}}
+// ---------- textures ----------
+function stone(a,b){var t=tx(64);R(t,0,0,64,64,'#1e1c24');for(var y=0;y<4;y++)for(var x=-1;x<3;x++){var bx=x*32+(y&1)*16,s=.8+rnd()*.4,c=C(a);R(t,bx+1,y*16+1,30,14,mul(c,s));R(t,bx+1,y*16+1,30,1,mul(c,s*1.3));R(t,bx+1,y*16+14,30,1,mul(c,s*.7))}speck(t,.22);return t}
+var TS=stone('#5a5a68'),TCK=stone('#5e5a60');R(TCK,20,4,2,14,'#14121a');R(TCK,22,16,2,14,'#14121a');R(TCK,19,29,3,16,'#14121a');R(TCK,22,44,2,14,'#14121a');R(TCK,24,30,10,2,'#14121a');
+function planks(d,l,band){var t=tx(64);for(var x=0;x<8;x++){var c=mul(C(l),.8+rnd()*.35);R(t,x*8,0,7,64,c);R(t,x*8+7,0,1,64,d)}speck(t,.25);return t}
+var TD=planks('#20120a','#6b4423');[10,50].forEach(function(y){R(TD,0,y,64,5,'#30303a');R(TD,0,y,64,1,'#70707e');for(var i=4;i<64;i+=14)R(TD,i,y+1,2,2,'#a0a0ac')});R(TD,50,32,6,6,'#c0a040');
+var TDL=copy(TD);R(TDL,46,26,14,18,'#2a2a34');R(TDL,47,27,12,16,'#b8912e');R(TDL,51,31,4,4,'#000000');R(TDL,52,35,2,5,'#000000');
+var TG=tx(64);R(TG,0,0,64,64,'#0c0a0e');for(var i=2;i<64;i+=10){R(TG,i,0,3,64,'#4a4a58');R(TG,i,0,1,64,'#8a8a98');R(TG,0,i,64,3,'#3a3a46')}R(TG,24,24,16,16,'#b8912e');R(TG,29,28,6,6,'#000000');
+var TT=[0,1,2,3].map(function(f){var t=copy(TS);R(t,29,34,6,12,'#2a2a34');R(t,26,28,12,4,'#3a3a46');R(t,26,28,12,1,'#7a7a88');R(t,28,32,8,3,'#20202a');R(t,27,24,10,4,'#7a4a20');flame(t,32,24,f,2);return t});
+var TH=copy(TS);function frameOn(t){R(t,12,10,40,44,'#7a5a18');R(t,14,12,36,40,'#d0a838');R(t,16,14,32,36,'#3a2a14');[12,48].forEach(function(x){[10,50].forEach(function(y){R(t,x,y,4,4,'#fff0a0')})})}frameOn(TH);R(TH,30,7,4,4,'#20202a');
+var TY=[['#6d1420','#f2c84b'],['#1f3a8a','#e6e6e6'],['#2d5a2d','#f2c84b']].map(function(p){var t=copy(TS);R(t,8,4,48,56,p[0]);R(t,8,4,48,3,'#6b4423');R(t,10,8,44,2,p[1]);R(t,10,52,44,2,p[1]);
+ R(t,30,16,4,30,p[1]);R(t,22,24,20,4,p[1]);R(t,26,14,12,4,p[1]);R(t,24,42,16,3,p[1]);for(var i=10;i<54;i+=6)R(t,i,60,3,3,p[1]);speck(t,.1);return t});
+var BC=['#b8232f','#2f5fd0','#e8c02a','#2f9d4a'];
+var TB=BC.map(function(c){var t=copy(TS);R(t,16,2,32,4,'#6b4423');R(t,18,6,28,44,c);for(var i=0;i<14;i++)R(t,18+i,50+Math.floor(i*.9),28-2*i,1,c);R(t,18,6,2,44,mul(C(c),.7));R(t,44,6,2,44,mul(C(c),.7));R(t,28,16,8,12,mul(C(c),1.5));R(t,30,12,4,20,mul(C(c),1.5));return t});
+var TF=[0,1,2].map(function(f){var t=copy(TS);R(t,4,16,56,48,'#3a3a46');R(t,4,16,56,3,'#8a8a98');R(t,10,24,44,40,'#0a0806');R(t,0,10,64,6,'#6b4423');[16,27,38,48].forEach(function(x,i){flame(t,x,58,f+i,3)});R(t,14,58,36,4,'#3a2010');return t});
+var SYM=['.ooo../oo...../oo...../oo...../oo...../.ooo..','..o../..o../ooooo/.ooo./.o.o.','o.o.o/.ooo./ooooo/.ooo./o.o.o'];
+function windowTex(sym,n,col){var t=copy(TS);R(t,8,4,48,56,'#14121a');for(var y=6;y<58;y+=8)for(var x=10;x<54;x+=8){var c=mul(C(col),.7+rnd()*.5);R(t,x,y,7,7,c-0+0);}
+ for(var j=0;j<t.d.length;j++){var q=t.d[j];var xx=j%64,yy=j>>6;if(xx>=10&&xx<54&&yy>=6&&yy<58&&q>>>24==255&&(q&255)+(q>>8&255)+(q>>16&255)>70)t.d[j]=(q&0xffffff)+0xFE000000}
+ var r=SYM[sym].split('/');for(var i=0;i<n;i++){var ox=15+(i%2)*22,oy=9+(i>>1)*16;r.forEach(function(s,y){for(var x=0;x<s.length;x++)if(s[x]=='o')R(t,ox+x*2,oy+y*2,2,2,C('#fff6c0',1))})}return t}
+var TW=[];
+var TSH=tx(64);R(TSH,0,0,64,64,'#1a0f08');var SB=[20,41,62];SB.forEach(function(b){R(TSH,0,b,64,2,'#7a4e26');R(TSH,0,b,64,1,'#a06c38');R(TSH,0,b-17,64,3,'#120a05')});R(TSH,0,0,3,64,'#5a3a1c');R(TSH,61,0,3,64,'#5a3a1c');R(TSH,1,0,1,64,'#8a5a2b');speck(TSH,.14);
+function carpet(m){var t=tx(64);R(t,0,0,64,64,'#8e1622');for(var y=0;y<64;y+=8)for(var x=0;x<64;x+=8){var c=(x+y)%16?'#a01c2a':'#7a111c';R(t,x+2,y+3,4,2,c);R(t,x+3,y+2,2,4,c)}R(t,28,28,8,8,'#c8a038');R(t,30,30,4,4,'#6d1420');
+ var e=function(x,y,w,h,g){R(t,x,y,w,h,'#3e3a44');R(t,x+(g[0]||0),y+(g[1]||0),g[2],g[3],'#c8a038')};
+ if(m&1)e(0,0,64,6,[0,6,64,0]);if(m&2)e(58,0,6,64,[0,0,0,64]);if(m&4)e(0,58,64,6,[0,0,64,0]);if(m&8)e(0,0,6,64,[6,0,0,64]);
+ if(m&1)R(t,0,6,64,2,'#d8b048');if(m&4)R(t,0,56,64,2,'#d8b048');if(m&8)R(t,6,0,2,64,'#d8b048');if(m&2)R(t,56,0,2,64,'#d8b048');speck(t,.2);return t}
+var TCP=[];for(var i=0;i<16;i++)TCP.push(carpet(i));
+var TFL=stone('#4a4650'),TWD=(function(){var t=tx(64);for(var y=0;y<4;y++){var c=mul(C('#6a4422'),.85+rnd()*.3);R(t,0,y*16,64,15,c);R(t,0,y*16+15,64,1,'#2a1608');R(t,(y*23)%64,y*16,1,16,'#2a1608')}speck(t,.28);return t})();
+var TMO=(function(){var t=tx(64);R(t,0,0,64,64,'#d8cfae');for(var y=0;y<8;y++)for(var x=0;x<8;x++){var d=Math.abs(x-3.5)+Math.abs(y-3.5);R(t,x*8,y*8,7,7,d<2?'#b8232f':d<4?'#2a4a8a':d<6?'#c8a038':'#e0d6b8')}speck(t,.14);return t})();
+var TGR=(function(){var t=tx(64);R(t,0,0,64,64,'#2e5a2a');for(var i=0;i<400;i++)R(t,rnd()*64|0,rnd()*64|0,1,2,rnd()<.5?'#3f7a36':'#234a22');return t})();
+var TCR=stone('#34323c');R(TCR,12,40,6,5,'#b8b0a0');R(TCR,44,10,5,4,'#a8a090');
+var TBM=(function(){var t=tx(64);R(t,0,0,64,64,'#2a1a10');for(var i=0;i<64;i+=32){R(t,0,i,64,10,'#4a2c14');R(t,0,i,64,2,'#6b4423')}speck(t,.25);return t})(),TVA=stone('#3a3844');
+var SKY=tx(512,128);R(SKY,0,0,512,128,'#0a0e24');for(var y=0;y<128;y++)R(SKY,0,y,512,1,mul(C('#141a40'),.5+y/128));for(var i=0;i<260;i++){R(SKY,rnd()*512|0,rnd()*120|0,1,1,rnd()<.2?'#ffe9a0':'#c8d0f0')}
+R(SKY,120,20,18,18,'#f0ecc8');R(SKY,117,24,24,10,'#f0ecc8');R(SKY,124,17,10,24,'#f0ecc8');R(SKY,128,24,4,4,'#c8c4a0');R(SKY,123,31,3,3,'#c8c4a0');
+var FONT={A:'7c1211127c',B:'7f49494936',C:'3e41414122',D:'7f4141221c',E:'7f49494941',F:'7f09090901',G:'3e4149497a',H:'7f0808087f',I:'00417f4100',J:'2040413f01',K:'7f08142241',L:'7f40404040',M:'7f020c027f',N:'7f0408107f',O:'3e4141413e',P:'7f09090906',Q:'3e4151215e',R:'7f09192946',S:'4649494931',T:'01017f0101',U:'3f4040403f',V:'1f2040201f',W:'3f4038403f',X:'6314081463',Y:'0708700807',Z:'6151494543','0':'3e5149453e','1':'00427f4000','2':'4261514946','3':'2141454b31','4':'1814127f10','5':'2745454539','6':'3c4a494930','7':'0171090503','8':'3649494936','9':'064949291e','.':'0060600000',',':'0080600000',':':'0036360000','!':'00005f0000','?':'0201510906',"'":'0005030000','-':'0808080808','/':'2010080402','+':'08083e0808','(':'001c224100',')':'0041221c00','*':'14083e0814'};
+function glyphs(s,cb){s=String(s).toUpperCase();var xx=0;for(var i=0;i<s.length;i++){var g=FONT[s[i]];if(g)for(var c=0;c<5;c++){var v=parseInt(g.substr(c*2,2),16);for(var r=0;r<8;r++)if(v>>r&1)cb(xx+c,r)}xx+=6}}
+function txtT(t,s,x,y,col){var c=C(col);glyphs(s,function(a,b){R(t,x+a,y+b,1,1,c)})}
+function PR(x,y,w,h,c){for(var j=Math.max(0,y|0);j<Math.min(SH,y+h);j++)for(var i=Math.max(0,x|0);i<Math.min(VW,x+w);i++)px[j*VW+i]=c}
+function txt(s,x,y,col,sc,sh){sc=sc||1;var c=C(col);if(sh!==0)glyphs(s,function(a,b){PR(x+a*sc+1,y+b*sc+1,sc,sc,0xFF000000)});glyphs(s,function(a,b){PR(x+a*sc,y+b*sc,sc,sc,c)})}
+function txtC(s,y,col,sc){sc=sc||1;txt(s,(VW-String(s).length*6*sc)>>1,y,col,sc)}
+// ---------- curios: 12x12 art ----------
+var PAL={k:'#14101a',w:'#f0ead8',g:'#9a9aa6',d:'#55556a',y:'#f2c84b',o:'#e8832a',r:'#b8232f',b:'#3b6fd4',c:'#7fd6e8',n:'#8a5a2b',N:'#4f2f14',G:'#4f9d4a',p:'#8b4fb8',s:'#e3c9a0'};
+var ART=[
+['stub','Ever-Burning Candle Stub','Has been about to go out since 1132.','Common','.....o....../.....y....../....oyo...../.....y....../....www...../....www...../....www...../....www...../...wwwww..../..dwwwwwd.../..ddddddd...'],
+['glass','Hourglass of Yesterday','The sand runs up. You have already seen this.','Rare','.nnnnnnnnnn./..c......c../..c.yyyy.c../...cyyyyc.../....cyyc..../.....yy...../....c..c..../...c.yy.c.../..c.yyyy.c../..cyyyyyyc../.nnnnnnnnnn.'],
+['skull',"Skull of Yorick's Understudy",'Knew him, but not well.','Common','...wwwwww.../..wwwwwwww../.wwwwwwwwww./.wkkwwwkkww./.wkkwwwkkww./.wwwwkwwwww./..wwwwwwww../...wkwkwkw../...wkwkwkw..'],
+['astro','Astrolabe of Lost Afternoons','Points to wherever the time went.','Rare','....yyyy..../...yNNNNy.../..yNyyyyNy../.yNy.r..yNy./.yNy..r.yNy./.yNy...ryNy./.yNy....yNy./..yNyyyyNy../...yNNNNy.../....yyyy....'],
+['whisper','Bottled Whisper','Uncork near someone you trust. It says your name.','Uncommon','.....nn...../.....nn...../....c..c..../....c..c..../...cpppcc.../..cppwpppc../..cpppppwc../..cpwppppc../..cppppppc../...cccccc...'],
+['retort',"Alchemist's Retort",'Still warm. Nobody will say why.','Uncommon','....ggg...../...g...gggg./...g.....gg./..g.GG.g..g./.g.GGGG.g..g/.gGGGGGGg..g/.gGGGGGGg..n/..gGGGGg...n/...gggg...nn/....dd......'],
+['quill','Quill of the Absent Author','Writes one chapter too many, then sulks.','Rare','.........ww./........www./.......wwwg./......wwwg../.....wwwg.../....wwwg..../...wwwg...../...wwg....../..wg......../..g........./.k.........'],
+['key','Key to a Door You Forgot','It fits. That is the worrying part.','Uncommon','...yyyy...../..yy..yy..../..y....y..../..yy..yy..../...yyyy...../....yy....../....yy....../....yyyy..../....yy....../....yyyy....'],
+['crown','Paper Crown of King Ibid','He ruled as previously cited.','Common','............/.s..s..s..s./.ss.ss.ss.s./.ssssssssss./.srssbssrss./.ssssssssss./.yyyyyyyyyy.'],
+['mandrake','Mandrake, Sedated','Do not read aloud in this room.','Rare','....GGG...../...G.G.G..../.....G....../....sss...../...sksks..../...ssrss..../....sss...../..nnnnnnnn../...nnnnnn.../...nnnnnn.../....nnnn....'],
+['tooth','Dragon Tooth Bookmark','Marks your place, and anyone else who tries it.','Epic','.....w....../.....ww...../....www...../....www...../...wwww...../...wwwws..../..wwwwss..../..wwwsss..../..wwssss..../...nnnn...../...nyyn....'],
+['ink',"Inkwell of Tomorrow's Ink",'Sometimes the page is finished before you start.','Epic','....d.d...../...ddddd..../...bbbbb..../..dbbbbbd.../.ddddddddd./.dgdddddgd./.ddddddddd./.ddddddddd./..ddddddd...'],
+['orrery','Pocket Orrery','Tiny Saturn is late again.','Rare','...y...b..../.yyyyyyyyyy./y....r....y./y...yyy...y./G..yyyyy..y./y...yyy...y./y....n....c./.yyyyyyyyyy./.....n....../....nnn.....'],
+['goblet','Goblet of Second Thoughts','Refills itself just after you decide not to.','Uncommon','..yyyyyyyy../..yrrrrrry../..yrrrrrry../..yyyyyyyy../...yyyyyy.../....yyyy..../.....yy...../.....yy...../....yyyy..../...yyyyyy...'],
+['map','Moth-Eaten Map','The treasure was in the part they ate.','Common','.ssssssssss./.ss.sss.sss./.sssrssssss./.ssssrrsss./.s.sssssrss./.sssssss.ss./.sss.ssssrs./.ssssssssss./.sss.ssss.s./.ssssssssss.'],
+['seal','Wax Seal of Approval','Stamps everything it dislikes, too.','Common','...rrrrrr.../..rrrrrrrr../.rrryrryrrr./.rrrryyrrrr./.rrrryyrrrr./.rrryrryrrr./..rrrrrrrr../...rrrrrr.../.....nn...../.....nn.....'],
+['owl','Clockwork Owl Librarian','Will not stop asking about your overdue return.','Epic','..n......n../..nnnnnnnn../.nyynnnnyyn./.nykynnykyn./.nyynooyynn./..nnnoonnn../..ngngngnn../..nngngnnn../..ngngngnn../...nnnnnn.../...y....y...'],
+['ball','Crystal Ball, Last Tuesday','Only shows last Tuesday. It was fine.','Rare','....cccc..../..cccccccc../.ccwcccccpc./.cwwccccppc./.ccccccpppc./.cccccppppc./..cccppppc../....cccc..../...nnnnnn.../..nnnnnnnn..'],
+['rune','Rune That Means "Maybe"','Scholars remain noncommittal.','Uncommon','...gggggg.../..gggggggg../..gggcgggg../..ggcgcggg../..gcgggcgg../..ggcgggg.../..gggcgggg../..gggcgggg../..gggggggg../...gggggg...'],
+['mimic','Mimic Quarto','Do not shelve near the good books.','Epic','..rrrrrrrr../.rrrrrrrrrr./.ryrrrrrryr./.wkwkwkwkwk/.kkkkkkkkkk/.wkwkwkwkwk/.ryrrrrrryr./.rrrrrrrrrr./..rrrrrrrr..'],
+['pebble',"Philosopher's Pebble",'Turns lead into slightly nicer lead.','Common','............/............/............/....gggg..../...gggggg.../..ggwggggg../..gggggggd../..ggggggdd../...gdddddd..'],
+['lantern','Ghost in a Lantern','Pays no rent. Good listener.','Rare','.....dd...../....d..d..../...dddddd.../...d.cc.d.../...dcwwcd.../...dckkcd.../...dcwwcd.../...d.cc.d.../...dddddd.../....dddd....'],
+['apple','Golden Apple of Trivia','Bite it and learn the capital of somewhere.','Uncommon','.....n....G./.....n..GG../...yyyyyyy../..yyyyyyyyy./..ywyyyyyyy./..ywyyyyyyy./..yyyyyyyyy./...yyyyyyy../....yy.yy...'],
+['codex','Codex Mnemosyne','The lost book. All its pages are blank but yours.','Legend','.yyyyyyyyyy./.yrrrrrrrry./.yrryyyyrry./.yryrrrryry./.yryryyryry./.yryryyryry./.yryrrrryry./.yrryyyyrry./.yrrrrrrrry./.yyyyyyyyyy.']];
+var ARTS={};ART.forEach(function(a){var t=tx(12);a[4].split('/').forEach(function(r,y){for(var x=0;x<r.length;x++)if(PAL[r[x]])R(t,x,y,1,1,PAL[r[x]])});ARTS[a[0]]={id:a[0],name:a[1],desc:a[2],rare:a[3],t:t}});
+var DB=['#140c1c','#442434','#30346d','#4e4a4e','#854c30','#346524','#d04648','#757161','#597dce','#d27d2c','#8595a1','#6daa2c','#d2aa99','#6dc2ca','#dad45e','#deeed6'];
+// ---------- save state ----------
+var S;function fresh(){return{v:1,books:{},pics:{},place:{},wall:{},owned:['stub','skull','seal'],lore:10,nid:1,x:21.5,y:33.5,a:-Math.PI/2,mode:'palace',seen:'',secrets:{},pets:0,marks:0,hunt:null}}
+S=fresh();
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+var dirty=false;function touch(){dirty=true}
+// ---------- the castle map ----------
+var MW=43,MH=45,G=[];for(var i=0;i<MW*MH;i++)G.push('#');
+var ROOMS=[['The Chapel of Glass',1,1,11,9],['The Star Tower',16,1,26,9],["The Scribes' Wing",31,1,41,9],['The Long Gallery',1,14,11,22],['The Great Hall',16,14,26,22],['The Library',31,14,41,22],['The Moonlit Courtyard',1,27,11,35],['The Foyer',16,27,26,35],['Cabinet of Curiosities',31,27,41,35],['The Crypt',1,38,19,43]];
+var FL=[',','"','_','.','=','_','"','.',',',':'];
+function fill(a,b,c,d,f){for(var y=b;y<=d;y++)for(var x=a;x<=c;x++)G[y*MW+x]=f}
+fill(1,11,41,12,'.');fill(1,24,41,25,'.');fill(13,1,14,35,'.');fill(28,1,29,35,'.');
+ROOMS.forEach(function(r,i){fill(r[1],r[2],r[3],r[4],FL[i])});G[37*MW+6]=':';
+[[3,1],[3,2],[3,3],[1,3],[2,3],[24,33],[24,34],[24,35],[25,33],[26,33],[39,33],[39,34],[39,35],[40,33],[41,33]].forEach(function(p){G[p[1]*MW+p[0]]='#'});
+var LIBS=[33,36,39];LIBS.forEach(function(x){for(var y=15;y<=21;y++)if(y!=18)G[y*MW+x]='#'});
+var DOORS={};function door(x,y,l){G[y*MW+x]='D';DOORS[y*MW+x]={o:0,want:0,t:0,lock:l||''}}
+[[6,10],[21,10,'iron'],[36,10],[30,5],[6,13],[6,23],[12,18],[18,13],[21,23],[15,18],[27,18],[30,18],[36,13],[36,23],[6,26],[21,26],[15,31],[27,31],[36,26],[30,31],[6,36,'gate']].forEach(function(d){door(d[0],d[1],d[2])});
+var SECR={};[[3,2],[24,34],[39,34]].forEach(function(p){G[p[1]*MW+p[0]]='X';SECR[p[1]*MW+p[0]]=1});
+function solidCh(ch){return ch=='#'||ch=='X'}
+function cell(x,y){return x<0||y<0||x>=MW||y>=MH?'#':G[y*MW+x]}
+function fk(x,y,f){return (x+y*MW)*4+f}
+var dec=new Map();
+function edges(a,b,c,d,fn){var i=0,one=function(x,y,f){if(solidCh(cell(x,y))){fn(i,x,y,f)}i++};for(var x=a;x<=c;x++)one(x,b-1,3);for(var y=b;y<=d;y++)one(c+1,y,0);for(var x=c;x>=a;x--)one(x,d+1,2);for(var y=d;y>=b;y--)one(a-1,y,1)}
+function set(fn,a,b,c,d){edges(a,b,c,d,function(i,x,y,f){var v=fn(i);if(v)dec.set(fk(x,y,f),v)})}
+var corr=function(i){return i%8==2?'T':i%8==6?'H':i%16==11?'Y1':''};
+set(corr,1,11,41,12);set(corr,1,24,41,25);set(corr,13,1,14,35);set(corr,28,1,29,35);
+set(function(){return 'S'},31,14,41,22);
+for(var x=0;x<LIBS.length;x++)for(var y=15;y<=21;y++)if(y!=18)[0,1,2,3].forEach(function(f){dec.set(fk(LIBS[x],y,f),'S')});
+set(function(i){return i%9==4?'T':i%9==8?'Y0':'S'},31,1,41,9);
+set(function(i){return i%10==3?'T':i%10==8?'Y2':'S'},31,27,41,35);
+set(function(i){return i%6==1?'T':i%6==4?'H':''},1,14,11,22);
+set(function(i){return i%8==2?'T':i%8==6?'Y'+(i%3):''},16,14,26,22);
+set(function(i){return i%7==3?'T':i%7==6?'Y0':''},16,27,26,35);
+set(function(i){return i%12==5?'T':''},1,27,11,35);
+set(function(i){return i%10==7?'T':''},16,1,26,9);
+set(function(i){return i%6==2?'T':''},1,1,11,9);
+set(function(i){return i%9==4?'T':''},1,38,19,43);
+[4,7,10].forEach(function(x,i){dec.set(fk(x,0,3),'w'+i)});
+[2,5,8,11].forEach(function(x,i){dec.set(fk(x,10,3),'b'+i)});
+dec.set(fk(21,13,3),'F');
+var SOL=new Uint8Array(MW*MH),FT=new Array(MW*MH),CT=new Array(MW*MH);
+function buildCells(){for(var y=0;y<MH;y++)for(var x=0;x<MW;x++){var i=y*MW+x,c=G[i];SOL[i]=c=='#'||c=='X'?1:c=='D'?2:0;
+ var m=0;if(c=='.'){var w=function(a,b){var q=cell(a,b);return q=='#'||q=='X'};m=(w(x,y-1)?1:0)|(w(x+1,y)?2:0)|(w(x,y+1)?4:0)|(w(x-1,y)?8:0)}
+ FT[i]=c=='.'?TCP[m].d:c=='_'?TWD.d:c=='='?TMO.d:c=='"'?TGR.d:c==':'?TCR.d:TFL.d;CT[i]=c=='"'?null:c=='.'||c=='_'||c=='='?TBM.d:TVA.d}}
+var FLI,AMB=new Float32Array(MW*MH);
+function buildLight(){var L=new Float32Array(MW*MH),src=function(x,y,v){var q=[[x,y,0]],vis={};vis[y*MW+x]=1;while(q.length){var p=q.shift(),t=1-p[2]/8;L[p[1]*MW+p[0]]+=v*t*t;if(p[2]>=8)continue;[[1,0],[-1,0],[0,1],[0,-1]].forEach(function(d){var a=p[0]+d[0],b=p[1]+d[1],k=b*MW+a;if(a>=0&&b>=0&&a<MW&&b<MH&&!vis[k]&&SOL[k]==0){vis[k]=1;q.push([a,b,p[2]+1])}})}};
+ dec.forEach(function(v,k){if(v=='T'||v=='F'||v[0]=='w'){var f=k&3,c=k>>2,x=c%MW,y=c/MW|0,d=[[-1,0],[1,0],[0,-1],[0,1]][f];var ax=x+d[0],ay=y+d[1];if(SOL[ay*MW+ax]==0)src(ax,ay,v=='F'?.9:v=='T'?.62:.5)}});
+ for(var i=0;i<L.length;i++)L[i]=Math.min(1,L[i]+(G[i]=='"'?.42:G[i]==':'?.03:.06));
+ var B=new Float32Array(L);for(var y=0;y<MH;y++)for(var x=0;x<MW;x++){var i=y*MW+x;if(SOL[i]){var s=0,n=0;[[1,0],[-1,0],[0,1],[0,-1]].forEach(function(d){var k=(y+d[1])*MW+x+d[0];if(k>=0&&k<L.length&&!SOL[k]){s+=L[k];n++}});B[i]=n?s/n:0}}
+ FLI=new Float32Array(MW*4*MH*4);for(var y=0;y<MH*4;y++)for(var x=0;x<MW*4;x++){var u=(x+.5)/4-.5,v=(y+.5)/4-.5,a=Math.floor(u),b=Math.floor(v),fu=u-a,fv=v-b,g=function(p,q){return B[Math.max(0,Math.min(MH-1,q))*MW+Math.max(0,Math.min(MW-1,p))]};FLI[y*MW*4+x]=(g(a,b)*(1-fu)+g(a+1,b)*fu)*(1-fv)+(g(a,b+1)*(1-fu)+g(a+1,b+1)*fu)*fv}}
+function roomOf(x,y){for(var i=0;i<ROOMS.length;i++){var r=ROOMS[i];if(x>=r[1]&&x<=r[3]+1&&y>=r[2]&&y<=r[4]+1)return r[0]}return 'The Red Halls'}
+// ---------- sprites ----------
+function art(w,h,f){var t=tx(w,h);f(t);return t}
+var PODIUM=[0,1].map(function(f){return art(32,54,function(t){var o=10;R(t,12,20+o,8,20,'#5a3a1c');R(t,14,20+o,2,20,'#8a5a2b');R(t,8,40+o,16,4,'#4a2c14');R(t,4,14+o,24,6,'#6b4423');R(t,4,14+o,24,1,'#a06c38');R(t,6,9+o,20,5,'#efe2c2');R(t,15,9+o,2,5,'#a08a60');for(var i=0;i<4;i++){R(t,7,10+i+o,7,1,'#7a6a50');R(t,18,10+i+o,7,1,'#7a6a50')}R(t,24,7+o,6,7,'#14101a');R(t,25,6+o,4,1,'#3b6fd4');for(var i=0;i<14;i++){var w=i>4?3:1;R(t,27-(i*.45|0)-(w>>1),15-i,w,1,i>4?'#f0ead8':'#b8b0a0')}R(t,1,12+o,3,7,'#f0ead8');R(t,0,19+o,5,1,'#c8a038');flame(t,2,12+o,f,1)})});
+var ARMOR=BC.map(function(c,k){return art(32,56,function(t){R(t,12,2,8,9,'#9a9aa6');R(t,12,2,8,1,'#d8d8e4');R(t,13,6,6,1,'#14101a');R(t,15,0,2,3,c);R(t,10,12,12,16,'#8a8a98');R(t,14,12,4,16,'#a8a8b6');R(t,7,12,3,16,'#70707e');R(t,22,12,3,16,'#70707e');R(t,11,28,4,22,'#70707e');R(t,17,28,4,22,'#70707e');R(t,9,50,7,4,'#55556a');R(t,16,50,7,4,'#55556a');R(t,3,18,10,14,'#2a2a34');R(t,4,19,8,12,c);R(t,7,19,2,12,'#f0ead8');R(t,26,0,2,54,'#6b4423');R(t,23,1,8,4,'#b8b8c6')})});
+var BRAZ=[0,1,2,3].map(function(f){return art(24,36,function(t){R(t,10,20,4,12,'#3a3a46');R(t,6,32,12,3,'#2a2a34');R(t,4,16,16,5,'#55556a');R(t,3,14,18,2,'#8a8a98');if(f<3)flame(t,12,15,f,2);else R(t,8,12,8,2,'#20202a')})});
+var CANDLE=[0,1].map(function(f){return art(24,48,function(t){R(t,11,14,2,30,'#c8a038');R(t,6,44,12,3,'#7a5a18');R(t,3,14,18,2,'#c8a038');[3,11,19].forEach(function(x,i){R(t,x,7,2,7,'#f0ead8');flame(t,x+1,7,f+i,1)})})});
+var CHAND=[0,1].map(function(f){return art(48,30,function(t){R(t,23,0,2,14,'#30303a');R(t,4,14,40,3,'#7a5a18');R(t,4,14,40,1,'#d0a838');for(var i=0;i<6;i++){var x=6+i*7;R(t,x,9,2,5,'#f0ead8');flame(t,x+1,9,f+i,1)}R(t,20,17,8,5,'#7a5a18')})});
+var GLOBE=art(28,40,function(t){for(var y=-10;y<=10;y++){var w=Math.sqrt(100-y*y)|0;R(t,14-w,12+y,2*w,1,'#2a5aa0');if(y%3==0)R(t,14-w/2,12+y,w,1,'#4f9d4a')}R(t,13,23,2,8,'#6b4423');R(t,6,31,16,3,'#6b4423');R(t,3,34,22,4,'#4a2c14')});
+var CHEST=[0,1].map(function(o){return art(32,24,function(t){R(t,2,10,28,14,'#6b4423');R(t,2,10,28,2,'#30303a');R(t,2,21,28,2,'#30303a');[8,23].forEach(function(x){R(t,x,10,2,14,'#30303a')});if(o){R(t,2,0,28,8,'#3a2412');R(t,4,8,24,3,'#f2c84b');R(t,8,7,4,3,'#fff6b0')}else{R(t,2,4,28,6,'#7a4e26');R(t,2,3,28,1,'#30303a');R(t,14,8,4,6,'#c8a038')}})});
+var CAT=[0,1].map(function(f){return art(22,18,function(t){R(t,6,8,10,8,'#2a2a34');R(t,5,2,8,7,'#2a2a34');R(t,5,0,2,3,'#2a2a34');R(t,11,0,2,3,'#2a2a34');R(t,6,4,2,2,f?'#2a2a34':'#f2c84b');R(t,10,4,2,2,f?'#2a2a34':'#f2c84b');R(t,8,6,2,1,'#c87a8a');R(t,16,10+f,3,2,'#2a2a34');R(t,18,6+f,2,5,'#2a2a34');R(t,6,16,3,2,'#14101a');R(t,12,16,3,2,'#14101a')})});
+var GHOST=art(28,48,function(t){R(t,7,12,14,28,'#b8c8e8');R(t,5,18,18,20,'#a8b8e0');R(t,9,3,10,10,'#c8d8f0');R(t,10,5,8,7,'#3a4a70');R(t,11,7,2,2,'#7fd6e8');R(t,15,7,2,2,'#7fd6e8');for(var i=0;i<4;i++)R(t,5+i*5,38+(i&1)*2,4,6,'#a8b8e0');R(t,1,20,5,3,'#a8b8e0');R(t,22,20,5,3,'#a8b8e0');R(t,0,16,4,6,'#efe2c2')});
+var BELL=art(32,52,function(t){R(t,2,4,28,3,'#6b4423');R(t,3,4,3,46,'#6b4423');R(t,26,4,3,46,'#6b4423');R(t,0,50,32,2,'#4a2c14');R(t,15,7,2,4,'#30303a');R(t,12,11,8,6,'#b8912e');R(t,10,17,12,8,'#c8a038');R(t,8,25,16,6,'#d8b048');R(t,6,31,20,3,'#b8912e');R(t,15,34,2,3,'#30303a');R(t,12,12,2,18,'#fff0a0')});
+var THRONE=art(36,52,function(t){R(t,6,0,24,36,'#6b4423');R(t,9,3,18,30,'#8e1622');[6,16,27].forEach(function(x){R(t,x,0,3,3,'#f2c84b')});R(t,3,30,30,8,'#6b4423');R(t,6,28,24,4,'#b8232f');R(t,4,38,5,14,'#4a2c14');R(t,27,38,5,14,'#4a2c14');R(t,15,10,6,8,'#f2c84b')});
+var LECT=art(24,36,function(t){R(t,10,12,4,20,'#5a3a1c');R(t,6,32,12,3,'#4a2c14');R(t,2,6,20,7,'#6b4423');R(t,4,3,16,4,'#efe2c2');for(var i=0;i<3;i++)R(t,5,4+i,14,1,i%2?'#b8232f':'#7a6a50')});
+var ORRERY=art(44,48,function(t){R(t,20,20,4,24,'#7a5a18');R(t,10,44,24,4,'#4a2c14');R(t,4,14,36,2,'#c8a038');R(t,20,2,4,36,'#c8a038');for(var a=0;a<32;a++){R(t,22+Math.cos(a/5)*18|0,15+Math.sin(a/5)*8|0,1,1,'#d8b048');R(t,22+Math.cos(a/5)*10|0,15+Math.sin(a/5)*12|0,1,1,'#d8b048')}R(t,18,11,8,8,C('#ffd040',1));R(t,2,14,4,4,'#d0d0e0');R(t,38,16,4,4,'#3b6fd4');R(t,30,6,4,4,'#b8232f')});
+var WELL=art(36,40,function(t){R(t,2,4,32,4,'#6b4423');R(t,4,8,3,16,'#4a2c14');R(t,29,8,3,16,'#4a2c14');R(t,17,8,2,10,'#8a7a60');R(t,14,16,8,5,'#6b4423');R(t,0,24,36,16,'#5a5a68');for(var y=24;y<40;y+=5)R(t,0,y,36,1,'#2a2a34');R(t,4,24,28,3,'#0a1020')});
+var TREE=art(48,64,function(t){R(t,21,30,7,34,'#4a2c14');R(t,24,30,2,34,'#6b4423');[[24,16,20],[12,22,12],[36,22,12],[16,10,11],[32,10,11]].forEach(function(b){for(var y=-b[2];y<=b[2];y++){var w=Math.sqrt(b[2]*b[2]-y*y)|0;for(var x=-w;x<=w;x++)if(rnd()<.9)R(t,b[0]+x,b[1]+y,1,1,rnd()<.4?'#3f7a36':'#2a5a28')}});[[12,18],[30,10],[36,24],[20,24],[26,14]].forEach(function(a){R(t,a[0],a[1],4,4,C('#f2c84b',1))})});
+var CRATE=art(32,32,function(t){R(t,1,4,30,28,'#7a4e26');R(t,1,4,30,3,'#a06c38');for(var i=0;i<4;i++){R(t,1,8+i*6,30,1,'#3a2412')}R(t,1,4,3,28,'#a06c38');R(t,28,4,3,28,'#a06c38');R(t,12,14,8,8,'#2a1a0e');txtT(t,'?',13,14,'#f2c84b')});
+var DRAGON=art(64,44,function(t){R(t,8,14,40,18,'#d8d0b8');R(t,0,20,14,8,'#d8d0b8');R(t,44,18,16,12,'#c8c0a8');R(t,20,18,10,8,'#14101a');R(t,4,22,5,3,'#14101a');for(var i=0;i<6;i++){R(t,50+i,30,2,6-i%2,'#f0ead8');R(t,12+i*6,32,3,10,'#d8d0b8');R(t,10+i*6,8,3,8,'#c8c0a8')}R(t,38,4,3,12,'#c8c0a8');R(t,44,2,3,16,'#c8c0a8');R(t,6,42,40,2,'#4a2c14')});
+var ENT=[];function E(k,x,y,tex,o){o=o||{};o.k=k;o.x=x;o.y=y;o.tex=tex.length?tex:[tex];o.sc=o.sc||.75;ENT.push(o);return o}
+E('podium',36.5,5.5,PODIUM,{solid:1,sc:.98,name:'WRITE AT THE PODIUM'});
+E('deco',33,3,CANDLE,{solid:1});E('deco',40,7,CANDLE,{solid:1});E('deco',33,8,GLOBE,{solid:1,sc:.7});
+E('deco',21.5,18.5,CHAND,{top:1,sc:.55});E('deco',36.5,18.5,CHAND,{top:1,sc:.45});E('deco',21.5,31,CHAND,{top:1,sc:.5});E('deco',36.5,31,CHAND,{top:1,sc:.45});
+E('deco',24.6,14.8,THRONE,{solid:1,sc:.9});
+E('bell',18,20.5,BELL,{solid:1,sc:.9,name:'RING THE BELL OF RECALL'});
+function fireFrame(i){return function(){if(hunting()&&!S.hunt.got.iron&&S.hunt.fires.indexOf(i)<0)return 3;return (T*7|0)%3}}
+[[25.3,18.5,0],[21.5,21.2,1],[17.7,18.5,2],[21.5,15.8,3]].forEach(function(b){E('fire',b[0],b[1],BRAZ,{solid:1,i:b[2],sc:.5,frF:fireFrame(b[2]),name:'THE '+['EAST','SOUTH','WEST','NORTH'][b[2]]+' BRAZIER'})});
+var NOTES={hall:'Carved around the hearth:<br><br><i>"Light the fires as the Sun walks his road: where he rises, where he stands at noon, where he sinks, and last where he never goes."</i>',
+gal:'A brass plate, worn smooth:<br><br><i>"My knights salute only in the order their colours hang in the red hall outside the chapel door. Read the banners from west to east."</i>',
+lib:'',obs:'Scratched on the orrery:<br><br><i>"Set the three rings to what the Chapel\'s glass counts: moons, then stars, then suns."</i>',start:'Pinned to a lectern, in Brother Ibid\'s hand:<br><br><i>"Four trials guard the road to the Lost Codex: the Fires in the Great Hall, the Knights in the Long Gallery, the Riddle in the Library, and the Rings in the Star Tower, whose door wants the Iron Key. Each gives a numeral. The Crypt gate under the courtyard wants all four."</i><br><br><i>"Also: some of the stonework here is cracked. Lean on it. Also: pet the cat."</i>'};
+E('note',23.5,29,LECT,{solid:1,note:'start',name:'READ THE NOTE'});E('note',20,14.7,LECT,{solid:1,note:'hall',name:'READ THE CARVING'});E('note',3,15.5,LECT,{solid:1,note:'gal',name:'READ THE PLATE'});E('note',19.5,3,LECT,{solid:1,note:'obs',name:'READ THE SCRATCHES'});
+[[3,20.5,0],[5,20.5,1],[7,20.5,2],[9,20.5,3]].forEach(function(a){E('knight',a[0],a[1],ARMOR,{solid:1,sc:.92,i:a[2],fr:a[2],name:'SALUTE THE KNIGHT'})});
+E('deco',16.8,27.6,ARMOR,{solid:1,sc:.92,fr:2});E('deco',25.2,27.6,ARMOR,{solid:1,sc:.92,fr:0});
+E('riddle',31.5,15.5,LECT,{solid:1,name:'THE RIDDLE SHELF'});
+E('orrery',21.5,5,ORRERY,{solid:1,sc:.95,name:'THE GREAT ORRERY'});
+E('well',4,31,WELL,{solid:1,sc:.7,name:'THE WISHING WELL'});E('tree',8.5,31,TREE,{solid:1,sc:1.25,name:'THE TREE OF KNOWLEDGE'});
+E('crate',36.5,31,CRATE,{solid:1,sc:.55,name:'OPEN A CURIO CRATE'});E('deco',34,34,DRAGON,{solid:1,sc:.9});E('deco',33,29,GLOBE,{solid:1,sc:.7});
+var CHESTS=[[1.5,1.5],[25.5,34.5],[40.5,34.5],[10,8],[17,7],[40,15],[10,34],[3,16.5],[40,2],[18,42]];
+CHESTS.forEach(function(p,i){E('chest',p[0],p[1],CHEST,{solid:1,sc:.4,i:i,name:'OPEN THE CHEST',frF:function(){return S.hunt&&S.hunt.chest[i]?1:0}})});
+E('codex',15,41,CHEST,{solid:1,sc:.55,name:'THE LOST CODEX',frF:function(){return S.hunt&&S.hunt.won?1:0}});
+[[9,39],[3,42],[14,39]].forEach(function(p){E('deco',p[0],p[1],CANDLE,{solid:1})});
+var CATE=E('cat',35,8,CAT,{sc:.32,name:'PET MARGINALIA',frF:function(){return Math.sin(T*.8)>.93?1:0}}),GH=E('ghost',13.5,24.5,GHOST,{sc:.85,ghost:1,name:'SPEAK WITH BROTHER IBID'}),GP=[[13.5,11.5],[28.5,11.5],[28.5,24.5],[13.5,24.5]],GI=0;
+// ---------- hunt ----------
+var WORDS=[['MEMORY','"The more of me you keep, the older you have grown. This whole castle is built to hold me."','LATS'],['QUILL','"I was a wing, and now I walk on paper, leaving a black road behind me."','NOTE'],['SPINE','"Every book has me, yet I hold up no body. Bend me too far and I crack."','CART'],['MARGIN','"The white road round the page, where monks complain and snails fight knights."','SLOT']];
+var HP={banner:[0,1,2,3],win:[1,1,1],dig:[0,0,0,0],word:0};
+function setupHunt(){var h=S.hunt,sd=h?h.seed:7,old=seed;seed=sd;var p=[0,1,2,3];for(var i=3;i>0;i--){var j=rnd()*(i+1)|0,t=p[i];p[i]=p[j];p[j]=t}
+ HP.banner=p;HP.win=[0,1,2].map(function(){return 1+(rnd()*6|0)});HP.dig=[0,1,2,3].map(function(){return rnd()*10|0});HP.word=rnd()*WORDS.length|0;
+ TW=[windowTex(0,HP.win[0],'#2a4a9a'),windowTex(1,HP.win[1],'#7a2a8a'),windowTex(2,HP.win[2],'#a03020')];seed=old}
+function newHunt(){S.hunt={seed:(Date.now()%2147483647)|1,t:0,fires:[],knights:[],got:{},chest:{},won:0};setupHunt();touch()}
+function hunting(){return S.mode=='hunt'&&S.hunt}
+function has(g){return S.hunt&&S.hunt.got[g]}
+function gain(n,why){S.lore+=n;faceJoy=2;say('+'+n+' LORE: '+why);touch();sfx('coin')}
+function hint(){var h=S.hunt;if(!h)return 'No hunt is afoot, friend.';if(!h.got.iron)return 'The fires in the Great Hall want lighting. The sun knows the order.';if(!h.got.bronze)return 'Knights in the Long Gallery stand idle. Look at the banners in the red hall north of them, outside the chapel.';if(!h.got.silver)return 'A riddle sits at the west end of the Library. Pull the books that spell its answer.';if(!h.got.gold)return 'Use the Iron Key on the Star Tower. Count the chapel windows before you climb.';if(!h.won)return 'You have four numerals. The gate lies under the courtyard. The Crypt is cold; bring a cardigan.';return 'You found it. Now go and write something in it.'}
+// ---------- sound ----------
+var AC=null,muted=false;function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}return AC}
+function tone(f,d,ty,v,sl){var a=ac();if(!a||muted)return;var o=a.createOscillator(),g=a.createGain();o.type=ty||'square';o.frequency.value=f;if(sl)o.frequency.linearRampToValueAtTime(sl,a.currentTime+d);g.gain.value=v||.04;g.gain.exponentialRampToValueAtTime(.0005,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d)}
+function noise(d,v,fq){var a=ac();if(!a||muted)return;var n=a.sampleRate*d|0,b=a.createBuffer(1,n,a.sampleRate),c=b.getChannelData(0);for(var i=0;i<n;i++)c[i]=Math.random()*2-1;var s=a.createBufferSource(),g=a.createGain(),fl=a.createBiquadFilter();fl.frequency.value=fq||800;s.buffer=b;g.gain.value=v;g.gain.exponentialRampToValueAtTime(.0005,a.currentTime+d);s.connect(fl);fl.connect(g);g.connect(a.destination);s.start()}
+function sfx(k){if(k=='step')noise(.07,.05,300);else if(k=='door'){tone(70,.5,'sawtooth',.05,45);noise(.4,.03,500)}else if(k=='coin'){tone(880,.09);setTimeout(function(){tone(1320,.14)},80)}else if(k=='bell'){tone(392,1.6,'sine',.12);tone(588,1.1,'sine',.06);tone(784,.7,'sine',.03)}else if(k=='bad')tone(110,.3,'sawtooth',.06,70);else if(k=='good'){[523,659,784,1046].forEach(function(f,i){setTimeout(function(){tone(f,.16,'triangle',.08)},i*90)})}else if(k=='scratch')noise(.05,.03,3500);else if(k=='page')noise(.14,.04,1800);else if(k=='fire')noise(.3,.05,1000);else if(k=='purr'){tone(32,.7,'sawtooth',.1)}else if(k=='secret'){[220,277,330,440,554].forEach(function(f,i){setTimeout(function(){tone(f,.2,'square',.05)},i*110)})}}
+// ---------- render ----------
+var PX=21.5,PY=33.5,ANG=-Math.PI/2,DX,DY,CX,CY,vx=0,vy=0,vt=0,pitch=0,bob=0,bobA=0,thrust=0,T=0,zb=new Float32Array(VW),aim=null,tgt=null,hiFace=-1,hiSlot='',msg='',msgT=0,roomMsg='',roomT=0,lastRoom='',faceJoy=0,blink=0,showMap=false,mode='title',keys={},dyn=new Map(),seen=new Uint8Array(MW*MH);
+var SR=[],SG=[],SB2=[];for(var i=0;i<16;i++){var l=(i+1)/16;SR[i]=Math.min(256,l*1.28*256)|0;SG[i]=l*1.02*256|0;SB2[i]=l*l*.5*256+l*.32*256|0}
+var DITH=[0,.5,.75,.25];
+function say(s,t){msg=String(s).toUpperCase();msgT=t||3.5}
+function slotAt(u,v){var U=u*64|0,Vv=v*64|0,c=Math.floor((U-3)/12);if(c<0||c>4)return null;for(var r=0;r<3;r++)if(Vv>=SB[r]-17&&Vv<SB[r]+2)return{r:r,c:c};return null}
+function hash(a,b){var x=Math.imul(a*73856093^b*19349663,0x5bd1e995);return (x^x>>>13)>>>0}
+function faceBuild(k){var d=dec.get(k),t;if(d=='S'){t=copy(TSH);for(var r=0;r<3;r++)for(var c=0;c<5;c++){var sx=3+c*12,b=SB[r],p=S.place[k+':'+r+':'+c];if(p){if(p.b&&S.books[p.b]){var bk=S.books[p.b],col=C(bk.color||'#8e1622');R(t,sx+1,b-15,10,15,col);R(t,sx+1,b-15,1,15,mul(col,1.5));R(t,sx+10,b-15,1,15,mul(col,.6));R(t,sx+1,b-13,10,1,'#f2c84b');R(t,sx+1,b-3,10,1,'#f2c84b');R(t,sx+5,b-9,2,2,'#f2c84b')}else if(p.a&&ARTS[p.a])blit(t,ARTS[p.a].t,sx,b-12);else if(p.p&&S.pics[p.p]){R(t,sx,b-14,12,14,'#d0a838');var pd=S.pics[p.p].d;for(var y=0;y<10;y++)for(var x=0;x<10;x++){R(t,sx+1+x,b-13+y,1,1,DB[parseInt(pd[((y*3.2|0)*32)+(x*3.2|0)],16)])}}}
+ else{var h=hash(k,r*5+c);if(h%5<2){var xx=sx,n=2+h%2;for(var i=0;i<n;i++){var w=3+(h>>i*2&1),hh=11+(h>>(i+3)&3),cc=mul(C(['#4a2020','#2a3a2a','#3a2a18','#2a2a44'][h>>(i+5)&3]),.9);R(t,xx,b-hh,w,hh,cc);R(t,xx,b-hh+2,w,1,'#7a6a30');xx+=w+1}}else if(h%5==2&&h%3==0){R(t,sx+2,b-4,8,4,'#3a2a18')}}
+ if(hiFace==k&&hiSlot==r+':'+c){R(t,sx-1,b-18,14,1,C('#ffe070',1));R(t,sx-1,b+1,14,1,C('#ffe070',1));R(t,sx-1,b-18,1,20,C('#ffe070',1));R(t,sx+12,b-18,1,20,C('#ffe070',1))}}}
+ else{t=copy(d&&d!='H'?staticTex(k,d):TS);var w=S.wall[k];if(w&&w.p&&S.pics[w.p]){if(!d||d=='H')frameOn(t);var pd=S.pics[w.p].d;for(var y=0;y<32;y++)for(var x=0;x<32;x++)R(t,16+x,16+y,1,1,DB[parseInt(pd[y*32+x],16)])}
+  else if(w&&w.n!=null){R(t,10,8,44,48,'#d9c49a');R(t,10,8,44,1,'#f0e0b8');R(t,30,6,4,4,'#b8232f');var ww=String(w.n).toUpperCase().split(/\s+/),ln='',ly=15;ww.forEach(function(q){if((ln+' '+q).trim().length>7){txtT(t,ln,12,ly,'#2b1d12');ly+=8;ln=q.slice(0,7)}else ln=(ln+' '+q).trim()});if(ly<50)txtT(t,ln,12,ly,'#2b1d12')}}
+ dyn.set(k,t);return t}
+function staticTex(k,d){if(d=='S')return TSH;if(d=='T')return TT[(T*7+k)&3];if(d=='H')return TH;if(d=='F')return TF[(T*8|0)%3];if(d[0]=='Y')return TY[+d[1]];if(d[0]=='b')return TB[HP.banner[+d[1]]];if(d[0]=='w')return TW[+d[1]]||TS;return TS}
+function wallTex(k,ch,x,y){if(ch=='X')return TCK;var dd=dyn.get(k);if(dd)return dd;var d=dec.get(k);if(d=='S'||S.wall[k])return faceBuild(k);return d?staticTex(k,d):TS}
+function doorTex(i){var d=DOORS[i];return d.lock=='gate'?TG:d.lock&&!d.opened?TDL:TD}
+function castAll(){var hor=(VH>>1)+(pitch|0),a=null;var tr=1+Math.sin(T*9)*.02+Math.sin(T*23)*.015,fl=1+Math.sin(T*5.7)*.03+Math.sin(T*13.1)*.02,ix=PX|0,iy=PY|0;
+ for(var x=0;x<VW;x++){var cam=2*x/VW-1,rx=DX+CX*cam,ry=DY+CY*cam,mx=ix,my=iy,dx=Math.abs(1/rx),dy=Math.abs(1/ry),sx=rx<0?-1:1,sy=ry<0?-1:1,sdx=(rx<0?PX-mx:mx+1-PX)*dx,sdy=(ry<0?PY-my:my+1-PY)*dy,side=0,hitC=0,doorD=-1,doorI=-1,doorU=0,doorS=0;
+  for(var n=0;n<80;n++){if(sdx<sdy){sdx+=dx;mx+=sx;side=0}else{sdy+=dy;my+=sy;side=1}if(mx<0||my<0||mx>=MW||my>=MH){hitC=1;break}var ci=my*MW+mx,c=SOL[ci];if(!(x&3))seen[ci]=1;if(c==1){hitC=1;break}if(c==2){var dr=DOORS[ci];if(dr.o<.02){hitC=2;break}if(doorD<0&&dr.o<.98){doorI=ci;doorS=side;doorD=side?sdy-dy:sdx-dx;var wv=side?PX+doorD*rx:PY+doorD*ry;doorU=wv-Math.floor(wv)}}}
+  var perp=side?sdy-dy:sdx-dx;if(perp<.02)perp=.02;var wv=side?PX+perp*rx:PY+perp*ry;var u=wv-Math.floor(wv),f=side?(sy>0?2:3):(sx>0?0:1);if(f==1||f==2)u=1-u;
+  var ci=my*MW+mx,tex=hitC==2?doorTex(ci):wallTex(fk(mx,my,f),G[ci]||'#',mx,my),h=K/perp,top=hor-h/2,bot=top+h,tu=Math.min(63,u*64|0),d=tex.d;
+  var ly=(my+(side?-sy*.12:0)+(wv-Math.floor(wv))*(side?0:1))*4,lx=(mx+(side?0:-sx*.12))*4;var wl=side?FLI[(((my+(sy>0?-.1:1.1))*4|0)*MW*4)+((wv*4|0)|0)]:FLI[((wv*4|0)*MW*4)+((mx+(sx>0?-.1:1.1))*4|0)];
+  var lv=(wl*fl+tr*.3/(1+perp*perp*.2));var y0=Math.max(0,top|0),y1=Math.min(VH,Math.ceil(bot));
+  if(x==160){a={c:ci,f:f,u:u,dist:perp,top:top,h:h,kind:hitC,mx:mx,my:my}}
+  for(var y=y0;y<y1;y++){var li=lv*15+DITH[(x&1)+((y&1)<<1)]|0;if(li>15)li=15;var v=((y-top)/h*64)|0;if(v>63)v=63;var q=d[v*64+tu];if(q>>>24==254)px[y*VW+x]=q+0x01000000;else px[y*VW+x]=0xFF000000+(((q>>16&255)*SB2[li]>>8)<<16)+(((q>>8&255)*SG[li]>>8)<<8)+((q&255)*SR[li]>>8)}
+  // floor and ceiling
+  for(var y=y1;y<VH;y++){var rd=(K/2)/(y-hor+.5);if(rd<0)continue;var fx=PX+rx*rd,fy=PY+ry*rd,cx=fx|0,cy=fy|0,i=cy*MW+cx;if(i<0||i>=FT.length)continue;var q=FT[i][((fy-cy)*64&63)*64+((fx-cx)*64&63)],lf=FLI[(fy*4|0)*MW*4+(fx*4|0)]*fl+tr*.3/(1+rd*rd*.2),li=lf*15+DITH[(x&1)+((y&1)<<1)]|0;if(li>15)li=15;px[y*VW+x]=0xFF000000+(((q>>16&255)*SB2[li]>>8)<<16)+(((q>>8&255)*SG[li]>>8)<<8)+((q&255)*SR[li]>>8)}
+  for(var y=y0-1;y>=0;y--){var rd=(K/2)/(hor-y-.5);if(rd<0)continue;var fx=PX+rx*rd,fy=PY+ry*rd,cx=fx|0,cy=fy|0,i=cy*MW+cx;if(i<0||i>=CT.length)continue;var ct=CT[i];if(!ct){var an=(Math.atan2(ry,rx)/(2*Math.PI)+1)*512&511;px[y*VW+x]=SKY.d[Math.max(0,Math.min(127,y-hor+127))*512+an];continue}var q=ct[((fy-cy)*64&63)*64+((fx-cx)*64&63)],lf=FLI[(fy*4|0)*MW*4+(fx*4|0)]*fl*.8+tr*.22/(1+rd*rd*.2),li=lf*15+DITH[(x&1)+((y&1)<<1)]|0;if(li>15)li=15;px[y*VW+x]=0xFF000000+(((q>>16&255)*SB2[li]>>8)<<16)+(((q>>8&255)*SG[li]>>8)<<8)+((q&255)*SR[li]>>8)}
+  zb[x]=perp;
+  if(doorD>=0&&doorD<perp){var dr=DOORS[doorI],t2=doorTex(doorI).d,hh=K/doorD,tp=hor-hh/2,lim=tp+hh*(1-dr.o),du=doorS?(sy>0?1-doorU:doorU):(sx>0?doorU:1-doorU),tu2=Math.min(63,du*64|0),y2=Math.min(VH,lim|0),ldr=(FLI[(((PY+doorD*ry)*4)|0)*MW*4+(((PX+doorD*rx)*4)|0)]*fl+tr*.3/(1+doorD*doorD*.2));
+   for(var y=Math.max(0,tp|0);y<y2;y++){var li=ldr*15+DITH[(x&1)+((y&1)<<1)]|0;if(li>15)li=15;var v=(((y-tp)/hh+dr.o)*64)|0;if(v>63)v=63;var q=t2[v*64+tu2];if(q>>>24==0)continue;px[y*VW+x]=0xFF000000+(((q>>16&255)*SB2[li]>>8)<<16)+(((q>>8&255)*SG[li]>>8)<<8)+((q&255)*SR[li]>>8)}
+   if(dr.o<.75)zb[x]=doorD;if(x==160&&dr.o<.7)a={c:doorI,f:-1,u:du,dist:doorD,top:tp,h:hh,kind:2,mx:doorI%MW,my:doorI/MW|0}}
+ }
+ aim=a;
+ var list=[];for(var i=0;i<ENT.length;i++){var e=ENT[i];if(!active(e))continue;var ex=e.x-PX,ey=e.y-PY;e.d2=ex*ex+ey*ey;if(e.d2<256)list.push(e)}list.sort(function(a,b){return b.d2-a.d2});
+ var inv=1/(CX*DY-CY*DX),spT=null,spD=1e9;
+ list.forEach(function(e){var ex=e.x-PX,ey=e.y-PY,tx1=inv*(DY*ex-DX*ey),ty=inv*(-CY*ex+CX*ey);if(ty<.2)return;var fr=e.fr!=null?e.fr:e.frF?e.frF():(T*6|0)%e.tex.length,t=e.tex[fr]||e.tex[0],sxc=VW/2*(1+tx1/ty),hh=K*e.sc/ty,ww=hh*t.w/t.h,bot=e.top?hor-K/(2*ty)+hh:hor+K/(2*ty),top=bot-hh,x0=Math.max(0,sxc-ww/2|0),x1=Math.min(VW,sxc+ww/2|0),lf=FLI[(e.y*4|0)*MW*4+(e.x*4|0)]*fl+tr*.3/(1+ty*ty*.2);
+  if(e.name&&ty<2.3&&sxc-ww/2<160&&sxc+ww/2>160&&ty<zb[160]+.5&&ty<spD){spT=e;spD=ty}
+  for(var x=x0;x<x1;x++){if(ty>=zb[x])continue;var tu=((x-(sxc-ww/2))/ww*t.w)|0;if(tu<0||tu>=t.w)continue;var y0=Math.max(0,top|0),y1=Math.min(VH,bot|0);for(var y=y0;y<y1;y++){var v=((y-top)/hh*t.h)|0;if(v<0||v>=t.h)continue;var q=t.d[v*t.w+tu];if(!(q>>>24))continue;if(e.ghost&&((x+y)&1))continue;if(q>>>24==254){px[y*VW+x]=q+0x01000000;continue}var li=(e.ghost?.95:lf)*15+DITH[(x&1)+((y&1)<<1)]|0;if(li>15)li=15;px[y*VW+x]=0xFF000000+(((q>>16&255)*SB2[li]>>8)<<16)+(((q>>8&255)*SG[li]>>8)<<8)+((q&255)*SR[li]>>8)}}});
+ tgt=null;var nf=-1,ns='';
+ if(spT)tgt={t:'e',e:spT};else if(a&&a.dist<2.3){if(a.kind==2)tgt={t:'door',i:a.c};else if(G[a.c]=='X')tgt={t:'secret',i:a.c};else{var k=fk(a.mx,a.my,a.f),d=dec.get(k);if(d=='S'){var v=((VH>>1)-a.top)/a.h,sl=slotAt(a.u,v);if(sl){tgt={t:'slot',k:k,r:sl.r,c:sl.c};nf=k;ns=sl.r+':'+sl.c}}else if(!d||d=='H')tgt={t:'wall',k:k}}}
+ if(nf!=hiFace||ns!=hiSlot){if(hiFace>=0)dyn.delete(hiFace);hiFace=nf;hiSlot=ns;if(nf>=0)dyn.delete(nf)}
+}
+function active(e){if(e.k=='chest'){var h=S.hunt;return !!h&&(S.mode=='hunt'||h.chest[e.i])}if(e.k=='codex')return !!S.hunt&&S.mode=='hunt';return true}
+function drawHand(){var moving=Math.hypot(vx,vy)>.2,b=Math.sin(bob)*(moving?5:1),bx=Math.cos(bob*.5)*(moving?6:1),x=236+bx-thrust*12,y=118+Math.abs(b)+thrust*-14,skin=C('#c89070'),sd=C('#8a5a40'),sl=C('#3a2a4a'),sl2=C('#2a1a38');
+ var rc=function(a,b,w,h,c){if(typeof c=='string')c=C(c);PR(x+a,y+b,w,h,c)};
+ rc(16,4,8,48,'#6b4423');rc(18,4,2,48,'#8a5a2b');rc(12,0,16,5,'#30303a');rc(12,0,16,1,'#8a8a98');rc(14,-4,12,5,'#7a4a20');
+ var f=T*9|0,hw=function(i,w){var s=Math.round(Math.sin(i*.9+f*2.1)*(10-i)*.6);rc(20-w+s,-6-(10-i)*3,w*2,3,i<3?C('#e04010',1):C('#ff9a20',1)+0x01000000);if(i>3)rc(20-w/2+s,-6-(10-i)*3,w,3,C(i>6?'#fff6b0':'#ffd040',1)+0x01000000)};[2,3,5,6,7,8,8,7,5,4].forEach(function(w,i){hw(i,w)});
+ for(var j=0;j<SH;j++){}
+ rc(8,18,26,14,skin);rc(8,28,26,4,sd);rc(6,20,4,10,skin);[0,6,12,18].forEach(function(o){rc(10+o,17,5,2,sd)});rc(14,32,30,50,sl);rc(10,44,26,40,sl2);rc(12,32,4,50,C('#5a4a6a'))}
+var HUD=tx(320,32);(function(){R(HUD,0,0,320,32,'#3a3640');for(var i=0;i<320;i+=16)for(var j=0;j<32;j+=8){R(HUD,i+((j>>3)&1)*8,j,15,7,mul(C('#4a4652'),.85+rnd()*.3))}speck(HUD,.14);R(HUD,0,0,320,2,'#8a8a98');R(HUD,0,30,320,2,'#14121a');[[4,48],[56,48],[134,52],[190,126]].forEach(function(p){R(HUD,p[0],4,p[1],24,'#1a1418');R(HUD,p[0],4,p[1],1,'#0a080c');R(HUD,p[0],27,p[1],1,'#7a7a88')})})();
+var FACES=[-1,0,1,2].map(function(k){return art(28,26,function(t){R(t,4,2,20,24,'#b07858');R(t,4,2,20,6,'#6b4423');R(t,9,0,10,3,'#c89070');R(t,5,8,18,3,'#c89070');R(t,7,12,6,4,'#f0ead8');R(t,16,12,6,4,'#f0ead8');var o=k==2?0:k;R(t,9+o,13,2,3,'#14101a');R(t,18+o,13,2,3,'#14101a');R(t,7,11,6,1,'#3a2412');R(t,16,11,6,1,'#3a2412');R(t,13,14,3,5,'#90604a');if(k==2){R(t,9,20,11,3,'#f0ead8');R(t,9,23,11,1,'#6b2a20')}else R(t,10,21,9,1,'#6b2a20');R(t,4,24,20,2,'#4a2c14');R(t,0,24,4,2,'#3a2a4a');R(t,24,24,4,2,'#3a2a4a')})});
+function drawHud(){px.set(HUD.d,VH*VW);var Y=VH;txt('LORE',8,Y+6,'#a08a60',1,0);txt(S.lore,8,Y+14,'#f2c84b',2);txt('BOOKS',60,Y+6,'#a08a60',1,0);txt(Object.keys(S.books).length,60,Y+14,'#f2c84b',2);var mv=Math.abs(vt)<.3?0:Math.sign(vt),fr=faceJoy>0?3:mv<0?0:mv>0?2:1,fc=FACES[fr];for(var j=0;j<fc.h;j++)for(var i=0;i<fc.w;i++){var c=fc.d[j*fc.w+i];if(c>>>24)px[(VH+4+j)*VW+146+i]=c}
+ if(Math.sin(T*1.3)>.985){PR(153,VH+16,6,4,C('#b07858'));PR(162,VH+16,6,4,C('#b07858'))}
+ var h=S.hunt;if(hunting()){txt('SEALS',194,Y+6,'#a08a60',1,0);['iron','bronze','silver','gold'].forEach(function(g,i){var on=h.got[g],cl=['#a0a0ac','#c87a3a','#d8d8e4','#f2c84b'][i];txt(on?HP.dig[i]:'-',194+i*11,Y+16,on?cl:'#55505a',1)});txt('RELICS '+Object.keys(h.chest).length+'/'+CHESTS.length,246,Y+6,'#a08a60',1,0);txt(fmt(h.t),246,Y+16,'#f2e6c0',1,0)}else{txt('PALACE',194,Y+6,'#a08a60',1,0);txt('CURIOS '+S.owned.length+'/'+ART.length,194,Y+16,'#f2c84b',1,0);txt('PICS '+Object.keys(S.pics).length,262,Y+6,'#a08a60',1,0)}
+ if(dirty)txt('UNSAVED',272,Y+16,'#d8404a',1,0)}
+function fmt(t){t=t|0;return (t/60|0)+':'+('0'+t%60).slice(-2)}
+function drawMap(){for(var y=0;y<VH;y++)for(var x=0;x<VW;x++){var i=y*VW+x,c=px[i];px[i]=0xFF000000+((c>>16&255)>>3<<16)+((c>>8&255)>>3<<8)+((c&255)>>3)}var sc=3,ox=(VW-MW*sc)>>1,oy=(VH-MH*sc)>>1;for(var y=0;y<MH;y++)for(var x=0;x<MW;x++){var i=y*MW+x;if(!seen[i])continue;var q=SOL[i];if(q==1){if(G[i]=='X'&&0)continue;var bnd=false;[[1,0],[-1,0],[0,1],[0,-1]].forEach(function(d){if(!SOL[Math.max(0,Math.min(MH-1,y+d[1]))*MW+Math.max(0,Math.min(MW-1,x+d[0]))])bnd=true});if(bnd)PR(ox+x*sc,oy+y*sc,sc,sc,C('#b8232f'))}else if(q==2)PR(ox+x*sc,oy+y*sc,sc,sc,C('#e8c02a'));else PR(ox+x*sc,oy+y*sc,sc,sc,C('#2a1a18'))}
+ Object.keys(S.books).forEach(function(id){var k=S.books[id].slot;if(k){var c=+k.split(':')[0]>>2;PR(ox+c%MW*sc+1,oy+(c/MW|0)*sc+1,2,2,C('#7fd6e8'))}});if(S.quest){var b=S.books[S.quest.id];}
+ var ax=ox+PX*sc,ay=oy+PY*sc;for(var i=0;i<6;i++)PR(ax+DX*i,ay+DY*i,1,1,C('#f0f0f0'));PR(ax-1,ay-1,3,3,C('#7dff7d'));txtC('THE CASTLE: BLUE MARKS ARE YOUR BOOKS',2,'#f2e6c0');txtC(roomOf(PX|0,PY|0),VH-10,'#f2c84b')}
+function prompt_(){if(!tgt)return '';if(tgt.t=='e'){if(tgt.e.k=='chest'&&S.hunt&&S.hunt.chest[tgt.e.i])return '';return 'E: '+tgt.e.name}if(tgt.t=='door'){var d=DOORS[tgt.i];return d.o>.5?'':'E: OPEN DOOR'}if(tgt.t=='secret')return '';if(tgt.t=='slot'){var p=S.place[tgt.k+':'+tgt.r+':'+tgt.c];if(p&&p.b&&S.books[p.b])return 'E: READ '+S.books[p.b].title;if(p&&p.a)return 'E: '+ARTS[p.a].name;if(p&&p.p&&S.pics[p.p])return 'E: '+S.pics[p.p].name;return 'E: FILL THIS PLACE ON THE SHELF'}if(tgt.t=='wall'){var w=S.wall[tgt.k];return w?'E: LOOK AT THIS':dec.get(tgt.k)=='H'?'E: HANG A PICTURE':aim&&aim.dist<1.5?'E: PIN A NOTE OR PICTURE':''}return ''}
+function frame(){castAll();
+ if(mode=='play'){drawHand();PR(159,VH>>1,3,1,0xFFA0E0FF|0);PR(160,(VH>>1)-1,1,3,0xFFA0E0FF|0);var p=showMap?'':prompt_();if(p)txtC(p.slice(0,50),(VH>>1)+18,'#ffe070')}
+ if(showMap&&mode=='play')drawMap();
+ drawHud();
+ if(msgT>0&&!showMap){var a=msg,w=52,ly=4;while(a.length&&ly<40){txt(a.slice(0,w),4,ly,'#f2c84b',1);a=a.slice(w);ly+=9}}
+ if(roomT>0&&mode=='play'&&!showMap)txtC(roomMsg,44,'#f2e6c0',2);
+ ctx.putImageData(img,0,0)}
+// ---------- movement ----------
+function blocked(x,y){var r=.24;for(var a=-1;a<=1;a+=2)for(var b=-1;b<=1;b+=2){var cx=(x+a*r)|0,cy=(y+b*r)|0,i=cy*MW+cx;if(cx<0||cy<0||cx>=MW||cy>=MH)return true;var s=SOL[i];if(s==1)return true;if(s==2&&DOORS[i].o<.72)return true}for(var i=0;i<ENT.length;i++){var e=ENT[i];if(e.solid&&active(e)){var d=e.sc>.6?.34:.28;if(Math.abs(e.x-x)<d&&Math.abs(e.y-y)<d)return true}}return false}
+var stepT=0;function update(dt){T+=dt;msgT-=dt;roomT-=dt;faceJoy-=dt;thrust=Math.max(0,thrust-dt*4);
+ for(var k in DOORS){var d=DOORS[k];if(d.want&&d.o<1)d.o=Math.min(1,d.o+dt*1.3);if(!d.want&&d.o>0)d.o=Math.max(0,d.o-dt*1.3);if(d.want&&!d.sec){d.t+=dt;var cx=k%MW,cy=k/MW|0;if(d.t>7&&Math.hypot(cx+.5-PX,cy+.5-PY)>1.6){d.want=0;d.t=0;sfx('door')}}}
+ var a=GP[GI],gx=a[0]-GH.x,gy=a[1]-GH.y,gd=Math.hypot(gx,gy);if(gd<.1)GI=(GI+1)%4;else{GH.x+=gx/gd*dt*.55;GH.y+=gy/gd*dt*.55}
+ if(S.pets>0&&mode=='play'){var cx=PX-CATE.x,cy=PY-CATE.y,cd=Math.hypot(cx,cy);if(cd>1.4&&cd<10){var nx=CATE.x+cx/cd*dt*1.6,ny=CATE.y+cy/cd*dt*1.6;if(SOL[(ny|0)*MW+(nx|0)]==0){CATE.x=nx;CATE.y=ny}}}
+ if(mode=='title'){ANG+=dt*.12;vec();return}
+ if(mode!='play')return;
+ if(S.hunt&&S.mode=='hunt'&&!S.hunt.won)S.hunt.t+=dt;
+ var run=keys.ShiftLeft||keys.ShiftRight,tu=(keys.ArrowRight?1:0)-(keys.ArrowLeft?1:0);vt+=(tu*(run?3.4:2.4)-vt)*Math.min(1,dt*12);ANG+=vt*dt;
+ var pl=(keys.KeyF?1:0)-(keys.KeyR?1:0);pitch=Math.max(-70,Math.min(70,pitch-pl*90*dt));vec();
+ var fw=(keys.KeyW||keys.ArrowUp?1:0)-(keys.KeyS||keys.ArrowDown?1:0),st=(keys.KeyD?1:0)-(keys.KeyA?1:0),acc=run?30:17,ax=(DX*fw-DY*st),ay=(DY*fw+DX*st),l=Math.hypot(ax,ay)||1;vx+=ax/l*acc*dt*(fw||st?1:0);vy+=ay/l*acc*dt*(fw||st?1:0);var fr=Math.pow(.0009,dt);vx*=fr;vy*=fr;
+ var nx=PX+vx*dt,ny=PY+vy*dt;if(!blocked(nx,PY))PX=nx;else vx=0;if(!blocked(PX,ny))PY=ny;else vy=0;
+ var sp=Math.hypot(vx,vy);bob+=sp*dt*3.2;stepT+=sp*dt;if(stepT>1.1){stepT=0;sfx('step')}
+ var r=roomOf(PX|0,PY|0);if(r!=lastRoom){lastRoom=r;roomMsg=r;roomT=2.2}}
+function vec(){DX=Math.cos(ANG);DY=Math.sin(ANG);CX=-DY*.66;CY=DX*.66}
+// ---------- use ----------
+function use(){thrust=1;if(!tgt)return;if(tgt.t=='door')return useDoor(tgt.i);if(tgt.t=='secret')return openSecret(tgt.i);if(tgt.t=='slot')return slotPanel(tgt.k,tgt.r,tgt.c);if(tgt.t=='wall')return wallPanel(tgt.k);if(tgt.t=='e')return useEnt(tgt.e)}
+function openDoor(i,sec){var d=DOORS[i];d.want=1;d.t=0;if(sec)d.sec=1;sfx('door')}
+function useDoor(i){var d=DOORS[i];if(d.want&&d.o>.5){d.want=0;sfx('door');return}if(hunting()&&d.lock=='iron'&&!d.opened){if(!has('iron')){sfx('bad');return say('LOCKED. THE IRON KEY WOULD FIT.')}d.opened=1;say('THE IRON KEY TURNS.')}
+ if(d.lock=='gate'&&!d.opened){if(hunting())return gatePanel(i);if(!S.hunt||!S.hunt.won){sfx('bad');return say('THE CRYPT GATE ONLY WAKES IN THE HUNT.')}d.opened=1}openDoor(i)}
+function openSecret(i,quiet){G[i]='D';SOL[i]=2;DOORS[i]={o:quiet?1:0,want:1,t:0,lock:'',sec:1};buildCells();if(!quiet){S.secrets[i]=1;sfx('secret');gain(5,'A SECRET PASSAGE!');touch()}}
+function useEnt(e){var k=e.k;if(k=='podium')return scriptorium();if(k=='note')return note(NOTES[e.note]);if(k=='bell')return bell();if(k=='crate')return cratePanel();if(k=='well')return well();if(k=='tree')return tree();if(k=='cat'){S.pets++;sfx('purr');if(S.pets==1)say('MARGINALIA PURRS. SHE WILL FOLLOW YOU NOW.');else if(S.pets%5==0)gain(1,'THE CAT APPROVES OF YOUR SCHOLARSHIP');else say('PRRRRRR.');touch();return}
+ if(k=='ghost'){var b=Object.keys(S.books);if(hunting())return note('<b>Brother Ibid</b> drifts closer and murmurs:<br><br><i>"'+hint()+'"</i>');if(b.length){var bk=S.books[b[Math.random()*b.length|0]];return note('<b>Brother Ibid</b> murmurs:<br><br><i>"Do you still remember <b>'+esc(bk.title)+'</b>? '+(bk.slot?'I last saw it in '+roomOfKey(bk.slot)+'.':'It lies unshelved at the podium.')+'"</i>')}return note('<b>Brother Ibid</b> murmurs:<br><br><i>"So many empty shelves. The podium in the Scribes\' Wing has quills and ink. Write something down before you forget what it was."</i>')}
+ if(!hunting()){if(k=='fire'||k=='knight'||k=='riddle'||k=='orrery')return say('IT SLEEPS. CHOOSE THE HUNT TO WAKE IT.');}
+ var h=S.hunt;if(k=='fire'){if(h.got.iron)return say('THE FIRES BURN ON.');if(h.fires.indexOf(e.i)>=0)return;h.fires.push(e.i);sfx('fire');var ok=h.fires.every(function(v,i){return v==i});if(!ok){h.fires=[];sfx('bad');return say('THE FIRES GUTTER AND DIE. THAT IS NOT HIS ROAD.')}say('THE '+['EAST','SOUTH','WEST','NORTH'][e.i]+' BRAZIER CATCHES.');if(h.fires.length==4)award('iron','The hearth cracks and an IRON KEY falls out, stamped with the first numeral');touch();return}
+ if(k=='knight'){if(h.got.bronze)return say('THE KNIGHT IS STILL SALUTING.');h.knights.push(e.i);var want=HP.banner,ok=h.knights.every(function(v,i){return v==want[i]});tone(300+h.knights.length*80,.1);if(!ok){h.knights=[];sfx('bad');return say('THE KNIGHTS CLANK BACK TO ATTENTION. WRONG ORDER.')}say('A VISOR LIFTS. '+h.knights.length+' OF 4.');if(h.knights.length==4)award('bronze','All four salute. A BRONZE SEAL drops from the last gauntlet, stamped with the second numeral');touch();return}
+ if(k=='riddle')return riddle();if(k=='orrery')return orrery();
+ if(k=='chest'){if(h.chest[e.i])return;h.chest[e.i]=1;var un=ART.filter(function(a){return S.owned.indexOf(a[0])<0&&a[0]!='codex'});sfx('good');if(un.length){var a=un[Math.random()*un.length|0];S.owned.push(a[0]);note('<h3>A lost relic!</h3><div class="tiles">'+tile(a[0])+'</div><p>'+esc(a[2])+'</p><p>It is yours. Place it on any shelf.</p>')}gain(10,'RELIC FOUND');paintIcons();return}
+ if(k=='codex'){if(h.won)return note('<i>The Codex rests here. Its pages are blank, except for what you wrote.</i>');if(!(h.got.iron&&h.got.bronze&&h.got.silver&&h.got.gold))return say('A GREAT CHEST. IT WILL NOT OPEN UNTIL ALL FOUR SEALS ARE YOURS.');h.won=1;if(S.owned.indexOf('codex')<0)S.owned.push('codex');sfx('good');gain(50,'THE LOST CODEX');note('<h2>The Codex Mnemosyne</h2><p>The lid sighs open. Inside is one great book, and every page of it is blank, except that when you turn them you find your own handwriting: everything you\'ve ever shelved here.</p><p>Time: <b>'+fmt(h.t)+'</b> &nbsp; Relics: <b>'+Object.keys(h.chest).length+'/'+CHESTS.length+'</b> &nbsp; Secrets: <b>'+Object.keys(S.secrets).length+'/3</b></p><p class="dim">The Codex is now in your Cabinet. Esc starts a new Hunt with new banners, windows, riddle and numerals.</p>');return}}
+function award(g,txt1){var h=S.hunt,i=['iron','bronze','silver','gold'].indexOf(g);h.got[g]=1;sfx('good');gain(15,'TRIAL PASSED');note('<h3>A trial passed</h3><p>'+txt1+': <b style="font-size:26px;color:#6d1420">'+HP.dig[i]+'</b></p>')}
+function roomOfKey(sl){var c=+String(sl).split(':')[0]>>2;return roomOf(c%MW,c/MW|0)}
+// ---------- panels ----------
+var ui=$('ui'),inUI=false;
+function open_(h){ui.innerHTML='<div class="pg">'+h+'</div>';ui.hidden=false;ui.scrollTop=0;inUI=true;mode='ui';keys={};paintIcons();sfx('page')}
+function closeUI(){ui.hidden=true;ui.innerHTML='';inUI=false;mode='play';$('menu').hidden=true;cv.focus();keys={}}
+function q(s){return ui.querySelector(s)}
+function bind(s,f){var n=ui.querySelectorAll(s);for(var i=0;i<n.length;i++)n[i].onclick=f}
+function note(h){open_(h+'<div class="row"><button id="uiX">Step back</button></div>');bind('#uiX',closeUI)}
+function drawIcon(c,t,sc){c.width=t.w*sc;c.height=t.h*sc;var x=c.getContext('2d'),d=x.createImageData(t.w,t.h);new Uint32Array(d.data.buffer).set(t.d);var o=document.createElement('canvas');o.width=t.w;o.height=t.h;o.getContext('2d').putImageData(d,0,0);x.imageSmoothingEnabled=false;x.drawImage(o,0,0,c.width,c.height)}
+function picTx(id){var p=S.pics[id],t=tx(32);if(p)for(var i=0;i<1024;i++)t.d[i]=C(DB[parseInt(p.d[i],16)||0]);return t}
+function paintIcons(){var n=document.querySelectorAll('canvas[data-a],canvas[data-p]');for(var i=0;i<n.length;i++){var c=n[i],a=c.getAttribute('data-a');if(a){if(ARTS[a])drawIcon(c,ARTS[a].t,+c.getAttribute('data-s')||4)}else drawIcon(c,picTx(c.getAttribute('data-p')),+c.getAttribute('data-s')||2)}}
+function tile(a,d){var x=ARTS[a];return '<div class="tile'+(d?'':' none')+'" data-v="'+a+'"><canvas class="ic" data-a="'+a+'" data-s="5"></canvas>'+esc(x.name)+'<br><b>'+x.rare+'</b></div>'}
+function pTile(id){return '<div class="tile" data-v="'+id+'"><canvas class="ic" data-p="'+id+'" data-s="2"></canvas>'+esc(S.pics[id].name)+'</div>'}
+var COLORS=['#8e1622','#1f3a8a','#2d5a2d','#6a3a8a','#8a5a2b','#20242a','#a07a10','#1a6a6a'],INKS={Iron:'#2b1d12',Vermilion:'#a3241a',Ultramarine:'#1f3a8a',Verdigris:'#2d6a4f',Gold:'#927008'};
+function newBook(sl){var id='b'+S.nid++,b={id:id,title:'Untitled',color:COLORS[S.nid%8],ink:'Iron',pages:[{t:'',pics:[],arts:[]}],slot:sl||null,when:Date.now()};S.books[id]=b;if(sl){S.place[sl]={b:id};dyn.clear()}touch();return b}
+function openBook(id,pg,edit){var b=S.books[id];if(!b)return closeUI();pg=Math.max(0,Math.min(pg||0,b.pages.length-1));var p=b.pages[pg],qu=S.quest;
+ if(qu&&qu.id==id&&!edit){var sc=Math.round(((Date.now()-qu.t)/1000));S.quest=null;gain(5,'REMEMBERED IN '+sc+' SECONDS');sfx('good')}
+ var pics=p.pics.filter(function(i){return S.pics[i]}).map(pTile).join(''),arts=p.arts.filter(function(a){return ARTS[a]}).map(function(a){return tile(a,1)}).join(''),ink=INKS[b.ink]||INKS.Iron,t=esc(p.t);
+ var body=edit?'<textarea id="bT" style="color:'+ink+'" placeholder="Take up the quill. What did you learn?">'+t+'</textarea>':'<div class="read" style="color:'+ink+'">'+(t?'<span class="cap">'+t[0]+'</span>'+t.slice(1):'<span class="dim">This page is blank.</span>')+'</div>';
+ open_('<h2>'+(edit?'<input id="bN" value="'+esc(b.title)+'" style="width:60%">':esc(b.title))+'</h2><div class="dim">'+(b.slot?'Shelved in '+esc(roomOfKey(b.slot)):'Unshelved, on the podium')+' &middot; page '+(pg+1)+' of '+b.pages.length+'</div>'+
+ '<div class="bk"><div>'+body+'</div><div><h3>Pictures on this page</h3><div class="tiles">'+(pics||'<span class="dim">None yet.</span>')+'</div><h3>Items pressed in this page</h3><div class="tiles">'+(arts||'<span class="dim">None yet.</span>')+'</div></div></div>'+
+ '<div class="row"><button id="bP"'+(pg?'':' disabled')+'>&lt; Page</button><button id="bN2">Page &gt;</button><button id="bE">'+(edit?'Blot the ink':'Take up the quill')+'</button><button id="bAP">Add picture</button><button id="bAA">Add item</button><button id="bCp">Copy out</button><button id="bX">Close the book</button></div>'+
+ (edit?'<div class="row">Binding: '+COLORS.map(function(c){return '<span class="sw'+(c==b.color?' on':'')+'" data-c="'+c+'" style="background:'+c+'"></span>'}).join('')+' Ink: <select id="bI">'+Object.keys(INKS).map(function(k){return '<option'+(k==b.ink?' selected':'')+'>'+k+'</option>'}).join('')+'</select><button id="bPDel">Tear out page</button>'+(b.slot?'<button id="bOff">Take off the shelf</button>':'')+'<button id="bDel">Burn this book</button></div>':''));
+ var done=function(){if(p.t.trim().length>=20&&!p.g){p.g=1;gain(2,'A PAGE WRITTEN')}touch()};
+ bind('#bP',function(){done();openBook(id,pg-1,edit)});bind('#bN2',function(){done();if(pg==b.pages.length-1)b.pages.push({t:'',pics:[],arts:[]});openBook(id,pg+1,edit)});bind('#bE',function(){done();openBook(id,pg,!edit)});bind('#bX',function(){done();closeUI()});
+ bind('#bAP',function(){pick('Add a picture',Object.keys(S.pics).map(pTile).join('')||'<span class="dim">No pictures yet.</span>',function(v){p.pics.push(v);touch();openBook(id,pg,edit)},function(){openBook(id,pg,edit)},function(){painter(null,function(nid){p.pics.push(nid);touch();openBook(id,pg,edit)})})});
+ bind('#bAA',function(){pick('Press an item in this page',S.owned.map(function(a){return tile(a,1)}).join(''),function(v){p.arts.push(v);touch();openBook(id,pg,edit)},function(){openBook(id,pg,edit)})});
+ bind('#bCp',function(){var s=b.title+'\n\n'+b.pages.map(function(x,i){return '--- page '+(i+1)+' ---\n'+x.t}).join('\n\n');open_('<h2>Copy out: '+esc(b.title)+'</h2><textarea style="height:280px">'+esc(s)+'</textarea><div class="row"><button id="bB">Back</button></div>');bind('#bB',function(){openBook(id,pg,edit)})});
+ if(edit){var ta=q('#bT');ta.oninput=function(){p.t=ta.value;touch();sfx('scratch')};ta.focus();q('#bN').oninput=function(){b.title=this.value||'Untitled';touch()};
+  bind('.sw',function(){b.color=this.getAttribute('data-c');dyn.clear();touch();openBook(id,pg,edit)});q('#bI').onchange=function(){b.ink=this.value;touch();openBook(id,pg,edit)};
+  bind('#bPDel',function(){if(b.pages.length>1&&confirm('Tear out this page?')){b.pages.splice(pg,1);touch();openBook(id,pg-1<0?0:pg-1,edit)}});
+  bind('#bOff',function(){delete S.place[b.slot];b.slot=null;dyn.clear();touch();openBook(id,pg,edit)});
+  bind('#bDel',function(){if(confirm('Burn "'+b.title+'" for good? This cannot be unburned.')){if(b.slot)delete S.place[b.slot];delete S.books[id];dyn.clear();touch();closeUI();say('THE PAGES CURL TO ASH.')}})}}
+function pick(title,inner,fn,back,fresh_){open_('<h2>'+esc(title)+'</h2><div class="tiles">'+inner+'</div><div class="row">'+(fresh_?'<button id="pkN">Draw a new one</button>':'')+'<button id="pkB">Back</button></div>');bind('.tile',function(){fn(this.getAttribute('data-v'))});bind('#pkB',back);if(fresh_)bind('#pkN',fresh_)}
+var TOME=['A Treatise on Damp','Soups of the Low Countries','Nine Hundred Sermons, Abridged','The Wrong Way to Hold a Goose','On the Migration of Stationery','Accounts, Year of the Cough','Pocket Guide to Lesser Saints','Ye Olde Tax Law','Bees: A Warning','What the Moon Owes Us'];
+function slotPanel(k,r,c){var sl=k+':'+r+':'+c,p=S.place[sl];if(p&&p.b&&S.books[p.b])return openBook(p.b,0,false);
+ if(p&&p.a){var a=ARTS[p.a];open_('<h2>'+esc(a.name)+'</h2><div class="tiles">'+tile(p.a,1)+'</div><p>'+esc(a.desc)+'</p><div class="row"><button id="tk">Take it down</button><button id="uiX">Step back</button></div>');bind('#uiX',closeUI);bind('#tk',function(){delete S.place[sl];dyn.delete(k);touch();closeUI()});return}
+ if(p&&p.p&&S.pics[p.p]){open_('<h2>'+esc(S.pics[p.p].name)+'</h2><canvas class="ic" data-p="'+p.p+'" data-s="8"></canvas><div class="row"><button id="tk">Take it down</button><button id="uiX">Step back</button></div>');bind('#uiX',closeUI);bind('#tk',function(){delete S.place[sl];dyn.delete(k);touch();closeUI()});return}
+ var h=hash(k,r*5+c),old=h%5<2,un=Object.keys(S.books).filter(function(i){return !S.books[i].slot});
+ open_('<h2>'+(old?'An old tome: <i>'+TOME[h%TOME.length]+'</i>':'An empty place on the shelf')+'</h2><div class="dim">'+esc(roomOfKey(k))+'. '+(old?'Dusty and unreadable. You could make room for something better.':'Remember where you are standing. That is the whole trick of a memory palace.')+'</div><h3>Bind a new book here</h3><div class="row"><input id="nb" placeholder="What have you learned?" style="flex:1"><button id="nbGo">Bind it</button></div><h3>Shelve a loose book</h3><div class="row">'+(un.map(function(i){return '<button class="ub" data-v="'+i+'">'+esc(S.books[i].title)+'</button>'}).join('')||'<span class="dim">None loose.</span>')+'</div><h3>Set out a curio</h3><div class="tiles" id="cu">'+S.owned.map(function(a){return tile(a,1)}).join('')+'</div><h3>Stand up a miniature of your picture</h3><div class="tiles" id="mi">'+(Object.keys(S.pics).map(pTile).join('')||'<span class="dim">Draw pictures at the podium.</span>')+'</div><div class="row"><button id="uiX">Step back</button></div>');
+ bind('#uiX',closeUI);q('#nb').focus();var go=function(){var b=newBook(sl);b.title=q('#nb').value.trim()||'Untitled';dyn.delete(k);openBook(b.id,0,true)};bind('#nbGo',go);q('#nb').onkeydown=function(e){if(e.key=='Enter')go()};
+ bind('.ub',function(){var i=this.getAttribute('data-v');S.place[sl]={b:i};S.books[i].slot=sl;dyn.delete(k);touch();closeUI();say('SHELVED. REMEMBER THIS PLACE.')});
+ bind('#cu .tile',function(){S.place[sl]={a:this.getAttribute('data-v')};dyn.delete(k);touch();closeUI()});bind('#mi .tile',function(){S.place[sl]={p:this.getAttribute('data-v')};dyn.delete(k);touch();closeUI()})}
+function wallPanel(k){var w=S.wall[k];
+ if(w&&w.p&&S.pics[w.p]){open_('<h2>'+esc(S.pics[w.p].name)+'</h2><canvas class="ic" data-p="'+w.p+'" data-s="9"></canvas><div class="row"><button id="tk">Take it down</button><button id="uiX">Step back</button></div>');bind('#uiX',closeUI);bind('#tk',function(){delete S.wall[k];dyn.delete(k);touch();closeUI()});return}
+ if(w&&w.n!=null){open_('<h2>A note pinned to the wall</h2><textarea id="nt" style="height:90px" maxlength="60">'+esc(w.n)+'</textarea><div class="row"><button id="uiX">Pin it back</button><button id="tk">Tear it down</button></div>');bind('#uiX',function(){w.n=q('#nt').value;dyn.delete(k);touch();closeUI()});bind('#tk',function(){delete S.wall[k];dyn.delete(k);touch();closeUI()});return}
+ open_('<h2>A bare stretch of wall</h2><h3>Pin a note (short)</h3><div class="row"><input id="nt" maxlength="60" style="flex:1" placeholder="Remember the milk"><button id="ntGo">Pin</button></div><h3>Hang a picture</h3><div class="tiles" id="hp">'+(Object.keys(S.pics).map(pTile).join('')||'<span class="dim">No pictures yet.</span>')+'</div><div class="row"><button id="pkN">Draw a new one</button><button id="uiX">Step back</button></div>');q('#nt').focus();
+ bind('#uiX',closeUI);bind('#ntGo',function(){var t=q('#nt').value.trim();if(t){S.wall[k]={n:t};dyn.delete(k);touch()}closeUI()});bind('#hp .tile',function(){S.wall[k]={p:this.getAttribute('data-v')};dyn.delete(k);touch();closeUI()});bind('#pkN',function(){painter(null,function(id){S.wall[k]={p:id};dyn.delete(k);touch();closeUI()})})}
+function scriptorium(){var ids=Object.keys(S.books);open_('<h2>The Scribes\' Podium</h2><div class="row"><canvas class="ic" data-a="quill" data-s="4"></canvas><canvas class="ic" data-a="ink" data-s="4"></canvas><span class="dim" style="flex:1">The quill is cut, the ink is mixed, the candle is lying about how late it is. Bind books here, or draw pictures to hang on walls and press into pages.</span></div><div class="row"><input id="nb" placeholder="Title of a new book" style="flex:1"><button id="nbGo">Bind a loose book</button><button id="drw">Draw a new picture</button><button id="uiX">Step back</button></div><h3>Your books</h3><div class="row">'+(ids.map(function(i){return '<button class="ob" data-v="'+i+'">'+esc(S.books[i].title)+(S.books[i].slot?'':' (loose)')+'</button>'}).join('')||'<span class="dim">None yet. Bind one, then carry it to any shelf: stand at an empty place and press E.</span>')+'</div><h3>Your pictures</h3><div class="tiles" id="pp">'+(Object.keys(S.pics).map(pTile).join('')||'<span class="dim">None yet.</span>')+'</div>');
+ bind('#uiX',closeUI);bind('#nbGo',function(){var b=newBook(null);b.title=q('#nb').value.trim()||'Untitled';openBook(b.id,0,true)});bind('#drw',function(){painter(null,scriptorium)});bind('.ob',function(){openBook(this.getAttribute('data-v'),0,false)});bind('#pp .tile',function(){painter(this.getAttribute('data-v'),scriptorium)})}
+function painter(id,done){var old=id&&S.pics[id],a=(old?old.d:new Array(1025).join('0')).split(''),cur=15,tool='pen',und=null,nm=old?old.name:'Picture '+(Object.keys(S.pics).length+1);
+ open_('<h2>The Limner\'s Easel</h2><div class="row">Name <input id="pn" value="'+esc(nm)+'"><button id="pSave">Seal it</button>'+(old?'<button id="pDel">Scrape it off</button>':'')+'<button id="pBack">Back</button></div><div class="row">'+DB.map(function(c,i){return '<span class="sw'+(i==15?' on':'')+'" data-i="'+i+'" style="background:'+c+'"></span>'}).join('')+'</div><div class="row"><button class="tl" data-t="pen">Quill</button><button class="tl" data-t="fill">Ink pot (fill)</button><button class="tl" data-t="pick">Pick colour</button><button id="pU">Undo</button><button id="pC">Clear</button><label class="dim">Copy from a picture file: <input type="file" id="pF" accept="image/*"></label></div><canvas id="pad" width="384" height="384" style="image-rendering:pixelated;border:4px solid #6b4423;cursor:crosshair;touch-action:none;max-width:100%"></canvas>');
+ var pad=q('#pad'),x=pad.getContext('2d'),redraw=function(){for(var i=0;i<1024;i++){x.fillStyle=DB[parseInt(a[i],16)];x.fillRect(i%32*12,(i>>5)*12,12,12)}x.fillStyle='rgba(255,255,255,.05)';for(var i=0;i<32;i++){x.fillRect(i*12,0,1,384);x.fillRect(0,i*12,384,1)}};redraw();
+ var at=function(e){var r=pad.getBoundingClientRect();return{x:Math.floor((e.clientX-r.left)/r.width*32),y:Math.floor((e.clientY-r.top)/r.height*32)}},snap=function(){und=a.slice()};
+ var put=function(e){var p=at(e);if(p.x<0||p.y<0||p.x>31||p.y>31)return;var i=p.y*32+p.x;if(tool=='pick'){cur=parseInt(a[i],16);tool='pen';mark();return}if(tool=='fill'){var from=a[i],to=cur.toString(16);if(from==to)return;var st=[i];while(st.length){var c=st.pop();if(a[c]!=from)continue;a[c]=to;if(c%32>0)st.push(c-1);if(c%32<31)st.push(c+1);if(c>=32)st.push(c-32);if(c<992)st.push(c+32)}redraw();return}a[i]=cur.toString(16);redraw()},dn=false;
+ var mark=function(){var n=ui.querySelectorAll('.sw');for(var i=0;i<n.length;i++)n[i].className='sw'+(+n[i].getAttribute('data-i')==cur?' on':'')};
+ pad.onpointerdown=function(e){dn=true;snap();pad.setPointerCapture(e.pointerId);put(e);sfx('scratch')};pad.onpointermove=function(e){if(dn&&tool=='pen')put(e)};pad.onpointerup=function(){dn=false};
+ bind('.sw',function(){cur=+this.getAttribute('data-i');mark()});bind('.tl',function(){tool=this.getAttribute('data-t')});bind('#pU',function(){if(und){a=und;und=null;redraw()}});bind('#pC',function(){snap();a=new Array(1025).join('0').split('');redraw()});bind('#pBack',done==scriptorium?scriptorium:function(){closeUI()});
+ q('#pF').onchange=function(){var f=this.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){var im=new Image();im.onload=function(){var o=document.createElement('canvas');o.width=o.height=32;var g=o.getContext('2d');g.drawImage(im,0,0,32,32);try{var d=g.getImageData(0,0,32,32).data;snap();for(var i=0;i<1024;i++){var best=0,bd=1e9;for(var c=0;c<16;c++){var n=parseInt(DB[c].slice(1),16),e=Math.pow(d[i*4]-(n>>16),2)+Math.pow(d[i*4+1]-(n>>8&255),2)+Math.pow(d[i*4+2]-(n&255),2);if(e<bd){bd=e;best=c}}a[i]=best.toString(16)}redraw()}catch(er){}};im.src=rd.result};rd.readAsDataURL(f)};
+ bind('#pSave',function(){var nid=id||'p'+S.nid++;var isNew=!old;S.pics[nid]={name:q('#pn').value.trim()||'Untitled',d:a.join('')};dyn.clear();touch();if(isNew)gain(3,'A PICTURE MADE');done(nid)});
+ bind('#pDel',function(){if(confirm('Scrape this picture off for good?')){delete S.pics[id];Object.keys(S.place).forEach(function(k){if(S.place[k].p==id)delete S.place[k]});Object.keys(S.wall).forEach(function(k){if(S.wall[k].p==id)delete S.wall[k]});dyn.clear();touch();done(null)}})}
+function cratePanel(){var un=ART.filter(function(a){return S.owned.indexOf(a[0])<0&&a[0]!='codex'});open_('<h2>The Curio Crate</h2><p>Ten lore buys a crowbar and a look inside. You have <b>'+S.lore+'</b> lore. Write pages, make pictures, answer the Bell, pet the cat.</p><div class="row"><button id="cO"'+(S.lore<10||!un.length?' disabled':'')+'>Open a crate (10 lore)</button><button id="uiX">Step back</button></div><div id="cG"></div>');bind('#uiX',closeUI);bind('#cO',function(){var a=un[Math.random()*un.length|0];S.lore-=10;S.owned.push(a[0]);touch();sfx('good');cratePanel();q('#cG').innerHTML='<h3>Inside: '+esc(a[1])+'</h3><div class="tiles">'+tile(a[0],1)+'</div><p>'+esc(a[2])+'</p>';paintIcons()})}
+function pagesAll(){var o=[];Object.keys(S.books).forEach(function(i){S.books[i].pages.forEach(function(p){if(p.t.trim())o.push({b:S.books[i],t:p.t.trim()})})});return o}
+function bell(){sfx('bell');var ps=pagesAll().filter(function(p){return p.b.slot});if(S.quest&&S.books[S.quest.id]){var b=S.books[S.quest.id];return note('<h3>The Bell, again</h3><p>It tolls for <b>'+esc(b.title.replace(/./g,function(c,i){return i%2?'_':c}))+'</b>. Try <b>'+esc(roomOfKey(b.slot))+'</b>.</p>')}if(!ps.length)return note('<h3>The Bell of Recall</h3><p>It tolls, and nothing answers. Shelve a book with something written in it, then ring again and the Bell will quiz you: it reads you a line, and you walk to the book that holds it.</p>');var p=ps[Math.random()*ps.length|0];S.quest={id:p.b.id,t:Date.now()};note('<h3>The Bell of Recall</h3><p>A voice from the rafters reads:</p><blockquote><i>"'+esc(p.t.slice(0,140))+(p.t.length>140?'…':'')+'"</i></blockquote><p>Walk to the shelf where you keep this, and open the book. Five lore if you remember.</p>')}
+function well(){if(S.lore<1)return say('YOU HAVE NOT A SCRAP OF LORE TO THROW IN.');S.lore--;touch();noise(.4,.05,600);var un=ART.filter(function(a){return S.owned.indexOf(a[0])<0&&a[0]!='codex'});if(un.length&&Math.random()<.12){var a=un[Math.random()*un.length|0];S.owned.push(a[0]);sfx('good');note('<h3>Something floats up!</h3><div class="tiles">'+tile(a[0],1)+'</div><p>'+esc(a[2])+'</p>');return}var w=['A SPLASH. THEN, FAINTLY: "SPEAK UP."','THE WELL CONSIDERS IT.','THE WELL SAYS YOU ALREADY KNEW THAT.','THE WELL HAS HEARD THIS ONE.','YOUR LORE SINKS. THE MOON RIPPLES.'];say(w[Math.random()*w.length|0])}
+function tree(){var ps=pagesAll();sfx('page');if(!ps.length)return say('NO FRUIT YET. THE TREE GROWS ONLY ON WHAT YOU WRITE.');var p=ps[Math.random()*ps.length|0];note('<h3>An apple falls</h3><p>It tastes of something you once knew:</p><blockquote><i>"'+esc(p.t.slice(0,220))+'"</i></blockquote><p class="dim">From <b>'+esc(p.b.title)+'</b>'+(p.b.slot?' in '+esc(roomOfKey(p.b.slot)):'')+'.</p>')}
+function riddle(){var h=S.hunt,w=WORDS[HP.word];if(h.got.silver)return note('<p>The riddle shelf stands open. It has nothing more to say.</p>');var letters=(w[0]+w[2]).split('').sort(function(a,b){return hash(a.charCodeAt(0),h.seed)-hash(b.charCodeAt(0),h.seed)}),got=[];var draw=function(){open_('<h2>The Riddle Shelf</h2><p><i>'+esc(w[1])+'</i></p><p>Pull the spines that spell the answer, in order.</p><div class="row" style="font-size:22px;min-height:34px;color:#6d1420"><b>'+(got.join(' ')||'&nbsp;')+'</b></div><div class="row">'+letters.map(function(l,i){return '<button class="sp" data-i="'+i+'" style="height:60px;width:34px;font-size:16px;background:'+COLORS[i%8]+'">'+l+'</button>'}).join('')+'</div><div class="row"><button id="rR">Push them all back</button><button id="uiX">Step back</button></div>');bind('#uiX',closeUI);bind('#rR',function(){got=[];draw()});bind('.sp',function(){got.push(this.textContent);sfx('page');if(got.join('')==w[0]){closeUI();award('silver','A click. A shelf swings aside and a SILVER SEAL rolls out, stamped with the third numeral')}else if(got.length>=w[0].length){got=[];sfx('bad');draw()}else draw()})};draw()}
+function orrery(){var h=S.hunt;if(h.got.gold)return note('<p>The rings hum in perfect step.</p>');var v=h.rings||[1,1,1];var draw=function(){open_('<h2>The Great Orrery</h2><p class="dim">Three brass rings: moons, stars, suns.</p><div>'+['Moons','Stars','Suns'].map(function(n,i){return '<div class="wheel"><button class="up" data-i="'+i+'">+</button>'+v[i]+'<div class="dim">'+n+'</div></div>'}).join('')+'</div><div class="row"><button id="oG">Engage the gears</button><button id="uiX">Step back</button></div>');bind('#uiX',closeUI);bind('.up',function(){var i=+this.getAttribute('data-i');v[i]=v[i]%6+1;h.rings=v;tone(600,.05);draw()});bind('#oG',function(){if(v.join()==HP.win.join()){closeUI();award('gold','The whole sky turns. A GOLD SEAL drops from the sun, stamped with the fourth numeral')}else{sfx('bad');closeUI();say('THE GEARS GRIND AND SLIP BACK.')}})};draw()}
+function gatePanel(i){var v=[0,0,0,0],draw=function(){open_('<h2>The Crypt Gate</h2><p class="dim">Four iron wheels, cold to the touch.</p><div>'+v.map(function(n,j){return '<div class="wheel"><button class="up" data-i="'+j+'">+</button>'+n+'</div>'}).join('')+'</div><div class="row"><button id="gG">Heave the gate</button><button id="uiX">Step back</button></div>');bind('#uiX',closeUI);bind('.up',function(){var j=+this.getAttribute('data-i');v[j]=(v[j]+1)%10;tone(420,.04);draw()});bind('#gG',function(){if(v.join()==HP.dig.join()){DOORS[i].opened=1;S.hunt.gate=1;touch();closeUI();openDoor(i);sfx('good');say('THE GATE RISES. COLD AIR. OLD PAGES.')}else{sfx('bad');closeUI();say('THE GATE DOES NOT MOVE.')}})};draw()}
+// ---------- menu ----------
+function menu(){$('menu').hidden=false;mode='ui';keys={};$('mStats').textContent='Books '+Object.keys(S.books).length+' · Pictures '+Object.keys(S.pics).length+' · Curios '+S.owned.length+'/'+ART.length+' · Lore '+S.lore+' · Secrets '+Object.keys(S.secrets).length+'/3 · Now in '+(S.mode=='hunt'?'the Hunt':'Palace mode');$('mHunt').textContent=S.hunt?'Continue the Hunt':'Begin the Hunt';$('code').value=''}
+$('mResume').onclick=closeUI;
+$('mBooks').onclick=function(){$('menu').hidden=true;var ids=Object.keys(S.books).sort(function(a,b){return S.books[a].title.localeCompare(S.books[b].title)});open_('<h2>Index of books</h2>'+(ids.map(function(i){var b=S.books[i];return '<div class="row"><button class="ob" data-v="'+i+'">'+esc(b.title)+'</button><span class="dim">'+(b.slot?esc(roomOfKey(b.slot)):'loose, at the podium')+'</span></div>'}).join('')||'<p class="dim">None yet. Find the podium in the Scribes\' Wing.</p>')+'<div class="row"><button id="uiX">Back</button></div>');bind('.ob',function(){openBook(this.getAttribute('data-v'),0,false)});bind('#uiX',function(){ui.hidden=true;inUI=false;menu()})};
+$('mCab').onclick=function(){$('menu').hidden=true;open_('<h2>Cabinet of Curiosities</h2><p class="dim">'+S.owned.length+' of '+ART.length+' found. Crates are in the Cabinet room; relics are in the Hunt.</p><div class="tiles">'+ART.map(function(a){return S.owned.indexOf(a[0])>=0?tile(a[0],1):'<div class="tile none"><canvas class="ic" width="60" height="60"></canvas>???</div>'}).join('')+'</div><div class="row"><button id="uiX">Back</button></div>');bind('#uiX',function(){ui.hidden=true;inUI=false;menu()})};
+function startMode(m){S.mode=m;if(m=='hunt'&&!S.hunt){newHunt();resetHuntWorld();say('THE HUNT BEGINS. READ THE LECTERN IN THE FOYER.',6)}$('title').hidden=true;closeUI();cv.focus();ac();roomT=0;lastRoom=''}
+$('mPal').onclick=function(){startMode('palace')};$('mHunt').onclick=function(){startMode('hunt')};
+$('mNew').onclick=function(){if(confirm('Start a new Hunt? Seals and relics reset. Your books stay.')){newHunt();resetHuntWorld();startMode('hunt');say('A NEW HUNT. THE BANNERS HAVE BEEN REHUNG.',5)}};
+function resetHuntWorld(){for(var k in DOORS){if(DOORS[k].lock){DOORS[k].opened=0;DOORS[k].want=0;DOORS[k].o=0}}if(S.hunt&&S.hunt.gate)for(var k in DOORS)if(DOORS[k].lock=='gate')DOORS[k].opened=1;if(S.hunt&&S.hunt.got.iron)for(var k in DOORS)if(DOORS[k].lock=='iron')DOORS[k].opened=1}
+$('tPal').onclick=function(){startMode('palace')};$('tHunt').onclick=function(){startMode('hunt')};
+$('mCode').onclick=function(){$('code').value=saveCode();$('code').select()};
+$('mLoad').onclick=function(){var ok=loadCode($('code').value.trim());$('code').value=ok?'':'That code would not load.';if(ok)closeUI()};
+function saveCode(){S.x=PX;S.y=PY;S.a=ANG;S.seen=packSeen();dirty=false;return btoa(unescape(encodeURIComponent(JSON.stringify(S))))}
+function packSeen(){var o=[];for(var i=0;i<seen.length;i++)if(seen[i])o.push(i);return o.join(',')}
+function loadCode(c){try{var d=JSON.parse(decodeURIComponent(escape(atob(c))));if(!d||!d.books||!d.owned)return false;S=Object.assign(fresh(),d);PX=S.x;PY=S.y;ANG=S.a;vec();seen.fill(0);String(S.seen||'').split(',').forEach(function(i){if(i)seen[+i]=1});dyn.clear();Object.keys(S.secrets).forEach(function(i){if(G[+i]=='X')openSecret(+i,true)});setupHunt();resetHuntWorld();dirty=false;$('tHunt').textContent=S.hunt?'Continue the Hunt':'The Hunt for the Lost Codex';return true}catch(e){return false}}
+// ---------- input ----------
+addEventListener('keydown',function(e){if(mode=='title')return;if(e.code=='Escape'){e.preventDefault();if(inUI){closeUI()}else if(!$('menu').hidden)closeUI();else menu();return}if(inUI||mode!='play')return;var c=e.code;if(c=='Tab'){e.preventDefault();showMap=!showMap;return}if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].indexOf(c)>=0)e.preventDefault();if(c=='KeyE'||c=='Space'||c=='Enter'){if(!e.repeat)use();return}if(c=='KeyH'){$('ctl').hidden=!$('ctl').hidden;return}if(c=='KeyN'){muted=!muted;say(muted?'SOUND OFF':'SOUND ON');return}if(c=='KeyP'){menu();return}if(c=='KeyK'){$('fileSave').click();say('SEALING YOUR WORK INTO THIS FILE.');dirty=false;return}keys[c]=true});
+addEventListener('keyup',function(e){delete keys[e.code]});addEventListener('blur',function(){keys={}});
+var drag=null;cv.addEventListener('pointerdown',function(e){if(mode!='play')return;ac();cv.focus();drag={x:e.clientX,y:e.clientY,m:0};cv.setPointerCapture(e.pointerId)});
+cv.addEventListener('pointermove',function(e){if(!drag||mode!='play')return;var dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.m+=Math.abs(dx)+Math.abs(dy);ANG+=dx*.005;pitch=Math.max(-70,Math.min(70,pitch-dy*.35));drag.x=e.clientX;drag.y=e.clientY;vec()});
+cv.addEventListener('pointerup',function(){if(drag&&drag.m<5&&mode=='play')use();drag=null});cv.tabIndex=0;
+$('ctl').textContent='W A S D / arrows  walk, turn\nShift  run\nmouse drag  look\nR / F  look up, down\nE / click  use, read, write\nTab  castle map\nEsc  save, shop, books\nK  quick save\nN  sound   H  hide this';
+var last=0;function loop(ts){var dt=Math.min(.05,(ts-last)/1000||0);last=ts;update(dt);frame();requestAnimationFrame(loop)}
+buildCells();buildLight();setupHunt();vec();
+udsFile.wire({buttons:['warnFile','fileSave'],get:saveCode,put:function(c){loadCode(c)}});
+if(!S.hunt)ANG=-Math.PI/2;vec();requestAnimationFrame(loop);
+</script></body></html>

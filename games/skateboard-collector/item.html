@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Skateboard Collector</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#1e1f22;color:#e6e6e6;font:14px/1.45 system-ui,Segoe UI,sans-serif}
+header{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:10px 14px;background:#26282c}
+h1{font-size:17px;margin:0 12px 0 0}button{background:#3a3d44;color:#e6e6e6;border:0;border-radius:6px;padding:6px 11px;cursor:pointer;font:inherit}
+button:hover{background:#4a4e57}button.on,button.go{background:#e0662f;color:#fff}button:disabled{opacity:.45;cursor:default}
+#cash{margin-left:auto;font-weight:700;color:#ffd166}main{padding:14px;max-width:1040px;margin:auto}.hide{display:none!important}
+.stage{position:relative}canvas{width:100%;display:block;border-radius:8px;background:#111}
+#ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;background:#000a;border-radius:8px;padding:12px}
+#ov h2{margin:0;font-size:24px}.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0}
+#ghost{position:absolute;top:17%;right:10px;z-index:2;pointer-events:none;opacity:.6;color:#fff;font-size:12px;line-height:1.3;text-align:right;text-shadow:0 1px 2px #000}
+#ghost div{margin:2px 0}#ghost b{display:block;margin-top:5px}#ghost kbd{background:#0006;border:1px solid #fff6;border-radius:4px;padding:0 5px;font:11px monospace}
+.panel{background:#2a2c31;border-radius:8px;padding:10px 12px;margin:10px 0}.cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}.cols .panel{margin:0}
+.bar{display:flex;align-items:center;gap:8px;margin:3px 0}.bar span{width:64px}.bar i{flex:1;height:9px;background:#191a1d;border-radius:5px;overflow:hidden;display:block}.bar b{display:block;height:100%;background:#e0662f}
+.keys kbd{background:#3a3d44;border-radius:4px;padding:0 6px;font:12px monospace}.keys div{margin:3px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.card{background:#2a2c31;border-radius:8px;padding:9px;border-top:3px solid #888;display:flex;flex-direction:column;gap:3px}.card.eq{outline:2px solid #e0662f}
+.pic{height:112px;display:flex;align-items:center;justify-content:center;background:#1a1b1e;border-radius:6px}.pic svg{max-height:104px;max-width:100%}
+.card b{word-break:break-word}.small{font-size:12px;color:#aaa}.card .row{margin:4px 0 0;gap:4px}.card button{padding:3px 7px;font-size:12px}
+.reveal{animation:pop .45s ease-out}@keyframes pop{0%{transform:scale(.3) rotate(-8deg);opacity:0}70%{transform:scale(1.07)}100%{transform:none;opacity:1}}
+label{display:block;margin:6px 0}select,input,textarea{background:#191a1d;color:#e6e6e6;border:1px solid #444;border-radius:5px;padding:5px;font:inherit}input[type=color]{padding:1px;width:48px;height:28px;vertical-align:middle}
+textarea{width:100%;height:130px;font:12px monospace}.url{font-family:monospace;font-size:12px;color:#8fc7ff;user-select:all;word-break:break-all}.maker{background:#2a2c31;border-radius:8px;padding:8px 10px;margin:6px 0}.maker b{display:block}
+@media(max-width:720px){.cols{grid-template-columns:1fr}#ghost{display:none}}
+</style></head><body>
+<header><h1>Skateboard Collector</h1><span id="tabs"><button data-v="skate">Skate</button> <button data-v="shop">Crates</button> <button data-v="coll">Collection</button> <button data-v="work">Custom shop</button> <button data-v="real">Real boards</button> <button data-v="save">Save / Load</button></span><span id="cash"></span></header>
+<main>
+<section id="v-skate"><div class="stage"><canvas id="c" width="960" height="420" tabindex="0"></canvas><div id="ov"></div>
+<div id="ghost">
+<b>On the ground</b>
+<div>Jump, hold for higher <kbd>Space</kbd></div>
+<div>Manual (wheelie) <kbd>M</kbd></div>
+<b>In the air</b>
+<div>Kickflip <kbd>←</kbd></div>
+<div>Heelflip <kbd>→</kbd></div>
+<div>Shove-it <kbd>↓</kbd></div>
+<div>Grab, let go before landing <kbd>↑</kbd></div>
+<div>Grind, then drop onto a rail <kbd>G</kbd></div>
+<div>Laser flip, when Special is on <kbd>C</kbd></div>
+<b>On a rail or in a manual</b>
+<div>Keep your balance <kbd>←</kbd> <kbd>→</kbd></div>
+<div>Jump off <kbd>Space</kbd></div>
+</div></div>
+<div class="row" id="spots"></div>
+<div class="cols"><div class="panel"><b>Your setup</b><div id="bars"></div></div>
+<div class="panel keys"><b>Controls</b>
+<div><kbd>Space</kbd> ollie (hold for higher) · also pops off rails and manuals</div>
+<div>In the air: <kbd>←</kbd> kickflip · <kbd>→</kbd> heelflip · <kbd>↓</kbd> shove-it · hold <kbd>↑</kbd> melon grab (let go before landing)</div>
+<div>Tap the same arrow twice fast for a double. Finish a flip before you land.</div>
+<div><kbd>G</kbd> in the air, then drop onto a rail or ledge to grind. Hold an arrow as you lock on for a different grind.</div>
+<div><kbd>M</kbd> manual, keeps a combo alive between landings. <kbd>←</kbd><kbd>→</kbd> balance grinds and manuals.</div>
+<div><kbd>C</kbd> laser flip, only while Special is on. Fill Special with tricks; it doubles combos.</div></div></div></section>
+
+<section id="v-shop" class="hide"><p>Spend cash from your runs on crates. Each one holds one random part or piece of gear.</p><div class="row" id="crates"></div><div id="opened" class="grid"></div></section>
+
+<section id="v-coll" class="hide"><div class="row"><select id="fSlot"></select><label style="margin:0"><input type="checkbox" id="fStar"> Prized set only</label><span id="collCount" class="small"></span></div><div id="items" class="grid"></div></section>
+
+<section id="v-work" class="hide"><div class="cols"><div class="panel">
+<label>Part <select id="wPart"><option value="deck">Deck</option><option value="wheels">Wheels</option><option value="grip">Griptape</option></select></label>
+<label>Name <input id="wName" maxlength="28" value="My Custom"></label>
+<label>Main colour <input type="color" id="wC1" value="#e0662f"> Second colour <input type="color" id="wC2" value="#ffd166"></label>
+<label>Pattern <select id="wPat"></select></label>
+<label id="wTextL">Graphic text <input id="wText" maxlength="18" value="SKATE"></label>
+<label id="wWidthL">Deck width <select id="wWidth"></select></label>
+<label id="wSizeL" class="hide">Wheel size <select id="wSize"></select> Hardness <select id="wDuro"></select></label>
+<label>Shop grade <select id="wGrade"></select></label>
+<div class="row"><button class="go" id="wBuild">Build it</button><span id="wMsg" class="small"></span></div></div>
+<div class="panel"><b>Preview</b><div class="pic" style="height:300px" id="wPrev"></div><div id="wStats" class="small"></div></div></div></section>
+
+<section id="v-real" class="hide">
+<div class="maker"><b>Find real in-game items here:</b>Randy's Etsy shop.<div class="url">https://www.etsy.com/shop/UberRandis</div><div>If you would like to be a sponsor or host your items, goods, and products on my store, contact me:</div><div>Comments</div><div class="url">https://github.com/RandyWilliamMoore/randis-uds/discussions</div><div>Discord</div><div class="url">https://discord.gg/83RmuHcQTR</div><div>Ko-fi</div><div class="url">https://ko-fi.com/moorescombinatoricsmatrix</div></div><p>Take the board you have equipped into real life. Deck width, wheel size and hardness below are real specs. The game's stats aren't.</p>
+<div class="cols"><div class="panel"><b>Order brief</b><textarea id="rBrief" readonly></textarea></div><div class="panel"><b>Deck art (SVG)</b><div class="small">Paste into a file named deck.svg to upload to a printer. Check their template first.</div><textarea id="rSvg" readonly></textarea></div></div>
+<h3>Print your own deck</h3>
+<div class="maker"><b>Prodigi: try first if you want to link this from the game</b>Print-on-demand maker that prints the deck's underside and ships to the buyer, so nobody has to hold stock. 7-ply Canadian maple, with or without wheels.<div class="url">https://prodigi.com/products/sport-and-games/skateboards</div></div>
+<div class="maker"><b>Custom Skateboards</b>US factory with an online designer. One page lists $40 each for 1 to 9 decks, but setup fees vary between its pages, so confirm the price. It also prints on wheels it buys in.<div class="url">https://customskateboards.com/Manufacturers-Prices</div></div>
+<div class="maker"><b>Your Custom Skateboard (UK)</b>A customer review describes ordering a single custom-print deck for display.<div class="url">https://yourcustomskateboard.co.uk</div></div>
+<div class="maker"><b>BoardPusher</b>Personalise with your own text on its ready-made graphics. Good for names, less so for your own art.<div class="url">https://www.boardpusher.com/personalize/</div></div>
+<h3>Custom wheels</h3>
+<div class="maker"><b>Canterberry Gifts</b>Logo printed on 55mm wheels, sold in bulk: tiers start at 100, and $11.44 each at 500.<div class="url">https://www.canterberrygifts.com/custom-skateboard-wheels/</div></div>
+<h3>Build a real board from shop parts</h3>
+<div class="maker"><b>Status Skate Shop</b>Parts checklist, and it can build the board for you.<div class="url">https://statusskateshop.com/pages/build-your-own-custom-skateboard</div></div>
+<div class="maker"><b>Skatedeluxe</b>Its configurator only offers parts that fit the deck you picked.<div class="url">https://www.skatedeluxe.com/blog/en/?p=74032</div></div>
+<div class="maker"><b>SkatePro</b>Online board builder.<div class="url">https://www.skatepro.com/en-us/84-51441.htm</div></div>
+<div class="maker"><b>Slam City Skates</b>Build guide: most riders pick 50 to 54mm wheels at 99A or harder.<div class="url">https://slamcity.com/pages/build-a-complete-skateboard</div></div>
+<p class="small">From web search results on 2026-11-01. I didn't order from any of these or confirm prices with them. Brands in the game are made up. Click a link to select it, then copy it into your browser.</p></section>
+
+<section id="v-save" class="hide"><p id="saveNote"></p><textarea id="code"></textarea><div class="row"><button id="bCopy">Refresh code</button><button id="bLoad">Load this code</button><button id="fileSave">Save game to this file</button><button id="bReset">Start over</button><span class="small uds-msg"></span><span id="saveMsg" class="small"></span></div></section>
+</main>
+<script type="application/json" id="uds-save">""</script>
+<script id="uds-save-kit">
+// Saving inside this file: the page as it was before the game ran, plus the game's script, plus the save.
+var udsFile=(function(){
+  var shell=document.documentElement.outerHTML,handle=null;
+  function say(t){[].forEach.call(document.querySelectorAll('.uds-msg'),function(e){e.textContent=t})}
+  function stored(){try{var c=JSON.parse(document.getElementById('uds-save').textContent);return typeof c==='string'?c:''}catch(e){return ''}}
+  function text(code){
+    var main=document.getElementById('game-main').outerHTML,
+        block='<script type="application/json" id="uds-save">'+JSON.stringify(code).replace(/</g,'\\u003c')+'<\/script>';
+    return '<!doctype html>\n'+shell.replace(/<script type="application\/json" id="uds-save">[\s\S]*?<\/script>/,function(){return block}).replace(/<\/body>\s*<\/html>\s*$/,function(){return main+'</body></html>'});
+  }
+  function name(){var p=decodeURIComponent(location.pathname.split('/').pop()||'');
+    return location.protocol==='file:'&&/\.html?$/i.test(p)?p:document.title.toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.html'}
+  function download(t){var a=document.createElement('a'),u=URL.createObjectURL(new Blob([t],{type:'text/html'}));a.href=u;a.download=name();document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},5000)}
+  async function save(get){
+    var t=text(get());
+    if(window.parent!==window){
+      var done=false;
+      var ack=function(e){if(e.source===parent&&e.data&&e.data.uds==='saved'){done=true;removeEventListener('message',ack);say(String(e.data.note||'Saved.'))}};
+      addEventListener('message',ack);parent.postMessage({uds:'save-file',text:t},'*');
+      setTimeout(function(){if(!done){removeEventListener('message',ack);say("Files can't be saved from here. Use the save code.")}},2500);
+      return;
+    }
+    if(window.showSaveFilePicker){
+      try{
+        if(!handle)handle=await showSaveFilePicker({suggestedName:name(),types:[{description:'Game file',accept:{'text/html':['.html','.htm']}}]});
+        var w=await handle.createWritable();await w.write(t);await w.close();say('Saved into '+handle.name+'.');return;
+      }catch(e){if(e&&e.name==='AbortError'){say('Not saved.');return}handle=null}
+    }
+    download(t);say('Saved as a new copy in your downloads.');
+  }
+  return {stored:stored,text:text,wire:function(o){
+    o.buttons.forEach(function(id){var b=document.getElementById(id);if(b)b.onclick=function(){save(o.get)}});
+    var c=stored();if(c)o.put(c);
+  }};
+})();
+</script>
+<script id="game-main">
+var $=function(i){return document.getElementById(i)};
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function rnd(a){return a[Math.floor(Math.random()*a.length)]}
+var SLOTS=['deck','trucks','wheels','bearings','grip','shoes','helmet'];
+var SLOTN={deck:'Deck',trucks:'Trucks',wheels:'Wheels',bearings:'Bearings',grip:'Griptape',shoes:'Shoes',helmet:'Helmet'};
+var RAR=[['Common','#9aa0a6',6,15],['Uncommon','#57c26b',10,30],['Rare','#4ba3ff',15,70],['Epic','#b56cff',21,170],['Legendary','#ffb52e',28,400]];
+var W8={deck:{pop:.6,flip:.2,style:.2},trucks:{bal:.6,pop:.2,style:.2},wheels:{speed:.6,flip:.2,bal:.2},bearings:{speed:.8,style:.2},grip:{flip:.6,bal:.4},shoes:{bal:.4,flip:.3,style:.3},helmet:{style:.7,bal:.3}};
+var STATN={pop:'Pop',speed:'Speed',flip:'Flip',bal:'Balance',style:'Style'};
+var BRAND=['Kerb Gull','Blacktop Saints','Vert Hound','Grimy Pigeon','Nine Stair','Bent Axle','Rust Belt','Loose Bolt','Sidewalk Ghost','Night Curb','Wax Ledge','Tail Scrape'];
+var MODEL={deck:['Popsicle','Street Pro','Old School','Team Issue','Pool Shape','Slick'],trucks:['Hollow','Forged','Low','Mid','Titanium'],wheels:['Formula','Conical','Cruiser','Hard Line','Dust Cutter'],bearings:['Reds','Ceramic','Swiss Cut','Built-In','Silent'],grip:['Coarse','Clear Cut','Mob','Sharkskin'],shoes:['Vulc Lows','Cup Mids','Suede Pros','Canvas Slips'],helmet:['Lid','Dome','Certified Skull','Bucket']};
+var PATS=['solid','stripes','checker','dots','bolt','split','waves'];
+var COLS=['#e0662f','#ffd166','#4ba3ff','#57c26b','#d6336c','#7950f2','#20c997','#f8f9fa','#868e96','#ff922b','#74c0fc','#a9e34b'];
+var CRATES=[['Street crate',200,[70,25,5,0,0]],['Pro crate',600,[25,45,22,7,1]],['Signature crate',1500,[0,15,45,30,10]]];
+var GRADES=[['Garage (Common)',0,300],['Local shop (Rare)',2,1200],['Pro shop (Epic)',3,3000],['Master builder (Legendary)',4,7000]];
+var SPOTS=[{n:'Parking Lot',need:0,m:1,sky:['#3b4a6b','#c98f6b'],mix:['cone','cone','rail','ledge','kicker','pit']},{n:'School Yard',need:15000,m:1.25,sky:['#4c86c6','#bfe3f5'],mix:['cone','rail','ledge','ledge','kicker','pit','pit']},{n:'Downtown',need:80000,m:1.6,sky:['#191b3a','#a4476c'],mix:['rail','rail','ledge','pit','pit','cone','kicker']},{n:'Mega Park',need:250000,m:2.2,sky:['#0f3d3e','#e2a65c'],mix:['rail','ledge','kicker','kicker','pit','rail','cone']}];
+var nid=1,state,G=null,view='skate',lastRes=null;
+function makeItem(slot,r,o){o=o||{};var it={id:nid++,slot:slot,r:r,name:o.name||(rnd(BRAND)+' '+rnd(MODEL[slot])),c1:o.c1||rnd(COLS),c2:o.c2||rnd(COLS),pat:o.pat||rnd(PATS),text:o.text||'',custom:!!o.custom,star:false,st:{}};
+ var pts=RAR[r][2];for(var k in W8[slot])it.st[k]=Math.round(pts*W8[slot][k]*(.85+Math.random()*.3));
+ if(slot==='deck'){it.w=o.w||rnd([7.75,8,8.25,8.5,8.75,9]);if(!o.text&&Math.random()<.5)it.text=rnd(['SKATE','RIP','GNAR','NO COMPLY','SEND IT','POP','BAIL']);var d=(it.w-8.25)*6;it.st.bal=Math.round(d);it.st.flip=Math.max(0,Math.round(it.st.flip-d))}
+ if(slot==='wheels'){it.size=o.size||rnd([50,51,52,53,54,56,58]);it.duro=o.duro||rnd([84,92,95,99,101]);var e=it.size-53;it.st.speed=Math.max(0,Math.round(it.st.speed+e+(it.duro-97)*.25));it.st.flip=Math.max(0,Math.round(it.st.flip-e))}
+ return it}
+function fresh(){nid=1;var s={cash:300,life:0,best:{},spot:0,items:[],eq:{},runs:0};SLOTS.forEach(function(sl){var it=makeItem(sl,0,sl==='deck'?{name:'Starter Blank',w:8.25,pat:'solid',c1:'#c9a26b',c2:'#8a6a3f',text:''}:{name:'Starter '+SLOTN[sl]});s.items.push(it);s.eq[sl]=it.id});s.nid=nid;return s}
+function byId(id){for(var i=0;i<state.items.length;i++)if(state.items[i].id===id)return state.items[i];return null}
+function eqItem(sl){return byId(state.eq[sl])||state.items.filter(function(i){return i.slot===sl})[0]}
+function rawStats(){var s={pop:0,speed:0,flip:0,bal:0,style:0};SLOTS.forEach(function(sl){var it=eqItem(sl);if(it)for(var k in it.st)if(k in s)s[k]+=Number(it.st[k])||0});for(var k in s)s[k]=Math.max(0,s[k]);return s}
+function phys(){var s=rawStats(),h=eqItem('helmet');return{raw:s,popV:470+s.pop*3.2,speed:230+s.speed*2.6,flipF:1+s.flip*.012,drift:Math.max(.5,1.1-s.bal*.012),styleM:1+s.style*.01,grace:.05+s.flip*.0015,bailT:Math.max(.5,1.1-(h?h.r:0)*.12)}}
+function persist(){state.nid=nid;try{localStorage.setItem('skateCollector',JSON.stringify(state))}catch(e){}}
+function encode(){return btoa(unescape(encodeURIComponent(JSON.stringify(state))))}
+function adopt(o){if(!o||!Array.isArray(o.items)||!o.eq)throw new Error('bad');o.items=o.items.filter(function(i){return i&&SLOTS.indexOf(i.slot)>=0&&typeof i.id==='number'&&i.r>=0&&i.r<RAR.length});
+ SLOTS.forEach(function(sl){if(!o.items.some(function(i){return i.slot===sl}))throw new Error('bad')});o.cash=Number(o.cash)||0;o.life=Number(o.life)||0;o.best=o.best||{};o.spot=Number(o.spot)||0;if(!SPOTS[o.spot])o.spot=0;state=o;var mx=0;o.items.forEach(function(i){mx=Math.max(mx,i.id)});nid=Math.max(mx+1,Number(o.nid)||1)}
+
+/* ---- pictures ---- */
+var svgN=0;
+function patShapes(p,c,W,H){var s='',i,j;c=esc(c);
+ if(p==='stripes')for(i=0;i<H;i+=H/8)s+='<rect x="0" y="'+i+'" width="'+W+'" height="'+H/16+'" fill="'+c+'"/>';
+ if(p==='checker'){var q=W/5;for(i=0;i*q<H;i++)for(j=0;j<5;j++)if((i+j)%2)s+='<rect x="'+j*q+'" y="'+i*q+'" width="'+q+'" height="'+q+'" fill="'+c+'"/>'}
+ if(p==='dots')for(i=0;i<9;i++)for(j=0;j<3;j++)s+='<circle cx="'+(W/6+j*W/3)+'" cy="'+(H/18+i*H/9)+'" r="'+W/10+'" fill="'+c+'"/>';
+ if(p==='bolt')s+='<path d="M'+W*.65+' '+H*.08+'L'+W*.2+' '+H*.55+'H'+W*.48+'L'+W*.3+' '+H*.92+'L'+W*.82+' '+H*.42+'H'+W*.52+'Z" fill="'+c+'"/>';
+ if(p==='split')s+='<rect x="0" y="'+H/2+'" width="'+W+'" height="'+H/2+'" fill="'+c+'"/>';
+ if(p==='waves')for(i=0;i<7;i++){var y=H/14+i*H/7;s+='<path d="M0 '+y+'Q'+W/4+' '+(y-H/20)+' '+W/2+' '+y+'T'+W+' '+y+'" fill="none" stroke="'+c+'" stroke-width="'+W/14+'"/>'}
+ return s}
+function deckSVG(it,print){var W=82,H=320,id='k'+(++svgN),t=it.text?'<text transform="translate('+W/2+' '+H/2+') rotate(-90)" text-anchor="middle" dominant-baseline="middle" font-family="Impact,Arial Black,sans-serif" font-weight="900" font-size="34" fill="#fff" stroke="#000" stroke-width="1.2">'+esc(it.text)+'</text>':'';
+ var sz=print?' width="'+esc(it.w)+'in" height="32in"':'';
+ return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'"'+sz+'><defs><clipPath id="'+id+'"><rect width="'+W+'" height="'+H+'" rx="41"/></clipPath></defs><g clip-path="url(#'+id+')"><rect width="'+W+'" height="'+H+'" fill="'+esc(it.c1)+'"/>'+patShapes(it.pat,it.c2,W,H)+t+'</g></svg>'}
+function wheelSVG(it){var id='k'+(++svgN);return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100"><defs><clipPath id="'+id+'"><circle cx="50" cy="50" r="46"/></clipPath></defs><g clip-path="url(#'+id+')"><rect width="100" height="100" fill="'+esc(it.c1)+'"/>'+patShapes(it.pat,it.c2,100,100)+'</g><circle cx="50" cy="50" r="22" fill="#2b2d31" stroke="#ccc" stroke-width="3"/><circle cx="50" cy="50" r="8" fill="#888"/></svg>'}
+function icon(it){var a=esc(it.c1),b=esc(it.c2);
+ if(it.slot==='deck')return deckSVG(it);if(it.slot==='wheels')return wheelSVG(it);
+ if(it.slot==='grip'){var id='k'+(++svgN);return '<svg viewBox="0 0 82 320"><defs><clipPath id="'+id+'"><rect width="82" height="320" rx="41"/></clipPath></defs><g clip-path="url(#'+id+')"><rect width="82" height="320" fill="#17181a"/><g opacity=".75">'+patShapes(it.pat==='solid'?'stripes':it.pat,it.c1,82,320)+'</g></g></svg>'}
+ if(it.slot==='trucks')return '<svg viewBox="0 0 120 80" width="120"><rect x="5" y="44" width="110" height="10" rx="5" fill="'+a+'"/><path d="M40 44L50 18H70L80 44Z" fill="'+b+'"/><rect x="48" y="8" width="24" height="10" fill="#777"/></svg>';
+ if(it.slot==='bearings')return '<svg viewBox="0 0 100 100" width="96"><circle cx="50" cy="50" r="44" fill="'+a+'"/><circle cx="50" cy="50" r="28" fill="'+b+'"/><circle cx="50" cy="50" r="15" fill="#1a1b1e"/></svg>';
+ if(it.slot==='shoes')return '<svg viewBox="0 0 120 70" width="125"><path d="M8 18L46 16L72 36L108 44Q114 52 110 56H8Z" fill="'+a+'"/><rect x="6" y="54" width="106" height="9" rx="4" fill="#f1f1f1"/><path d="M52 24L58 18M60 30L66 24" stroke="'+b+'" stroke-width="4"/></svg>';
+ return '<svg viewBox="0 0 110 80" width="120"><path d="M10 60C10 2 100 2 100 60Z" fill="'+a+'"/><rect x="8" y="56" width="94" height="8" rx="4" fill="'+b+'"/><circle cx="40" cy="30" r="5" fill="#1a1b1e"/><circle cx="60" cy="24" r="5" fill="#1a1b1e"/></svg>'}
+function spec(it){var s='';if(it.slot==='deck')s=it.w+'" wide';if(it.slot==='wheels')s=it.size+'mm '+it.duro+'A';return s}
+function statLine(it){var o=[];for(var k in it.st)if(it.st[k])o.push((it.st[k]>0?'+':'')+it.st[k]+' '+STATN[k]);return o.join(' · ')}
+function card(it,btns,cls){var eq=state.eq[it.slot]===it.id,R=RAR[it.r],h='<div class="card'+(eq?' eq':'')+(cls?' '+cls:'')+'" style="border-top-color:'+R[1]+'"><div class="pic">'+icon(it)+'</div><b>'+(it.star?'★ ':'')+esc(it.name)+'</b><span class="small"><span style="color:'+R[1]+'">'+R[0]+'</span> '+SLOTN[it.slot]+(it.custom?' · custom':'')+' '+esc(spec(it))+'</span><span class="small">'+esc(statLine(it))+'</span>';
+ if(btns)h+='<div class="row"><button data-a="eq" data-id="'+it.id+'"'+(eq?' disabled':'')+'>'+(eq?'Riding':'Equip')+'</button><button data-a="star" data-id="'+it.id+'">'+(it.star?'Unprize':'Prize')+'</button><button data-a="sell" data-id="'+it.id+'"'+(eq||it.star?' disabled':'')+'>Sell $'+RAR[it.r][3]+'</button></div>';
+ return h+'</div>'}
+
+/* ---- screens ---- */
+function refreshCash(){$('cash').textContent='$'+Math.floor(state.cash).toLocaleString()+' · '+Math.floor(state.life).toLocaleString()+' career pts'}
+function show(v){view=v;['skate','shop','coll','work','real','save'].forEach(function(n){$('v-'+n).classList.toggle('hide',n!==v)});Array.prototype.forEach.call(document.querySelectorAll('#tabs button'),function(b){b.classList.toggle('on',b.dataset.v===v)});
+ if(v!=='skate'&&G)endRun(true);render()}
+function render(){refreshCash();if(view==='skate')rSkate();if(view==='shop')rShop();if(view==='coll')rColl();if(view==='work')rWork();if(view==='real')rReal();if(view==='save')rSave()}
+function rSkate(){var S=phys(),h='';SPOTS.forEach(function(sp,i){var ok=state.life>=sp.need;h+='<button data-spot="'+i+'" class="'+(state.spot===i?'on':'')+'"'+(ok?'':' disabled')+'>'+sp.n+' ×'+sp.m+(ok?(state.best[i]?' · best '+state.best[i].toLocaleString():''):' · '+sp.need.toLocaleString()+' pts')+'</button>'});$('spots').innerHTML=h;
+ h='';for(var k in S.raw)h+='<div class="bar"><span>'+STATN[k]+'</span><i><b style="width:'+Math.min(100,S.raw[k]*2)+'%"></b></i>'+S.raw[k]+'</div>';
+ h+='<div class="small" style="margin-top:6px">'+SLOTS.map(function(s){return esc(eqItem(s).name)}).join(' · ')+'</div>';$('bars').innerHTML=h;
+ if(!G){$('ov').classList.remove('hide');var r=lastRes;$('ov').innerHTML=(r?'<h2>'+r.score.toLocaleString()+' points</h2><div>+$'+r.cash+(r.best?' · new best here!':'')+' · letters '+r.letters+'/5'+(r.unlock?' · unlocked '+r.unlock:'')+'</div>'+(r.item?'<div>S-K-A-T-E bonus:</div><div style="width:190px;text-align:left">'+card(r.item,false,'reveal')+'</div>':''):'<h2>Skate for 60 seconds</h2><div>Land tricks, link combos, collect S-K-A-T-E.</div>')+'<button class="go" id="bStart">Drop in at '+SPOTS[state.spot].n+'</button>';drawIdle()}}
+function rShop(){var h='';CRATES.forEach(function(c,i){h+='<button data-crate="'+i+'" '+(state.cash<c[1]?'disabled':'')+'>'+c[0]+' $'+c[1]+'<br><span class="small">'+c[2].map(function(p,j){return p?p+'% '+RAR[j][0]:''}).filter(Boolean).join(', ')+'</span></button>'});$('crates').innerHTML=h}
+function rColl(){var f=$('fSlot');if(!f.options.length){f.innerHTML='<option value="">All parts</option>'+SLOTS.map(function(s){return '<option value="'+s+'">'+SLOTN[s]+'</option>'}).join('')}
+ var list=state.items.filter(function(i){return(!f.value||i.slot===f.value)&&(!$('fStar').checked||i.star)}).sort(function(a,b){return SLOTS.indexOf(a.slot)-SLOTS.indexOf(b.slot)||b.r-a.r});
+ var pr=state.items.filter(function(i){return i.star}).length;$('collCount').textContent=state.items.length+' items, '+pr+' in your prized set';$('items').innerHTML=list.map(function(i){return card(i,true)}).join('')||'<p>Nothing here yet.</p>'}
+function workItem(){var p=$('wPart').value,g=GRADES[$('wGrade').selectedIndex];return{slot:p,r:g[1],o:{name:$('wName').value.trim()||'My Custom',c1:$('wC1').value,c2:$('wC2').value,pat:$('wPat').value,text:p==='deck'?$('wText').value.trim():'',w:parseFloat($('wWidth').value),size:parseInt($('wSize').value,10),duro:parseInt($('wDuro').value,10),custom:true}}}
+function rWork(){if(!$('wPat').options.length){$('wPat').innerHTML=PATS.map(function(p){return '<option>'+p+'</option>'}).join('');$('wPat').value='bolt';$('wWidth').innerHTML=[7.75,8,8.25,8.5,8.75,9].map(function(w){return '<option value="'+w+'">'+w+' in</option>'}).join('');$('wWidth').value='8.25';$('wSize').innerHTML=[50,51,52,53,54,56,58].map(function(w){return '<option value="'+w+'">'+w+' mm</option>'}).join('');$('wSize').value='53';$('wDuro').innerHTML=[84,92,95,99,101].map(function(w){return '<option value="'+w+'">'+w+'A</option>'}).join('');$('wDuro').value='99';$('wGrade').innerHTML=GRADES.map(function(g){return '<option>'+g[0]+' $'+g[2]+'</option>'}).join('')}
+ var w=workItem(),keep=nid,it=makeItem(w.slot,w.r,w.o);nid=keep;var isD=w.slot==='deck',isW=w.slot==='wheels';$('wTextL').classList.toggle('hide',!isD);$('wWidthL').classList.toggle('hide',!isD);$('wSizeL').classList.toggle('hide',!isW);$('wPrev').innerHTML=icon(it);$('wStats').textContent='About: '+statLine(it)+'. Exact stats vary a little when built.';$('wBuild').disabled=state.cash<GRADES[$('wGrade').selectedIndex][2]}
+function rReal(){var d=eqItem('deck'),w=eqItem('wheels'),g=eqItem('grip');$('rBrief').value='REAL BOARD REQUEST: '+d.name+'\n\nDECK: '+d.w+' in wide by about 32 in long\n Main colour '+d.c1+', second colour '+d.c2+'\n Pattern: '+d.pat+(d.text?'\n Graphic text: '+d.text:'')+'\n\nWHEELS: '+w.size+' mm, '+w.duro+'A\n Colours '+w.c1+' and '+w.c2+', pattern '+w.pat+'\n\nGRIPTAPE: '+g.pat+', colour '+g.c1+'\n\nQuestions: price for one? Minimum order? Print file format? Can you match these colours?';$('rSvg').value=deckSVG(d,true)}
+function rSave(){var ok=true;try{localStorage.setItem('skateCollectorT','1');localStorage.removeItem('skateCollectorT')}catch(e){ok=false}$('saveNote').textContent=(ok?'Your game saves itself here, ':'This tab can\'t save by itself, so copy this code somewhere safe, ')+'and this code holds everything if you want a backup.';$('code').value=encode()}
+function give(it){state.items.push(it);persist();return it}
+function openCrate(i){var c=CRATES[i];if(state.cash<c[1])return;state.cash-=c[1];var it=rollCrate(c);persist();$('opened').innerHTML=card(it,true,'reveal')+$('opened').innerHTML;render()}
+function rollCrate(c){var x=Math.random()*100,r=0;for(var j=0;j<5;j++){x-=c[2][j];if(x<0){r=j;break}}return give(makeItem(rnd(SLOTS),r))}
+
+/* ---- the run ---- */
+var GY=360,PX=190,keys={},cx=$('c').getContext('2d');
+var TR={ArrowLeft:['Kickflip',200,.48,'f',1],ArrowRight:['Heelflip',250,.52,'f',-1],ArrowDown:['Shove-it',150,.36,'s',1]};
+function start(){var S=phys();lastRes=null;G={S:S,sp:SPOTS[state.spot],spi:state.spot,time:60,score:0,obs:[],pop:[],letters:0,lets:[],nextX:620,combo:{pts:0,n:0,seen:{},names:[]},link:0,meter:0,spec:0,best:0,p:{x:0,h:0,vy:0,mode:'roll',trick:null,grab:null,armed:false,bal:0,balV:0,bailT:0,rail:null,kick:null,mbuf:false}};
+ var apex=S.popV*S.popV/2800;'SKATE'.split('').forEach(function(l,i){G.lets.push({c:l,x:S.speed*(6+10.5*i+Math.random()*4),h:apex*.5+Math.random()*apex*.55+22,got:false})});
+ keys={};$('ov').classList.add('hide');$('c').focus();lt=performance.now();requestAnimationFrame(loop)}
+var lt=0;function loop(t){if(!G)return;var dt=Math.max(0,Math.min(.033,(t-lt)/1000));lt=t;step(dt);if(G)draw();if(G)requestAnimationFrame(loop)}
+function spawn(){var g=G,o={t:rnd(g.sp.mix),x:g.nextX,sc:false};if(o.t==='cone'){o.w=26;o.h=26}if(o.t==='rail'){o.w=220+Math.random()*180;o.h=36+Math.random()*16}if(o.t==='ledge'){o.w=200+Math.random()*160;o.h=30+Math.random()*14}if(o.t==='kicker'){o.w=70;o.h=30}if(o.t==='pit'){o.w=90+Math.random()*50;o.h=0}
+ g.obs.push(o);g.nextX=o.x+o.w+Math.max(260,g.S.speed*(1+Math.random()*.9))}
+function pop(txt,col){G.pop.push({t:txt,c:col||'#fff',a:1.3,y:0})}
+function addTrick(n,pts){var c=G.combo,seen=c.seen[n]||0;c.seen[n]=seen+1;var v=Math.round(pts/(1+seen));c.pts+=v;c.n++;c.names.push(n);if(c.names.length>5)c.names.shift();G.meter=Math.min(100,G.meter+v/28);if(G.meter>=100&&G.spec<=0){G.spec=9;G.meter=0;pop('SPECIAL!','#ffd166')}pop(n+' +'+v)}
+function bank(){var g=G,c=g.combo;if(c.n){var mult=c.n*g.S.styleM*g.sp.m*(g.spec>0?2:1),v=Math.round(c.pts*mult);g.score+=v;if(v>=2000)pop('Combo x'+c.n+'  '+v.toLocaleString(),'#ffd166')}g.combo={pts:0,n:0,seen:{},names:[]};g.link=0}
+function bail(){var g=G,p=g.p;p.mode='bail';p.bailT=g.S.bailT;p.trick=null;p.grab=null;p.armed=false;p.rail=null;p.kick=null;p.mbuf=false;p.vy=0;p.h=0;g.combo={pts:0,n:0,seen:{},names:[]};g.link=0;pop('BAIL!','#ff6b6b')}
+function ground(x){for(var i=0;i<G.obs.length;i++){var o=G.obs[i];if(o.t==='kicker'&&x>=o.x&&x<=o.x+o.w)return(x-o.x)/o.w*o.h}return 0}
+function overPit(x){return G.obs.some(function(o){return o.t==='pit'&&x>o.x+6&&x<o.x+o.w-6})}
+function endGrab(){var p=G.p;if(p.grab){addTrick('Melon Grab',100+Math.round(p.grab.t*450));p.grab=null}}
+function land(){var g=G,p=g.p;if(p.grab)return bail();if(p.trick){if(p.trick.dur-p.trick.t>g.S.grace)return bail();addTrick(p.trick.n,p.trick.pts);p.trick=null}
+ p.mode='roll';p.vy=0;p.armed=false;if(g.combo.n)g.link=.4;if(p.mbuf){p.mbuf=false;startManual()}}
+function startManual(){var p=G.p;p.mode='manual';p.bal=(Math.random()-.5)*.25;p.balV=0;G.link=0;addTrick('Manual',100)}
+function ollie(mult){var g=G,p=g.p;p.mode='air';p.vy=g.S.popV*(mult||1);p.armed=false;p.rail=null;p.kick=null;p.mbuf=false;g.link=0;addTrick('Ollie',25)}
+function step(dt){var g=G,p=g.p,S=g.S,i;g.time-=dt;if(g.spec>0)g.spec-=dt;
+ g.pop.forEach(function(q){q.a-=dt;q.y+=40*dt});g.pop=g.pop.filter(function(q){return q.a>0});
+ if(g.time<=0&&p.mode!=='air')return endRun();if(g.time<-5)return endRun();
+ if(p.mode==='bail'){p.bailT-=dt;if(p.bailT<=0){p.mode='roll';g.obs=g.obs.filter(function(o){return o.x>p.x+320||o.x+o.w<p.x-40})}return}
+ var sp=S.speed*(p.mode==='grind'?.9:1),prevH=p.h;p.x+=sp*dt;
+ while(g.nextX<p.x+1100)spawn();g.obs=g.obs.filter(function(o){return o.x+o.w>p.x-300});
+ g.lets.forEach(function(l){if(!l.got&&Math.abs(l.x-p.x)<26&&Math.abs(l.h-(p.h+26))<36){l.got=true;g.letters++;pop(l.c+'!','#7cf')}});
+ if(p.mode==='grind'||p.mode==='manual'){var dr=S.drift;p.balV+=(p.bal*2.4*dr+(Math.random()-.5)*4.5*dr)*dt;if(keys.ArrowLeft)p.balV-=3.6*dt;if(keys.ArrowRight)p.balV+=3.6*dt;p.balV*=1-.5*dt;p.bal+=p.balV*dt;g.combo.pts+=(p.mode==='grind'?320:160)*dt;if(Math.abs(p.bal)>1)return bail()}
+ if(p.mode==='grind'){if(p.x>p.rail.x+p.rail.w){p.h=p.rail.h;p.mode='air';p.vy=100;p.rail=null;p.armed=false}return}
+ if(p.mode==='roll'||p.mode==='manual'){var gh=ground(p.x);if(gh>0){p.h=gh;var k=g.obs.filter(function(o){return o.t==='kicker'&&p.x>=o.x&&p.x<=o.x+o.w})[0];p.kick=k||null}else if(p.kick){var kk=p.kick;p.h=kk.h;p.kick=null;ollie(1.28);p.h=kk.h;addTrick('Big Air',150)}else p.h=0;
+  if(p.mode==='roll'&&g.link>0){g.link-=dt;if(g.link<=0)bank()}
+  if(p.mode!=='air'&&p.h<=0&&overPit(p.x))return bail()}
+ if(p.mode==='air'){p.vy-=1400*dt;p.h+=p.vy*dt;var tr=p.trick;if(tr){tr.t+=dt;if(tr.t>=tr.dur){addTrick(tr.n,tr.pts);p.trick=null}}if(p.grab)p.grab.t+=dt;
+  var gr=ground(p.x);if(p.vy<=0&&p.h<=gr&&!overPit(p.x)){p.h=gr;land();if(g.p.mode==='bail')return}else if(p.h<=0&&overPit(p.x))return bail()}
+ for(i=0;i<g.obs.length;i++){var o=g.obs[i],inX=p.x+11>o.x&&p.x-11<o.x+o.w;
+  if(inX&&o.t==='cone'&&p.h<o.h)return bail();
+  if(inX&&(o.t==='rail'||o.t==='ledge')){if(p.mode==='air'&&p.vy<=0&&prevH>=o.h&&p.h<=o.h){if(p.armed){if(p.grab||(p.trick&&p.trick.dur-p.trick.t>S.grace))return bail();if(p.trick){addTrick(p.trick.n,p.trick.pts);p.trick=null}p.mode='grind';p.rail=o;p.h=o.h;p.vy=0;p.bal=(Math.random()-.5)*.25;p.balV=0;p.armed=false;var nm=keys.ArrowUp?'Nosegrind':keys.ArrowDown?'5-0 Grind':keys.ArrowLeft?'Boardslide':keys.ArrowRight?'Lipslide':'50-50 Grind';if(o.t==='ledge')nm=nm.replace('Grind','Ledge');addTrick(nm,150);return}return bail()}else if(p.h<o.h)return bail()}
+  if(!o.sc&&(o.t==='cone'||o.t==='pit')&&p.x-11>o.x+o.w){o.sc=true;addTrick(o.t==='pit'?'Gap Clear':'Cone Hop',o.t==='pit'?200:75)}}}
+function endRun(quit){var g=G,p=g.p;if(!g)return;if(p.mode==='grind'||p.mode==='manual'||p.mode==='roll')bank();G=null;keys={};if(quit){lastRes=null;return}
+ var res={score:g.score,letters:g.letters,cash:Math.floor(g.score/40)};state.cash+=res.cash;var before=state.life;state.life+=g.score;state.runs=(state.runs||0)+1;if(g.score>(state.best[g.spi]||0)){state.best[g.spi]=g.score;res.best=g.score>0}
+ SPOTS.forEach(function(s){if(before<s.need&&state.life>=s.need)res.unlock=s.n});if(g.letters===5)res.item=rollCrate(CRATES[1]);lastRes=res;persist();render()}
+function onKey(e){if(!G)return;var k=e.key===' '?'Space':e.key.length===1?e.key.toLowerCase():e.key,p=G.p,S=G.S;var ours=['Space','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','g','m','c'];if(ours.indexOf(k)<0)return;e.preventDefault();if(keys[k])return;keys[k]=true;
+ if(p.mode==='bail')return;
+ if(k==='Space'){if(p.mode==='roll'||p.mode==='manual'||p.mode==='grind'){var fromH=p.h;ollie(p.mode==='grind'?.8:1);p.h=fromH}return}
+ if(k==='m'){if(p.mode==='roll')startManual();else if(p.mode==='manual'){p.mode='roll';G.link=.4}else if(p.mode==='air')p.mbuf=true;return}
+ if(p.mode!=='air')return;
+ if(k==='g'){p.armed=true;pop('Grind ready','#9fe');return}
+ if(k==='ArrowUp'){if(!p.trick&&!p.grab)p.grab={t:0};return}
+ if(k==='c'){if(G.spec>0&&!p.trick&&!p.grab)p.trick={n:'Laser Flip',pts:1500,t:0,dur:.8/S.flipF,kind:'f',dir:1,key:'c',turns:2,dbl:true};return}
+ var T=TR[k];if(!T)return;if(p.grab)return;
+ if(p.trick){if(p.trick.key===k&&!p.trick.dbl&&p.trick.t<.28){p.trick.n='Double '+T[0];p.trick.pts=Math.round(T[1]*2.6);p.trick.dur*=1.6;p.trick.turns=2;p.trick.dbl=true}return}
+ p.trick={n:T[0],pts:T[1],t:0,dur:T[2]/S.flipF,kind:T[3],dir:T[4],key:k,turns:1}}
+function offKey(e){var k=e.key===' '?'Space':e.key.length===1?e.key.toLowerCase():e.key;keys[k]=false;if(!G)return;var p=G.p;if(k==='Space'&&p.mode==='air'&&p.vy>170&&!p.kick)p.vy*=.72;if(k==='ArrowUp')endGrab()}
+window.addEventListener('keydown',onKey);window.addEventListener('keyup',offKey);
+
+/* ---- drawing ---- */
+function drawBack(sp,x){var c=cx,g=c.createLinearGradient(0,0,0,GY);g.addColorStop(0,sp.sky[0]);g.addColorStop(1,sp.sky[1]);c.fillStyle=g;c.fillRect(0,0,960,420);
+ c.fillStyle='#0003';for(var i=-1;i<12;i++){var bx=i*110-(x*.25%110),h=70+((i+Math.floor(x*.25/110)+40)*53%100);c.fillRect(bx,GY-h-30,92,h+30)}
+ c.fillStyle='#55585e';c.fillRect(0,GY,960,60);c.fillStyle='#6a6e75';c.fillRect(0,GY,960,4);c.fillStyle='#4a4d52';for(i=-1;i<14;i++)c.fillRect(i*80-(x%80),GY+18,44,3)}
+function drawSkater(sx,h,p){var c=cx,d=eqItem('deck'),w=eqItem('wheels'),sh=eqItem('shoes'),hm=eqItem('helmet'),y=GY-h;c.save();c.translate(sx,y);
+ var bail=p&&p.mode==='bail',bal=p&&(p.mode==='grind'||p.mode==='manual')?p.bal:0,tr=p&&p.trick,gr=p&&p.grab,air=p&&p.mode==='air';
+ if(bail){c.fillStyle=d.c1;c.fillRect(24,-6,44,5);c.rotate(1.4);c.translate(-4,-4)}
+ else{c.save();if(p&&p.mode==='manual')c.rotate(-.18);var lift=tr?10:0;c.translate(0,-lift);if(tr){var fr=tr.t/tr.dur,a=fr*Math.PI*2*(tr.turns||1);if(tr.kind==='f')c.scale(1,Math.cos(a)||.05);else c.scale(Math.cos(a/2)||.05,1)}
+  c.fillStyle=d.c1;c.beginPath();c.moveTo(-28,-13);c.quadraticCurveTo(-24,-8,-18,-8);c.lineTo(18,-8);c.quadraticCurveTo(24,-8,28,-13);c.lineTo(28,-10);c.quadraticCurveTo(24,-5,18,-5);c.lineTo(-18,-5);c.quadraticCurveTo(-24,-5,-28,-10);c.fill();
+  c.fillStyle=w.c1;c.beginPath();c.arc(-15,-2,4.5,0,7);c.arc(15,-2,4.5,0,7);c.fill();c.restore()}
+ c.rotate(bal*.5);var crouch=gr?10:tr?8:air?3:0,hip=-34+crouch;c.strokeStyle='#e6e6e6';c.lineWidth=4;c.lineCap='round';c.beginPath();c.moveTo(-10,-10-(tr?8:0));c.lineTo(-5,hip+11);c.lineTo(0,hip);c.lineTo(6,hip+11);c.lineTo(11,-10-(tr?8:0));c.moveTo(0,hip);c.lineTo(1,hip-22);c.stroke();
+ c.beginPath();c.moveTo(1,hip-18);if(gr)c.lineTo(6,-10);else{c.lineTo(-15-bal*8,hip-10-(air?7:0));c.moveTo(1,hip-18);c.lineTo(17+bal*8,hip-11-(air?7:0))}c.stroke();
+ c.fillStyle=sh.c1;c.fillRect(-16,-13-(tr?8:0),12,5);c.fillRect(6,-13-(tr?8:0),12,5);c.fillStyle='#d9b08c';c.beginPath();c.arc(2,hip-30,8,0,7);c.fill();c.fillStyle=hm.c1;c.beginPath();c.arc(2,hip-31,9,Math.PI,0);c.fill();c.restore()}
+function draw(){var g=G,c=cx,p=g.p,ox=p.x-PX;drawBack(g.sp,p.x);
+ g.obs.forEach(function(o){var x=o.x-ox;if(x>980||x+o.w<-20)return;
+  if(o.t==='pit'){c.fillStyle='#17181a';c.fillRect(x,GY,o.w,60);c.fillStyle='#ffd166';c.fillRect(x-4,GY,4,6);c.fillRect(x+o.w,GY,4,6)}
+  if(o.t==='cone'){c.fillStyle='#ff7a1a';c.beginPath();c.moveTo(x+13,GY-o.h);c.lineTo(x+24,GY);c.lineTo(x+2,GY);c.fill();c.fillStyle='#fff';c.fillRect(x+8,GY-13,10,3)}
+  if(o.t==='rail'){c.strokeStyle='#d7dbe0';c.lineWidth=5;c.beginPath();c.moveTo(x,GY-o.h);c.lineTo(x+o.w,GY-o.h);c.moveTo(x+10,GY-o.h);c.lineTo(x+10,GY);c.moveTo(x+o.w-10,GY-o.h);c.lineTo(x+o.w-10,GY);c.stroke()}
+  if(o.t==='ledge'){c.fillStyle='#8a8d91';c.fillRect(x,GY-o.h,o.w,o.h);c.fillStyle='#ffd166';c.fillRect(x,GY-o.h,o.w,3)}
+  if(o.t==='kicker'){c.fillStyle='#a87a4a';c.beginPath();c.moveTo(x,GY);c.lineTo(x+o.w,GY-o.h);c.lineTo(x+o.w,GY);c.fill()}});
+ c.font='bold 26px Impact,Arial Black,sans-serif';c.textAlign='center';g.lets.forEach(function(l){if(l.got)return;var x=l.x-ox;if(x<-20||x>980)return;c.fillStyle='#000a';c.beginPath();c.arc(x,GY-l.h,18,0,7);c.fill();c.fillStyle='#7cf';c.fillText(l.c,x,GY-l.h+9)});
+ drawSkater(PX,p.h,p);
+ c.textAlign='left';c.fillStyle='#fff';c.font='bold 24px system-ui,sans-serif';c.fillText(g.score.toLocaleString(),16,34);c.font='14px system-ui,sans-serif';c.fillText(g.sp.n+' ×'+g.sp.m,16,54);
+ c.textAlign='right';c.font='bold 24px system-ui,sans-serif';c.fillStyle=g.time<10?'#ff6b6b':'#fff';c.fillText(Math.max(0,Math.ceil(g.time))+'s',944,34);c.font='bold 18px Impact,sans-serif';var w='';'SKATE'.split('').forEach(function(l,i){w+=g.lets[i].got?l:'·'});c.fillStyle='#7cf';c.fillText(w,944,58);
+ c.fillStyle='#0008';c.fillRect(350,14,260,12);c.fillStyle=g.spec>0?'#ffd166':'#e0662f';c.fillRect(350,14,260*(g.spec>0?g.spec/9:g.meter/100),12);c.textAlign='center';c.font='11px system-ui,sans-serif';c.fillStyle='#fff';c.fillText(g.spec>0?'SPECIAL ON: press C in the air':'special',480,24);
+ if(g.combo.n){c.font='bold 22px system-ui,sans-serif';c.fillStyle='#ffd166';c.fillText(Math.round(g.combo.pts).toLocaleString()+' × '+g.combo.n,480,62);c.font='13px system-ui,sans-serif';c.fillStyle='#eee';c.fillText(g.combo.names.join(' + '),480,82)}
+ if(p.mode==='grind'||p.mode==='manual'){c.fillStyle='#000a';c.fillRect(PX-60,GY-p.h-92,120,10);c.fillStyle=Math.abs(p.bal)>.7?'#ff6b6b':'#7CFC8A';c.fillRect(PX+p.bal*58-3,GY-p.h-94,6,14)}
+ if(p.armed){c.fillStyle='#9fe';c.font='12px system-ui';c.fillText('GRIND',PX,GY-p.h-82)}
+ c.textAlign='left';c.font='bold 16px system-ui,sans-serif';g.pop.slice(-5).forEach(function(q,i){c.globalAlpha=Math.min(1,q.a);c.fillStyle=q.c;c.fillText(q.t,PX+60,GY-120-i*20-q.y);c.globalAlpha=1})}
+function drawIdle(){drawBack(SPOTS[state.spot],0);drawSkater(480,0,null)}
+
+/* ---- wiring ---- */
+$('tabs').onclick=function(e){if(e.target.dataset.v)show(e.target.dataset.v)};
+$('ov').onclick=function(e){if(e.target.id==='bStart')start()};
+$('spots').onclick=function(e){var b=e.target.closest('[data-spot]');if(b&&!G){state.spot=+b.dataset.spot;lastRes=null;persist();render()}};
+$('crates').onclick=function(e){var b=e.target.closest('[data-crate]');if(b)openCrate(+b.dataset.crate)};
+function itemAct(e){var b=e.target.closest('[data-a]');if(!b)return;var it=byId(+b.dataset.id);if(!it)return;var a=b.dataset.a;if(a==='eq')state.eq[it.slot]=it.id;if(a==='star')it.star=!it.star;if(a==='sell'){if(state.eq[it.slot]===it.id||it.star)return;state.cash+=RAR[it.r][3];state.items=state.items.filter(function(x){return x!==it})}persist();if(view==='shop'){var cd=b.closest('.card');if(cd)cd.outerHTML=a==='sell'?'':card(it,true)}render()}
+$('items').onclick=itemAct;$('opened').onclick=itemAct;
+$('fSlot').onchange=rColl;$('fStar').onchange=rColl;
+['wPart','wC1','wC2','wPat','wText','wName','wWidth','wSize','wDuro','wGrade'].forEach(function(i){$(i).oninput=rWork;$(i).onchange=rWork});
+$('wBuild').onclick=function(){var g=GRADES[$('wGrade').selectedIndex];if(state.cash<g[2])return;var w=workItem();state.cash-=g[2];var it=give(makeItem(w.slot,w.r,w.o));$('wMsg').textContent='Built '+it.name+'. It\'s in your Collection.';render()};
+$('bCopy').onclick=function(){rSave();$('code').select();$('saveMsg').textContent='Code refreshed and selected. Press Ctrl+C to copy.'};
+$('bLoad').onclick=function(){try{adopt(JSON.parse(decodeURIComponent(escape(atob($('code').value.trim())))));persist();$('saveMsg').textContent='Loaded.';lastRes=null;render()}catch(e){$('saveMsg').textContent='That code didn\'t work. Nothing changed.'}};
+$('bReset').onclick=function(){if(window.confirm&&!confirm('Erase this collection and start over?'))return;state=fresh();lastRes=null;persist();render()};
+try{var sv=localStorage.getItem('skateCollector');if(sv)adopt(JSON.parse(sv))}catch(e){state=null}
+if(!state)state=fresh();
+show('skate');
+udsFile.wire({buttons:['fileSave'],get:encode,put:function(c){var here=false;try{here=!!localStorage.getItem('skateCollector')}catch(e){}if(here&&encode()!==c&&!confirm("This file holds a save, and this browser has your last play. OK uses the file's save. Cancel keeps this browser's."))return;$('code').value=c;$('bLoad').click();show('skate')}});
+</script></body></html>
