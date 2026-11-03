@@ -1,0 +1,11 @@
+{
+ "name": "Music Studio",
+ "by": "Randy",
+ "blurb": "Record tracks with built-in synths and drums, and learn piano with lessons that read a real MIDI keyboard if you plug one in. Computer keys work too.",
+ "status": "ok",
+ "real_items": null,
+ "reviews": {
+  "randy": null,
+  "maker": null
+ }
+}

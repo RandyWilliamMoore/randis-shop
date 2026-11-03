@@ -142,7 +142,7 @@ function playWindow(i) {
   const close = () => { stop(); location.hash = `#/${i.kind}/${i.slug}`; };
   const start = page => {
     stop();
-    const frame = el("iframe", { src: "site/player.html", sandbox: "allow-scripts allow-modals allow-pointer-lock", title: i.name, referrerpolicy: "no-referrer" });
+    const frame = el("iframe", { src: "site/player.html", sandbox: "allow-scripts allow-modals allow-pointer-lock", allow: "midi *", title: i.name, referrerpolicy: "no-referrer" });
     const hear = e => {
       if (e.source !== frame.contentWindow) return;
       if (e.data === "player-ready") {
