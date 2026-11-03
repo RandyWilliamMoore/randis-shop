@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Diesel Gen Mechanic Simulator</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#1e1f22;color:#e6e6e6;font:14px/1.45 Segoe UI,Arial,sans-serif}
+header{display:flex;align-items:center;gap:14px;padding:10px 16px;background:#2b2d31;border-bottom:2px solid #c98b2b;flex-wrap:wrap}
+header h1{font-size:18px;margin:0;color:#f0b44c;letter-spacing:.5px}
+.stat{background:#1e1f22;border:1px solid #3a3c42;border-radius:6px;padding:4px 9px;font-size:13px}
+.xpbar{width:140px;height:8px;background:#111;border-radius:4px;overflow:hidden;margin-top:3px}
+.xpbar div{height:100%;background:linear-gradient(90deg,#c98b2b,#f0d04c)}
+nav{display:flex;gap:4px;padding:8px 16px;background:#25272b;flex-wrap:wrap}
+nav button{background:#2f3136;color:#ccc;border:1px solid #3a3c42;padding:6px 13px;border-radius:6px;cursor:pointer}
+nav button.on{background:#c98b2b;color:#111;font-weight:bold}
+main{padding:14px 16px;max-width:1250px}
+.card{background:#2b2d31;border:1px solid #3a3c42;border-radius:8px;padding:12px 14px;margin-bottom:12px}
+.card h3{margin:0 0 8px;color:#f0b44c;font-size:15px}
+button.b{background:#3d4048;color:#e6e6e6;border:1px solid #555;padding:6px 10px;border-radius:5px;cursor:pointer;margin:3px 3px 3px 0;font-size:13px}
+button.b:hover{background:#4a4e57}
+button.go{background:#2e7d32;border-color:#43a047}
+button.warn{background:#8a3b12;border-color:#b5541c}
+button.b:disabled{opacity:.4;cursor:default}
+.test{text-align:left;width:100%}
+.done{border-color:#c98b2b!important}
+.muted{color:#999;font-size:12px}
+.find{border-left:3px solid #c98b2b;padding:4px 8px;margin:4px 0;background:#232428}
+.log{max-height:220px;overflow:auto;font-size:13px}
+.log div{padding:3px 0;border-bottom:1px solid #333}
+.earl{color:#f0b44c}
+.bad{color:#ff7b6b}.good{color:#7bd88f}
+a{color:#6cb6ff}
+table{width:100%;border-collapse:collapse}td{padding:4px 6px;border-bottom:1px solid #35373c}
+input{background:#1e1f22;color:#e6e6e6;border:1px solid #555;border-radius:5px;padding:6px;width:100%}
+.row{display:flex;gap:14px;flex-wrap:wrap}.row>*{flex:1;min-width:260px}
+#ov{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;z-index:9}
+#ov .card{max-width:440px;text-align:center}
+.links a{display:block;padding:3px 0}
+.tag{display:inline-block;background:#3a3c42;border-radius:4px;padding:1px 6px;font-size:11px;margin-right:4px}
+.steps{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px}
+.steps span{background:#232428;border:1px solid #3a3c42;border-radius:14px;padding:3px 10px;font-size:12px;color:#888}
+.steps span.on{background:#c98b2b;color:#111;font-weight:bold;border-color:#f0b44c}
+.vbar{display:flex;gap:4px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
+.hovbar{background:#17181b;border:1px solid #3a3c42;border-radius:5px;padding:5px 9px;margin-bottom:6px;font-size:13px;color:#f0d04c;min-height:30px}
+.scenewrap{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start}
+svg.scene{flex:2.2;min-width:420px;width:100%;background:#111;border-radius:6px;border:1px solid #3a3c42}
+.insp{flex:1;min-width:250px;background:#232428;border:1px solid #3a3c42;border-radius:6px;padding:10px}
+.scene text{pointer-events:none;font-family:Arial,sans-serif}
+.hot{cursor:pointer;transition:filter .1s}
+.hot.seen{filter:drop-shadow(0 0 3px #f0b44c)}
+.hot:hover{filter:brightness(1.35) drop-shadow(0 0 5px #ffffffaa)}
+.hot.sel{filter:brightness(1.25) drop-shadow(0 0 6px #fff)}
+.st{font:bold 13px Arial;text-anchor:middle}
+.st2{font:bold 9px Arial;text-anchor:middle}
+.lbl{font:bold 10px Arial;text-anchor:middle;fill:#4a3a10}
+.tg{font:bold 11px Arial;fill:#fff;text-anchor:middle;paint-order:stroke;stroke:#000;stroke-width:3px}
+.lcd{font:15px Consolas,monospace;fill:#7cfc9a}
+.blink{animation:bl 1s infinite}@keyframes bl{50%{opacity:.2}}
+</style>
+</head>
+<body>
+<header>
+  <div id="earlSmall"></div>
+  <h1>DIESEL GEN MECHANIC SIMULATOR</h1>
+  <div class="stat" id="hRank"></div>
+  <div class="stat" id="hMoney"></div>
+  <div class="stat" id="hDay"></div>
+  <div class="stat" id="hRep"></div>
+  <a class="stat" id="hEtsy" target="_blank" rel="noopener" style="text-decoration:none">🛍️ My Etsy Shop</a>
+</header>
+<nav id="nav"></nav>
+<main id="main"></main>
+<div id="ov"><div class="card"><div id="ovFace"></div><h3 id="ovT"></h3><p id="ovP"></p><button class="b go" onclick="ov(0)">Back to work</button></div></div>
+
+<script>
+const HILL=(s)=>`<svg width="${s}" height="${s*1.15}" viewBox="0 0 120 140">
+<rect x="26" y="90" width="68" height="50" rx="10" fill="#b03a2e"/>
+<path d="M30 96h60M30 106h60M30 116h60M30 126h60" stroke="#7b241c" stroke-width="3"/>
+<rect x="38" y="100" width="44" height="40" rx="6" fill="#2f5fa7"/>
+<path d="M42 92 L46 104 M78 92 L74 104" stroke="#2f5fa7" stroke-width="6"/>
+<circle cx="46" cy="106" r="2.5" fill="#ddd"/><circle cx="74" cy="106" r="2.5" fill="#ddd"/>
+<circle cx="58" cy="62" r="28" fill="#e0b48a"/>
+<ellipse cx="58" cy="78" rx="22" ry="11" fill="#7a5c48" opacity=".45"/>
+<path d="M30 52 Q58 16 86 52 Z" fill="#c0392b"/><rect x="26" y="48" width="72" height="8" rx="4" fill="#922b21"/>
+<rect x="46" y="32" width="24" height="10" rx="2" fill="#f5f5f5"/><text x="58" y="40" font-size="7" text-anchor="middle" fill="#922b21" font-family="Arial" font-weight="bold">DIESEL</text>
+<path d="M44 63 q4 -4 8 0" stroke="#222" stroke-width="2.5" fill="none"/><circle cx="68" cy="62" r="3" fill="#222"/>
+<path d="M44 76 Q56 86 68 76" stroke="#5a2d1a" stroke-width="2.5" fill="none"/>
+<path d="M64 79 L104 62" stroke="#9acd32" stroke-width="2.5"/><path d="M98 62 l8 -6 M101 64 l9 -3" stroke="#c8d94a" stroke-width="2"/>
+<rect x="90" y="92" width="18" height="18" rx="5" fill="#e0b48a"/><rect x="94" y="72" width="8" height="24" rx="4" fill="#e0b48a"/>
+<path d="M86 104 L94 100" stroke="#b03a2e" stroke-width="10"/>
+</svg>`;
+
+const TOOLS={wrench:{n:"Wrench & socket set",c:0},screw:{n:"Screwdrivers & pliers",c:0},meter:{n:"Digital multimeter",c:120},ir:{n:"IR thermometer gun",c:60},ogauge:{n:"Mechanical oil pressure gauge",c:85},fgauge:{n:"Fuel pressure gauge",c:70},clamp:{n:"Clamp meter (amps)",c:140},crimp:{n:"Crimpers & heat gun",c:65},feeler:{n:"Feeler gauges",c:15},torque:{n:"Torque wrench",c:160},injpull:{n:"Injector puller",c:240},laptop:{n:"Laptop + service software",c:900},loadbank:{n:"Portable load bank",c:3800}};
+const PARTS={filter:{n:"Fuel filter",c:22},liftpump:{n:"Fuel lift pump",c:145},glowplug:{n:"Glow plug",c:28},avr:{n:"AVR / voltage regulator",c:310},tempsender:{n:"Coolant temp sender",c:45},charger:{n:"Battery charger (10A)",c:260},battery:{n:"Group 31 battery",c:190},atskit:{n:"ATS contact kit",c:420},fuelsol:{n:"Fuel shutoff solenoid",c:135},harness:{n:"Harness repair kit + loom",c:60},govspring:{n:"Governor spring",c:18},oilsw:{n:"Low oil pressure switch",c:38},injector:{n:"Fuel injector",c:480},heater:{n:"Block heater element",c:120}};
+
+/* ---------- clickable things in the pictures ---------- */
+const VN={ext:"🚶 Outside",eng:"🔧 Engine bay",ctl:"🖥️ Controller",alt:"⚡ Alternator end",ats:"🔀 Transfer switch"};
+const HOTV={
+ext:{
+ door_eng:{n:"Engine access door",go:"eng"},
+ door_ctl:{n:"Controller door",go:"ctl"},
+ door_alt:{n:"Alternator end door",go:"alt"},
+ atsbox:{n:"Automatic transfer switch (ATS) cabinet",s:"Transfer switch",go:"ats",L:[60,142]},
+ exh:{n:"Exhaust stack & rain cap",s:"Exhaust",L:[530,86],a:[["exh.look","Look it over"]]},
+ tank:{n:"Base fuel tank",a:[["tank.look","Check fuel level & water"]]},
+ lb:{n:"Load bank cart",s:"Load bank",L:[742,238],a:[["load.test","Hook up & run a load test","loadbank",1]]},
+ nest:{n:"Wasp nest",a:[["nest","Poke it",null,.1]]},
+ can:{n:"Mountain Dew can",a:[["can","Pick it up",null,0]]}},
+eng:{
+ chg:{n:"Battery charger",s:"Charger",L:[64,92],a:[["chg.look","Read the charger display"],["chg.volt","Meter the DC output","meter"],["chg.amps","Clamp the AC draw","clamp"]]},
+ batt:{n:"Starting batteries",s:"Batteries",L:[116,330],w:1,a:[["batt.look","Look at posts & cables"],["batt.volt","Meter battery voltage","meter"]]},
+ magpu:{n:"Magnetic speed pickup",s:"Mag pickup",L:[80,118],a:[["magpu.look","Look at it"],["magpu.volt","Meter AC output while cranking","meter"]]},
+ filter:{n:"Fuel filter & hand primer",s:"Fuel filter",L:[150,60],w:1,a:[["filter.look","Look it over"],["fuel.psi","Fuel pressure gauge on the filter head","fgauge"],["fuel.bleed","Crack the bleed screw","wrench"]]},
+ sol:{n:"Fuel shutoff solenoid",s:"Shutoff solenoid",L:[110,198],a:[["sol.look","Look it over"],["sol.volt","Meter power at it while cranking","meter"]]},
+ gov:{n:"Governor linkage & spring",s:"Governor",L:[252,186],a:[["gov.look","Look & work the linkage by hand"]]},
+ liftpump:{n:"Fuel lift pump",s:"Lift pump",L:[270,330],a:[["liftpump.look","Look it over"],["fuel.psi","Fuel pressure gauge","fgauge"]]},
+ inj:{n:"Injectors & fuel lines",s:"Injectors",L:[290,84],a:[["inj.look","Look it over"],["inj.cut","Crack lines one at a time (cutout test)","wrench"]]},
+ glow:{n:"Glow plugs",s:"Glow plugs",L:[405,190],a:[["glow.amps","Clamp amps on the glow circuit","clamp"],["glow.ohm","Ohm each plug","meter"]]},
+ airbox:{n:"Air cleaner",w:1,a:[["airbox.look","Pop it open and look"]]},
+ harness:{n:"Wiring harness",s:"Harness",L:[200,136],w:1,a:[["harness.look","Trace it by eye"],["harness.wiggle","Wiggle test while watching signals","meter"]]},
+ dip:{n:"Oil dipstick",s:"Dipstick",L:[540,82],a:[["dip.pull","Pull it & check the oil"]]},
+ oilsw:{n:"Low oil pressure switch",s:"Oil press. switch",L:[329,268],a:[["oilsw.gauge","Tee in a mechanical gauge","ogauge"],["oilsw.volt","Meter the switch while running","meter"]]},
+ heater:{n:"Block heater",s:"Block heater",L:[470,280],a:[["heater.amps","Clamp the heater cord","clamp"],["heater.ir","IR-gun the block","ir"]]},
+ sender:{n:"Coolant temp sender (thermostat housing)",s:"Temp sender",L:[612,92],a:[["sender.ir","IR-gun the housing","ir"],["sender.ohm","Ohm the sender vs the chart","meter"]]},
+ belt:{n:"Drive belt & pulleys",s:"Belt",L:[612,338],w:1,a:[["belt.look","Look & twist the belt"]]},
+ hose:{n:"Upper radiator hose",s:"Hose",L:[662,92],w:1,a:[["hose.look","Squeeze it"]]},
+ rad:{n:"Radiator & cap",s:"Radiator",L:[735,200],a:[["rad.look","Check coolant level (cold!)"],["rad.ir","IR-gun the core","ir"]]}},
+ctl:{
+ pal:{n:"ALARMS button",a:[["panel.alarms","Read active & history alarms"]]},
+ plog:{n:"LOG button",a:[["panel.log","Read the run log"]]},
+ key:{n:"AUTO / OFF / RUN switch",a:[["key","Flip it",null,0]]},
+ estop:{n:"Emergency stop",a:[["estop","Smack it",null,0]]}},
+alt:{
+ altb:{n:"Alternator",a:[["alt.look","Look through the vents & sniff"]]},
+ avr:{n:"AVR / voltage regulator board",a:[["avr.look","Look it over"],["avr.volt","Meter excitation output","meter"]]},
+ brk:{n:"Main output breaker",a:[["out.volt","Meter generator output","meter"]]},
+ lugs:{n:"Output lugs",s:"Output lugs",L:[570,222],a:[["lugs.look","Look & check torque","torque"]]}},
+ats:{
+ atsctl:{n:"ATS controller",a:[["atsctl.look","Read the ATS controller"]]},
+ contacts:{n:"ATS main contacts",s:"Main contacts",L:[400,134],a:[["ats.look","Lock out, then look at the contacts"],["ats.volt","Meter gen side vs load side","meter"]]}}};
+const HOT={};for(const v in HOTV)for(const p in HOTV[v])HOT[p]=Object.assign({v},HOTV[v][p]);
+const ACT={};for(const p in HOT)(HOT[p].a||[]).forEach(a=>{if(!ACT[a[0]])ACT[a[0]]={p,l:a[1],t:a[2]||null,h:a[3]!=null?a[3]:(a[2]?.5:.25)}});
+const FLAV={nest:1,can:1,key:1,estop:1};
+
+const OK={"exh.look":"Light soot, normal for a diesel. Rain cap swings free.","tank.look":"Tank about 3/4. Water-finding paste comes up clean.","load.test":"Holds full load, clean exhaust, steady 60 Hz.","nest":"You poke it. You regret it. Earl laughs for ten minutes.","can":"Half-full Mountain Dew. Not yours. Leave it.","chg.look":"Charger display: FLOAT 13.4 V, 0.8 A.","chg.volt":"Charger putting out 13.4 V.","chg.amps":"Draws about 1 A AC. Normal.","batt.look":"Posts clean, cables tight.","batt.volt":"Batteries 13.4 V on float. Good.","magpu.look":"Pickup seated, jam nut tight.","magpu.volt":"Pickup puts out 3 VAC cranking. Plenty.","filter.look":"Filter's a few months old. Primer pump feels firm.","fuel.psi":"Lift pressure 6 psi. Right in spec.","fuel.bleed":"Bleed screw runs clear fuel, no bubbles.","sol.look":"Wires tight, plunger looks fine.","sol.volt":"12 V on crank and it clicks in. Good.","gov.look":"Linkage moves free, spring has good tension.","liftpump.look":"Pump's dry and tight. No leaks.","inj.look":"Lines tight, no wet spots.","inj.cut":"Every cylinder changes the sound when cracked. All firing.","glow.amps":"Glow circuit pulls ~60 A. All four pulling.","glow.ohm":"All plugs ~1 Ω. Good.","airbox.look":"Filter element is clean enough.","harness.look":"Loom intact, connectors tight.","harness.wiggle":"Signals hold steady when you flex the harness.","dip.pull":"Oil's at the full mark. Normal diesel black.","oilsw.gauge":"45 psi on the mechanical gauge. Healthy.","oilsw.volt":"Switch closes with pressure like it should.","heater.amps":"Block heater draws 12 A. Working.","heater.ir":"Block is 105°F. Warm, like it should be.","sender.ir":"Housing reads 182°F running. Normal.","sender.ohm":"Sender ohms match the chart.","belt.look":"Belt tension good, no cracks.","hose.look":"Hose is firm, clamps tight.","rad.look":"Coolant full. Test strip shows good freeze protection.","rad.ir":"Even temps across the core. No blocked spots.","panel.alarms":"No active alarms. History is quiet.","panel.log":"Monthly exercise logged, some runs under load.","key":"It's in AUTO. Leave it in AUTO.","estop":"You smack it. Earl yells. Reset it, genius.","alt.look":"Windings look clean. No burnt smell.","avr.look":"Board looks clean. No burn marks.","avr.volt":"Excitation output steady, in spec.","out.volt":"240 V, 60 Hz at the breaker.","lugs.look":"Lugs torqued, no heat discoloration.","ats.look":"Contacts clean and smooth.","ats.volt":"240 V on both sides of the switch.","atsctl.look":"Utility OK. No transfer faults."};
+
+const WEAR={belt:{p:"belt",n:"Cracked drive belt",a:"belt.look",t:"Belt's glazed and cracked across the ribs. Worn out."},hose:{p:"hose",n:"Swollen upper hose",a:"hose.look",t:"Upper hose is soft and swollen near the clamp. Worn out."},airf:{p:"airbox",n:"Plugged air filter",a:"airbox.look",t:"Air filter's packed with dust and chaff. Worn out."},corr:{p:"batt",n:"Corroded battery terminals",a:"batt.look",t:"Fuzzy green-white corrosion on the posts. Needs cleaning."}};
+
+const FAULTS={
+airlock:{n:"Air in fuel system",sym:"Cranks forever, won't fire. Somebody changed the fuel filters last week.",cl:{"fuel.bleed":"Bleed screw spits foam and bubbles. Air in the system.","filter.look":"Brand-new filter with greasy fingerprints all over it. Primer pump feels mushy. Nobody primed it.","fuel.psi":"Gauge bounces 0–4 psi and the clear hose is full of bubbles.","panel.alarms":"Alarm: OVERCRANK / FAIL TO START.","out.volt":"Won't run, so there's nothing to read.","load.test":"Can't load test something that won't start."},vis:{filter:"new"},p:[],t:["wrench"],h:1,how:["Open the bleed screw on the filter head","Pump the hand primer until fuel runs clear, no bubbles","Bleed at the injection pump, then crack injector lines while cranking","Snug it all up, start it, check for leaks"],yt:"bleeding air out of diesel fuel system"},
+liftpump:{n:"Failed lift pump",sym:"Starts, runs a minute, then bogs and dies when the load hits.",cl:{"fuel.psi":"1.5 psi at the filter head. Spec is 5–8 psi.","liftpump.look":"Pump's weeping fuel at the diaphragm seam.","load.test":"Sags at 40% load, then trips on underspeed.","panel.alarms":"Alarm: UNDERSPEED."},vis:{liftpump:"weep"},p:["liftpump","filter"],t:["wrench","fgauge"],h:2,how:["Close fuel supply valve","Swap the lift pump, new gaskets","Change the fuel filter while you're in there","Prime, bleed, check pressure 5–8 psi"],yt:"diesel lift pump replacement test pressure"},
+glowplug:{n:"Bad glow plug",sym:"Hard start on cold mornings, puffs white smoke till it warms up.",cl:{"glow.amps":"Glow circuit pulls 45 A, should be ~60 A. One plug isn't pulling.","glow.ohm":"Plug #2 reads OL (open). The others read ~1 Ω.","exh.look":"White smoke residue on the rain cap.","inj.cut":"Cold: cracking cylinder 2 changes nothing. It's not lighting off."},vis:{exh:"white"},p:["glowplug"],t:["wrench","meter"],h:1.5,how:["Ohm each plug: good is ~0.5–2 Ω, open is bad","Blow out the well before pulling the plug","Anti-seize, torque to spec, don't strip the head"],yt:"how to test diesel glow plugs multimeter"},
+wetstack:{n:"Wet stacking (light-load carbon)",sym:"Black slobber dripping out of the exhaust, and it's down on power.",cl:{"exh.look":"Black oily slobber dripping out of every exhaust joint and the rain cap.","load.test":"Smokes heavy on the load bank, then clears up after a couple hours.","panel.log":"Run log: 400 hrs, nearly all at no load."},vis:{exh:"slobber"},p:[],t:["loadbank"],h:3,how:["Hook up the load bank","Step load up to 75–100% and run 2–4 hours","Watch exhaust temps and clear-up","Tell the owner: exercise under load monthly"],yt:"generator wet stacking load bank"},
+avr:{n:"Dead AVR / voltage regulator",sym:"Engine runs sweet as pie but there's no power coming out.",cl:{"avr.look":"Scorched resistor on the AVR board. Smells like a burnt toaster.","avr.volt":"Zero excitation out of the AVR. Fuse is good.","out.volt":"9 VAC residual at the breaker. Should be 240.","panel.alarms":"Alarm: UNDERVOLTAGE."},vis:{avr:"burnt"},p:["avr"],t:["meter","screw"],h:1.5,how:["Lockout/tagout. Verify dead","Label every wire before pulling the AVR","Install, set voltage pot, set stability","Run and check volts and Hz under load"],yt:"generator AVR troubleshooting no voltage output"},
+tempsender:{n:"Faulty coolant temp sender",sym:"Shuts down on HIGH COOLANT TEMP, but the radiator is cool to the touch.",cl:{"sender.ir":"IR gun reads 182°F at the thermostat housing. Normal.","sender.ohm":"Sender reads 2 Ω. Chart says ~1,800 Ω at 70°F. It's shorted.","panel.alarms":"Alarm: HIGH COOLANT TEMP, reading 260°F right at startup. Impossible.","rad.look":"Coolant full. Radiator's cool to the touch."},vis:{},p:["tempsender"],t:["wrench","ir"],h:1,how:["Let it cool. Never open hot","Swap the sender, sealant on the threads","Top off coolant, burp the air out","Compare panel reading to IR gun"],yt:"test coolant temperature sensor resistance"},
+charger:{n:"Failed battery charger",sym:"Didn't start on its weekly exercise. Batteries are flat.",cl:{"batt.volt":"Batteries at 11.1 V. Flat.","chg.look":"Charger display is blank. No lights at all.","chg.volt":"Charger outputs 0 V with 120 VAC coming in.","chg.amps":"Charger draws 0 A. It's dead, Jim.","panel.alarms":"Alarm: LOW BATTERY VOLTAGE, FAIL TO START.","out.volt":"Won't crank, so nothing to read.","load.test":"Can't load test something that won't start."},vis:{chg:"dead"},p:["charger","battery"],t:["meter","screw"],h:1.5,how:["Kill AC to the charger","Swap the charger, check the float/equalize settings","Load test the batteries, replace if weak","Verify 13.2–13.8 V float"],yt:"generator battery charger troubleshooting"},
+ats:{n:"Burnt ATS contacts",sym:"Generator fires up in an outage but the building stays dark.",cl:{"ats.volt":"Gen side 240 V. Load side of the ATS: 0 V.","ats.look":"Main contacts are pitted and burnt black.","atsctl.look":"ATS: FAIL TO TRANSFER. It sent the signal, contacts didn't make.","panel.alarms":"Gen: no alarms. It ran fine the whole outage."},vis:{contacts:"burnt"},p:["atskit"],t:["meter","screw","wrench"],h:3,how:["Both sources OFF and locked out. Utility too","Replace the contact kit per the ATS manual","Torque the lugs, check arc chutes","Test transfer and retransfer"],yt:"automatic transfer switch troubleshooting"},
+fuelsol:{n:"Stuck fuel shutoff solenoid",sym:"Cranks good but won't catch. Tank's full.",cl:{"fuel.psi":"Good 6 psi lift, but nothing gets past the injection pump.","sol.volt":"12.6 V at the solenoid on crank, but it never clicks.","sol.look":"Plunger boot is crusty and cracked.","panel.alarms":"Alarm: OVERCRANK.","out.volt":"Won't run, so nothing to read.","load.test":"Can't load test something that won't start."},vis:{sol:"stuck"},p:["fuelsol"],t:["wrench","meter"],h:1,how:["Confirm power and ground at the solenoid","Swap it, set plunger travel","Bleed if needed and test start/stop"],yt:"diesel fuel shutoff solenoid test"},
+rodent:{n:"Rodent-chewed wiring",sym:"Random shutdowns and alarms that make no sense. Mice live in it.",cl:{"harness.look":"Chewed loom, bare copper showing, and mouse droppings.","airbox.look":"Acorn stash in the air box!","harness.wiggle":"Sensor signal drops out when you flex the harness.","panel.alarms":"Alarms all over: LOW OIL, OVERSPEED, SENSOR FAIL."},vis:{harness:"chewed",airbox:"acorns"},p:["harness"],t:["crimp","meter"],h:2.5,how:["Find every chewed spot, not just the first","Solder or crimp, then heat-shrink. NOT tape","New loom, and seal holes with mesh","Set bait/traps outside the enclosure"],yt:"repair rodent damaged wiring harness"},
+govlink:{n:"Sticky governor linkage",sym:"RPM surges up and down like it's breathing.",cl:{"gov.look":"Linkage gummed up, return spring stretched out.","load.test":"Smooths out a little under load but never settles.","panel.alarms":"Frequency swinging 57–63 Hz.","out.volt":"Voltage and Hz hunting up and down."},vis:{gov:"stretched"},p:["govspring"],t:["screw","wrench"],h:1,how:["Clean the linkage, no binding through travel","New spring","Set no-load speed: 61.5–62 Hz for mechanical gov","Check droop under load"],yt:"small engine governor surging fix"},
+oilsw:{n:"Bad low oil pressure switch",sym:"Starts, then shuts down in 5 seconds. Oil's full, I checked!",cl:{"oilsw.gauge":"Mechanical gauge reads 45 psi. Oil pressure is great.","oilsw.volt":"Switch stays open even at 45 psi.","panel.alarms":"Alarm: LOW OIL PRESSURE (shut down at 5 sec)."},vis:{},p:["oilsw"],t:["wrench","ogauge"],h:1,how:["Verify real pressure with a mechanical gauge FIRST","Swap the switch, thread sealant","Run, check for leaks, verify the alarm clears"],yt:"low oil pressure switch test generator"},
+injector:{n:"Failed fuel injector",sym:"Knocking, black smoke, and it shakes like a wet dog.",cl:{"inj.cut":"Crack cylinder 4: no change in sound. Dead or dribbling.","inj.look":"Wet fuel puddled around the #4 injector.","exh.look":"Black soot all over the stack. Fuel wash at one port.","load.test":"Can't hold 80% load. Black smoke pours out."},vis:{exh:"soot",inj:"wet"},p:["injector"],t:["wrench","injpull","torque"],h:4,how:["Clean around the injector before opening","Pull with the right puller, new copper washer","Torque the hold-down to spec","Bleed lines, run, recheck cutout"],yt:"diesel injector cylinder cutout test replace"},
+magpu:{n:"Mag pickup gap off",sym:"Frequency hunts and once in a while trips on overspeed.",cl:{"panel.alarms":"Alarm: LOSS OF SPEED SIGNAL / OVERSPEED.","magpu.volt":"0.9 VAC on crank. Needs 1.5 V or more.","magpu.look":"Pickup backed out a hair, jam nut loose."},vis:{magpu:"loose"},p:[],t:["feeler","wrench","meter"],h:1,how:["Bar the engine till a flywheel tooth is centered","Turn the pickup in till it touches, back off ½–¾ turn","Lock the jam nut","Check AC output on crank"],yt:"magnetic pickup adjustment generator"},
+heater:{n:"Dead block heater",sym:"Cold-start alarm every morning. Block's colder than a well digger's lunch.",cl:{"heater.amps":"Block heater draws 0 A. Element is open.","heater.ir":"Block reads 38°F. Should be 90–120°F.","panel.alarms":"Alarm: LOW COOLANT TEMP."},vis:{heater:"cold"},p:["heater"],t:["wrench","clamp"],h:2,how:["Kill heater power, drain coolant below the heater","Swap the element, check the thermostat","Refill, burp, power up, confirm amps"],yt:"generator block heater replacement"}};
+
+const MODELS=[
+{n:"Mule M-8 portable",s:"8 kW, 1-cyl air-cooled diesel, job-site trailer",r:0,d:1,f:["oilsw","govlink","rodent","airlock"],iv:"Oil every 100 hrs, valves every 500"},
+{n:"Hollerfield HG-20",s:"20 kW, 3-cyl indirect injection, standby",r:0,d:1.2,f:["airlock","glowplug","liftpump","charger","fuelsol"],iv:"Oil & filters 250 hrs or yearly"},
+{n:"Bulldog DX-60",s:"60 kW, 4-cyl turbo, brushless alternator",r:1,d:1.5,f:["wetstack","avr","tempsender","charger","heater"],iv:"Oil 250 hrs, coolant test yearly, load bank yearly"},
+{n:"Ridgeback RB-150",s:"150 kW, inline-6, with 400A ATS",r:2,d:1.8,f:["ats","charger","heater","magpu","rodent","liftpump"],iv:"Oil 250 hrs, ATS service yearly, NFPA 110 exercise monthly"},
+{n:"Titan T-500",s:"500 kW, V12 twin turbo, hospital standby",r:3,d:2.2,f:["injector","wetstack","magpu","tempsender","avr"],iv:"Oil 500 hrs, injectors per hours, 2-hr load bank yearly"}];
+
+const CUSTS=[["Hargrove Dairy Farm",1],["First Baptist Church",.9],["County Hospital, East Wing",1.4],["Rural Fire Station 9",1],["Quik-Stop Gas & Bait",.9],["Cell Tower #4471",1.2],["Water Treatment Plant",1.3],["Pine Hollow Nursing Home",1.2],["Deer Camp (cash only)",.8],["Bank Data Closet",1.3]];
+const RANKS=[{n:"Greenhorn",x:0,w:16},{n:"Grease Monkey",x:60,w:19},{n:"Apprentice",x:160,w:25},{n:"Journeyman (Union Card)",x:350,w:42},{n:"Master Repairman",x:650,w:55},{n:"Running Your Own Show",x:1000,w:0}];
+const EARL={borrow:["Use mine. Bring it back this time.","That's my good one. Don't drop it in the sump.","You're gonna buy your own someday, right?"],got:["I got that in the truck.","Got one under the seat, behind the Hardee's bags."],thought:["…huh. I thought YOU had it.","Musta used it on the Henderson job.","It WAS in the truck. Back in March."],wrong:["Throwin' parts at it, huh? That's how you go broke.","Diagnose first, wrench second, partner.","The customer pays for answers, not parts."],win:["Atta kid. Now wash your hands, you're touchin' my sandwich.","That'll buff right out.","Not bad. Not bad at all.","See? Ain't rocket surgery."]};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const h=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const yt=q=>"https://www.youtube.com/results?search_query="+encodeURIComponent(q);
+const ddg=q=>"https://duckduckgo.com/?q="+encodeURIComponent(q);
+const A=(u,t)=>`<a href="${u}" target="_blank" rel="noopener">${h(t)}</a>`;
+const wrap=(t,n)=>{const o=[];let l="";String(t).split(" ").forEach(w=>{if((l+" "+w).trim().length>n){o.push(l);l=w}else l=(l+" "+w).trim()});o.push(l);return o};
+
+function fresh(){return{money:150,xp:0,rep:50,day:1,clock:0,tools:{wrench:1,screw:1},parts:{filter:2,glowplug:1,oilsw:1,govspring:1},gaffer:1,zip:2,job:null,done:0,etsy:"https://www.etsy.com/shop/UberRandis",lbl:true}}
+let S;try{S=JSON.parse(localStorage.getItem("dgsim"))||fresh()}catch(e){S=fresh()}
+if(S.lbl==null)S.lbl=true;
+if(S.job&&!S.job.opened)Object.assign(S.job,{view:"ext",sel:null,opened:{},wear:[],flags:{},tests:{}});
+let tab="job";
+/* saving can be blocked inside the app's sandboxed tab; never let that stop a click */
+const save=()=>{try{localStorage.setItem("dgsim",JSON.stringify(S))}catch(e){}};
+const rank=()=>{let r=0;RANKS.forEach((k,i)=>{if(S.xp>=k.x)r=i});return r};
+const own=()=>rank()===5;
+function hrs(x){S.job.hrs+=x;S.clock+=x;while(S.clock>=8){S.clock-=8;S.day++}}
+function log(t,c){S.job.log.push([t,c||""])}
+function earl(t){if(!own())log("Earl: \""+t+"\"","earl")}
+
+function newJob(){
+  const ms=MODELS.filter(m=>m.r<=rank()),mi=MODELS.indexOf(pick(ms)),m=MODELS[mi];
+  const f=pick(m.f),others=Object.keys(FAULTS).filter(k=>!m.f.includes(k)).sort(()=>Math.random()-.5).slice(0,2);
+  const wear=Object.keys(WEAR).sort(()=>Math.random()-.5).slice(0,Math.floor(Math.random()*3));
+  S.job={m:mi,f,c:Math.floor(Math.random()*CUSTS.length),tests:{},dx:null,have:{},tried:{},hrs:0,pc:0,wrong:0,borrow:0,hints:0,ev:null,log:[],cands:m.f.concat(others).sort(()=>Math.random()-.5),view:"ext",sel:null,opened:{},wear,flags:{}};
+  if(!own())earl(pick(["Grab your stuff, we got a live one.","Customer says it 'just quit.' They always say that.","Bring the good flashlight. Not the one with the dead batteries."]));
+  save();render();
+}
+function needTool(t){
+  if(!t||S.tools[t])return true;
+  if(!own()){hrs(.5);S.job.borrow++;earl(pick(EARL.borrow)+" ("+TOOLS[t].n+")");return true}
+  const c=Math.max(25,Math.round(TOOLS[t].c*.08));S.money-=c;log("Rented a "+TOOLS[t].n+" for $"+c+".","bad");return true;
+}
+/* ---------- scene interaction ---------- */
+const FV=p=>{const F=FAULTS[S.job.f];return(F.vis&&F.vis[p])||""};
+const W=p=>S.job.wear.some(w=>WEAR[w].p===p);
+function sel(p){const J=S.job,H=HOT[p];
+  if(H.go){J.view=H.go;J.sel=null;if(!J.opened[H.go]){J.opened[H.go]=1;hrs(.1);log("🚪 Opened the "+H.n.toLowerCase()+".")}}
+  else J.sel=p;save();render()}
+function view(v){S.job.view=v;S.job.sel=null;save();render()}
+function hov(p){const e=document.getElementById("hov");if(e)e.textContent=p?"🖱️ "+HOT[p].n+(HOT[p].go?": click to open it":": click to inspect"):"🖱️ Hover over things in the picture. Click to inspect or open."}
+function act(id){const J=S.job,a=ACT[id];needTool(a.t);hrs(a.h);
+  const t=[FAULTS[J.f].cl[id],...J.wear.filter(w=>WEAR[w].a===id).map(w=>WEAR[w].t)].filter(Boolean).join(" ")||OK[id];
+  J.tests[id]=t;if(id.startsWith("panel."))J.lcd=id;
+  log((FLAV[id]?"😅 ":"🔍 ")+HOT[a.p].n+": "+t);save();render()}
+function flag(p){const J=S.job;if(J.flags[p])delete J.flags[p];else{J.flags[p]=1;log("🏷️ Flagged "+HOT[p].n+" as worn. You'll quote it.")}save();render()}
+function hint(){const J=S.job;J.hints++;const ks=[...new Set(Object.keys(FAULTS[J.f].cl).filter(k=>ACT[k]).map(k=>VN[HOT[ACT[k].p].v].slice(2).trim()+" → "+HOT[ACT[k].p].n))];earl("Spit out your gum and check: "+ks.join("; ")+".");save();render()}
+function dx(f){const J=S.job;J.dx=f;J.have={};FAULTS[f].p.forEach(p=>J.have[p]=(S.parts[p]>0)?"truck":null);J.tried={};log("📋 Your call: "+FAULTS[f].n+".");save();render()}
+function undx(){const J=S.job;for(const p in J.have){const v=J.have[p];if(v&&v!=="truck"){S.parts[p]=(S.parts[p]||0)+1;if(v!=="earl")J.pc-=PARTS[p].c}}J.dx=null;log("Back to diagnosing. Spare parts went in the truck.");save();render()}
+function earlPart(p){const J=S.job;J.tried[p]=1;earl(pick(EARL.got));if(Math.random()<.6){J.have[p]="earl";log("He actually had it. Miracles happen.","good")}else{hrs(.5);earl(pick(EARL.thought));log("Half an hour digging through the truck for nothing.","bad")}save();render()}
+function order(p){const J=S.job,d=1+Math.floor(Math.random()*3);S.money-=PARTS[p].c;J.pc+=PARTS[p].c;S.day+=d;S.rep=Math.max(0,S.rep-3);J.have[p]="order";log("📦 Ordered "+PARTS[p].n+". Showed up in "+d+" day(s). Customer's grumpy.","bad");save();render()}
+function house(p){const J=S.job,c=Math.round(PARTS[p].c*1.4);S.money-=c;J.pc+=c;hrs(1);J.have[p]="house";log("🚚 Ran to the parts house. $"+c+", an hour, and a gas station burrito.");save();render()}
+function repair(){
+  const J=S.job,F=FAULTS[J.dx];F.t.forEach(needTool);
+  if(Math.random()<.35){
+    log("🩹 \"WHERE'S THE GAFFER TAPE?!\"","earl");
+    if(S.gaffer>0){S.gaffer--;hrs(.25);log("Found it under the seat with the Hardee's bags.")}
+    else{J.ev="tape";save();render();return}
+  }
+  finish();
+}
+function tape(o){const J=S.job;
+  if(o==="dig"){hrs(.75);log(Math.random()<.5?"Found an old roll stuck to the dash. Lint and all.":"Found three pencils, a dead mouse and no tape. Made it work anyway.")}
+  if(o==="zip"){S.zip--;log("Zip-tied it like a professional. Mostly.")}
+  if(o==="cust"){S.rep=Math.max(0,S.rep-2);log("Borrowed duct tape from the customer. They judged you.","bad")}
+  J.ev=null;finish();
+}
+function finish(){
+  const J=S.job,F=FAULTS[J.dx],m=MODELS[J.m];
+  for(const p in J.have)if(J.have[p]==="truck"){S.parts[p]--;J.pc+=PARTS[p].c}
+  hrs(F.h);
+  if(J.dx!==J.f){J.wrong++;S.rep=Math.max(0,S.rep-8);log("🔥 Fired it up… it still does it. Wrong call.","bad");earl(pick(EARL.wrong));J.dx=null;J.have={};save();render();return}
+  const r=rank(),before=r,C=CUSTS[J.c];
+  let pay=own()?Math.round(J.hrs*135*C[1]+J.pc*1.25):Math.round(J.hrs*RANKS[r].w+J.pc);
+  let xp=Math.max(5,Math.round((15+F.h*6)*m.d)-J.wrong*8-J.borrow*2-J.hints*3);
+  const fl=Object.keys(J.flags),good=fl.filter(p=>W(p)),bad=fl.length-good.length,missed=J.wear.filter(w=>!J.flags[WEAR[w].p]).map(w=>WEAR[w].n);
+  const up=good.length*(own()?90:45);pay+=up;xp+=good.length*4;S.rep=Math.max(0,S.rep-bad*3);
+  S.money+=pay;S.xp+=xp;S.done++;if(!J.wrong)S.rep=Math.min(100,S.rep+4);
+  const ws=(good.length?"<br>🏷️ Quoted "+good.length+" worn part(s): +$"+up:"")+(bad?"<br>❌ "+bad+" good part(s) flagged as worn: −"+bad*3+" rep":"")+(missed.length?"<br>👀 You missed: "+h(missed.join(", ")):"");
+  S.job=null;save();
+  const after=rank();
+  if(after>before)ov(1,"PROMOTED: "+RANKS[after].n+"!",(after===5?"Earl hands you the keys to a beat-up service truck. \"Your show now, partner. Don't call me at 2 AM.\" Now you bill $135/hr, buy your own tools and parts, and no more 'I got that in the truck.'":"Earl: \"Well I'll be. Don't let it go to your head.\" Your wage is now $"+RANKS[after].w+"/hr and bigger iron is on the board.")+ws);
+  else ov(1,"Fixed: "+F.n,(own()?"You did it. ":"Earl: \""+pick(EARL.win)+"\" ")+"<br><br>+$"+pay+" · +"+xp+" XP · "+J.hrs.toFixed(1)+" hrs on the job"+ws);
+  render();
+}
+function ov(on,t,p){document.getElementById("ov").style.display=on?"flex":"none";if(on){ovFace.innerHTML=HILL(140);ovT.textContent=t;ovP.innerHTML=p}}
+
+function buyT(t){if(S.money<TOOLS[t].c)return alert("Not enough cash.");S.money-=TOOLS[t].c;S.tools[t]=1;save();render()}
+function buyP(p){if(S.money<PARTS[p].c)return alert("Not enough cash.");S.money-=PARTS[p].c;S.parts[p]=(S.parts[p]||0)+1;save();render()}
+function buyC(k,c){if(S.money<c)return alert("Not enough cash.");S.money-=c;S[k]++;save();render()}
+
+/* ---------- artwork ---------- */
+const DEFS=`<defs>
+<linearGradient id="gSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#151c26"/><stop offset="1" stop-color="#3b4a5c"/></linearGradient>
+<linearGradient id="gEnc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e2cb86"/><stop offset="1" stop-color="#a98f4e"/></linearGradient>
+<linearGradient id="gMet" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b3b8be"/><stop offset=".5" stop-color="#727880"/><stop offset="1" stop-color="#454a50"/></linearGradient>
+<linearGradient id="gMetH" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5a6067"/><stop offset=".45" stop-color="#c3c8ce"/><stop offset="1" stop-color="#4b5057"/></linearGradient>
+<linearGradient id="gEng" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#76866a"/><stop offset="1" stop-color="#36402f"/></linearGradient>
+<linearGradient id="gBlk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3d4046"/><stop offset="1" stop-color="#121316"/></linearGradient>
+<linearGradient id="gCu" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f0b070"/><stop offset="1" stop-color="#9a5a26"/></linearGradient>
+<linearGradient id="gRad" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2a2e33"/><stop offset=".5" stop-color="#40464d"/><stop offset="1" stop-color="#22262a"/></linearGradient>
+<radialGradient id="gScorch"><stop offset="0" stop-color="#000"/><stop offset=".55" stop-color="#2a1a0a" stop-opacity=".85"/><stop offset="1" stop-color="#3a2a10" stop-opacity="0"/></radialGradient>
+<pattern id="pBrick" width="40" height="20" patternUnits="userSpaceOnUse"><rect width="40" height="20" fill="#7a3b2e"/><path d="M0 0H40M0 10H40M20 0V10M0 10V20M40 10V20" stroke="#55281f" stroke-width="2"/></pattern>
+<pattern id="pLouv" width="10" height="8" patternUnits="userSpaceOnUse"><path d="M0 6H10" stroke="#00000066" stroke-width="2"/></pattern>
+<pattern id="pFin" width="4" height="4" patternUnits="userSpaceOnUse"><path d="M0 2H4" stroke="#5a6168" stroke-width="1"/></pattern>
+</defs>`;
+const INV=d=>`<path d="${d}" stroke="rgba(0,0,0,0)" stroke-width="18" fill="none"/>`;
+function G(p,inner){const J=S.job,H=HOT[p],seen=(H.a||[]).some(a=>J.tests[a[0]])||(H.go&&J.opened[H.go]);
+  const lb=S.lbl&&H.L?`<text x="${H.L[0]}" y="${H.L[1]}" class="tg">${h(H.s||H.n)}</text>`:"";
+  return`<g class="hot${seen?" seen":""}${J.sel===p?" sel":""}" onclick="sel('${p}')" onmouseenter="hov('${p}')" onmouseleave="hov()">${inner}${lb}</g>`}
+const door=(x,y,w,ht,l)=>`<rect x="${x}" y="${y}" width="${w}" height="${ht}" rx="2" fill="#d0b976" stroke="#8c7640" stroke-width="2"/><rect x="${x+8}" y="${y+ht*.5}" width="${w-16}" height="${ht*.4}" fill="url(#pLouv)"/><rect x="${x+w-14}" y="${y+ht*.38}" width="6" height="22" rx="2" fill="#333"/><text x="${x+w/2}" y="${y+ht-6}" class="lbl">${l} ▸</text>`;
+
+function svgExt(){const J=S.job,e=FV("exh"),alarm=!!FAULTS[J.f].cl["panel.alarms"]&&J.f!=="ats";
+const exh=`<rect x="470" y="94" width="120" height="22" rx="11" fill="url(#gMet)"/><rect x="592" y="44" width="16" height="72" fill="url(#gMetH)"/><path d="M588 46 L614 28 L616 34 L594 48Z" fill="#8d9298"/>`+
+ (e==="slobber"?`<path d="M596 62q2 8 0 14M604 82q2 10-1 16M482 114q1 8 0 12M560 114q2 10 0 16M520 114q1 6 0 10" stroke="#0d0d0d" stroke-width="3.5" fill="none"/><path d="M592 116Q584 140 576 170" stroke="#1a1a1a" stroke-width="7" opacity=".55"/><path d="M590 44L614 30" stroke="#111" stroke-width="4"/>`:"")+
+ (e==="soot"?`<g opacity=".75"><circle cx="606" cy="22" r="10" fill="#333"/><circle cx="622" cy="10" r="13" fill="#3d3d3d"/><circle cx="642" cy="4" r="11" fill="#444"/></g><path d="M592 60V116" stroke="#111" stroke-width="5" opacity=".6"/>`:"")+
+ (e==="white"?`<g opacity=".55"><circle cx="606" cy="22" r="9" fill="#eee"/><circle cx="620" cy="12" r="12" fill="#ddd"/></g><path d="M592 46L612 33" stroke="#f2f2f2" stroke-width="3"/>`:"")+INV("M600 40V116");
+return`<svg viewBox="0 0 800 420" class="scene">${DEFS}
+<rect width="800" height="300" fill="url(#gSky)"/><circle cx="740" cy="40" r="14" fill="#e8e3c8" opacity=".8"/>
+<rect y="295" width="800" height="125" fill="#3a3c33"/><rect x="130" y="338" width="560" height="34" fill="#87867f"/>
+<rect x="0" y="40" width="125" height="300" fill="url(#pBrick)"/>
+<path d="M60 262V355H160" stroke="#666" stroke-width="5" fill="none"/>
+${G("atsbox",`<rect x="18" y="150" width="84" height="112" rx="3" fill="url(#gMet)" stroke="#333"/><rect x="26" y="160" width="68" height="40" fill="#2a2d31"/><text x="60" y="185" class="st" fill="#f0b44c">ATS</text><rect x="88" y="202" width="6" height="22" fill="#222"/><rect x="28" y="232" width="44" height="14" fill="#e8c022"/><text x="50" y="242" class="st2" fill="#111">DANGER</text><text x="60" y="276" class="lbl" fill="#ddd" style="fill:#ddd">open ▸</text>`)}
+${G("tank",`<rect x="150" y="300" width="520" height="44" rx="3" fill="url(#gBlk)"/><circle cx="210" cy="322" r="11" fill="#ddd" stroke="#333"/><path d="M210 322L217 314" stroke="#c00" stroke-width="2"/><rect x="630" y="288" width="22" height="12" fill="#555"/><text x="410" y="327" class="st" fill="#888">BASE FUEL TANK</text>`)}
+<rect x="155" y="112" width="510" height="12" rx="3" fill="#8f7a42"/><rect x="160" y="122" width="500" height="180" fill="url(#gEnc)"/>
+${G("door_alt",door(172,135,110,155,"ALT END"))}
+${G("door_ctl",door(292,135,80,155,"CONTROLS")+`<rect x="302" y="148" width="60" height="42" fill="#0d1a14" stroke="#555"/><circle cx="314" cy="169" r="4" fill="${alarm?"#ff3b30":"#2b5"}" class="${alarm?"blink":""}"/><text x="342" y="173" class="st2" fill="#7cfc9a">${alarm?"ALARM":"AUTO"}</text>`)}
+${G("door_eng",door(382,135,190,155,"ENGINE")+`<rect x="400" y="148" width="40" height="16" fill="#e8c022"/><text x="420" y="159" class="st2" fill="#111">HOT</text>`)}
+<rect x="582" y="135" width="70" height="155" fill="#3a3a33"/><rect x="582" y="135" width="70" height="155" fill="url(#pLouv)"/>
+${G("exh",exh)}
+${G("nest",`<ellipse cx="205" cy="133" rx="9" ry="12" fill="#9c9585"/><path d="M198 129h14M197 135h16M199 141h12" stroke="#7a7466"/>`)}
+${G("can",`<rect x="720" y="374" width="10" height="16" rx="2" fill="#2e8b2e"/><rect x="720" y="374" width="10" height="3" fill="#ccc"/><path d="M722 382h6" stroke="#d22" stroke-width="2"/>`)}
+${G("lb",`<path d="M696 300 Q 670 320 652 320" stroke="#111" stroke-width="4" fill="none"/><rect x="696" y="244" width="92" height="84" rx="4" fill="#3b4a5a" stroke="#222"/><rect x="706" y="256" width="72" height="44" fill="url(#pLouv)" stroke="#222"/><text x="742" y="316" class="st2" fill="#ddd">LOAD BANK</text><circle cx="710" cy="334" r="8" fill="#111"/><circle cx="774" cy="334" r="8" fill="#111"/>`)}
+</svg>`}
+
+function svgEng(){const J=S.job,dead=FV("chg")==="dead",nw=FV("filter")==="new",stuck=FV("sol")==="stuck",str=FV("gov")==="stretched",chew=FV("harness")==="chewed",acorn=FV("airbox")==="acorns",wet=FV("inj")==="wet",loose=FV("magpu")==="loose",weep=FV("liftpump")==="weep",cold=FV("heater")==="cold";
+const IX=[270,345,420,495],hp="M90 150 C200 140 260 158 330 150 S470 140 600 152";
+return`<svg viewBox="0 0 800 420" class="scene">${DEFS}
+<rect width="800" height="420" fill="#1c1f23"/><rect width="800" height="330" fill="url(#pLouv)" opacity=".35"/>
+<rect y="330" width="800" height="90" fill="#2a2d31"/><rect x="190" y="322" width="420" height="16" fill="#555a60"/>
+<rect x="0" y="160" width="42" height="150" fill="url(#gEng)"/><path d="M40 170L120 150V320L40 300Z" fill="url(#gMet)"/>
+${G("chg",`<path d="M64 76V342" stroke="#222" stroke-width="3" fill="none"/><rect x="20" y="18" width="88" height="58" rx="3" fill="#cfd3d8" stroke="#555"/><rect x="28" y="28" width="50" height="20" fill="${dead?"#111":"#0d2a1d"}"/><text x="53" y="43" class="st2" fill="#7cfc9a">${dead?"":"FLOAT 13.4V"}</text><circle cx="94" cy="36" r="5" fill="${dead?"#333":"#2f2"}"/><text x="64" y="68" class="st2" fill="#333">CHARGER</text>`)}
+${G("magpu",`<path d="M80 ${loose?126:134}Q80 120 100 112" stroke="#36c" stroke-width="2" fill="none"/><rect x="74" y="${loose?124:134}" width="12" height="22" fill="url(#gMetH)"/><rect x="70" y="148" width="20" height="6" fill="#888" ${loose?'transform="rotate(14 80 151)"':""}/>${loose?'<rect x="72" y="146" width="16" height="3" fill="#ff5" opacity=".6"/>':""}`)}
+<rect x="140" y="212" width="74" height="58" rx="6" fill="url(#gMet)"/><path d="M150 172V212" stroke="#b9bec4" stroke-width="3"/>
+${G("filter",`<rect x="122" y="84" width="56" height="16" fill="url(#gMet)"/><rect x="140" y="66" width="20" height="18" rx="3" fill="#222"/><rect x="128" y="100" width="44" height="72" rx="7" fill="${nw?"#f1f3f5":"#b8a876"}" stroke="#555"/><text x="150" y="140" class="st2" fill="#345">FUEL</text>${nw?'<ellipse cx="139" cy="117" rx="6" ry="3" fill="#222" opacity=".6"/><ellipse cx="161" cy="156" rx="7" ry="3" fill="#222" opacity=".5"/><ellipse cx="145" cy="160" rx="4" ry="2" fill="#222" opacity=".5"/>':""}<circle cx="173" cy="92" r="3" fill="#c90"/>`)}
+${G("sol",`<path d="M167 180V166H200" stroke="#c22" stroke-width="2" fill="none"/><rect x="152" y="180" width="30" height="34" rx="4" fill="url(#gBlk)"/>${stuck?'<rect x="155" y="174" width="24" height="7" rx="2" fill="#8a6a3a"/><path d="M158 176l6 3M170 175l5 4" stroke="#4a3a1a"/>':'<rect x="157" y="175" width="20" height="6" rx="2" fill="#222"/>'}`)}
+${G("gov",`<path d="M214 228L268 198" stroke="#bbb" stroke-width="4"/>${str?'<path d="M214 246l13-6 13 2 13-6 13 2" stroke="#9a8a6a" stroke-width="2" fill="none"/><ellipse cx="240" cy="214" rx="9" ry="5" fill="#5a4320"/>':'<path d="M214 246l6-8 6 6 6-8 6 6 6-8 6 6 6-8 6 6 6-8" stroke="#ddd" stroke-width="2" fill="none"/>'}${INV("M214 236L268 204")}`)}
+<rect x="214" y="160" width="366" height="166" rx="8" fill="url(#gEng)"/>
+<circle cx="300" cy="250" r="9" fill="#4b5644"/><circle cx="400" cy="250" r="9" fill="#4b5644"/><circle cx="500" cy="250" r="9" fill="#4b5644"/><path d="M230 205H560" stroke="#00000033" stroke-width="3"/>
+${cold?'<path d="M260 230l8 8M268 230l-8 8M420 290l8 8M428 290l-8 8M540 220l8 8M548 220l-8 8" stroke="#bfe6ff" stroke-width="2" opacity=".7"/>':""}
+<rect x="222" y="112" width="352" height="52" rx="12" fill="url(#gEng)" stroke="#2c3329"/><text x="398" y="147" class="st" fill="#2c3329">DIESEL</text>
+${G("inj",IX.map((x,i)=>`<path d="M${x+6} 90C${x+6} 60 210 60 ${178+i*8} 212" stroke="#b9bec4" stroke-width="3" fill="none"/>`).join("")+IX.map(x=>`<rect x="${x}" y="88" width="12" height="28" fill="url(#gMetH)"/><rect x="${x-3}" y="110" width="18" height="6" fill="#777"/>`).join("")+(wet?'<ellipse cx="501" cy="120" rx="15" ry="5" fill="#2a1d0a" opacity=".85"/><path d="M506 120q2 10 0 18" stroke="#3a2a10" stroke-width="3"/>':""))}
+${G("airbox",`<rect x="390" y="70" width="26" height="44" fill="#222"/><rect x="330" y="26" width="150" height="48" rx="22" fill="url(#gBlk)"/><ellipse cx="478" cy="50" rx="8" ry="24" fill="#333"/><text x="405" y="54" class="st2" fill="#888">AIR CLEANER</text>${W("airbox")?'<path d="M342 38h40M350 64h60M420 34h40M440 60h25" stroke="#a08a5a" stroke-width="4" opacity=".75"/>':""}${acorn?'<ellipse cx="336" cy="48" rx="6" ry="8" fill="#8b5a2b"/><ellipse cx="345" cy="63" rx="5" ry="7" fill="#7a4a20"/><path d="M330 41h12M339 56h11" stroke="#4a2a10" stroke-width="4"/><path d="M324 72q10 6 24 0" stroke="#c9b27a" stroke-width="2" fill="none"/>':""}`)}
+${G("harness",`<path d="${hp}" stroke="#111" stroke-width="8" fill="none"/><path d="${hp}" stroke="#383838" stroke-width="8" stroke-dasharray="2 3" fill="none"/>${chew?'<rect x="246" y="146" width="14" height="14" fill="#1c1f23"/><path d="M247 150l12 2M247 154l12-1M248 158l11 1" stroke="#e08a3a" stroke-width="1.8"/><rect x="470" y="140" width="12" height="14" fill="#2c3329"/><path d="M471 144l10 1M471 149l10 2" stroke="#e08a3a" stroke-width="1.8"/><circle cx="505" cy="170" r="2" fill="#4a2a10"/><circle cx="512" cy="174" r="2" fill="#4a2a10"/><circle cx="518" cy="169" r="2" fill="#4a2a10"/>':""}${INV(hp)}`)}
+${G("glow",`<path d="M290 174H525" stroke="url(#gCu)" stroke-width="3"/>${[300,375,450,520].map(x=>`<circle cx="${x}" cy="174" r="5" fill="#aaa" stroke="#555"/>`).join("")}${INV("M290 174H525")}`)}
+${G("dip",`<path d="M552 104V176" stroke="#999" stroke-width="3"/><circle cx="552" cy="98" r="8" fill="none" stroke="#f2c200" stroke-width="5"/>${INV("M552 88V180")}`)}
+${G("oilsw",`<rect x="318" y="292" width="22" height="10" fill="#bbb"/><rect x="322" y="276" width="14" height="17" rx="3" fill="#222"/><path d="M329 276Q329 262 350 262" stroke="#4a4" stroke-width="2" fill="none"/>`)}
+${G("liftpump",`<path d="M248 296H214" stroke="#b9bec4" stroke-width="3"/><rect x="248" y="282" width="44" height="30" rx="4" fill="url(#gMet)"/><circle cx="270" cy="297" r="8" fill="#555"/>${weep?'<ellipse cx="270" cy="314" rx="16" ry="4" fill="#5a4a20" opacity=".8"/><path d="M262 312q3 10 0 18" stroke="#c8a24a" stroke-width="3" fill="none"/>':""}`)}
+${G("heater",`<path d="M470 315C470 350 520 340 540 410" stroke="#e8761e" stroke-width="5" fill="none"/><circle cx="470" cy="300" r="15" fill="url(#gMet)" stroke="#333"/><circle cx="470" cy="300" r="5" fill="#222"/>`)}
+${G("sender",`<rect x="576" y="114" width="44" height="34" rx="5" fill="url(#gMet)"/><rect x="590" y="98" width="14" height="18" fill="#c9a43a"/><path d="M597 98Q597 84 610 80" stroke="#36c" stroke-width="2" fill="none"/>`)}
+${G("rad",`<rect x="690" y="60" width="96" height="270" fill="url(#gRad)"/><rect x="698" y="70" width="80" height="250" fill="url(#pFin)"/><rect x="722" y="44" width="30" height="16" rx="3" fill="url(#gMet)"/>`)}
+${G("hose",`<path d="M618 130C650 130 660 105 692 105" stroke="#151515" stroke-width="16" fill="none"/>${W("hose")?'<ellipse cx="652" cy="120" rx="15" ry="14" fill="#1d1d1d"/><path d="M644 112q8-4 16 0" stroke="#555" stroke-width="2" fill="none"/>':""}<rect x="614" y="122" width="6" height="18" fill="#999"/>`)}
+${G("belt",`<path d="M606 170L676 236L612 320L578 292L588 190Z" stroke="#111" stroke-width="7" fill="none" stroke-linejoin="round"/>${W("belt")?'<path d="M628 190l5-4M640 201l5-4M652 212l5-4M640 288l5 4M652 272l5 4M590 230l6 0M588 250l6 0" stroke="#e8e8e8" stroke-width="1.8"/>':""}<circle cx="606" cy="190" r="18" fill="url(#gMet)"/><circle cx="660" cy="240" r="14" fill="url(#gMet)"/><circle cx="604" cy="294" r="26" fill="url(#gMet)"/><circle cx="604" cy="294" r="6" fill="#333"/>`)}
+${G("batt",[30,122].map(x=>`<rect x="${x}" y="350" width="84" height="56" rx="3" fill="url(#gBlk)"/><rect x="${x}" y="350" width="84" height="8" fill="#333"/><rect x="${x+10}" y="342" width="10" height="9" fill="#888"/><rect x="${x+64}" y="342" width="10" height="9" fill="#888"/><text x="${x+42}" y="384" class="st2" fill="#888">12V</text>`).join("")+`<path d="M44 342Q90 322 136 342" stroke="#b22" stroke-width="4" fill="none"/>`+(W("batt")?[45,104,137,196].map(x=>`<circle cx="${x}" cy="342" r="7" fill="#cfe8d0" opacity=".9"/><circle cx="${x+3}" cy="339" r="4" fill="#7fc49a"/>`).join(""):""))}
+</svg>`}
+
+function svgCtl(){const J=S.job,alarm=!!FAULTS[J.f].cl["panel.alarms"]&&J.f!=="ats";
+const L=J.lcd?wrap((J.lcd==="panel.alarms"?"ALARMS: ":"LOG: ")+J.tests[J.lcd],40).slice(0,5):["AUTO - READY","ENGINE HRS 1,284.6","","Press ALARMS or LOG"];
+return`<svg viewBox="0 0 800 420" class="scene">${DEFS}
+<rect width="800" height="420" fill="#24272b"/><rect width="800" height="420" fill="url(#pLouv)" opacity=".3"/>
+<rect x="140" y="30" width="520" height="360" rx="14" fill="#33363c" stroke="#5a5d63" stroke-width="3"/>
+<text x="400" y="56" class="st" fill="#aaa">GENSET CONTROLLER</text>
+<rect x="190" y="68" width="420" height="132" rx="6" fill="#0b2418" stroke="#111" stroke-width="4"/>
+${L.map((l,i)=>`<text x="205" y="${96+i*22}" class="lcd">${h(l)}</text>`).join("")}
+<circle cx="220" cy="222" r="6" fill="${alarm?"#ff3b30":"#3a1a1a"}" class="${alarm?"blink":""}"/><text x="250" y="226" class="st2" fill="#bbb">ALARM</text>
+<circle cx="300" cy="222" r="6" fill="#2f2"/><text x="326" y="226" class="st2" fill="#bbb">AUTO</text>
+<circle cx="370" cy="222" r="6" fill="#4a3a10"/><text x="404" y="226" class="st2" fill="#bbb">NOT IN AUTO</text>
+${G("pal",`<rect x="200" y="250" width="110" height="44" rx="6" fill="#c0392b" stroke="#6a1a12" stroke-width="2"/><text x="255" y="277" class="st" fill="#fff">ALARMS</text>`)}
+${G("plog",`<rect x="324" y="250" width="110" height="44" rx="6" fill="#2f5fa7" stroke="#14305a" stroke-width="2"/><text x="379" y="277" class="st" fill="#fff">LOG</text>`)}
+${G("key",`<circle cx="500" cy="272" r="26" fill="#1a1a1a" stroke="#888" stroke-width="2"/><rect x="496" y="250" width="8" height="26" rx="2" fill="#ddd"/><text x="500" y="243" class="st2" fill="#bbb">AUTO</text><text x="468" y="310" class="st2" fill="#bbb">OFF</text><text x="534" y="310" class="st2" fill="#bbb">RUN</text>`)}
+${G("estop",`<circle cx="596" cy="272" r="25" fill="#e8c022"/><circle cx="596" cy="272" r="17" fill="#c0392b" stroke="#7a1a12" stroke-width="2"/><text x="596" y="312" class="st2" fill="#bbb">E-STOP</text>`)}
+<text x="400" y="360" class="st2" fill="#888">Click a button on the controller</text>
+</svg>`}
+
+function svgAlt(){const burnt=FV("avr")==="burnt";
+return`<svg viewBox="0 0 800 420" class="scene">${DEFS}
+<rect width="800" height="420" fill="#1c1f23"/><rect y="340" width="800" height="80" fill="#2a2d31"/>
+${G("altb",`<rect x="30" y="90" width="320" height="240" rx="30" fill="url(#gEng)"/><rect x="60" y="130" width="260" height="150" fill="url(#pLouv)"/><text x="190" y="314" class="st" fill="#2c3329">ALTERNATOR</text>`)}
+<rect x="380" y="40" width="390" height="320" rx="6" fill="#3a3e44" stroke="#666" stroke-width="3"/><text x="575" y="58" class="st2" fill="#aaa">OUTPUT BOX (DOOR OPEN)</text>
+${G("avr",`<rect x="400" y="70" width="180" height="122" rx="4" fill="#1f6b3a" stroke="#0f3a1f" stroke-width="2"/>${[0,1,2,3].map(i=>`<rect x="${415+i*30}" y="90" width="22" height="8" rx="3" fill="${burnt&&i===1?"#111":"#d8c08a"}"/><path d="M${420+i*30} 90v8M${428+i*30} 90v8" stroke="#a33" stroke-width="2"/>`).join("")}<circle cx="430" cy="135" r="10" fill="#2a5ab0"/><circle cx="465" cy="135" r="10" fill="#2a5ab0"/><circle cx="550" cy="100" r="9" fill="#eee"/><path d="M550 92v8" stroke="#333" stroke-width="2"/><rect x="405" y="170" width="170" height="14" fill="#333"/>${[0,1,2,3,4,5].map(i=>`<circle cx="${418+i*28}" cy="177" r="3" fill="#bbb"/>`).join("")}<text x="520" y="146" class="st" fill="#cfe">AVR</text>${burnt?'<circle cx="460" cy="94" r="26" fill="url(#gScorch)"/><path d="M455 80q-6-10 2-20q6-8 0-16" stroke="#777" stroke-width="2" fill="none" opacity=".6"/>':""}`)}
+${G("brk",`<rect x="600" y="70" width="150" height="122" rx="4" fill="#15171a"/><rect x="660" y="96" width="30" height="54" fill="#333"/><rect x="664" y="100" width="22" height="24" fill="#eee"/><text x="675" y="176" class="st2" fill="#ccc">MAIN BREAKER</text>`)}
+${G("lugs",[0,1,2].map(i=>`<path d="M${455+i*100} 262C${455+i*100} 320 ${430+i*100} 330 ${430+i*100} 360" stroke="#111" stroke-width="12" fill="none"/><rect x="${420+i*100}" y="232" width="70" height="26" rx="3" fill="url(#gCu)"/><circle cx="${440+i*100}" cy="245" r="5" fill="#666"/><circle cx="${470+i*100}" cy="245" r="5" fill="#666"/><text x="${455+i*100}" y="276" class="st2" fill="#ddd">${["L1","L2","N"][i]}</text>`).join(""))}
+</svg>`}
+
+function svgAts(){const J=S.job,bad=FV("contacts")==="burnt";
+const pits=x=>`<circle cx="${x+22}" cy="198" r="3" fill="#000"/><circle cx="${x+44}" cy="204" r="4" fill="#000"/><circle cx="${x+30}" cy="238" r="3" fill="#000"/><circle cx="${x+52}" cy="242" r="2" fill="#000"/>`;
+return`<svg viewBox="0 0 800 420" class="scene">${DEFS}
+<rect width="800" height="420" fill="url(#pBrick)"/>
+<rect x="140" y="20" width="520" height="380" rx="6" fill="#4a4e55" stroke="#777" stroke-width="3"/>
+${G("atsctl",`<rect x="190" y="40" width="220" height="74" rx="4" fill="#222"/><rect x="200" y="50" width="140" height="36" fill="#0b2418"/><text x="270" y="74" class="lcd" style="text-anchor:middle">${bad&&J.tests["atsctl.look"]?"FAIL XFER":"UTIL OK"}</text><circle cx="360" cy="60" r="5" fill="#2f2"/><circle cx="380" cy="60" r="5" fill="${bad?"#f33":"#422"}" class="${bad?"blink":""}"/><text x="300" y="106" class="st2" fill="#aaa">ATS CONTROLLER</text>`)}
+${G("contacts",`<rect x="200" y="140" width="400" height="160" rx="6" fill="url(#gBlk)"/>${[0,1,2].map(i=>{const x=240+i*120;return`<rect x="${x}" y="170" width="80" height="100" fill="#111" stroke="#555"/><rect x="${x+12}" y="188" width="56" height="22" fill="${bad?"#3a2a20":"url(#gCu)"}"/><rect x="${x+12}" y="228" width="56" height="22" fill="${bad?"#2a2420":"url(#gCu)"}"/>${bad?pits(x):""}`}).join("")}`)}
+${["NORMAL (UTILITY)","EMERGENCY (GEN)","LOAD (BUILDING)"].map((t,i)=>`<rect x="${210+i*130}" y="320" width="120" height="22" rx="3" fill="url(#gCu)"/><text x="${270+i*130}" y="360" class="st2" fill="#ddd">${t}</text>`).join("")}
+</svg>`}
+
+function vInsp(){const J=S.job,p=J.sel;
+  if(!p)return`<h3>🔦 Inspector</h3><p class="muted">Hover over anything in the picture to see what it is. Click it to look closer or test it. Doors and cabinets open new views.</p><p class="muted">Gold glow = you've checked it.<br>Spot a worn part (cracked belt, swollen hose, dirty filter, crusty battery posts)? Click it and flag it for extra pay.</p>`;
+  const H=HOT[p];let o=`<h3>🔦 ${h(H.n)}</h3>`;
+  o+=(H.a||[]).map(a=>{const id=a[0],x=ACT[id];return`<button class="b test ${J.tests[id]?"done":""}" onclick="act('${id}')">${h(a[1])}<br><span class="muted">${x.t?h(TOOLS[x.t].n)+(S.tools[x.t]?" ✓":own()?" (rent)":" (borrow Earl's)"):"hands & eyes"} · ${Math.round(x.h*60)} min</span></button>`+(J.tests[id]?`<div class="find">${h(J.tests[id])}</div>`:"")}).join("");
+  if(H.w)o+=`<button class="b ${J.flags[p]?"go":""}" onclick="flag('${p}')">${J.flags[p]?"🏷️ Flagged as worn (click to unflag)":"🏷️ Flag as worn: quote it"}</button>`;
+  return o}
+
+function vJob(){
+  const J=S.job;
+  if(!J)return`<div class="card"><h3>No ticket on the board</h3><p>${own()?"Your phone's quiet. Too quiet.":"Earl's leaning on the truck, spitting sunflower seeds."}</p><p class="muted">On a job you walk around the generator, open it up, click parts to look at and test them, then make your call and fix it.</p><button class="b go" onclick="newJob()">Grab the next ticket</button></div>`;
+  const m=MODELS[J.m],C=CUSTS[J.c],nt=Object.keys(J.tests).filter(k=>!FLAV[k]).length;
+  const step=J.dx?4:nt>=3?3:nt?1:Object.keys(J.opened).length?1:0;
+  let o=`<div class="card"><h3>🎫 ${h(C[0])}</h3><b>${h(m.n)}</b> <span class="muted">${h(m.s)}</span><p>Customer says: "${h(FAULTS[J.f].sym)}"</p><span class="tag">${J.hrs.toFixed(1)} hrs on job</span>${J.wrong?`<span class="tag bad">${J.wrong} callback(s)</span>`:""}
+  <div class="steps" style="margin-top:8px">${["① Walk around & open doors","② Click parts: look & test","③ Read your clipboard","④ Make the call","⑤ Get parts & turn wrenches"].map((s,i)=>`<span class="${i===step?"on":""}">${s}</span>`).join("")}</div></div>`;
+  if(J.ev==="tape")o+=`<div class="card"><h3>🩹 WHERE'S THE GAFFER TAPE?!</h3><p>You need to hold a harness out of the way and the roll's gone. ${own()?"":"Earl swears he \"thought you had it.\""}</p>
+  <button class="b" onclick="tape('dig')">Tear the truck apart (+45 min)</button><button class="b" onclick="tape('zip')" ${S.zip>0?"":"disabled"}>Use zip ties (${S.zip})</button><button class="b" onclick="tape('cust')">Ask the customer</button></div>`;
+  else if(!J.dx){
+    const VS={ext:svgExt,eng:svgEng,ctl:svgCtl,alt:svgAlt,ats:svgAts};
+    o+=`<div class="card"><h3>🔧 Go look at it</h3>
+    <div class="vbar">${Object.keys(VN).map(v=>`<button class="b ${J.view===v?"go":""}" ${v==="ext"||J.opened[v]?"":"disabled title='Open it from outside first'"} onclick="view('${v}')">${VN[v]}</button>`).join("")}
+    <label class="muted" style="margin-left:8px"><input type="checkbox" style="width:auto" ${S.lbl?"checked":""} onchange="S.lbl=this.checked;save();render()"> show labels</label></div>
+    <div id="hov" class="hovbar">🖱️ Hover over things in the picture. Click to inspect or open.</div>
+    <div class="scenewrap">${VS[J.view]()}<div class="insp">${vInsp()}</div></div></div>`;
+    const f=Object.keys(J.tests).filter(k=>!FLAV[k]);
+    o+=`<div class="card"><h3>📋 Clipboard (what you found)</h3>`+(f.length?f.map(k=>`<div class="find"><b>${h(HOT[ACT[k].p].n)}</b> <span class="muted">(${h(ACT[k].l)})</span><br>${h(J.tests[k])}</div>`).join(""):`<p class="muted">Nothing yet. Click parts in the picture above.</p>`)+
+      (Object.keys(J.flags).length?`<p>🏷️ Flagged worn: ${Object.keys(J.flags).map(p=>h(HOT[p].n)).join(", ")}</p>`:"")+
+      (rank()<4?`<button class="b" onclick="hint()">Ask Earl where to look (−3 XP pride)</button>`:"")+`</div>`;
+    o+=`<div class="card"><h3>🎯 Make the call: what's wrong with it?</h3><p class="muted">Pick when you're sure. A wrong call costs time, rep and a callback.</p>`+J.cands.map(k=>`<button class="b warn" onclick="dx('${k}')">${h(FAULTS[k].n)}</button>`).join("")+`</div>`;
+  }else{
+    const F=FAULTS[J.dx];let ready=true;
+    o+=`<div class="card"><h3>🧰 Parts & tools for: ${h(F.n)}</h3>`;
+    if(!F.p.length)o+=`<p class="muted">No parts needed, just know-how.</p>`;
+    o+=`<table>`+F.p.map(p=>{const v=J.have[p];if(!v)ready=false;return`<tr><td>${h(PARTS[p].n)}</td><td>${v?`<span class="good">✓ ${{truck:"in your truck",earl:"from Earl's truck",order:"arrived",house:"bought"}[v]}</span>`:
+      (!own()&&!J.tried[p]?`<button class="b" onclick="earlPart('${p}')">"I got that in the truck"</button>`:"")+`<button class="b" onclick="order('${p}')">Order $${PARTS[p].c} (1–3 days)</button><button class="b" onclick="house('${p}')">Parts house $${Math.round(PARTS[p].c*1.4)} (+1 hr)</button>`}</td></tr>`}).join("")+`</table>`;
+    o+=`<p class="muted">Tools: ${F.t.map(t=>TOOLS[t].n+(S.tools[t]?" ✓":own()?" (rent)":" (borrow)")).join(", ")} · Book time ${F.h} hrs</p>
+    <button class="b go" ${ready?"":"disabled"} onclick="repair()">Turn wrenches</button><button class="b" onclick="undx()">Rethink it</button>
+    <p class="muted">${F.how.map((s,i)=>(i+1)+". "+h(s)).join("<br>")}<br>${A(yt(F.yt),"▶ Watch how it's done (YouTube)")}</p></div>`;
+  }
+  o+=`<div class="card"><h3>Job log</h3><div class="log">${J.log.slice().reverse().map(l=>`<div class="${l[1]}">${h(l[0])}</div>`).join("")}</div></div>`;
+  return o;
+}
+function vTruck(){
+  return`<div class="row"><div class="card"><h3>🧰 Your toolbox</h3><table>`+Object.keys(TOOLS).map(t=>`<tr><td>${h(TOOLS[t].n)}</td><td>${S.tools[t]?'<span class="good">owned</span>':`<button class="b" onclick="buyT('${t}')">Buy $${TOOLS[t].c}</button>`}</td></tr>`).join("")+`</table></div>
+  <div class="card"><h3>🚚 Truck stock</h3><table>`+Object.keys(PARTS).map(p=>`<tr><td>${h(PARTS[p].n)}</td><td>${S.parts[p]||0}</td><td><button class="b" onclick="buyP('${p}')">+1 $${PARTS[p].c}</button></td></tr>`).join("")+
+  `<tr><td>Gaffer tape</td><td>${S.gaffer}</td><td><button class="b" onclick="buyC('gaffer',8)">+1 $8</button></td></tr><tr><td>Zip ties (bag)</td><td>${S.zip}</td><td><button class="b" onclick="buyC('zip',5)">+1 $5</button></td></tr></table>
+  <p class="muted">Stocking common parts saves order days. Earl's truck is a coin flip.</p></div></div>`;
+}
+function vMan(){
+  return MODELS.map(m=>`<div class="card"><h3>📘 ${h(m.n)} ${m.r>rank()?'<span class="tag">unlocks at '+RANKS[m.r].n+'</span>':""}</h3><b>${h(m.s)}</b><br><span class="muted">Service: ${h(m.iv)}</span>
+  <p><b>Known issues:</b><br>${m.f.map(f=>`• ${h(FAULTS[f].n)}: <i>"${h(FAULTS[f].sym)}"</i> ${A(yt(FAULTS[f].yt),"▶ video")}`).join("<br>")}</p>
+  <span class="muted">Mock model. For real units, look up your engine/gen maker's manual: ${A(ddg(m.s.split(",")[0]+" diesel generator service manual pdf"),"search manuals")}</span></div>`).join("")+
+  `<div class="card"><h3>🛠️ Field guide</h3>`+Object.keys(FAULTS).map(k=>{const F=FAULTS[k];return`<details><summary><b>${h(F.n)}</b></summary><p class="muted">${F.how.map((s,i)=>(i+1)+". "+h(s)).join("<br>")}<br>Where to look: ${h([...new Set(Object.keys(F.cl).filter(a=>ACT[a]).map(a=>HOT[ACT[a].p].n))].join(", "))}<br>${A(yt(F.yt),"▶ YouTube how-to")}</p></details>`}).join("")+`<p class="muted">⚠️ Real life: lockout/tagout, verify dead, and respect stored energy. Generators bite.</p></div>`;
+}
+function vRes(){
+  const sec=(t,l)=>`<div class="card links"><h3>${t}</h3>${l.map(x=>A(x[0],x[1])).join("")}</div>`;
+  return`<div class="row">`+sec("🎓 Trade schools & apprenticeships",[["https://www.apprenticeship.gov","Apprenticeship.gov (US Dept. of Labor)"],["https://www.careeronestop.org","CareerOneStop: find local training"],["https://www.uti.edu","Universal Technical Institute (diesel)"],["https://www.lincolntech.edu","Lincoln Tech"],["https://www.wyotech.edu","WyoTech"],["https://www.nccer.org","NCCER: craft training"],["https://www.egsa.org","EGSA: generator tech certification"],["https://www.ase.com","ASE certification"],["https://www.iuoe.org","IUOE (Operating Engineers union)"],["https://www.ibew.org","IBEW (Electrical Workers union)"]])+
+  sec("📚 Manuals & training docs",[["https://quickserve.cummins.com","Cummins QuickServe Online"],["https://sis2.cat.com","Cat SIS 2.0"],["https://www.rehlko.com","Rehlko (formerly Kohler Energy)"],["https://www.generac.com","Generac"],["https://www.perkins.com","Perkins Engines"],["https://www.kubota.com","Kubota"],["https://www.manualslib.com","ManualsLib"],["https://www.osha.gov/control-hazardous-energy","OSHA Lockout/Tagout"],["https://www.nfpa.org","NFPA 110 (emergency power)"]])+`</div><div class="row">`+
+  sec("🔩 Tool suppliers",[["https://www.snapon.com","Snap-on"],["https://www.mactools.com","Mac Tools"],["https://www.matcotools.com","Matco Tools"],["https://www.fluke.com","Fluke (meters)"],["https://www.kleintools.com","Klein Tools"],["https://www.milwaukeetool.com","Milwaukee"],["https://www.grainger.com","Grainger"],["https://www.mcmaster.com","McMaster-Carr"],["https://www.harborfreight.com","Harbor Freight"],["https://www.napaonline.com","NAPA"]])+
+  sec("▶️ YouTubers worth your time",[[yt("Diesel Creek"),"Diesel Creek"],[yt("Watch Wes Work"),"Watch Wes Work"],[yt("Mustie1"),"Mustie1"],[yt("Adept Ape"),"Adept Ape"],[yt("AvE tools"),"AvE"],[yt("Engineering Explained diesel"),"Engineering Explained"],[yt("diesel generator troubleshooting training"),"Generator troubleshooting (search)"],[yt("transfer switch training"),"ATS training (search)"]])+`</div>
+  <div class="card"><h3>🛍️ My Etsy shop</h3>${S.etsy?A(S.etsy,S.etsy):'<span class="muted">Set your shop link in the Profile tab.</span>'}</div><p class="muted">These open on outside websites. Search links are used where channel addresses change.</p>`;
+}
+function vProf(){
+  const r=rank();
+  return`<div class="row"><div class="card" style="text-align:center">${HILL(150)}<h3>${h(RANKS[r].n)}</h3><p class="earl">${own()?"\"Your show now, partner.\"":"Earl says: \"You'll make a mechanic yet.\""}</p></div>
+  <div class="card"><h3>📈 Career</h3><table>${RANKS.map((k,i)=>`<tr><td>${i<=r?"✅":"⬜"} ${h(k.n)}</td><td>${k.x} XP</td><td>${k.w?"$"+k.w+"/hr":"$135/hr billed"}</td></tr>`).join("")}</table>
+  <p>Jobs done: ${S.done} · XP: ${S.xp} · Rep: ${S.rep}</p></div></div>
+  <div class="card"><h3>🛍️ Your Etsy shop link</h3><input id="etsyIn" placeholder="https://www.etsy.com/shop/YourShop" value="${h(S.etsy)}"><button class="b go" onclick="setEtsy()">Save</button></div>
+  <div class="card"><button class="b warn" onclick="if(confirm('Start a brand new career?')){S=Object.assign(fresh(),{etsy:S.etsy});save();render()}">Start over as a greenhorn</button></div>`;
+}
+function setEtsy(){const v=etsyIn.value.trim();S.etsy=/^https?:\/\//.test(v)?v:(v?"https://"+v:"");save();render()}
+
+function render(){
+  const r=rank(),nx=RANKS[r+1];
+  hRank.innerHTML=`<b>${h(RANKS[r].n)}</b><div class="xpbar"><div style="width:${nx?Math.min(100,(S.xp-RANKS[r].x)/(nx.x-RANKS[r].x)*100):100}%"></div></div>`;
+  hMoney.textContent="💵 $"+S.money;hDay.textContent="📅 Day "+S.day;hRep.textContent="⭐ Rep "+S.rep;
+  hEtsy.href=S.etsy||"#";hEtsy.onclick=S.etsy?null:(e=>{e.preventDefault();tab="prof";render()});
+  earlSmall.innerHTML=HILL(46);
+  const T=[["job","🎫 Job Board"],["truck","🚚 Truck & Tools"],["man","📘 Manuals"],["res","🔗 Resources"],["prof","🤠 Profile"]];
+  nav.innerHTML=T.map(t=>`<button class="${tab===t[0]?"on":""}" onclick="tab='${t[0]}';render()">${t[1]}</button>`).join("");
+  main.innerHTML={job:vJob,truck:vTruck,man:vMan,res:vRes,prof:vProf}[tab]();
+}
+render();
+</script>
+</body>
+</html>

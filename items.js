@@ -53,6 +53,23 @@ window.ITEMS = [
  },
  {
   "kind": "games",
+  "slug": "diesel-gen-mechanic-simulator",
+  "name": "Diesel Gen Mechanic Simulator",
+  "by": "Randy",
+  "blurb": "Start as a greenhorn under a scruffy foreman and work up to master repairman. Walk around the generator, open panels, find the worn and broken parts, and fix them, with real manuals, trade schools and training links along the way.",
+  "status": "ok",
+  "real_items": "https://www.etsy.com/shop/UberRandis",
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=games/diesel-gen-mechanic-simulator",
+  "file": "games/diesel-gen-mechanic-simulator/item.html",
+  "logo": "games/diesel-gen-mechanic-simulator/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "games",
   "slug": "fossil-collector",
   "name": "Fossil Collector",
   "by": "Randy",
