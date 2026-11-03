@@ -2,6 +2,23 @@
 window.ITEMS = [
  {
   "kind": "games",
+  "slug": "bindy-and-louis",
+  "name": "Bindy & Louis",
+  "by": "Randy",
+  "blurb": "Bindy the binder clip helps you fix your own stuff with 320 repair tips, then teams up with Louis, the repair guy, to fight Mega Corp for the right to repair.",
+  "status": "ok",
+  "real_items": "https://www.etsy.com/shop/UberRandis",
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=games/bindy-and-louis",
+  "file": "games/bindy-and-louis/item.html",
+  "logo": "games/bindy-and-louis/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "games",
   "slug": "castle-mnemosyne",
   "name": "Castle Mnemosyne",
   "by": "Randy",
@@ -67,6 +84,23 @@ window.ITEMS = [
   "file": "games/marble-collector/item.html",
   "logo": "games/marble-collector/logo.png",
   "video_pic": "games/marble-collector/video.png"
+ },
+ {
+  "kind": "games",
+  "slug": "milk-cap-champ",
+  "name": "Milk Cap Champ",
+  "by": "Randy",
+  "blurb": "Stack 'em, slam 'em, flip 'em. Win milk caps, earn coins, collect rare ones and level up from Rookie to Cap Master.",
+  "status": "ok",
+  "real_items": "https://www.etsy.com/shop/UberRandis",
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=games/milk-cap-champ",
+  "file": "games/milk-cap-champ/item.html",
+  "logo": "games/milk-cap-champ/logo.svg",
+  "video_pic": null
  },
  {
   "kind": "games",

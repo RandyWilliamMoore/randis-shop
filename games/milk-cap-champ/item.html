@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Milk Cap Champ</title>
+<style>
+body{margin:0;background:#1e1f22;color:#e6e6e6;font-family:system-ui,"Segoe UI",sans-serif}
+header{display:flex;align-items:center;gap:12px;padding:10px 16px;background:#26272b;border-bottom:1px solid #333;flex-wrap:wrap}
+h1{margin:0;font-size:22px;color:#ffcc33;letter-spacing:1px;text-shadow:0 0 8px #e0a80066}
+h2,h3{margin:4px 0 10px}
+button{background:#34363c;color:#e6e6e6;border:1px solid #44464d;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:14px}
+button:hover{background:#3f424a}button.primary{background:#e0a800;color:#1e1f22;border:none;font-weight:700}
+button:disabled{opacity:.4;cursor:default}
+.stats{margin-left:auto;display:flex;gap:14px;align-items:center;font-size:14px}
+.xpbar{width:120px;height:8px;background:#333;border-radius:4px;overflow:hidden}.xpbar div{height:100%;background:#5ad17a}
+main{padding:16px;max-width:920px;margin:auto}
+.panel{background:#26272b;border-radius:12px;padding:14px;margin-bottom:12px}
+.grid{display:flex;flex-wrap:wrap;gap:10px}
+.pogcard{text-align:center;font-size:11px;width:86px}.pogcard button{padding:3px 6px;font-size:11px;margin-top:3px}
+.r-common{color:#9aa0a6}.r-rare{color:#4ea8ff}.r-epic{color:#c77dff}.r-legendary{color:#ffcc33}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+#arena{position:relative;height:320px;background:radial-gradient(#2e3036,#18191c);border-radius:14px;overflow:hidden;border:1px solid #333;margin-top:8px}
+.apog{position:absolute;width:64px;height:64px;transition:left .7s cubic-bezier(.2,.8,.3,1),top .7s cubic-bezier(.2,.8,.3,1),transform .7s}
+.shake{animation:sh .3s}@keyframes sh{25%{transform:translate(4px,3px)}50%{transform:translate(-4px,-2px)}75%{transform:translate(2px,-3px)}}
+#meter{height:22px;background:linear-gradient(90deg,#c33,#e0a800 30%,#5ad17a 50%,#e0a800 70%,#c33);border-radius:11px;position:relative;margin:12px 0}
+#needle{position:absolute;top:-4px;width:4px;height:30px;background:#fff;border-radius:2px;box-shadow:0 0 6px #fff}
+.msg{min-height:22px;font-weight:600;margin:10px 0}
+.note{color:#9aa0a6;font-size:13px}
+#err{color:#ff6b6b;white-space:pre-wrap;font-size:13px}
+</style></head><body>
+<header><h1>🔘 MILK CAP CHAMP</h1>
+<button onclick="show('home')">Home</button><button onclick="show('play')">Play</button>
+<button onclick="show('collection')">Collection</button><button onclick="show('shop')">Shop</button>
+<div class="stats" id="stats"></div></header>
+<main id="main"></main>
+<div id="err"></div>
+<script>
+window.onerror=(m,s,l)=>{const e=document.getElementById('err');if(e)e.textContent='Error: '+m+' (line '+l+')'};
+const $=id=>document.getElementById(id);
+const RCOL={common:'#9aa0a6',rare:'#4ea8ff',epic:'#c77dff',legendary:'#ffcc33'};
+const RANK={common:0,rare:1,epic:2,legendary:3},VAL={common:3,rare:10,epic:30,legendary:100};
+const PATS=['rings','rays','dots','star','split'];
+const EMO=['⚡','🔥','💀','👽','🌙','⭐','🐍','🦈','🎲','👑','🌀','🍕','🎸','🐉','💎','🚀','🌵','🍄','😎','🧿'];
+const ADJ=['Cosmic','Radical','Toxic','Neon','Gnarly','Turbo','Mega','Shadow','Wicked','Atomic','Funky','Hyper'];
+const NOUN=['Skull','Flame','Wave','Comet','Bolt','Dragon','Shark','Vortex','Crown','Gem','Rocket','Moon'];
+const SL=[{n:'Plastic Slammer',b:0,c:0},{n:'Steel Slammer',b:.05,c:150},{n:'Gold Slammer',b:.1,c:400},{n:'Champion Slammer',b:.16,c:1000}];
+const CPUN=['Kid Kapow','Stacky Steve','Slamantha','Flip Lord','Big Milkcap','The Kingpin'];
+const pick=a=>a[Math.random()*a.length|0];
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a}
+function mk(s,bias,temp){const r=Math.random()*100*(1-bias);
+  return {id:temp?'t'+Math.random():s.nid++,name:pick(ADJ)+' '+pick(NOUN),hue:Math.random()*360|0,pat:pick(PATS),emo:pick(EMO),
+  r:r<2?'legendary':r<12?'epic':r<40?'rare':'common'}}
+/* Storage may be blocked inside the app's tab, so fall back to memory instead of crashing */
+let MEM=null;
+function storeGet(){try{return localStorage.getItem('pogchamp')}catch(e){return MEM}}
+function storeSet(v){MEM=v;try{localStorage.setItem('pogchamp',v)}catch(e){}}
+function load(){try{const s=JSON.parse(storeGet());if(s&&Array.isArray(s.caps))return s}catch(e){}
+  const s={xp:0,lvl:1,coins:100,slammer:0,caps:[],wins:0,losses:0,keeps:true,nid:1};for(let i=0;i<15;i++)s.caps.push(mk(s,0));return s}
+let S=load();const save=()=>storeSet(JSON.stringify(S));save();
+function title(l){return l>=20?'Cap Master':l>=10?'Milk Cap Champ':l>=6?'Stacker':l>=3?'Slammer':'Rookie'}
+
+function pogSVG(p,sz,down){
+  const v=`<svg width="${sz}" height="${sz}" viewBox="0 0 100 100">`;
+  if(down)return v+`<circle cx="50" cy="50" r="48" fill="#3a3d44" stroke="#22242a" stroke-width="3"/><circle cx="50" cy="50" r="36" fill="none" stroke="#555" stroke-width="2"/><text x="50" y="57" font-size="20" text-anchor="middle" fill="#888" font-weight="bold">Cap</text></svg>`;
+  const a=`hsl(${p.hue},70%,42%)`,b=`hsl(${(p.hue+150)%360},80%,60%)`;let g='';
+  if(p.pat=='rings')for(let r=44;r>22;r-=8)g+=`<circle cx="50" cy="50" r="${r}" fill="${(r/8|0)%2?a:b}"/>`;
+  if(p.pat=='rays')for(let i=0;i<16;i+=2){const t1=i*Math.PI/8,t2=(i+1)*Math.PI/8;g+=`<polygon points="50,50 ${50+48*Math.cos(t1)},${50+48*Math.sin(t1)} ${50+48*Math.cos(t2)},${50+48*Math.sin(t2)}" fill="${b}"/>`}
+  if(p.pat=='dots')for(let i=0;i<8;i++){const t=i*Math.PI/4;g+=`<circle cx="${50+35*Math.cos(t)}" cy="${50+35*Math.sin(t)}" r="7" fill="${b}"/>`}
+  if(p.pat=='star'){let pts='';for(let i=0;i<10;i++){const t=i*Math.PI/5-Math.PI/2,r=i%2?20:46;pts+=`${50+r*Math.cos(t)},${50+r*Math.sin(t)} `}g=`<polygon points="${pts}" fill="${b}"/>`}
+  if(p.pat=='split')g=`<path d="M50 2 A48 48 0 0 1 50 98 Z" fill="${b}"/>`;
+  return v+`<circle cx="50" cy="50" r="48" fill="${a}"/>${g}<circle cx="50" cy="50" r="21" fill="#111a"/><text x="50" y="60" font-size="26" text-anchor="middle">${p.emo}</text><circle cx="50" cy="50" r="46.5" fill="none" stroke="${RCOL[p.r]}" stroke-width="${p.r=='common'?3:6}"/></svg>`;
+}
+const card=(p,x)=>`<div class="pogcard">${pogSVG(p,72)}<div>${p.name}</div><div class="r-${p.r}">${p.r}</div>${x||''}</div>`;
+function hdr(){$('stats').innerHTML=`<span>Lv ${S.lvl} <b class="r-legendary">${title(S.lvl)}</b></span><div class="xpbar" title="${S.xp}/${S.lvl*100} XP"><div style="width:${S.xp/(S.lvl*100)*100}%"></div></div><span>🪙 ${S.coins}</span><span>🔘 ${S.caps.length}</span>`}
+function addXP(n){let ups=[];S.xp+=n;while(S.xp>=S.lvl*100){S.xp-=S.lvl*100;S.lvl++;S.coins+=50*S.lvl;ups.push(S.lvl)}return ups}
+
+let view='home',M=null,busy=false,needleX=.5,stackEls=[];
+function show(v){view=v;if(v!='match')M=null;hdr();V[v]()}
+const V={
+home(){const best=S.caps.slice().sort((a,b)=>RANK[b.r]-RANK[a.r]).slice(0,8);
+  $('main').innerHTML=`<div class="panel"><h2>Be the Milk Cap Champ!</h2><p>Stack 'em, slam 'em, flip 'em. Every cap that lands face-up is yours. Win caps, earn coins and level up from Rookie to <b class="r-legendary">Cap Master</b>.</p>
+  <p>Record: ${S.wins}W – ${S.losses}L · ${SL[S.slammer].n}</p><button class="primary" onclick="show('play')">Play now</button></div>
+  <div class="panel"><h3>Your best caps</h3><div class="grid">${best.map(p=>card(p)).join('')}</div></div>`},
+play(){$('main').innerHTML=`<div class="panel"><h3>vs CPU</h3><p class="note">Each side puts 5 caps in the stack. Time your slam in the green for more flips.</p>
+  <label><input type="checkbox" ${S.keeps?'checked':''} onchange="S.keeps=this.checked;save()"> Play for keeps (win their caps, lose yours)</label><br><br>
+  <button class="primary" onclick="startMatch('cpu')">Slam the CPU</button></div>
+  <div class="panel"><h3>vs Friend (same screen)</h3><p class="note">Take turns at one computer. Just for bragging rights, so no caps change hands.</p><button onclick="startMatch('friend')">Start 2-player</button></div>
+  <div class="panel"><h3>Online</h3><p class="note">Playing each other online needs a shared server, which this tab can't do yet. Coming soon.</p><button disabled>Online match</button></div>`},
+collection(){const c={common:0,rare:0,epic:0,legendary:0};S.caps.forEach(p=>c[p.r]++);
+  const list=S.caps.slice().sort((a,b)=>RANK[b.r]-RANK[a.r]);
+  $('main').innerHTML=`<div class="panel"><h3>Collection (${S.caps.length})</h3><p>${Object.keys(c).map(k=>`<span class="r-${k}">${k}: ${c[k]}</span>`).join(' · ')}</p>
+  <div class="grid">${list.map(p=>card(p,`<button onclick="sell(${p.id})">Sell ${VAL[p.r]}🪙</button>`)).join('')}</div></div>`},
+shop(){$('main').innerHTML=`<div class="panel"><h3>Packs</h3><div class="row"><button onclick="buy(5,0,50)">Booster Pack: 5 caps · 50🪙</button><button onclick="buy(3,.45,120)">Shiny Pack: 3 rarer caps · 120🪙</button></div><div id="opened" class="grid" style="margin-top:12px"></div></div>
+  <div class="panel"><h3>Slammers</h3>${SL.map((s,i)=>`<div class="row" style="margin:6px 0"><b style="width:170px">${s.n}</b><span style="width:170px">+${Math.round(s.b*100)}% flip chance</span>${i<=S.slammer?`<i class="note">${i==S.slammer?'Equipped':'Owned'}</i>`:`<button ${S.coins<s.c?'disabled':''} onclick="buySl(${i})">Buy ${s.c}🪙</button>`}</div>`).join('')}</div>
+  <div class="panel"><h3>Real Caps</h3><p>Want the real thing? Find real milk caps and slammers in <a href="https://www.etsy.com/shop/UberRandis" target="_blank" rel="noopener">my Etsy shop</a>.</p></div>`},
+match(){$('main').innerHTML=`<div class="row" style="justify-content:space-between"><b id="s0"></b><span id="turn"></span><b id="s1"></b></div><div id="arena"></div><div id="meter"><div id="needle"></div></div>
+  <div class="row"><button class="primary" id="slamBtn" onclick="playerSlam()">SLAM! (Space)</button><button id="quitBtn" onclick="show('play')">Quit (no caps change hands)</button></div><div class="msg" id="msg"></div>`;
+  renderArena();nextTurn()}
+};
+function sell(id){if(S.caps.length<=5)return alert('Keep at least 5 caps so you can play.');const p=S.caps.find(x=>x.id==id);S.coins+=VAL[p.r];S.caps=S.caps.filter(x=>x.id!=id);save();show('collection')}
+function buy(n,bias,c){if(S.coins<c)return alert('Not enough coins. Win some matches!');S.coins-=c;const got=[];for(let i=0;i<n;i++){const p=mk(S,Math.min(.6,bias+S.lvl*.01));got.push(p);S.caps.push(p)}save();show('shop');$('opened').innerHTML=got.map(p=>card(p)).join('')}
+function buySl(i){if(S.coins<SL[i].c)return;S.coins-=SL[i].c;S.slammer=i;save();show('shop')}
+
+function startMatch(mode){let a0,a1,names;
+  if(mode=='cpu'){if(S.caps.length<5)return alert('You need 5 caps. Visit the shop.');
+    a0=shuffle(S.caps.slice()).slice(0,5);a1=[0,1,2,3,4].map(()=>mk(S,Math.min(.5,S.lvl*.03),true));names=['You',pick(CPUN)]}
+  else{a0=[0,1,2,3,4].map(()=>mk(S,.2,true));a1=[0,1,2,3,4].map(()=>mk(S,.2,true));names=['Player 1','Player 2']}
+  M={mode,names,stack:shuffle([...a0.map(p=>({p,o:0})),...a1.map(p=>({p,o:1}))]),won:[[],[]],turn:0};busy=false;show('match')}
+const human=()=>M&&(M.mode=='friend'||M.turn==0);
+function msg(t){$('msg').innerHTML=t}
+function renderArena(){const A=$('arena');if(!A||!M)return;const W=A.clientWidth,H=A.clientHeight;A.innerHTML='';
+  stackEls=M.stack.map((s,i)=>{const e=document.createElement('div');e.className='apog';e.style.left=(W/2-32)+'px';e.style.top=(H/2-10-i*4)+'px';e.innerHTML=pogSVG(s.p,64,true);A.appendChild(e);return e});
+  [0,1].forEach(k=>M.won[k].slice(-6).forEach((s,i)=>{const e=document.createElement('div');e.className='apog';e.style.width=e.style.height='44px';
+    e.style.left=(k?W-60-i*6:16+i*6)+'px';e.style.top=(H-60-i*5)+'px';e.innerHTML=pogSVG(s.p,44);A.appendChild(e)}));
+  $('s0').textContent=`${M.names[0]}: ${M.won[0].length}`;$('s1').textContent=`${M.names[1]}: ${M.won[1].length}`}
+function nextTurn(){if(!M)return;$('turn').textContent=`${M.names[M.turn]}'s turn · ${M.stack.length} in stack`;
+  $('slamBtn').disabled=!human();if(!human()){const m=M;setTimeout(()=>{if(M!==m||busy)return;
+    const acc=Math.min(.85,.4+S.lvl*.03);slam(Math.min(1,Math.max(0,.5+(Math.random()*2-1)*(1-acc))))},900)}}
+function playerSlam(){if(!M||busy||!human()||!M.stack.length)return;slam(needleX)}
+const grade=q=>q>.9?'PERFECT':q>.7?'Great':q>.4?'Good':'Weak';
+function slam(x){busy=true;needleX=x;$('needle').style.left=`calc(${x*100}% - 2px)`;$('slamBtn').disabled=true;const m=M;
+  const q=Math.max(0,1-Math.abs(x-.5)*2),bonus=(m.mode=='cpu'&&m.turn==0)?SL[S.slammer].b:0,pr=Math.min(.92,.12+.6*q+bonus);
+  const flip=m.stack.map(()=>Math.random()<pr),n=flip.filter(Boolean).length,A=$('arena'),W=A.clientWidth,H=A.clientHeight;
+  A.classList.remove('shake');void A.offsetWidth;A.classList.add('shake');
+  setTimeout(()=>stackEls.forEach((e,i)=>{e.style.left=(70+Math.random()*(W-204))+'px';e.style.top=(10+Math.random()*(H-84))+'px';
+    e.style.transform=`rotate(${Math.random()*720-360}deg)`;if(flip[i])e.innerHTML=pogSVG(m.stack[i].p,64)}),60);
+  msg(`${m.names[m.turn]}: ${grade(q)} slam! Flipped ${n}.`);
+  setTimeout(()=>{if(M!==m)return;const keep=[];m.stack.forEach((s,i)=>(flip[i]?m.won[m.turn]:keep).push(s));m.stack=shuffle(keep);busy=false;renderArena();
+    if(!m.stack.length)return endMatch();m.turn^=1;nextTurn()},1700)}
+function endMatch(){const a=M.won[0].length,b=M.won[1].length,mode=M.mode;let t;
+  if(mode=='cpu'){const win=a>b,tie=a==b;
+    if(S.keeps){const lost=M.won[1].filter(s=>s.o==0).map(s=>s.p.id);S.caps=S.caps.filter(p=>!lost.includes(p.id));
+      M.won[0].filter(s=>s.o==1).forEach(s=>{s.p.id=S.nid++;S.caps.push(s.p)})}
+    const coins=a*5+(win?30:0);S.coins+=coins;if(win)S.wins++;else if(!tie)S.losses++;
+    const ups=addXP(a*10+(win?50:tie?20:0));
+    t=`${win?'🏆 You win':tie?'🤝 Tie':'💥 '+M.names[1]+' wins'} ${a}–${b}! +${coins}🪙`+(ups.length?` · ⭐ LEVEL UP to ${S.lvl}: ${title(S.lvl)}!`:'');
+    if(S.caps.length<5){for(let i=0;i<5;i++)S.caps.push(mk(S,0));t+=' · You got a free comeback pack!'}save();hdr()}
+  else t=a==b?`🤝 Tie ${a}–${b}!`:`🏆 ${a>b?'Player 1':'Player 2'} wins ${Math.max(a,b)}–${Math.min(a,b)}!`;
+  $('turn').textContent='Match over';$('slamBtn').style.display='none';$('quitBtn').textContent='Back';
+  msg(t+` <button class="primary" onclick="startMatch('${mode}')">Rematch</button>`)}
+function loop(t){if(M&&!busy&&$('needle')){const sp=M.mode=='cpu'?Math.min(4.5,2.2+S.lvl*.12):2.6;needleX=(Math.sin(t/1000*sp)+1)/2;$('needle').style.left=`calc(${needleX*100}% - 2px)`}requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+addEventListener('keydown',e=>{if(view=='match'&&e.code=='Space'){e.preventDefault();playerSlam()}});
+show('home');
+</script></body></html>
