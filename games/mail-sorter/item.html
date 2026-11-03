@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Mail Sorter</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#1e1f22;color:#e6e6e6;font-family:Segoe UI,sans-serif;user-select:none}
+#hud{display:flex;gap:18px;padding:10px 16px;background:#2b2d31;align-items:center;flex-wrap:wrap}
+#hud b{color:#ffd166}#status{margin-left:auto;font-weight:600}
+#rq{background:#7a2b2b;border-color:#c44;margin:0;padding:6px 12px;font-weight:700}#rq:hover{background:#a33;border-color:#ff6b6b}
+.scene{display:none;padding:16px;text-align:center}.scene.on{display:block}
+#pile{position:relative;height:190px;width:340px;margin:10px auto}
+.letter{position:absolute;left:50%;width:260px;height:120px;margin-left:-130px;background:#f4ecd8;color:#222;border-radius:4px;box-shadow:0 2px 6px #0008;padding:10px;text-align:left;font-family:Courier New,monospace;transition:top .15s}
+.letter .stamp{position:absolute;right:10px;top:10px;width:34px;height:40px;border:2px dashed #a33}
+.letter .zip{font-size:26px;font-weight:bold;margin-top:14px}
+.letter.junk{background:#ffe066}
+#bins{display:flex;gap:10px;justify-content:center;margin-top:10px}
+.bin{width:100px;height:80px;background:#3a3d44;border:2px solid #555;border-radius:6px;cursor:pointer;display:flex;flex-direction:column;justify-content:center;font-weight:600}
+.bin:hover{border-color:#ffd166}.bin small{color:#aaa;font-weight:400}
+.flash-good{background:#2f6b3a!important}.flash-bad{background:#7a2b2b!important}
+#bar{height:8px;width:340px;margin:6px auto;background:#333;border-radius:4px;overflow:hidden}#barIn{height:100%;background:#e76f51;width:0}
+button{background:#3a3d44;color:#e6e6e6;border:1px solid #666;border-radius:6px;padding:8px 14px;cursor:pointer;font-size:14px;margin:4px}
+button:hover{border-color:#ffd166}
+#spots{display:grid;grid-template-columns:repeat(3,150px);gap:10px;justify-content:center;margin:12px}
+.spot{height:70px}.spot.done{opacity:.6;cursor:default}
+canvas{background:#15161a;border:1px solid #444;border-radius:6px;display:block;margin:8px auto}
+#doors{display:grid;grid-template-columns:repeat(3,120px);gap:10px;justify-content:center;margin:12px}
+.door{height:90px;background:#6b4f35;font-size:13px}
+#toasts{position:fixed;top:60px;left:50%;transform:translateX(-50%);pointer-events:none;text-align:center;z-index:5}
+.toast{font-weight:700;font-size:20px;color:#ffd166;text-shadow:0 2px 4px #000;animation:up 1.4s forwards}
+.toast.bad{color:#ff6b6b}
+@keyframes up{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-40px)}}
+.hint{color:#999;font-size:13px}
+.fly{position:fixed;font-size:30px;pointer-events:none;z-index:9;animation:fly 1.3s ease-out forwards}
+@keyframes fly{to{transform:translate(var(--dx),var(--dy)) rotate(var(--rot));opacity:0}}
+.shake{animation:shake .45s}
+@keyframes shake{0%,100%{transform:translate(0)}20%{transform:translate(-8px,4px)}40%{transform:translate(8px,-4px)}60%{transform:translate(-6px,-3px)}80%{transform:translate(6px,3px)}}
+#quit h1{color:#ff6b6b;font-size:40px;margin:10px 0}
+#rant{font-style:italic;color:#ffd166;font-size:18px;margin:10px}
+#final{display:inline-block;text-align:left;background:#2b2d31;border-radius:8px;padding:12px 20px;margin:10px;line-height:1.8}
+</style></head><body>
+<div id="hud">Points <b id="pts">0</b> Coworker clout <b id="clout">0</b> Aura <b id="aura">0</b> Sorted <b id="sorted">0</b> Combo <b id="combo">0</b><span id="status">On the clock</span><button id="rq" onclick="rageQuit()">😤 Rage Quit</button></div>
+<div id="toasts"></div>
+
+<div id="sort" class="scene on">
+  <div class="hint">Match the first digit of the ZIP. Junk mail gets shredded. Keys 1–5 or click a bin. Break after <span id="tilBreak">25</span> more.</div>
+  <div id="pile"></div>
+  <div id="bar"><div id="barIn"></div></div>
+  <div id="bins"></div>
+</div>
+
+<div id="break" class="scene">
+  <h2>☕ Break Room: union-mandated break</h2>
+  <div class="hint">Search for free snacks. Each spot can be checked once per break.</div>
+  <div id="spots"></div>
+  <button onclick="go('arcade')">🕹️ Busted old arcade machine</button>
+  <button onclick="startCoffee()">☕ Make a coffee</button>
+</div>
+
+<div id="arcade" class="scene">
+  <h3>STAK-O-TRON 2 (the screen flickers)</h3>
+  <div class="hint">Click or press Space to drop the block. Stack it high for clout.</div>
+  <canvas id="ac" width="300" height="420"></canvas>
+  <button onclick="startStack()">Play again</button> <button onclick="go('break')">Back to break room</button>
+</div>
+
+<div id="coffee" class="scene">
+  <h3 id="cTitle">Find a clean cup</h3>
+  <div id="doors"></div>
+  <div id="pourBox" style="display:none">
+    <div class="hint">Move the mouse to aim the pot. Hold the button down to pour. Every drop you spill costs 1 aura.</div>
+    <canvas id="cc" width="320" height="380"></canvas>
+    <button onclick="serve()">Serve it</button>
+  </div>
+  <button onclick="go('break')">Back to break room</button>
+</div>
+
+<div id="quit" class="scene">
+  <h1>💥 I QUIT! 💥</h1>
+  <div id="rant"></div>
+  <div id="final"></div><br>
+  <button onclick="unquit()">🙏 Beg for your job back</button>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const S={pts:0,clout:0,aura:0,sorted:0,combo:0};
+let scene='sort',onBreak=false,quit=false,breakLeft=0,nextBreakAt=25,queue=[],frontSince=Date.now(),spawnAcc=0;
+const r=n=>Math.floor(Math.random()*n);
+const names=['M. Johnson','Occupant','Dr. Felix Ruiz','The Patel Family','J. Smith','Current Resident','Aunt Gladys','B. Okafor'];
+const junkTxt=['YOU WON!!!','Pre-approved!!','Car warranty','Coupons inside'];
+function hud(){for(const k in S)$(k).textContent=S[k];$('tilBreak').textContent=Math.max(0,nextBreakAt-S.sorted);
+ $('status').textContent=quit?'Unemployed':onBreak?'Break: '+Math.ceil(breakLeft)+'s left':'On the clock';
+ $('rq').style.display=quit?'none':'';}
+function toast(t,bad){const d=document.createElement('div');d.className='toast'+(bad?' bad':'');d.textContent=t;$('toasts').appendChild(d);setTimeout(()=>d.remove(),1400);}
+function show(s){scene=s;document.querySelectorAll('.scene').forEach(e=>e.classList.toggle('on',e.id===s));}
+function go(s){if(quit||(!onBreak&&s!=='sort'))return;show(s);if(s==='arcade')startStack();}
+
+// ---- RAGE QUIT ----
+const rants=['"I didn\'t go to college for this! ...I didn\'t go to college at all, but STILL!"',
+ '"You can sort your OWN junk mail, Gary!"','"Tell Bob his desk snacks were mid!"',
+ '"Car warranty THIS!"','"I\'m going to go be a lighthouse keeper. No mail there."',
+ '"The arcade machine was the only one who understood me."'];
+function rageQuit(){if(quit)return;quit=true;onBreak=false;pouring=false;
+ document.body.classList.remove('shake');void document.body.offsetWidth;document.body.classList.add('shake');
+ const p=$('pile').getBoundingClientRect(),cx0=p.left+p.width/2,cy0=p.top+p.height/2;
+ for(let i=0;i<22;i++){const f=document.createElement('div');f.className='fly';f.textContent=['✉️','📬','📦','📄','☕'][r(5)];
+  f.style.left=cx0+'px';f.style.top=cy0+'px';const a=Math.random()*6.28,d=200+Math.random()*300;
+  f.style.setProperty('--dx',Math.cos(a)*d+'px');f.style.setProperty('--dy',Math.sin(a)*d+'px');f.style.setProperty('--rot',(r(1440)-720)+'deg');
+  document.body.appendChild(f);setTimeout(()=>f.remove(),1300);}
+ $('rant').textContent=rants[r(rants.length)];
+ $('final').innerHTML='📬 Letters sorted: <b>'+S.sorted+'</b><br>⭐ Points: <b>'+S.pts+'</b><br>😎 Coworker clout: <b>'+S.clout+'</b><br>✨ Aura: <b>'+S.aura+'</b><br>📦 Letters left in the pile: <b>'+queue.length+'</b>';
+ queue=[];drawPile();show('quit');hud();}
+function unquit(){for(const k in S)S[k]=0;quit=false;onBreak=false;nextBreakAt=25;queue=[];spawnAcc=0;frontSince=Date.now();
+ toast('Fine. Back to the bottom of the ladder.');show('sort');drawPile();hud();}
+
+// ---- SORTING ----
+const binDefs=[['1xxxx','North'],['2xxxx','East'],['3xxxx','South'],['4xxxx','West'],['SHRED','Junk']];
+binDefs.forEach((b,i)=>{const d=document.createElement('div');d.className='bin';d.id='bin'+(i+1);d.innerHTML=b[0]+'<small>['+(i+1)+'] '+b[1]+'</small>';d.onclick=()=>sortTo(i+1);$('bins').appendChild(d);});
+function newLetter(){if(Math.random()<.15)return{bin:5,junk:1,name:'!!! '+junkTxt[r(4)],zip:'BULK RATE'};
+ const d=1+r(4);return{bin:d,name:names[r(names.length)],zip:d+String(r(10000)).padStart(4,'0')};}
+function drawPile(){const p=$('pile');p.innerHTML='';const show=queue.slice(0,6).reverse();
+ show.forEach((L,i)=>{const idx=show.length-1-i;const d=document.createElement('div');d.className='letter'+(L.junk?' junk':'');
+  d.style.top=(10+idx*9)+'px';d.style.transform='rotate('+((idx%3)-1)*2+'deg)';d.style.opacity=idx?0.85:1;
+  d.innerHTML='<div class="stamp"></div>'+L.name+'<div class="zip">'+L.zip+'</div>';p.appendChild(d);});
+ $('barIn').style.width=Math.min(100,queue.length/12*100)+'%';}
+function sortTo(b){if(quit||scene!=='sort'||onBreak||!queue.length)return;const L=queue.shift(),el=$('bin'+b),had=queue.length+1;
+ if(L.bin===b){S.combo++;let g=10*(1+Math.floor(S.combo/5));
+  if(Date.now()-frontSince<700){g+=15;toast('Quick Flick! +15');}
+  if(b===5&&Math.random()<.3){g+=10;toast('Behind-the-back shred! +10');}
+  if([10,25,50,100].includes(S.combo)){g+=S.combo*3;toast(S.combo+' streak! Hot hands!');}
+  if(!queue.length&&had>=5){g+=50;toast('Clean Desk! +50');}
+  S.pts+=g;el.classList.add('flash-good');}
+ else{S.combo=0;S.pts=Math.max(0,S.pts-5);toast('Wrong bin! -5',1);el.classList.add('flash-bad');}
+ setTimeout(()=>el.className='bin',150);
+ S.sorted++;frontSince=Date.now();drawPile();
+ if(S.sorted>=nextBreakAt)startBreak();hud();}
+addEventListener('keydown',e=>{if(e.key>='1'&&e.key<='5')sortTo(+e.key);if(e.code==='Space'&&scene==='arcade'){e.preventDefault();drop();}});
+
+// ---- BREAK ----
+const spotNames=['Fridge','Top cabinet','Couch cushions','Vending machine tray','Microwave','Junk drawer',"Bob's desk",'Lost & found','Behind the water cooler'];
+const snacks=['🍩 Free donut','🥨 Pretzels','🍫 Half a candy bar','🍪 Birthday cookie','🍕 Pizza from the meeting','🧃 Juice box'];
+function startBreak(){onBreak=true;breakLeft=30;toast('🔔 BREAK TIME! Union rules!');
+ const sn=new Set();while(sn.size<3)sn.add(r(9));const bad=[0,1,2,3,4,5,6,7,8].filter(i=>!sn.has(i))[r(6)];
+ $('spots').innerHTML='';spotNames.forEach((n,i)=>{const b=document.createElement('button');b.className='spot';b.textContent=n;
+  b.onclick=()=>{if(b.classList.contains('done'))return;b.classList.add('done');
+   if(sn.has(i)){const s=snacks[r(snacks.length)];S.pts+=40;b.textContent=s+' +40';toast(s+'! +40');}
+   else if(i===bad){S.aura-=3;b.textContent='🤢 Expired yogurt, -3 aura';toast('Ew. -3 aura',1);}
+   else b.textContent='Nothing…';hud();};$('spots').appendChild(b);});
+ go('break');hud();}
+function endBreak(){onBreak=false;nextBreakAt=S.sorted+25;toast('Back to work!');scene='';go('sort');frontSince=Date.now();hud();}
+
+// ---- ARCADE: stacker ----
+const ac=$('ac'),ax=ac.getContext('2d');let st=null;
+function startStack(){st={blocks:[{x:75,w:150}],mv:{x:0,w:150,dir:1},sp:2,over:false,layers:0};}
+function drop(){if(!st||st.over||scene!=='arcade')return;const top=st.blocks[st.blocks.length-1],m=st.mv;
+ const l=Math.max(top.x,m.x),rr=Math.min(top.x+top.w,m.x+m.w),w=rr-l;
+ if(w<=0){st.over=true;toast('GAME OVER, '+st.layers+' layers');return;}
+ let nx=l,nw=w;if(Math.abs(m.x-top.x)<4){nx=top.x;nw=top.w;S.clout+=2;toast('Perfect! +2 clout');}
+ st.blocks.push({x:nx,w:nw});st.layers++;S.clout+=1;st.mv={x:0,w:nw,dir:1};st.sp+=.25;hud();}
+ac.onclick=drop;
+function drawStack(){if(scene==='arcade'&&st){const m=st.mv;if(!st.over){m.x+=m.dir*st.sp;if(m.x<0||m.x+m.w>300)m.dir*=-1;}
+ ax.fillStyle='#15161a';ax.fillRect(0,0,300,420);const H=20,off=Math.max(0,st.blocks.length-15)*H;
+ st.blocks.forEach((b,i)=>{ax.fillStyle='hsl('+(i*25)%360+',70%,55%)';ax.fillRect(b.x,400-i*H+off,b.w,H-2);});
+ if(!st.over){ax.fillStyle='#fff';ax.fillRect(m.x,400-st.blocks.length*H+off,m.w,H-2);}
+ for(let y=0;y<420;y+=3){ax.fillStyle='rgba(0,0,0,.18)';ax.fillRect(0,y,300,1);}
+ ax.fillStyle='#0f0';ax.font='16px monospace';ax.fillText('LAYERS '+st.layers,10,22);
+ if(st.over){ax.fillStyle='#f55';ax.font='28px monospace';ax.fillText('GAME OVER',75,200);}}
+ requestAnimationFrame(drawStack);}
+drawStack();
+
+// ---- COFFEE ----
+const cc=$('cc'),cx=cc.getContext('2d');let cf=null,mouseX=160,pouring=false;
+const junkCup=['Tupperware lid','Stack of napkins',"Someone's lunch",'A single fork','Moldy mug (no)','Ketchup packets'];
+function startCoffee(){go('coffee');$('cTitle').textContent='Find a clean cup';$('pourBox').style.display='none';$('doors').style.display='grid';
+ const cup=r(6);$('doors').innerHTML='';for(let i=0;i<6;i++){const b=document.createElement('button');b.className='door';b.textContent='Cupboard';
+  b.onclick=()=>{if(i===cup){toast('Found a cup!');startPour();}else{b.textContent=junkCup[i];b.disabled=true;}};$('doors').appendChild(b);}}
+function startPour(){$('doors').style.display='none';$('pourBox').style.display='block';$('cTitle').textContent='Pour carefully…';
+ cf={fill:0,drops:[],puddles:[],spilled:0,t:0};}
+cc.onmousemove=e=>{const r2=cc.getBoundingClientRect();mouseX=e.clientX-r2.left;};
+cc.onmousedown=()=>pouring=true;addEventListener('mouseup',()=>pouring=false);
+function spill(x){cf.spilled++;S.aura--;cf.puddles.push({x,r:3+Math.random()*4});hud();}
+function serve(){if(!cf)return;if(cf.fill<60){toast('That is barely a sip',1);return;}
+ const g=Math.round(cf.fill)+(cf.spilled===0?50:0);S.pts+=g;toast((cf.spilled===0?'Spotless pour! ':'')+'Coffee +'+g);cf=null;hud();go('break');}
+function drawCoffee(){if(scene==='coffee'&&cf){cf.t+=.02;const cupX=160+Math.sin(cf.t)*70+Math.sin(cf.t*2.7)*15,cupW=56,cupH=80,cupTop=360-cupH;
+ if(pouring){cf.drops.push({x:mouseX+22+(Math.random()-.5)*2,y:62,vx:(Math.random()-.5)*.6,vy:1.5});}
+ cx.fillStyle='#15161a';cx.fillRect(0,0,320,380);cx.fillStyle='#4a4038';cx.fillRect(0,360,320,20);
+ cf.puddles.forEach(p=>{cx.fillStyle='#5a3a1a';cx.beginPath();cx.ellipse(p.x,362,p.r*2,p.r/2,0,0,7);cx.fill();});
+ cx.fillStyle='#6b3e1e';cf.drops=cf.drops.filter(d=>{d.vy+=.3;d.x+=d.vx;d.y+=d.vy;
+  if(d.y>=cupTop+2&&d.y-d.vy<cupTop+2&&Math.abs(d.x-cupX)<cupW/2-3){if(cf.fill<100)cf.fill+=0.8;else spill(cupX+cupW/2+4);return false;}
+  if(d.y>=360){spill(d.x);return false;}cx.fillRect(d.x-1.5,d.y,3,5);return true;});
+ cx.fillStyle='#ddd';cx.fillRect(cupX-cupW/2,cupTop,cupW,cupH);cx.strokeStyle='#ddd';cx.lineWidth=5;cx.beginPath();cx.arc(cupX+cupW/2+6,cupTop+38,14,-1.3,1.3);cx.stroke();
+ const fh=(cupH-6)*cf.fill/100;cx.fillStyle='#4a2a12';cx.fillRect(cupX-cupW/2+4,360-3-fh,cupW-8,fh);
+ cx.strokeStyle='#e76f51';cx.lineWidth=1;cx.beginPath();cx.moveTo(cupX-cupW/2,cupTop+8);cx.lineTo(cupX+cupW/2,cupTop+8);cx.stroke();
+ cx.save();cx.translate(mouseX,40);cx.rotate(pouring?.5:0);cx.fillStyle='#888';cx.fillRect(-20,-20,40,40);cx.fillStyle='#333';cx.fillRect(-20,-30,40,10);
+ cx.beginPath();cx.moveTo(20,-15);cx.lineTo(32,-20);cx.lineTo(20,-5);cx.fill();cx.restore();
+ cx.fillStyle='#e6e6e6';cx.font='14px sans-serif';cx.fillText('Fill '+Math.round(cf.fill)+'%   Spilled '+cf.spilled,10,27);}
+ requestAnimationFrame(drawCoffee);}
+drawCoffee();
+
+// ---- MAIN TICK ----
+setInterval(()=>{if(quit)return;if(onBreak){breakLeft-=.1;if(breakLeft<=0)endBreak();hud();return;}
+ spawnAcc+=100;const every=Math.max(450,1600-S.sorted*12);
+ if(spawnAcc>=every){spawnAcc=0;if(!queue.length)frontSince=Date.now();queue.push(newLetter());
+  if(queue.length>=12){S.pts=Math.max(0,S.pts-30);S.aura-=3;S.combo=0;queue.splice(0,6);toast('PILE UP! Supervisor is staring. -30, -3 aura',1);hud();}
+  drawPile();}},100);
+hud();drawPile();
+</script></body></html>

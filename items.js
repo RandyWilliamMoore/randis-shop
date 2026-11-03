@@ -87,6 +87,23 @@ window.ITEMS = [
  },
  {
   "kind": "games",
+  "slug": "mail-sorter",
+  "name": "Mail Sorter",
+  "by": "Randy",
+  "blurb": "The mail just keeps coming. Can you keep up? Sort it, score points for tricks, find free snacks in the break room and win coworker clout in break-time mini games.",
+  "status": "ok",
+  "real_items": "https://www.etsy.com/shop/UberRandis",
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=games/mail-sorter",
+  "file": "games/mail-sorter/item.html",
+  "logo": "games/mail-sorter/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "games",
   "slug": "marble-collector",
   "name": "Marble Collector",
   "by": "Randy",
