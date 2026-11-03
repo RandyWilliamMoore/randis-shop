@@ -104,6 +104,23 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "music-studio",
+  "name": "Music Studio",
+  "by": "Randy",
+  "blurb": "Record tracks with built-in synths and drums, and learn piano with lessons that read a real MIDI keyboard if you plug one in. Computer keys work too.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/music-studio",
+  "file": "apps/music-studio/item.html",
+  "logo": "apps/music-studio/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "randis-paint",
   "name": "Randis Paint",
   "by": "Randy",
