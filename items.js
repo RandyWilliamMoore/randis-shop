@@ -36,6 +36,23 @@ window.ITEMS = [
  },
  {
   "kind": "games",
+  "slug": "coin-flipper",
+  "name": "Coin Flipper",
+  "by": "Randy",
+  "blurb": "Flip a coin, or a handful. Vanilla, Multi Coin, Call It, Double or Nothing, Race and Streak Hunt, with stats for every flip.",
+  "status": "ok",
+  "real_items": "https://www.etsy.com/shop/UberRandis",
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=games/coin-flipper",
+  "file": "games/coin-flipper/item.html",
+  "logo": "games/coin-flipper/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "games",
   "slug": "fossil-collector",
   "name": "Fossil Collector",
   "by": "Randy",
