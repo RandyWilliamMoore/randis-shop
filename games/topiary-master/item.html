@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Topiary Master</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#1e1f22;color:#e6e6e6;font:14px system-ui,Segoe UI,sans-serif}
+header{display:flex;gap:18px;align-items:center;padding:10px 16px;background:#26282c;border-bottom:1px solid #333;flex-wrap:wrap}
+header h1{font-size:18px;margin:0 10px 0 0;color:#8fd48a}
+.stat b{color:#fff}.dim{color:#9a9ca3;font-size:12px}
+.bar{width:110px;height:7px;background:#3a3c42;border-radius:4px;overflow:hidden;display:inline-block;vertical-align:middle}
+.bar i{display:block;height:100%;background:#6cc36a}
+nav{display:flex;gap:4px;padding:8px 16px;background:#222327;flex-wrap:wrap}
+nav button{background:none;border:1px solid transparent;color:#bbb;padding:6px 12px;border-radius:6px;cursor:pointer}
+nav button.on{background:#2f3136;border-color:#444;color:#fff}
+main{padding:14px 16px;max-width:900px}
+button{background:#3d7a3a;color:#fff;border:0;padding:7px 12px;border-radius:6px;cursor:pointer;font:inherit}
+button:hover{background:#4b9447}button:disabled{background:#3a3c42;color:#888;cursor:default}
+.card{display:flex;justify-content:space-between;align-items:center;gap:12px;background:#26282c;border:1px solid #33353a;border-radius:8px;padding:10px 12px;margin:8px 0}
+.row{display:flex;gap:12px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+.tag{background:#5a4a2a;color:#f3d38a;padding:1px 6px;border-radius:4px;font-size:11px}
+.hot{color:#ffb067}.cold{color:#7fb0ff}
+table{border-collapse:collapse;width:100%;margin-bottom:16px}td,th{padding:5px 8px;border-bottom:1px solid #303236;text-align:left}
+.url{color:#8fd48a;user-select:all;font-size:12px;word-break:break-all}
+input,select{background:#2b2d31;color:#e6e6e6;border:1px solid #444;border-radius:5px;padding:6px}
+#play{position:fixed;inset:0;background:#141517;display:flex;justify-content:center;align-items:center;gap:18px;flex-wrap:wrap;padding:10px;z-index:5}
+#play.hidden,#modal.hidden{display:none}
+canvas{background:#18191c;border-radius:10px;touch-action:none;cursor:crosshair;width:min(80vh,60vw);height:min(80vh,60vw);min-width:260px;min-height:260px}
+#side{width:230px;display:flex;flex-direction:column;gap:10px}
+#side .big{font-size:26px;font-weight:700}
+.tools button{display:block;width:100%;margin:3px 0;background:#2f3136}.tools button.on{background:#3d7a3a}
+#modal{position:fixed;inset:0;background:#000a;display:flex;justify-content:center;align-items:center;z-index:10}
+#modal .box{background:#26282c;border:1px solid #444;border-radius:10px;padding:20px;max-width:420px;line-height:1.5}
+</style></head><body>
+<header id="hdr"></header>
+<nav id="nav"></nav>
+<main id="view"></main>
+<div id="play" class="hidden">
+  <canvas id="cv" width="480" height="480"></canvas>
+  <div id="side">
+    <div><div class="dim" id="pTitle"></div><div class="big" id="pTime"></div></div>
+    <div>Shape match: <b id="pScore">0</b></div>
+    <div class="dim">Drag to cut. Keep the dotted outline's leaves, clear everything outside it. Cut leaves don't grow back!</div>
+    <div class="tools" id="pTools"></div>
+    <button onclick="finish()">Done — show the client ✂️</button>
+  </div>
+</div>
+<div id="modal" class="hidden"></div>
+<script>
+const $=s=>document.querySelector(s), G=48, rnd=Math.random;
+/* storage that works even when localStorage is blocked (sandboxed tab) */
+const store={m:{},get(k){try{return localStorage.getItem(k)}catch(e){return this.m[k]||null}},
+ set(k,v){try{localStorage.setItem(k,v)}catch(e){this.m[k]=v}},del(k){try{localStorage.removeItem(k)}catch(e){delete this.m[k]}}};
+const PL={box:['Boxwood',1.0,3,105,45,32],yew:['English Yew',1.2,4,140,40,24],privet:['Privet',0.8,5,95,45,38],holly:['Holly',1.1,3,145,35,24],
+ juniper:['Juniper',1.3,3,160,25,34],bay:['Bay Laurel',1.25,3,90,40,32],olive:['Olive',1.4,2,85,20,48],ficus:['Ficus',1.15,4,125,45,32]};
+const RG={'Temperate (UK / N. Europe)':{box:1.4,yew:1.4,privet:1.2,holly:1.1,juniper:.8,bay:.8,olive:.4,ficus:.3},
+ 'Coastal (Pacific NW / New England)':{box:1.1,yew:1,privet:1,holly:1.3,juniper:1.4,bay:.7,olive:.4,ficus:.4},
+ 'Mediterranean (California / S. Europe)':{box:.9,yew:.5,privet:.8,holly:.5,juniper:1,bay:1.4,olive:1.5,ficus:1},
+ 'Subtropical (Florida / Gulf Coast)':{box:.8,yew:.3,privet:1.1,holly:.7,juniper:.9,bay:.9,olive:.8,ficus:1.5}};
+const RK=Object.keys(RG);
+const ST=[{id:'flat',n:'Formal Hedge',lvl:1,diff:1,base:50},{id:'ball',n:'Ball',lvl:2,diff:1.15,base:80},{id:'cone',n:'Cone',lvl:3,diff:1.25,base:100},
+ {id:'tier',n:'Pom-Pom Tiers',lvl:5,diff:1.4,base:150},{id:'spiral',n:'Spiral',lvl:7,diff:1.6,base:220},{id:'cloud',n:'Cloud Pruning (Niwaki)',lvl:9,diff:1.8,base:300},
+ {id:'peacock',n:'Peacock',lvl:11,diff:2,base:420,need:'frame'},{id:'bonsai',n:'Bonsai',lvl:13,diff:2.3,base:550,need:'concave'}];
+const SO=Object.fromEntries(ST.map(s=>[s.id,s]));
+const TL={shears:{n:'Hand Shears',p:0,d:'Basic all-round cutter.',b:1.4},snips:{n:'Detail Snips',p:120,d:'Tiny, precise cuts.',b:.8},
+ gloves:{n:'Leather Gloves',p:80,d:'+10 seconds on every job.'},trimmer:{n:'Electric Hedge Trimmer',p:260,d:'Wide, fast cuts.',b:2.4},
+ ladder:{n:'Telescopic Ladder',p:200,d:'Take tall-hedge jobs (x1.5 pay).'},concave:{n:'Bonsai Concave Cutter',p:380,d:'Needed for Bonsai. Ultra-fine.',b:.6},
+ frame:{n:'Wire Topiary Frames',p:450,d:'Clearer cutting guide. Needed for Peacock.'},petrol:{n:'Petrol Long-Reach Trimmer',p:900,d:'Huge cuts, +5 seconds.',b:3.4},
+ truck:{n:'Work Truck',p:1500,d:'+2 offers and +1 job slot every day.'}};
+const AW=[{n:'Village Green Ribbon',lvl:2,min:60,fee:20,prize:150},{n:'County Show Cup',lvl:4,min:70,fee:50,prize:400},
+ {n:'Regional Topiary Trophy',lvl:7,min:78,fee:120,prize:900},{n:'National Golden Shears',lvl:10,min:85,fee:250,prize:2000},
+ {n:'World Bonsai Masters',lvl:13,min:90,fee:500,prize:5000,style:'bonsai'}];
+const NAMES=['Mrs. Pemberton','The Hendersons','Dr. Okafor','Old Mr. Finch','Riverside Hotel','St. Mary\'s Church','Ms. Alvarez','The Kowalskis','Greenway Council','Lady Ashcombe','Mr. Tanaka','Oakridge Golf Club'];
+const E=(u,v,cx,cy,rx,ry)=>((u-cx)/rx)**2+((v-cy)/ry)**2<1;
+const SH={flat:(u,v)=>Math.abs(u)<.92&&v>-.35&&v<.8,ball:(u,v)=>E(u,v,0,-.1,.62,.62),
+ cone:(u,v)=>v>-.85&&v<.65&&Math.abs(u)<(v+.85)/1.5*.62,tier:(u,v)=>E(u,v,0,-.62,.2,.2)||E(u,v,0,-.08,.28,.26)||E(u,v,0,.5,.36,.3),
+ spiral:(u,v)=>SH.cone(u,v)&&((v*4.5+u*1.6+20)%1)<.62,
+ cloud:(u,v)=>E(u,v,-.45,-.55,.3,.15)||E(u,v,.4,-.2,.34,.16)||E(u,v,-.3,.18,.36,.16)||E(u,v,.3,.55,.38,.17),
+ peacock:(u,v)=>E(u,v,.05,.42,.3,.28)||E(u,v,-.35,-.3,.13,.13)||E(u,v,-.22,.05,.09,.3)||(E(u,v,.4,-.05,.55,.6)&&u>.15&&v<.45),
+ bonsai:(u,v)=>E(u,v,.05,-.72,.22,.12)||E(u,v,-.42,-.42,.34,.14)||E(u,v,.38,-.18,.4,.15)||E(u,v,-.28,.1,.3,.13)};
+const TR={ball:[[0,-.1]],cone:[[0,0]],tier:[[0,-.62]],spiral:[[0,0]],cloud:[[-.45,-.55],[.4,-.2],[-.3,.18],[.3,.55]],peacock:[[.05,.42]],
+ bonsai:[[.05,-.72],[-.42,-.42],[.38,-.18],[-.28,.1]]};
+const LINKS=[['Bonsai Boy of New York','https://www.bonsaiboy.com','Live bonsai trees & starter kits'],
+ ['Eastern Leaf','https://www.easternleaf.com','Bonsai trees, kits, pots & tools'],
+ ['Brussel\'s Bonsai','https://www.brusselsbonsai.com','Large US bonsai nursery'],
+ ['Bonsai Outlet','https://www.bonsaioutlet.com','Tools, wire, soil & pots'],
+ ['Kaizen Bonsai (UK)','https://www.kaizenbonsai.com','UK bonsai trees & tools'],
+ ['Niwaki','https://www.niwaki.com','Japanese shears, topiary & garden tools'],
+ ['Bonsai Empire','https://www.bonsaiempire.com','Free guides and courses'],
+ ['Etsy: bonsai starter kits','https://www.etsy.com/search?q=bonsai%20starter%20kit','Handmade & small-shop kits'],
+ ['Etsy: topiary frames','https://www.etsy.com/search?q=topiary%20frame','Wire frames for shaping']];
+
+const fresh=()=>({money:60,xp:0,rep:0,day:1,energy:3,region:null,tools:['shears'],awards:[],jobs:[],trend:{},etsy:'https://www.etsy.com/shop/UberRandis',tab:'jobs'});
+let S;try{S=JSON.parse(store.get('topiaryMaster')||'null')}catch(e){S=null}
+S=Object.assign(fresh(),S||{});
+const save=()=>store.set('topiaryMaster',JSON.stringify(S));
+const has=t=>S.tools.includes(t);
+const need=L=>Math.round(40*Math.pow(L-1,1.6));
+const esc=s=>String(s).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
+function level(){let L=1;while(S.xp>=need(L+1))L++;return L}
+function pickW(o){let t=0;for(const k in o)t+=o[k];let r=rnd()*t;for(const k in o){r-=o[k];if(r<=0)return k}return Object.keys(o)[0]}
+function newTrend(){ST.forEach(s=>S.trend[s.id]=+(0.75+rnd()*0.65).toFixed(2))}
+function genJobs(){
+  const L=level(),av=ST.filter(s=>s.lvl<=L),n=3+(has('truck')?2:0)+Math.floor(S.rep/25);S.jobs=[];
+  for(let k=0;k<n;k++){
+    const plant=pickW(RG[S.region]),st=av[Math.min(av.length-1,Math.floor(Math.pow(rnd(),.7)*av.length))],tall=rnd()<.25;
+    const pay=Math.round(st.base*PL[plant][1]*RG[S.region][plant]*S.trend[st.id]*(tall?1.5:1)*(1+S.rep/100)*(.85+rnd()*.3));
+    S.jobs.push({client:NAMES[Math.floor(rnd()*NAMES.length)],plant,style:st.id,tall,pay});
+  }
+}
+function slots(){return 3+(has('truck')?1:0)}
+
+/* ---------- views ---------- */
+const TABS={jobs:'🧾 Jobs',market:'📈 Market',tools:'🛠 Tools',awards:'🏆 Awards',shop:'🌱 Suppliers'};
+function render(){
+  const L=level(),a=need(L),b=need(L+1),pct=Math.min(100,(S.xp-a)/(b-a)*100);
+  $('#hdr').innerHTML=`<h1>✂️ Topiary Master</h1><span class=stat>💰 <b>$${S.money}</b></span>
+   <span class=stat>Skill Lv <b>${L}</b> <span class=bar><i style="width:${pct}%"></i></span> <span class=dim>${S.xp}/${b} xp</span></span>
+   <span class=stat>⭐ Rep <b>${Math.round(S.rep)}</b></span><span class=stat>🏆 <b>${S.awards.length}</b></span>
+   <span class=dim>${S.region||''}</span>`;
+  $('#nav').innerHTML=Object.entries(TABS).map(([k,v])=>`<button class="${S.tab==k?'on':''}" onclick="S.tab='${k}';render()">${v}</button>`).join('');
+  if(!S.region){$('#view').innerHTML='<p class=dim>Pick a region to start your business.</p><button onclick="pickRegion()">Choose region</button>';save();return}
+  $('#view').innerHTML=({jobs:vJobs,market:vMarket,tools:vTools,awards:vAwards,shop:vShop})[S.tab]();
+  save();
+}
+function vJobs(){
+  let h=`<div class=row><b>Day ${S.day}</b><span>Job slots left today: <b>${S.energy}</b>/${slots()}</span><button onclick="endDay()">End day 🌙</button></div>`;
+  if(!S.jobs.length)h+='<p class=dim>No more offers today. End the day for new ones.</p>';
+  S.jobs.forEach((j,i)=>{const st=SO[j.style],lack=[];if(j.tall&&!has('ladder'))lack.push('Ladder');if(st.need&&!has(st.need))lack.push(TL[st.need].n);
+    h+=`<div class=card><div><b>${j.client}</b> — ${PL[j.plant][0]} · ${st.n} ${j.tall?'<span class=tag>Tall</span>':''}
+    <div class=dim>Pays up to $${Math.round(j.pay*1.2)} for perfect work</div></div>
+    <button ${lack.length||S.energy<1?'disabled':''} onclick="startJob(${i})">${lack.length?'Needs '+lack.join(', '):'Take job'}</button></div>`});
+  return h;
+}
+function vMarket(){
+  const r=RG[S.region],L=level();
+  let h=`<div class=row><b>What sells in ${S.region}</b><button onclick="pickRegion()">Move region</button></div><table><tr><th>Plant</th><th>Local demand</th><th>Base pay</th></tr>`;
+  Object.keys(PL).sort((a,b)=>r[b]-r[a]).forEach(k=>h+=`<tr><td>${PL[k][0]}</td><td><span class=bar><i style="width:${r[k]/1.5*100}%"></i></span> x${r[k]}</td><td>x${PL[k][1]}</td></tr>`);
+  h+=`</table><b>Styles · this week's trends</b> <span class=dim>(change every 7 days)</span><table><tr><th>Style</th><th>Unlocks</th><th>Trend</th><th>Status</th></tr>`;
+  ST.forEach(s=>{const t=S.trend[s.id];h+=`<tr><td>${s.n}</td><td>Lv ${s.lvl}${s.need?' + '+TL[s.need].n:''}</td>
+   <td class="${t>1.15?'hot':t<.9?'cold':''}">${t>1.15?'🔥 ':''}x${t}</td><td>${s.lvl<=L?'✅ Unlocked':'🔒'}</td></tr>`});
+  return h+'</table>';
+}
+function vTools(){
+  return Object.entries(TL).filter(([k])=>k!='shears').map(([k,t])=>`<div class=card><div><b>${t.n}</b><div class=dim>${t.d}${t.b?' Cut size '+t.b+'.':''}</div></div>
+   ${has(k)?'<span>✅ Owned</span>':`<button ${S.money<t.p?'disabled':''} onclick="buy('${k}')">Buy $${t.p}</button>`}</div>`).join('');
+}
+function vAwards(){
+  const L=level(),av=ST.filter(s=>s.lvl<=L&&(!s.need||has(s.need)));
+  return '<p class=dim>Enter a show, shape your best piece. Harder styles get judged more kindly. Uses one job slot.</p>'+AW.map((a,i)=>{
+    const won=S.awards.includes(a.n),opts=(a.style?av.filter(s=>s.id==a.style):av).map(s=>`<option value=${s.id}>${s.n}</option>`).reverse().join('');
+    const ok=!won&&L>=a.lvl&&S.money>=a.fee&&S.energy>0&&opts;
+    return `<div class=card><div><b>${won?'🏆 ':''}${a.n}</b><div class=dim>Skill Lv ${a.lvl}+ · judges want ${a.min}%+ · entry $${a.fee} · prize $${a.prize}${a.style?' · Bonsai only':''}</div></div>
+    ${won?'<span>Won!</span>':`<span>${opts?`<select id=aws${i}>${opts}</select>`:''} <button ${ok?'':'disabled'} onclick="startAward(${i})">Enter</button></span>`}</div>`}).join('');
+}
+function vShop(){
+  let h='<p class=dim>Real-world bonsai kits, tools and suppliers. Select an address and copy it into your web browser.</p>';
+  h+=LINKS.map(l=>`<div class=card><div><b>${l[0]}</b><div class=dim>${l[2]}</div><div class=url>${l[1]}</div></div></div>`).join('');
+  h+=`<div class=card><div style="flex:1"><b>Your Etsy store</b><div class=dim>Paste your shop link (https://www.etsy.com/shop/...)</div>
+    <div class=row style="margin-top:6px"><input id=etsy style="flex:1" value="${esc(S.etsy)}" placeholder="https://www.etsy.com/shop/YourShop"><button onclick="setEtsy()">Save</button></div>
+    ${S.etsy?`<div>🛍 My Etsy store: <span class=url>${esc(S.etsy)}</span></div>`:''}</div></div>`;
+  return h+'<p><button style="background:#7a3a3a" onclick="resetGame()">Reset game</button></p>';
+}
+function resetGame(){if(!confirm('Start a new career? All progress is lost.'))return;store.del('topiaryMaster');S=fresh();render();pickRegion()}
+function setEtsy(){const v=$('#etsy').value.trim();if(v&&!/^https:\/\/[^\s"'<>]+$/.test(v)){alert('Please use a full https:// link.');return}S.etsy=v;render()}
+function buy(k){if(S.money<TL[k].p)return;S.money-=TL[k].p;S.tools.push(k);if(k=='truck')S.energy++;render()}
+function endDay(){
+  const up=10+S.tools.length*3;S.money-=up;S.day++;S.energy=slots();
+  if(S.day%7==1)newTrend();genJobs();render();
+  modal(`<b>Day ${S.day}</b><br>Paid $${up} for fuel, upkeep and sharpening.${S.day%7==1?'<br>📈 New week: style trends changed!':''}${S.money<0?'<br>⚠️ You are in debt. Take some jobs!':''}`);
+}
+function pickRegion(){
+  modal('<b>Where is your gardening business?</b><p class=dim>Your region decides which plants clients want.</p>'+
+   RK.map((r,i)=>`<button style="display:block;width:100%;margin:5px 0" onclick="setRegion(${i})">${r}</button>`).join(''),true);
+}
+function setRegion(i){S.region=RK[i];if(!Object.keys(S.trend).length)newTrend();genJobs();closeM();render()}
+function modal(h,noOk){$('#modal').innerHTML=`<div class=box>${h}${noOk?'':'<p><button onclick="closeM()">OK</button></p>'}</div>`;$('#modal').classList.remove('hidden')}
+function closeM(){$('#modal').classList.add('hidden')}
+
+/* ---------- cutting game ---------- */
+const cv=$('#cv'),ctx=cv.getContext('2d');let P={};
+function startJob(i){const j=S.jobs[i];S.jobs.splice(i,1);S.energy--;startPlay(j.style,j.plant,PL[j.plant][2]+(j.tall?1:0),{job:j})}
+function startAward(i){const a=AW[i],st=$('#aws'+i).value;S.money-=a.fee;S.energy--;
+  const plants=Object.keys(RG[S.region]).sort((x,y)=>RG[S.region][y]-RG[S.region][x]);startPlay(st,plants[0],PL[plants[0]][2]+1,{award:a})}
+function startPlay(style,plant,grow,o){
+  const t=new Uint8Array(G*G),g=new Uint8Array(G*G),shade=[],pl=PL[plant],s1=rnd()*9,s2=rnd()*9;
+  for(let r=0;r<G;r++)for(let c=0;c<G;c++)t[r*G+c]=SH[style]((c+.5-G/2)/(G/2),(r+.5-G/2)/(G/2))?1:0;
+  const M=Math.ceil(grow*1.5);
+  for(let r=0;r<G-1;r++)for(let c=0;c<G;c++){const i=r*G+c;if(t[i]){g[i]=1;continue}
+    const rr=grow*(.75+.35*Math.sin(c*.5+s1)*Math.cos(r*.4+s2))+rnd()*.8;let hit=0;
+    for(let dr=-M;dr<=M&&!hit;dr++)for(let dc=-M;dc<=M;dc++){const R=r+dr,C=c+dc;if(R<0||C<0||R>=G||C>=G)continue;if(t[R*G+C]&&dr*dr+dc*dc<rr*rr){hit=1;break}}
+    g[i]=hit}
+  for(let i=0;i<G*G;i++)shade.push(`hsl(${pl[3]+rnd()*10-5},${pl[4]}%,${pl[5]+rnd()*12-6}%)`);
+  const cut=S.tools.filter(k=>TL[k].b);
+  P={...o,style,plant,t,g,orig:g.slice(),shade,tool:'shears',running:true,down:false,mouse:null,
+     end:performance.now()+(40+(has('gloves')?10:0)+(has('petrol')?5:0))*1000};
+  $('#pTitle').textContent=(o.award?o.award.n:o.job.client)+' · '+pl[0]+' '+SO[style].n;
+  $('#pTools').innerHTML=cut.map(k=>`<button data-k=${k} onclick="selTool('${k}')">${TL[k].n} (${TL[k].b})</button>`).join('');
+  selTool('shears');$('#play').classList.remove('hidden');draw();requestAnimationFrame(loop);
+}
+function selTool(k){P.tool=k;document.querySelectorAll('#pTools button').forEach(b=>b.classList.toggle('on',b.dataset.k==k))}
+function score(){let tk=0,tt=0,ex=0,er=0;const{t,g,orig}=P;
+  for(let i=0;i<G*G;i++){if(t[i]){tt++;if(g[i])tk++}else if(orig[i]){ex++;if(!g[i])er++}}
+  return Math.round((tk/tt)**2*(ex?er/ex:1)*100)}
+function pos(e){const r=cv.getBoundingClientRect();return[(e.clientX-r.left)/r.width*G,(e.clientY-r.top)/r.height*G]}
+function cutAt([x,y]){const b=TL[P.tool].b;
+  for(let r=Math.floor(y-b);r<=Math.ceil(y+b);r++)for(let c=Math.floor(x-b);c<=Math.ceil(x+b);c++)
+    if(r>=0&&c>=0&&r<G&&c<G&&(c+.5-x)**2+(r+.5-y)**2<b*b)P.g[r*G+c]=0}
+cv.onpointerdown=e=>{if(!P.running)return;P.down=true;P.last=pos(e);cutAt(P.last);try{cv.setPointerCapture(e.pointerId)}catch(_){}};
+cv.onpointermove=e=>{P.mouse=pos(e);if(!P.down||!P.running)return;const[a,b]=P.last,[x,y]=P.mouse,d=Math.hypot(x-a,y-b),n=Math.ceil(d/.4);
+  for(let k=1;k<=n;k++)cutAt([a+(x-a)*k/n,b+(y-b)*k/n]);P.last=P.mouse};
+cv.onpointerup=cv.onpointercancel=()=>P.down=false;
+cv.onpointerleave=()=>{P.mouse=null};
+function loop(){if(!P.running)return;const rem=(P.end-performance.now())/1000;if(rem<=0){finish();return}
+  $('#pTime').textContent='⏱ '+rem.toFixed(1)+'s';$('#pScore').textContent=score()+'%';draw();requestAnimationFrame(loop)}
+function draw(){const W=cv.width,C=W/G,px=(u,v)=>[(u+1)*W/2,(v+1)*W/2];
+  ctx.fillStyle='#18191c';ctx.fillRect(0,0,W,W);ctx.fillStyle='#2c2419';ctx.fillRect(0,W-C*1.2,W,C*1.2);
+  if(P.style=='bonsai'){ctx.fillStyle='#7a4a2e';const[a,b]=px(-.35,.78),[c,d]=px(.35,.97);ctx.fillRect(a,b,c-a,d-b)}
+  ctx.strokeStyle='#6b4a2b';ctx.lineWidth=C*.8;ctx.lineCap='round';
+  (TR[P.style]||[]).forEach(([u,v])=>{const[a,b]=px(0,P.style=='bonsai'?.78:.97),[c,d]=px(u,v);ctx.beginPath();ctx.moveTo(a,b);ctx.quadraticCurveTo(a+(c-a)*.2,(b+d)/2,c,d);ctx.stroke()});
+  for(let i=0;i<G*G;i++)if(P.g[i]){ctx.fillStyle=P.shade[i];ctx.beginPath();ctx.arc((i%G+.5)*C,(Math.floor(i/G)+.5)*C,C*.68,0,7);ctx.fill()}
+  ctx.fillStyle=has('frame')?'rgba(255,240,150,.9)':'rgba(255,255,255,.6)';
+  for(let r=0;r<G;r++)for(let c=0;c<G;c++){const i=r*G+c;if(!P.t[i])continue;
+    if(!(P.t[i-1]&&P.t[i+1]&&P.t[i-G]&&P.t[i+G])&&(r+c)%2==0)ctx.fillRect((c+.3)*C,(r+.3)*C,C*.4,C*.4)}
+  if(P.mouse){ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(P.mouse[0]*C,P.mouse[1]*C,TL[P.tool].b*C,0,7);ctx.stroke()}
+}
+function finish(){if(!P.running)return;P.running=false;$('#play').classList.add('hidden');
+  const sc=score(),st=SO[P.style],L0=level();S.xp+=Math.round(sc/4*st.diff);let h;
+  if(P.job){const pay=Math.round(P.job.pay*(.3+.9*sc/100)),dr=Math.max(-5,Math.round((sc-55)/8));S.money+=pay;S.rep=Math.max(0,Math.min(100,S.rep+dr));
+    const say=sc>=92?'Absolutely stunning!':sc>=80?'Lovely work, thank you.':sc>=65?'That\'ll do nicely.':sc>=45?'Hmm... a bit rough.':'What have you DONE to my hedge?!';
+    h=`<b>${P.job.client}:</b> "${say}"<br>Shape match: <b>${sc}%</b><br>💰 Paid $${pay} · ⭐ Rep ${dr>=0?'+':''}${dr}`}
+  else{const a=P.award,req=Math.round(a.min-(st.diff-1)*10);
+    if(sc>=req){S.awards.push(a.n);S.money+=a.prize;S.rep=Math.min(100,S.rep+10);h=`🏆 <b>You won the ${a.n}!</b><br>Score ${sc}% (needed ${req}%)<br>Prize $${a.prize} · ⭐ Rep +10`}
+    else h=`The judges were unimpressed.<br>Score ${sc}% (needed ${req}%). Practise and try again!`}
+  const L1=level();if(L1>L0){const nu=ST.filter(s=>s.lvl>L0&&s.lvl<=L1);h+=`<br><br>🎉 <b>Skill level ${L1}!</b>${nu.length?'<br>New style unlocked: '+nu.map(s=>s.n).join(', '):''}`}
+  render();modal(h);
+}
+render();if(!S.region)pickRegion();
+</script></body></html>

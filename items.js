@@ -86,6 +86,23 @@ window.ITEMS = [
   "video_pic": "games/skateboard-collector/video.png"
  },
  {
+  "kind": "games",
+  "slug": "topiary-master",
+  "name": "Topiary Master",
+  "by": "Randy",
+  "blurb": "Get hired to shape people's hedges for money. Learn what sells in your area, build your skills, buy better tools, unlock new styles and win gardening awards.",
+  "status": "ok",
+  "real_items": "https://www.etsy.com/shop/UberRandis",
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=games/topiary-master",
+  "file": "games/topiary-master/item.html",
+  "logo": "games/topiary-master/logo.svg",
+  "video_pic": null
+ },
+ {
   "kind": "apps",
   "slug": "randis-paint",
   "name": "Randis Paint",
