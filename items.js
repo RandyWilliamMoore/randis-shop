@@ -11,6 +11,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "open_with": "randisuds://open?item=games/castle-mnemosyne",
   "file": "games/castle-mnemosyne/item.html",
   "logo": "games/castle-mnemosyne/logo.png",
   "video_pic": "games/castle-mnemosyne/video.png"
@@ -27,6 +28,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "open_with": "randisuds://open?item=games/fossil-collector",
   "file": "games/fossil-collector/item.html",
   "logo": "games/fossil-collector/logo.png",
   "video_pic": null
@@ -43,6 +45,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "open_with": "randisuds://open?item=games/gem-collector",
   "file": "games/gem-collector/item.html",
   "logo": "games/gem-collector/logo.png",
   "video_pic": "games/gem-collector/video.png"
@@ -59,6 +62,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "open_with": "randisuds://open?item=games/marble-collector",
   "file": "games/marble-collector/item.html",
   "logo": "games/marble-collector/logo.png",
   "video_pic": "games/marble-collector/video.png"
@@ -75,6 +79,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "open_with": "randisuds://open?item=games/skateboard-collector",
   "file": "games/skateboard-collector/item.html",
   "logo": "games/skateboard-collector/logo.png",
   "video_pic": "games/skateboard-collector/video.png"
@@ -91,6 +96,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "open_with": "randisuds://open?item=apps/randis-paint",
   "file": "apps/randis-paint/item.html",
   "logo": "apps/randis-paint/logo.svg",
   "video_pic": null
