@@ -129,8 +129,11 @@ function itemPage(i) {
         i.status === "flagged" ? null : el("div", { class: "actions" },
           el("a", { class: "btn go", href: `#/${i.kind}/${i.slug}/play`, "data-act": "play" }, `Play this ${noun} here`),
           el("a", { class: "btn", href: i.file, download: `${i.slug}.html`, "data-act": "download" }, `Download just this ${noun}`),
+          i.open_with ? el("a", { class: "btn", href: i.open_with, "data-act": "open-with" }, "Open With Randis UDS To Edit") : null,
           el("a", { class: "btn", href: `#/${i.kind}` }, "Back")),
         i.status === "flagged" ? null : el("p", { class: "fine" }, "Playing here runs it walled off. A downloaded copy opens as a normal page in your browser, without this wall."),
+        i.status === "flagged" || !i.open_with ? null : el("p", { class: "fine" }, "Open With needs ", out(SHOP.download, "Randis UDS 0.1.2 or newer"),
+          " on your computer. It asks you before it opens anything, then opens the " + noun + " as a tab you can change."),
         real ? el("div", { class: "inset real" }, el("b", {}, "Find real in-game items here: "), out(real, real)) : null))),
     win("On the TV", el("div", { class: "slots" }, ...reviews))];
 }

@@ -49,7 +49,8 @@ def read_item(kind, slug):
     web_or_none(where, "real_items", info["real_items"])
     web_or_none(where, "reviews.randy", info["reviews"]["randy"])
     web_or_none(where, "reviews.maker", info["reviews"]["maker"])
-    return {"kind": kind, "slug": slug, **info, "file": f"{kind}/{slug}/item.html", "logo": f"{kind}/{slug}/{logos.pop()}", "video_pic": f"{kind}/{slug}/video.png" if "video.png" in names else None}
+    # every item opens in Randis UDS by this link; the folder-name rule above matches the one the app accepts
+    return {"kind": kind, "slug": slug, **info, "open_with": f"randisuds://open?item={kind}/{slug}", "file": f"{kind}/{slug}/item.html", "logo": f"{kind}/{slug}/{logos.pop()}", "video_pic": f"{kind}/{slug}/video.png" if "video.png" in names else None}
 
 
 def main():
