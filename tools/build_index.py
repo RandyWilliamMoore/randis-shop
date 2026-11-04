@@ -6,7 +6,8 @@
       video.png    its video thumbnail, wide (optional)
       info.json    name, by, blurb, status, real_items, reviews
 
-  software/<slug>/   a program to download and install, shown first on the Software Shelf (written to software.js); its logo is site/logos/<slug>.png
+  software/<slug>/   a program to download and install, shown first on the Software Shelf (written to software.js); its logo is site/logos/<slug>.png,
+                     and a screenshot of it, if there is one, site/screens/<slug>.png
       info.json    name, by, version, blurb, download (its release page), source, new (what changed), fine (how to install)
 """
 import json, os, re, sys
@@ -89,7 +90,9 @@ def read_software(slug):
         problem(where, "download must be the release page for this version")
     if not isinstance(info["new"], list) or not 1 <= len(info["new"]) <= 8 or not all(isinstance(t, str) and t.strip() and len(t) <= 300 for t in info["new"]):
         problem(where, "new must be 1 to 8 lines of at most 300 characters")
-    return {"kind": "software", "slug": slug, **info, "logo": f"site/logos/{logos[0]}"}
+    shot = f"site/screens/{slug}.png"
+    return {"kind": "software", "slug": slug, **info, "logo": f"site/logos/{logos[0]}",
+            "screenshot": shot if os.path.isfile(os.path.join(ROOT, *shot.split("/"))) else None}
 
 
 def write_list(name, var, entries):

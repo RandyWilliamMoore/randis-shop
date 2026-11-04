@@ -111,6 +111,8 @@ function softwarePage(s) {
           safeWeb(s.source) ? out(s.source, "See the code", "btn") : null,
           el("a", { class: "btn", href: "#/apps" }, "Back")),
         el("p", { class: "fine" }, s.fine)))),
+    s.screenshot ? win("Screenshot", el("img", { class: "screenshot", src: s.screenshot,
+      alt: `${s.name} with three tabs open: a notepad, Randis Paint, and the Randis Shop tab listing the shop's games` })) : null,
     win("What's new in " + s.version, el("div", { class: "inset" }, el("ul", { class: "news" }, ...s.new.map(t => el("li", {}, t)))))];
 }
 

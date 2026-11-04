@@ -15,6 +15,7 @@ window.SOFTWARE = [
    "A reload button, and built tabs can use MIDI keyboards."
   ],
   "fine": "Windows: run the setup from the release page. It installs for your user only, with no admin rights. Linux runs from source; see the README. It's a pre-release, so expect rough edges.",
-  "logo": "site/logos/randis-uds.png"
+  "logo": "site/logos/randis-uds.png",
+  "screenshot": "site/screens/randis-uds.png"
  }
 ];
