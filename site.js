@@ -2,7 +2,7 @@
 "use strict";
 const SHOP = {
   repo: "https://github.com/RandyWilliamMoore/randis-uds",
-  download: "https://github.com/RandyWilliamMoore/randis-uds/releases/tag/v0.1.2",
+  download: "https://github.com/RandyWilliamMoore/randis-uds/releases/tag/v0.1.3",
   video: "https://youtu.be/VZeMAVmKJrY",
   videoPic: "https://img.youtube.com/vi/VZeMAVmKJrY/maxresdefault.jpg",
   guestbook: "https://github.com/RandyWilliamMoore/randis-uds/discussions",
