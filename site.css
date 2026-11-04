@@ -91,6 +91,8 @@ h2.sect, h3 { margin: 0 0 8px; }
 .slot-tv em { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); background: rgba(0,0,0,.72); padding: 4px 10px; font: 700 14px var(--mono); font-style: normal; white-space: nowrap; }
 .real { overflow-wrap: anywhere; }
 .fine { font-size: 13px; margin: 0 0 12px; }
+.news { margin: 0; padding-left: 22px; }
+.news li { margin: 4px 0; }
 .flagged { position: relative; }
 .flagged::after { content: "CAUTION  UNDER REVIEW  CAUTION"; position: absolute; left: -4%; right: -4%; top: 42%; padding: 5px; text-align: center; color: #000; font: 900 12px var(--mono); transform: rotate(-9deg); background: repeating-linear-gradient(135deg, var(--tape) 0 16px, #fff1a8 16px 32px); border: 2px solid #000; }
 
