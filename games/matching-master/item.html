@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Matching Master</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#1e1f22;color:#e6e6e6;font:14px system-ui,Segoe UI,sans-serif;display:flex;gap:14px;padding:14px;min-height:100vh}
+h1{margin:0 0 6px;font-size:20px}h3{margin:12px 0 6px;font-size:14px;color:#aab}
+#main{flex:1;display:flex;flex-direction:column;align-items:center}
+.view{display:none;flex-direction:column;align-items:center;width:100%}
+#side{width:270px;background:#26282c;border-radius:10px;padding:12px;overflow:auto;max-height:calc(100vh - 28px)}
+#hud{display:flex;gap:10px;margin:6px 0 10px;flex-wrap:wrap;justify-content:center}
+.pill{background:#2d3036;padding:5px 10px;border-radius:20px}
+#board{display:grid;gap:8px;perspective:800px}
+.card{width:72px;height:88px;position:relative;cursor:pointer;transform-style:preserve-3d;transition:transform .35s}
+.card.up{transform:rotateY(180deg)}
+.card div{position:absolute;inset:0;border-radius:9px;display:flex;align-items:center;justify-content:center;backface-visibility:hidden}
+.back{background:linear-gradient(135deg,#3b4a8a,#5b3a8a);border:2px solid #4a4f7a;font-size:22px;color:#ffffff55}
+.front{background:#f0f0f4;transform:rotateY(180deg);font-size:38px}
+.card.done .front{background:#bfe8c6;box-shadow:0 0 10px #4c4}
+.card.hint .back{box-shadow:0 0 14px 4px #fc3}
+.bar{height:10px;background:#2d3036;border-radius:6px;overflow:hidden;margin:4px 0}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#6c8cff,#b46cff);transition:width .4s}
+button{background:#3a3f5a;color:#e6e6e6;border:0;border-radius:6px;padding:6px 10px;cursor:pointer;font:inherit}
+button:hover:not(:disabled){background:#4b5280}button:disabled{opacity:.4;cursor:default}
+button.warn{background:#5a3a3a}button.warn:hover{background:#7a4545}
+select{background:#2d3036;color:#e6e6e6;border:1px solid #3a3f5a;border-radius:6px;padding:5px;font:inherit}
+.row{display:flex;justify-content:space-between;align-items:center;margin:4px 0;gap:6px}
+.small{font-size:12px;color:#99a}
+.big{font-size:32px;margin:20px 0 4px}
+#modes{display:grid;grid-template-columns:repeat(2,230px);gap:10px;margin:16px 0}
+.mode{padding:14px;text-align:left;border-radius:10px;background:#2d3036;border:1px solid #3a3f5a}
+.mode b{font-size:16px;display:block;margin-bottom:4px}
+.opts{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;background:#26282c;padding:12px 16px;border-radius:10px}
+.opts label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:#aab}
+.panel{background:#26282c;padding:22px 30px;border-radius:12px;text-align:center;min-width:320px;margin-top:30px}
+.btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+#trophies{display:flex;flex-wrap:wrap;gap:4px}
+#trophies span{background:#2d3036;border-radius:6px;padding:3px 6px;font-size:13px}
+#toast{position:fixed;left:50%;top:20px;transform:translateX(-50%);background:#33384a;border:1px solid #6c8cff;padding:10px 18px;border-radius:10px;opacity:0;transition:opacity .3s;pointer-events:none;text-align:center;z-index:9}
+.r1{color:#ccc}.r2{color:#6cf}.r3{color:#c7f}.r4{color:#fc3}
+.win{color:#7d7}.lose{color:#f88}
+</style></head><body>
+<div id="main">
+  <!-- HOME -->
+  <div id="home" class="view">
+    <h1 class="big">🃏 Matching Master</h1>
+    <div class="small">Flip cards, find pairs, earn XP, coins and prizes.</div>
+    <div id="modes"></div>
+    <div class="opts">
+      <label>Theme<select id="optTheme"></select></label>
+      <label>Difficulty<select id="optDiff"></select></label>
+      <label>Grid size<select id="optSize"></select></label>
+    </div>
+    <p class="small">Grid size is used by Time Attack, Move Limit and Free Play. Campaign grows each stage.</p>
+    <div id="homeStats" style="text-align:center"></div>
+  </div>
+  <!-- GAME -->
+  <div id="game" class="view">
+    <h1 id="modeName"></h1>
+    <div id="hud">
+      <span class="pill" id="stageP">Stage <b id="stage"></b></span>
+      <span class="pill">Moves <b id="moves">0</b></span>
+      <span class="pill"><span id="timeLbl">Time</span> <b id="time">0</b>s</span>
+      <span class="pill">Combo <b id="combo">0</b></span>
+    </div>
+    <div id="board"></div>
+    <div class="btns">
+      <button id="restart">↻ Restart</button>
+      <button id="useHint">🔍 Hint (<span id="nHint">0</span>)</button>
+      <button id="useReveal">👁 Reveal (<span id="nReveal">0</span>)</button>
+      <button id="useWild">🃏 Wild (<span id="nWild">0</span>)</button>
+      <button id="giveUp" class="warn">🏳 End game</button>
+      <button id="exit" class="warn">🏠 Exit</button>
+    </div>
+  </div>
+  <!-- END -->
+  <div id="end" class="view"><div class="panel" id="endBox"></div></div>
+</div>
+<div id="side">
+  <div class="row"><b>Level <span id="lvl"></span></b><span class="small"><span id="xp"></span>/<span id="need"></span> XP</span></div>
+  <div class="bar"><i id="xpbar"></i></div>
+  <div class="row"><span>🪙 Coins: <b id="coins"></b></span><span>⭐ Skill pts: <b id="sp"></b></span></div>
+  <h3>Skills</h3><div id="skills"></div>
+  <h3>Shop</h3><div id="shop"></div>
+  <h3>Prize Collection <span class="small" id="tcount"></span></h3><div id="trophies"></div>
+  <div style="margin-top:14px"><button id="reset" class="small">Reset progress</button></div>
+</div>
+<div id="toast"></div>
+<script>
+const THEMES={
+  fruits:["🍎 Food",["🍎","🍌","🍇","🍒","🍉","🍋","🥝","🍑","🍍","🥥","🌶️","🥕","🌽","🍄","🍓","🫐","🍐","🥑","🍆","🥦"]],
+  animals:["🐱 Animals",["🐱","🐶","🦊","🐸","🐼","🐙","🦋","🐢","🐵","🐯","🦁","🐮","🐷","🐰","🐨","🐧","🦉","🐝","🐳","🦄"]],
+  nature:["🌸 Nature",["🌸","🌻","🍀","🌙","⭐","🔥","💧","⚡","🌈","❄️","🌵","🌲","🌊","☀️","🌋","🪐","☁️","🍁","🌷","🍂"]],
+  fun:["⚽ Fun & Games",["⚽","🏀","🏈","⚾","🎾","🏐","🎱","🏓","🎯","🎲","🧩","🎸","🎺","🥁","🎨","🚀","🚗","✈️","🎮","🪁"]],
+  mixed:["🎲 Mixed",null]};
+THEMES.mixed[1]=[...new Set(Object.values(THEMES).flatMap(t=>t[1]||[]))];
+const SIZES=[[4,3],[4,4],[5,4],[6,4],[6,5],[6,6]];
+// name, seconds per pair, moves per pair, flip-back ms, XP multiplier
+const DIFF={easy:["😌 Easy",6,3,900,.8],normal:["🙂 Normal",4,2.5,700,1],hard:["😈 Hard",2.5,2,450,1.3]};
+const MODES={campaign:["🗺 Campaign","Clear stages that keep getting bigger"],time:["⏱ Time Attack","Match everything before the clock runs out"],
+  moves:["🎯 Move Limit","Finish within a move budget"],free:["🧘 Free Play","Any grid, no limits, no pressure"]};
+const SKILLS={peek:["👀 Peek","See all cards briefly at start",5],scholar:["📚 Scholar","+15% XP per rank",10],lucky:["🍀 Lucky","Better prize drops",10],combo:["🔗 Combo","+1 coin per combo step",5]};
+const SHOP={hint:["🔍 Hint","Glows one pair",15],reveal:["👁 Reveal","Show all 1.5s",30],wild:["🃏 Wild","Auto-match a pair",40]};
+const PRIZES=[["🥉 Bronze Medal",1],["🎈 Balloon",1],["🧸 Teddy",1],["🍬 Candy",1],["🥈 Silver Medal",2],["💎 Gem",2],["🎁 Gift Box",2],["🔮 Crystal Ball",3],["🥇 Gold Medal",3],["👑 Crown",4],["🏆 Master Trophy",4],["🐉 Dragon Egg",4]];
+const KEY="matchingMaster.v1";
+const store={mem:{},get(k){try{return localStorage.getItem(k)}catch(e){return this.mem[k]??null}},
+  set(k,v){try{localStorage.setItem(k,v)}catch(e){this.mem[k]=v}},del(k){try{localStorage.removeItem(k)}catch(e){}delete this.mem[k]}};
+const fresh=()=>({lvl:1,xp:0,sp:0,coins:20,stage:1,skills:{peek:0,scholar:0,lucky:0,combo:0},items:{hint:1,reveal:1,wild:0},prizes:{},
+  opts:{theme:"mixed",diff:"normal",size:1},best:{},stats:{games:0,wins:0}});
+function load(){let s;try{s=JSON.parse(store.get(KEY)||"null")}catch(e){s=null}const f=fresh();if(!s)return f;
+  s=Object.assign(f,s);s.opts=Object.assign(fresh().opts,s.opts);s.stats=Object.assign(fresh().stats,s.stats);return s}
+let S=load();
+const $=id=>document.getElementById(id);
+const save=()=>store.set(KEY,JSON.stringify(S));
+const need=()=>Math.round(60+S.lvl*S.lvl*20);
+let cards=[],open=[],lock=false,over=false,ended=false,moves=0,matched=0,combo=0,maxCombo=0,t0=0,timer=null,started=false;
+let mode="campaign",view="home",cols=4,rows=3,limitT=0,limitM=0,gid=0,exitArm=0;
+
+function toast(m){const t=$("toast");t.innerHTML=m;t.style.opacity=1;clearTimeout(t._h);t._h=setTimeout(()=>t.style.opacity=0,1800)}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a}
+function later(fn,ms){const id=gid;setTimeout(()=>{if(id===gid)fn()},ms)}
+function show(v){view=v;["home","game","end"].forEach(x=>$(x).style.display=x===v?"flex":"none")}
+
+/* ---------- HOME ---------- */
+function renderHome(){
+  const D=DIFF[S.opts.diff],[c,r]=SIZES[S.opts.size],p=c*r/2;
+  const extra={campaign:`Stage ${S.stage}`,time:`${Math.round(p*D[1]+5)}s for ${c}×${r}`,moves:`${Math.round(p*D[2])} moves for ${c}×${r}`,free:`${c}×${r} grid`};
+  $("modes").innerHTML=Object.entries(MODES).map(([k,[n,d]])=>`<button class="mode" data-mode="${k}"><b>${n}</b>${d}<br><span class="small">${extra[k]}</span></button>`).join("");
+  $("optTheme").innerHTML=Object.entries(THEMES).map(([k,[n]])=>`<option value="${k}" ${k===S.opts.theme?"selected":""}>${n}</option>`).join("");
+  $("optDiff").innerHTML=Object.entries(DIFF).map(([k,[n]])=>`<option value="${k}" ${k===S.opts.diff?"selected":""}>${n}</option>`).join("");
+  $("optSize").innerHTML=SIZES.map(([c,r],i)=>`<option value="${i}" ${i==S.opts.size?"selected":""}>${c}×${r} (${c*r/2} pairs)</option>`).join("");
+  const st=S.stats,rate=st.games?Math.round(100*st.wins/st.games):0;
+  const bests=Object.values(S.best).slice(-8).map(b=>`<div class="small">${b.label}: ${b.m} moves · ${b.t}s</div>`).join("");
+  $("homeStats").innerHTML=`<h3>Your stats</h3><div>Games ${st.games} · Wins ${st.wins} · Win rate ${rate}%</div>${bests?`<h3>Best records</h3>${bests}`:""}`;
+}
+$("modes").onclick=e=>{const b=e.target.closest("[data-mode]");if(b)newGame(b.dataset.mode)};
+$("optTheme").onchange=e=>{S.opts.theme=e.target.value;save();renderHome()};
+$("optDiff").onchange=e=>{S.opts.diff=e.target.value;save();renderHome()};
+$("optSize").onchange=e=>{S.opts.size=+e.target.value;save();renderHome()};
+function goHome(){gid++;clearInterval(timer);lock=false;over=true;show("home");renderHome();hud()}
+
+/* ---------- GAME ---------- */
+function newGame(m){
+  if(m)mode=m;gid++;clearInterval(timer);
+  started=false;ended=false;over=false;moves=0;matched=0;combo=0;maxCombo=0;open=[];lock=false;exitArm=0;$("exit").textContent="🏠 Exit";
+  show("game");
+  const si=mode==="campaign"?Math.min(S.stage-1,SIZES.length-1):S.opts.size;
+  [cols,rows]=SIZES[si];const pairs=cols*rows/2,D=DIFF[S.opts.diff];
+  limitT=mode==="time"?Math.round(pairs*D[1]+5):0;limitM=mode==="moves"?Math.round(pairs*D[2]):0;
+  $("modeName").textContent=MODES[mode][0]+" · "+D[0];
+  $("stageP").style.display=mode==="campaign"?"":"none";
+  $("timeLbl").textContent=limitT?"Left":"Time";
+  const pick=shuffle(THEMES[S.opts.theme][1].slice()).slice(0,pairs);
+  cards=shuffle(pick.concat(pick)).map(e=>({e,up:false,done:false}));
+  const b=$("board");b.style.gridTemplateColumns=`repeat(${cols},72px)`;b.innerHTML="";
+  cards.forEach((cd,i)=>{const el=document.createElement("div");el.className="card";
+    el.innerHTML=`<div class="back">?</div><div class="front">${cd.e}</div>`;el.onclick=()=>flip(i);cd.el=el;b.appendChild(el)});
+  tick();hud();
+  if(S.skills.peek){lock=true;cards.forEach(c=>c.el.classList.add("up"));
+    later(()=>{cards.forEach(c=>c.el.classList.remove("up"));lock=false},300+S.skills.peek*400)}
+}
+function tick(){
+  const el=started?(Date.now()-t0)/1000:0;
+  if(limitT){const rem=Math.max(0,limitT-el);$("time").textContent=Math.ceil(rem);
+    if(rem<=0&&!over){over=true;finish(false,"⏰ Time's up!")}}
+  else $("time").textContent=el|0;
+}
+function startTimer(){if(started)return;started=true;t0=Date.now();timer=setInterval(tick,250)}
+function flip(i){
+  const c=cards[i];if(lock||over||c.up||c.done)return;startTimer();
+  c.up=true;c.el.classList.add("up");c.el.classList.remove("hint");open.push(i);
+  if(open.length<2)return;
+  moves++;const [a,b]=open.map(k=>cards[k]);open=[];
+  if(a.e===b.e)matchPair(a,b);
+  else{combo=0;lock=true;later(()=>{a.up=b.up=false;a.el.classList.remove("up");b.el.classList.remove("up");lock=false},DIFF[S.opts.diff][3])}
+  if(limitM&&moves>=limitM&&!over&&matched*2<cards.length){over=true;later(()=>finish(false,"🎯 Out of moves!"),800)}
+  hud();
+}
+function matchPair(a,b){
+  a.done=b.done=a.up=b.up=true;a.el.classList.add("done","up");b.el.classList.add("done","up");
+  a.el.classList.remove("hint");b.el.classList.remove("hint");
+  matched++;combo++;maxCombo=Math.max(maxCombo,combo);
+  if(combo>=2){const g=combo*(1+S.skills.combo);S.coins+=g;toast(`🔗 Combo x${combo}! +${g} 🪙`)}
+  if(matched*2===cards.length){over=true;lock=true;later(()=>finish(true),500)}
+  save();hud();
+}
+
+/* ---------- END ---------- */
+function finish(won,reason){
+  clearInterval(timer);ended=true;over=true;lock=true;
+  const secs=started?(Date.now()-t0)/1000|0:0,pairs=cards.length/2,D=DIFF[S.opts.diff];
+  S.stats.games++;let xp,coins=0,prize="",best="";
+  if(won){
+    S.stats.wins++;const eff=Math.max(0,pairs*2-moves);
+    const bonus=mode==="time"?Math.max(0,limitT-secs)*3:mode==="moves"?(limitM-moves)*8:Math.max(0,pairs*4-secs);
+    xp=Math.round((pairs*10+eff*6+maxCombo*5+bonus)*(1+S.skills.scholar*.15)*D[4]);
+    coins=pairs*2+eff;S.coins+=coins;
+    if(Math.random()*100<45+S.skills.lucky*5){
+      const r=Math.random()*100+S.skills.lucky*6+(mode==="campaign"?S.stage:pairs/2)*3;
+      const tier=r>110?4:r>85?3:r>55?2:1,pool=PRIZES.filter(p=>p[1]===tier),p=pool[Math.random()*pool.length|0];
+      S.prizes[p[0]]=(S.prizes[p[0]]||0)+1;prize=`<p class="r${tier}">🎉 Prize: <b>${p[0]}</b></p>`}
+    if(Math.random()<.35+S.skills.lucky*.04){const k=Object.keys(SHOP)[Math.random()*3|0];S.items[k]++;prize+=`<p>Found item: ${SHOP[k][0]}</p>`}
+    const key=`${mode}-${cols}x${rows}-${S.opts.diff}`,b=S.best[key];
+    if(!b||moves<b.m||(moves===b.m&&secs<b.t)){S.best[key]={m:moves,t:secs,label:`${MODES[mode][0]} ${cols}×${rows} ${D[0]}`};best=`<p class="r4">🏅 New best record!</p>`}
+    else best=`<p class="small">Best here: ${b.m} moves · ${b.t}s</p>`;
+    if(mode==="campaign")S.stage++;
+  }else xp=matched*3;
+  const lv=gainXP(xp);save();
+  $("endBox").innerHTML=`<h2 class="${won?"win":"lose"}">${won?"🏆 You win!":reason}</h2>
+    <p>${MODES[mode][0]} · ${D[0]} · ${cols}×${rows}</p>
+    <p>${matched}/${pairs} pairs · ${moves} moves · ${secs}s · best combo ${maxCombo}</p>
+    <p>+${xp} XP${coins?` · +${coins} 🪙`:""}</p>${prize}${best}
+    ${lv?`<p class="r4">⬆ Level up! Now level ${S.lvl} (+${lv} skill pt)</p>`:""}
+    <div class="btns"><button id="againBtn">${won&&mode==="campaign"?"Next stage ▶":"↻ Play again"}</button><button id="homeBtn">🏠 Home</button></div>`;
+  $("againBtn").onclick=()=>newGame();$("homeBtn").onclick=goHome;
+  show("end");hud();
+}
+function gainXP(x){S.xp+=x;let ups=0;while(S.xp>=need()){S.xp-=need();S.lvl++;S.sp++;ups++}return ups}
+
+/* ---------- ITEMS & SIDEBAR ---------- */
+function useItem(k){
+  if(view!=="game"||!S.items[k]||lock||over)return;
+  const left=cards.map((c,i)=>i).filter(i=>!cards[i].done&&!cards[i].up);
+  if(!left.length)return;
+  if(k==="reveal"){lock=true;left.forEach(i=>cards[i].el.classList.add("up"));
+    later(()=>{left.forEach(i=>cards[i].el.classList.remove("up"));lock=false},1500)}
+  else{
+    let i,j;
+    for(const x of shuffle(left.slice())){const y=left.find(z=>z!==x&&cards[z].e===cards[x].e);if(y!==undefined){i=x;j=y;break}}
+    if(j===undefined)return;
+    if(k==="hint"){cards[i].el.classList.add("hint");cards[j].el.classList.add("hint")}
+    else{startTimer();matchPair(cards[i],cards[j])}}
+  S.items[k]--;save();hud();
+}
+function cap(k){return k[0].toUpperCase()+k.slice(1)}
+function hud(){
+  $("stage").textContent=S.stage;$("moves").textContent=limitM?`${moves}/${limitM}`:moves;$("combo").textContent=combo;
+  $("lvl").textContent=S.lvl;$("xp").textContent=S.xp;$("need").textContent=need();$("xpbar").style.width=(100*S.xp/need())+"%";
+  $("coins").textContent=S.coins;$("sp").textContent=S.sp;
+  for(const k in SHOP){$("n"+cap(k)).textContent=S.items[k];$("use"+cap(k)).disabled=!S.items[k]}
+  $("skills").innerHTML=Object.entries(SKILLS).map(([k,[n,d,m]])=>`<div class="row"><span>${n} <b>${S.skills[k]}/${m}</b><br><span class="small">${d}</span></span>
+    <button data-skill="${k}" ${S.sp&&S.skills[k]<m?"":"disabled"}>+</button></div>`).join("");
+  $("shop").innerHTML=Object.entries(SHOP).map(([k,[n,d,p]])=>`<div class="row"><span>${n}<br><span class="small">${d}</span></span>
+    <button data-buy="${k}" ${S.coins>=p?"":"disabled"}>${p} 🪙</button></div>`).join("");
+  const own=Object.entries(S.prizes);$("tcount").textContent=`(${own.length}/${PRIZES.length})`;
+  $("trophies").innerHTML=own.length?own.map(([n,c])=>{const p=PRIZES.find(p=>p[0]===n);return`<span class="r${p?p[1]:1}">${n} ×${c}</span>`}).join(""):'<span class="small">Win games to earn prizes</span>';
+}
+$("skills").onclick=e=>{const k=e.target.dataset&&e.target.dataset.skill;if(!k||!S.sp||S.skills[k]>=SKILLS[k][2])return;S.sp--;S.skills[k]++;save();hud()};
+$("shop").onclick=e=>{const k=e.target.dataset&&e.target.dataset.buy;if(!k||S.coins<SHOP[k][2])return;S.coins-=SHOP[k][2];S.items[k]++;save();hud()};
+$("restart").onclick=()=>newGame();
+$("useHint").onclick=()=>useItem("hint");$("useReveal").onclick=()=>useItem("reveal");$("useWild").onclick=()=>useItem("wild");
+$("giveUp").onclick=()=>{if(over)return;over=true;finish(false,"🏳 Game ended")};
+$("exit").onclick=()=>{
+  if(started&&!ended&&Date.now()-exitArm>2500){exitArm=Date.now();$("exit").textContent="Sure? Click again";
+    setTimeout(()=>$("exit").textContent="🏠 Exit",2500);return}
+  goHome()};
+$("reset").onclick=()=>{let ok=true;try{ok=confirm("Reset all progress?")}catch(e){}if(ok){store.del(KEY);S=fresh();goHome()}};
+goHome();
+</script></body></html>

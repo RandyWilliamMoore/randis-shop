@@ -19,6 +19,23 @@ window.ITEMS = [
  },
  {
   "kind": "games",
+  "slug": "card-master",
+  "name": "Card Master",
+  "by": "Randy",
+  "blurb": "A table of 57 standard card games with the rules for each, 27 of them playable now: solitaires, rummies, blackjack and more. Links to custom and real playing cards.",
+  "status": "ok",
+  "real_items": "https://www.etsy.com/shop/UberRandis",
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=games/card-master",
+  "file": "games/card-master/item.html",
+  "logo": "games/card-master/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "games",
   "slug": "castle-mnemosyne",
   "name": "Castle Mnemosyne",
   "by": "Randy",
@@ -121,6 +138,23 @@ window.ITEMS = [
  },
  {
   "kind": "games",
+  "slug": "lhc-simulator",
+  "name": "LHC Simulator",
+  "by": "Randy",
+  "blurb": "Run the Large Hadron Collider from Run 1 (2012) to the High-Luminosity era: fill the beams, collide, dump. Links to CERN, its experiments and open data. 1 run in 100 opens a portal to hell, or tempt fate and open one yourself.",
+  "status": "ok",
+  "real_items": "https://www.etsy.com/shop/UberRandis",
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=games/lhc-simulator",
+  "file": "games/lhc-simulator/item.html",
+  "logo": "games/lhc-simulator/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "games",
   "slug": "mail-sorter",
   "name": "Mail Sorter",
   "by": "Randy",
@@ -152,6 +186,23 @@ window.ITEMS = [
   "file": "games/marble-collector/item.html",
   "logo": "games/marble-collector/logo.png",
   "video_pic": "games/marble-collector/video.png"
+ },
+ {
+  "kind": "games",
+  "slug": "matching-master",
+  "name": "Matching Master",
+  "by": "Randy",
+  "blurb": "Flip cards and match pairs, stage after stage. Earn coins and XP, collect prizes and items, and spend coins on hints, reveals and wild cards.",
+  "status": "ok",
+  "real_items": "https://www.etsy.com/shop/UberRandis",
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=games/matching-master",
+  "file": "games/matching-master/item.html",
+  "logo": "games/matching-master/logo.svg",
+  "video_pic": null
  },
  {
   "kind": "games",

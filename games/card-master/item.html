@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Card Master</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#1e1f22;color:#e6e6e6;font:14px/1.45 system-ui,Segoe UI,sans-serif}
+header{position:sticky;top:0;z-index:5;background:#1e1f22;display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #2e3035;flex-wrap:wrap}
+h1{font-size:20px;margin:0}
+h1 span{color:#e05561}
+.sub{color:#8a8f98;font-size:13px}
+#q{margin-left:auto;width:220px;padding:7px;background:#2b2d31;border:1px solid #3a3d43;color:#e6e6e6;border-radius:6px;font:inherit}
+label{color:#b5bac1;font-size:13px}
+main{padding:8px 20px 30px;max-width:900px}
+h2{color:#e05561;font-size:16px;margin:22px 0 6px;border-bottom:1px solid #2e3035;padding-bottom:4px}
+h2 small{color:#8a8f98;font-weight:normal}
+.g{padding:8px 0;border-bottom:1px solid #26282c}
+.g b{font-size:15px}
+.tag{display:inline-block;background:#2b2d31;border-radius:10px;padding:1px 8px;margin-left:6px;font-size:12px;color:#b5bac1}
+.g p{margin:3px 0 0;color:#c8ccd2}
+.g p.why{color:#d9a66b;font-size:13px}
+.note{background:#2b2d31;border-left:3px solid #e05561;border-radius:6px;padding:10px 14px;margin:14px 0 4px;color:#c8ccd2}
+.note b{color:#e6e6e6}
+.muted{color:#8a8f98}
+button{background:#2b2d31;color:#e6e6e6;border:1px solid #3a3d43;border-radius:6px;padding:6px 12px;font:inherit;cursor:pointer;margin:2px}
+button:hover{background:#35373c}
+button:disabled{opacity:.4;cursor:default}
+button.pl{background:#e05561;border-color:#e05561;color:#fff;padding:2px 10px;margin-left:8px;font-size:12px}
+#game{padding:12px 16px 30px}
+#gt{margin:0;border:0;padding:0;font-size:20px}
+#gr{color:#8a8f98;margin:4px 0 8px;max-width:900px}
+#msg{min-height:22px;margin:6px 0;color:#f5d67a}
+#tbl{background:#1d3a2b;border-radius:10px;padding:14px;min-height:320px;overflow-x:auto}
+.card{position:relative;width:60px;height:84px;border-radius:6px;background:#f4f4f4;color:#1b1b1b;border:1px solid #888;display:inline-block;flex:none;cursor:pointer;user-select:none;vertical-align:top}
+.card i{position:absolute;top:2px;left:4px;font-style:normal;font-weight:700;font-size:14px}
+.card b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:normal}
+.card.red{color:#c8202f}
+.card.back{background:repeating-linear-gradient(45deg,#8a2a36 0 6px,#651e28 6px 12px);border:2px solid #ddd}
+.card.slot{background:rgba(0,0,0,.15);border:2px dashed #4f6f5e;color:#6f9a83;display:inline-flex;align-items:center;justify-content:center;font-size:18px}
+.card.sel{box-shadow:0 0 0 3px #f5c542;transform:translateY(-4px)}
+.card.dim{opacity:.4}
+.card.sm{width:46px;height:64px}.card.sm b{font-size:22px}.card.sm i{font-size:12px}
+.col{display:flex;flex-direction:column;width:60px;min-height:84px}
+.col .card+.card{margin-top:-62px}
+.col .back+.card{margin-top:-76px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start;margin:6px 0}
+.gap{width:40px}
+.hand .card+.card{margin-left:-14px}
+.lay{position:relative;margin:6px 0}
+.lay>div{position:absolute}
+.cnt{font-size:12px;color:#b9d6c4;text-align:center}
+.info{color:#cfe3d6;margin-bottom:8px}
+.opp{color:#cfe3d6;font-size:13px;text-align:center;padding:4px;border-radius:6px}
+.opp.on{background:rgba(245,197,66,.18)}
+.mini i{display:inline-block;width:12px;height:18px;margin-right:-5px;border-radius:2px;background:#8a2a36;border:1px solid #ddd}
+.tt{display:grid;grid-template-columns:140px 1fr 140px;align-items:center;max-width:620px}
+.trk{position:relative;width:212px;height:205px;margin:auto}
+.grid13{display:grid;grid-template-columns:repeat(13,50px);gap:4px}
+.lbl{color:#cfe3d6;font-size:13px;margin:4px 0}
+.rt{color:#ff7a82}
+</style>
+</head>
+<body>
+<header>
+  <h1>🂡 Card <span>Master</span></h1>
+  <span class="sub" id="count"></span>
+  <button id="back" hidden onclick="home()">← All games</button>
+  <label id="plw"><input type="checkbox" id="only"> Playable only</label>
+  <input id="q" placeholder="🔍 Find a game...">
+</header>
+<main id="out"></main>
+<section id="game" hidden>
+  <h2 id="gt"></h2>
+  <div id="gr"></div>
+  <div id="ctl"></div>
+  <div id="msg"></div>
+  <div id="tbl"></div>
+</section>
+<script>
+const G=[
+["Hearts","Trick-taking","4","52","Avoid taking hearts (1 pt each) and the Queen of Spades (13 pts). Taking all penalty cards (shooting the moon) gives everyone else 26. Lowest score when someone hits 100 wins. (Played here without the card pass.)"],
+["Spades","Trick-taking","4 (2 teams)","52","Spades are always trump. Each player bids how many tricks they'll take; teams score 10× their bid if made, lose it if not. Extra tricks are bags; 10 bags cost 100. First to 500. You partner North."],
+["Euchre","Trick-taking","4 (2 teams)","24 (9–A)","Trump is chosen from a turned-up card. Jack of trump (right bower) and same-color jack (left bower) are highest. Making team needs 3 of 5 tricks; all 5 or going alone scores more. First to 10."],
+["Contract Bridge","Trick-taking","4 (2 teams)","52","An auction sets the contract (number of tricks and trump). Declarer plays their hand and the dummy's. Make the contract to score; fail and defenders score. Rubbers or duplicate scoring."],
+["Whist","Trick-taking","4 (2 teams)","52","Last card dealt sets trump. Follow suit if you can. Each trick over six scores 1 point. First team to 5. You partner North."],
+["Oh Hell","Trick-taking","3–7","52","Hand size changes each round. Bid the exact number of tricks you'll take; the dealer's bid can't make the total equal the tricks. Hit your bid exactly to score 10 + bid."],
+["Pinochle","Trick-taking","4 (2 teams)","48 (two 9–A)","Bid, declare melds (marriages, runs, pinochle = Q♠+J♦) for points, then play tricks for counters (A,10,K). First to 1500."],
+["Pitch (Setback)","Trick-taking","2–7","52","Bid for points: High, Low, Jack, and Game. Bid winner leads trump. Fail your bid and you're set back."],
+["Five Hundred","Trick-taking","3–6","43 + Joker","Bid tricks and trump (or misère). Joker is the top trump. Score by bid table; first to 500."],
+["Skat","Trick-taking","3","32","Germany's national game. Declarer plays alone against two, with the 2-card skat. Win 61+ of 120 card points."],
+["Sheepshead","Trick-taking","5","32","Queens and jacks are permanent trumps with diamonds. Picker takes the blind and calls a partner. 61 points wins."],
+["Belote","Trick-taking","4 (2 teams)","32","French game. Trump jack and nine are highest. Declare sequences and belote (K+Q of trump)."],
+["Briscola","Trick-taking","2–4","40 Italian","No need to follow suit. Draw after each trick. Aces (11) and threes (10) count most. 61 of 120 wins."],
+["French Tarot","Trick-taking","3–5","78 tarot","21 trump cards plus the Excuse. Taker plays against the rest, needing points based on oudlers held."],
+["Gin Rummy","Rummy","2","52","Make sets and runs from 10 cards. Knock when deadwood is 10 or less; going gin (0) scores 25 extra. Undercut gives the defender 25 extra. First to 100. (No lay-offs here.)"],
+["Rummy 500","Rummy","2–8","52","Lay down melds and lay off on others. You may take deep cards from the discard pile if you use the bottom one at once. First to 500."],
+["Canasta","Rummy","4 (2 teams)","108 (2 decks + 4 jokers)","Make melds of the same rank; 7-card melds are canastas (red with no wilds = 500). Jokers and 2s are wild. First to 5000."],
+["Kalooki","Rummy","2–6","106 (2 decks + jokers)","Contract rummy: each round needs specific melds. Jokers are wild. Lowest score wins."],
+["Shanghai Rummy","Rummy","3–8","Multiple decks","Seven rounds, each needing a set contract of sets and runs. You may buy discards out of turn."],
+["Tonk","Rummy","2–4","52","Fast rummy for stakes. Drop when your hand is low, or win by laying off all cards. Dealt 49/50 = instant win."],
+["Conquian","Rummy","2","40 Spanish","Oldest rummy-type game. Must use the turned-up card or pass it. Meld 11 cards to win."],
+["Crazy Eights","Shedding","2–7","52","Match the top discard by suit or rank. Eights are wild and change suit. First to empty their hand wins."],
+["Mau-Mau","Shedding","2–5","32","Like Crazy Eights with action cards: 7 = next player draws two, 8 = skip, jack = wild. Played here with 3 players and no 'Mau' call."],
+["President","Shedding","4–8","52","Play higher sets than the last. First out becomes President, last becomes Scum; they swap cards next round. 2s are high."],
+["Durak","Shedding","2–6","36","Attack with cards, defender beats them with higher same suit or trump. The last player holding cards is the durak (fool)."],
+["Cheat (BS)","Shedding","3–10","52","Play cards face down claiming a rank in order. Anyone can call 'Cheat'; the liar or wrong accuser takes the pile."],
+["Speed","Shedding","2","52","Both play at once onto two center piles, one rank up or down. No turns. First to empty their cards wins."],
+["Egyptian Ratscrew","Shedding","2–6","52","Flip cards to the center. Face cards demand payment. Slap doubles or sandwiches to win the pile. Last with cards wins."],
+["Uno-style Eights","Shedding","2–10","52","House version of Crazy Eights: 2 = next player draws two, Q = skip, A = reverse, 8 = wild."],
+["Go Fish","Fishing","2–6","52","Ask a player for a rank. If they have it, they hand it over; if not, 'Go fish' and draw. Collect sets of four."],
+["Casino","Fishing","2–4","52","Capture table cards by matching or adding up to a card in hand. Points for most cards, most spades, aces, big and little casino."],
+["Scopa","Fishing","2–4","40 Italian","Capture cards that match or sum to your card. Clearing the table is a scopa (+1). First to 11."],
+["Cuarenta","Fishing","4 (2 teams)","40","Ecuador's national game. Capture by match then by sequence. Caída (capturing just-played card) scores 2. First to 40."],
+["Blackjack","Casino / Comparing","1+ vs dealer","1–8 decks","Get closer to 21 than the dealer without going over. Aces are 1 or 11, faces 10. Dealer hits to 16, stands on 17. Blackjack pays 3:2."],
+["Baccarat","Casino / Comparing","Any","6–8 decks","Bet on Player, Banker or Tie. Hands are worth the last digit of their total; closest to 9 wins. Fixed drawing rules. Banker pays 0.95, Tie 8:1."],
+["Texas Hold'em","Poker","2–10","52","Two private cards plus five shared cards. Betting rounds preflop, flop, turn, river. Best five-card hand wins."],
+["Omaha","Poker","2–10","52","Four hole cards; you must use exactly two of them and three of the five board cards."],
+["Five Card Draw","Poker","2–6","52","Get five cards, bet, discard and draw up to five, bet again, show down."],
+["Seven Card Stud","Poker","2–8","52","Seven cards dealt over five betting rounds, some face up. Best five of your seven wins."],
+["War","Comparing","2","52","Each flips the top card; higher takes both. Ties start a war: three down, one up. Win all the cards."],
+["Beggar-my-Neighbour","Comparing","2–4","52","Flip cards to a pile. Face cards and aces force the next player to pay 1–4 cards. Win all the cards."],
+["Snap","Matching","2+","52","Flip cards in turn. When two match in rank, first to shout 'Snap!' wins the pile."],
+["Old Maid","Matching","2–8","51 (one Q removed)","Discard pairs, take a card from your neighbor in turn. Whoever is left with the odd queen loses."],
+["Concentration","Matching","1+","52","All cards face down. Flip two; keep them if they match in rank. Most pairs wins."],
+["Spoons","Matching","3–13","52","Pass cards quickly; get four of a kind and grab a spoon. Everyone grabs; the one left without a spoon is out."],
+["Cribbage","Other","2–4","52 + board","Discard to the crib, play to 31 scoring pairs/runs/15s, then count hands. Peg on the board to 121."],
+["Bezique","Other","2","64 (two 7–A)","Score melds like bezique (Q♠ + J♦) and royal marriages while winning tricks with brisques."],
+["Kings in the Corner","Other","2–4","52","Build down in alternating colors on piles around the deck. Kings go in corners. First to empty their hand wins."],
+["Nertz","Solitaire race","2–8","1 deck each","Competitive solitaire. Everyone plays to shared foundations at once. Empty your 13-card nertz pile to end the round."],
+["Klondike","Solitaire","1","52","Seven tableau columns. Build down alternating colors, foundations up by suit from Ace. Click a card then where it goes; double-click sends to a foundation."],
+["Spider","Solitaire","1","104 (2 decks)","Ten columns. Build down; a full K–A run of one suit is removed. Played here with 1 suit."],
+["FreeCell","Solitaire","1","52","All cards face up in eight columns, plus four free cells. Almost every deal can be won. Double-click sends to a foundation."],
+["Pyramid","Solitaire","1","52","Remove pairs of open cards that add to 13 (J=11, Q=12). Kings go alone. Clear the pyramid. Two redeals."],
+["Golf","Solitaire","1","52","Seven columns of five. Play cards one higher or lower onto the waste. Clear the columns."],
+["TriPeaks","Solitaire","1","52","Three peaks. Play open cards one rank up or down from the waste, wrapping K–A."],
+["Clock","Solitaire","1","52","Thirteen piles like a clock face. Turn and place cards on their hour. Win if the fourth king comes last."],
+["Accordion","Solitaire","1","52","Deal in a row. Move a card onto its neighbor or the third to its left if suit or rank match. Get down to one pile. Click the moving pile, then its target."]
+];
+const PLAY={"Klondike":"klon","FreeCell":"free","Spider":"spider","Pyramid":"pyr","Golf":"golf","TriPeaks":"tri","Clock":"clock","Accordion":"acc","War":"war","Beggar-my-Neighbour":"beg","Snap":"snap","Concentration":"conc","Go Fish":"fish","Old Maid":"maid","Crazy Eights":"eights","Mau-Mau":"mau","Uno-style Eights":"uno","Hearts":"hearts","Spades":"spades","Whist":"whist","Blackjack":"bj","Baccarat":"bac","Texas Hold'em":"holdem","Omaha":"omaha","Seven Card Stud":"stud","Five Card Draw":"draw","Gin Rummy":"gin"};
+/* Why each remaining game isn't playable yet */
+const WHY={
+"Euchre":"Needs a round for calling trump and the bower card ranking. A good one to add next.",
+"Contract Bridge":"The bidding auction and the declarer-plays-dummy turn are too big for the simple computer players here.",
+"Oh Hell":"Needs a hand size that changes every round and the dealer's bid rule. A good one to add next.",
+"Pinochle":"Needs a doubled 48-card deck, a meld round and bidding.",
+"Pitch (Setback)":"Needs a point-bidding round and High / Low / Jack / Game scoring.",
+"Five Hundred":"Needs a deck with a joker, misère bids and the bid scoring table.",
+"Skat":"Needs Skat's bidding, the skat swap and its own trump order.",
+"Sheepshead":"Needs 5 players, a fixed trump order, picking the blind and a called partner.",
+"Belote":"Needs its own trump ranking and declarations of sequences.",
+"Briscola":"Needs the 40-card Italian deck and draw-after-each-trick play. A good one to add next.",
+"French Tarot":"Needs a 78-card tarot deck with 21 trumps and the Excuse, which this deck doesn't have.",
+"Rummy 500":"Needs melds laid out on the table, lay-offs, and taking cards from deep in the discard pile.",
+"Canasta":"Needs two decks with jokers, team melds, frozen piles and a large scoring system.",
+"Kalooki":"Needs a different meld contract each round, plus jokers.",
+"Shanghai Rummy":"Needs several decks, round contracts and buying discards out of turn.",
+"Tonk":"Needs table melds and lay-offs, and it's normally played for stakes.",
+"Conquian":"Needs the 40-card Spanish deck and the forced-use discard rule.",
+"President":"Needs 4+ players playing sets, and card swaps between rounds.",
+"Durak":"Needs multi-card attacks and defences: a tricky turn flow for the computer.",
+"Cheat (BS)":"Needs computer players that bluff and call bluffs in a way that feels fair.",
+"Speed":"It's real-time with no turns, so a computer opponent is either too fast or too slow.",
+"Egyptian Ratscrew":"Real-time slapping is hard to make fair against a computer.",
+"Casino":"Capturing by sums and building needs a search the computer players don't have yet.",
+"Scopa":"Needs the 40-card Italian deck and capture-by-sum play.",
+"Cuarenta":"Needs 4 players in teams, capture by sequence and the caída rule.",
+"Spoons":"It's a real-time grab for spoons, which doesn't work well on one screen.",
+"Cribbage":"Needs the crib, pegging play to 31, hand counting and a peg board.",
+"Bezique":"Needs a 64-card double deck and many melds.",
+"Kings in the Corner":"Needs side and corner piles around the deck. A good one to add next.",
+"Nertz":"A real-time race with several solitaire layouts on screen at once."
+};
+const $=id=>document.getElementById(id);
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+
+/* ---------- cards ---------- */
+const S="♠♥♦♣",RK=["","A","2","3","4","5","6","7","8","9","10","J","Q","K"];
+const red=c=>c.s==1||c.s==2, hv=c=>c.r==1?14:c.r;
+function shuf(a){for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a}
+function deck(n=1,suits=[0,1,2,3]){const d=[];for(let k=0;k<n;k++)for(const s of suits)for(let r=1;r<14;r++)d.push({r,s,up:true});return shuf(d)}
+const srt=h=>h.sort((a,b)=>a.s-b.s||hv(a)-hv(b)), srtR=h=>h.sort((a,b)=>a.r-b.r||a.s-b.s);
+const cs=c=>`<span class="${red(c)?"rt":""}">${RK[c.r]}${S[c.s]}</span>`;
+const A=(...a)=>`C(${a.map(x=>typeof x=="string"?`'${x}'`:x).join(",")})`;
+const btn=(t,a,dis)=>`<button onclick="${a}"${dis?" disabled":""}>${t}</button>`;
+const BK={up:false};
+function cd(c,on,cls="",dbl,ex=""){
+  const at=(on?` onclick="${on}"`:"")+(dbl?` ondblclick="${dbl}"`:"");
+  if(!c)return `<div class="card slot ${cls}"${at}>${ex}</div>`;
+  if(!c.up)return `<div class="card back ${cls}"${at}></div>`;
+  return `<div class="card${red(c)?" red":""} ${cls}"${at}><i>${RK[c.r]}${S[c.s]}</i><b>${S[c.s]}</b></div>`;
+}
+const at=(x,y,h)=>`<div style="left:${x}px;top:${y}px">${h}</div>`;
+const R13=n=>[...Array(n).keys()];
+
+/* ---------- app shell ---------- */
+let cur=null,GEN=0;
+function later(f,ms){const g=GEN;setTimeout(()=>{if(g===GEN&&cur){f();R()}},ms)}
+function C(...a){if(cur){cur.on(...a);R()}}
+function R(){if(!cur)return;$("tbl").innerHTML=cur.view();$("ctl").innerHTML=(cur.ctl?cur.ctl():"")+btn("↻ New game","newG()");$("msg").innerHTML=cur.msg||""}
+const can=n=>!!(PLAY[n]&&GAMES[PLAY[n]]);
+function play(i){const g=G[i];if(!can(g[0]))return;GEN++;cur=GAMES[PLAY[g[0]]];$("gt").textContent=g[0];$("gr").textContent=g[4];
+  $("out").hidden=$("q").hidden=$("plw").hidden=true;$("game").hidden=$("back").hidden=false;cur.init();R();scrollTo(0,0)}
+function newG(){if(!cur)return;GEN++;cur.init();R()}
+function home(){GEN++;cur=null;$("out").hidden=$("q").hidden=$("plw").hidden=false;$("game").hidden=$("back").hidden=true;draw()}
+
+/* ---------- solitaire engine ---------- */
+const alt=(a,b)=>red(a)!=red(b)&&b.r==a.r+1;
+const fOK=(c,f)=>f.length?f[f.length-1].s==c.s&&c.r==f[f.length-1].r+1:c.r==1;
+const seq=(cs,fn)=>cs.every((c,i)=>i==0||(c.up&&fn(c,cs[i-1])));
+const topOf=a=>a[a.length-1];
+function sol(o){return{
+  init(){this.p={};o.setup(this.p);this.sel=null;this.mv=0;this.msg=o.hint||"Click a card, then click where it should go."},
+  on(t,k,j){const p=this.p;
+    if(t=="d"){const s=p[k];if(!s||!s.length||!topOf(s).up)return;
+      for(let f=0;f<4;f++){const fk="f"+f;if(p[fk]&&o.drop([topOf(s)],fk,p)){p[fk].push(s.pop());this.sel=null;this.after(k);return}}return}
+    if(t=="s"){o.stock(p);this.sel=null;this.after();return}
+    const pile=p[k];
+    if(this.sel){const s=this.sel;this.sel=null;if(s.k==k)return;
+      const mv=p[s.k].slice(s.j);
+      if(o.drop(mv,k,p))p[k].push(...p[s.k].splice(s.j)),this.after(s.k);else this.msg="Can't move there.";return}
+    if(!pile.length)return;
+    if(j==null||j<0)j=pile.length-1;
+    if(!pile[j].up){if(j==pile.length-1)pile[j].up=true;return}
+    if(o.pick(pile,j,k,p))this.sel={k,j}},
+  after(k){this.mv++;const p=this.p;if(k&&k[0]=="t"){const t=p[k];if(t.length&&!topOf(t).up)topOf(t).up=true}
+    o.after&&o.after(p);this.msg=o.won(p)?"🎉 You won in "+this.mv+" moves!":"Moves: "+this.mv},
+  view(){return o.view(this)}}}
+function colH(g,k){const p=g.p[k],s=g.sel;return `<div class="col">${p.length?p.map((c,j)=>cd(c,A("p",k,j),s&&s.k==k&&j>=s.j?"sel":"",A("d",k))).join(""):cd(null,A("p",k,-1))}</div>`}
+function topH(g,k,lab=""){const p=g.p[k],s=g.sel;return cd(topOf(p),A("p",k,-1),s&&s.k==k?"sel":"",A("d",k),lab)}
+const fH=g=>R13(4).map(i=>topH(g,"f"+i,"A")).join("");
+const colsH=(g,n)=>R13(n).map(i=>colH(g,"t"+i)).join("");
+const stockH=g=>`<div>${cd(g.p.s.length?BK:null,A("s"),"","","↻")}<div class="cnt">${g.p.s.length}</div></div>`;
+
+/* ---------- puzzle layout helpers (Pyramid, TriPeaks) ---------- */
+const free=(L,i)=>!L[i].gone&&L[i].cov.every(j=>L[j].gone);
+
+/* ---------- trick-taking engine ---------- */
+const NM=["You","West","North","East"];
+function trick(o){return{
+  init(){this.sc=[0,0,0,0];this.bags=[0,0];this.dealer=Math.random()*4|0;this.over=false;this.deal()},
+  deal(){const d=deck();this.dealer=(this.dealer+1)%4;
+    this.H=R13(4).map(i=>srt(d.slice(i*13,i*13+13)));
+    this.trump=o.trump?o.trump(d):null;this.tk=[0,0,0,0];this.pt=[0,0,0,0];this.T=[];this.broken=false;this.first=true;
+    this.turn=o.hearts?this.H.findIndex(h=>h.some(c=>c.r==2&&c.s==3)):(this.dealer+1)%4;
+    if(o.bids){this.bid=[null,aiBid(this.H[1]),aiBid(this.H[2]),aiBid(this.H[3])];this.phase="bid";this.msg="How many tricks will you take?"}
+    else{this.phase="play";this.msg="";this.next()}},
+  legal(p){const h=this.H[p],T=this.T;
+    if(T.length){const f=h.filter(c=>c.s==T[0].c.s);return f.length?f:h}
+    if(o.hearts&&this.first)return h.filter(c=>c.r==2&&c.s==3);
+    if(o.noLead!=null&&!this.broken){const n=h.filter(c=>c.s!=o.noLead);if(n.length)return n}
+    return h},
+  win(T){let b=T[0];for(const t of T)if((t.c.s==b.c.s&&hv(t.c)>hv(b.c))||(this.trump!=null&&t.c.s==this.trump&&b.c.s!=this.trump))b=t;return b.p},
+  next(){if(this.turn)later(()=>this.ai(),650);else this.msg+=" Your turn."},
+  on(a,i){
+    if(a=="next"){if(this.phase=="done"&&!this.over)this.deal();return}
+    if(a=="bid"&&this.phase=="bid"){this.bid[0]=i;this.phase="play";this.msg="";this.next();return}
+    if(a!="c"||this.phase!="play"||this.turn||this.T.length==4)return;
+    const c=this.H[0][i];if(!this.legal(0).includes(c)){this.msg=this.T.length?"You must follow suit.":"You can't lead that yet.";return}
+    this.put(0,c)},
+  put(p,c){this.H[p].splice(this.H[p].indexOf(c),1);this.T.push({p,c});if(o.noLead!=null&&c.s==o.noLead)this.broken=true;
+    if(this.T.length<4){this.turn=(p+1)%4;this.msg="";this.next()}else later(()=>this.collect(),1000)},
+  ai(){const p=this.turn;this.put(p,this.pick(p))},
+  pick(p){const L=this.legal(p),T=this.T,lo=a=>a.reduce((x,y)=>hv(y)<hv(x)?y:x),hi=a=>a.reduce((x,y)=>hv(y)>hv(x)?y:x);
+    if(o.hearts){
+      if(!T.length){const n=L.filter(c=>c.s!=1&&!(c.s==0&&c.r>=12));return lo(n.length?n:L)}
+      const led=T[0].c.s;
+      if(L[0].s==led&&this.H[p].some(c=>c.s==led)){const w=Math.max(...T.filter(t=>t.c.s==led).map(t=>hv(t.c))),u=L.filter(c=>hv(c)<w);
+        if(u.length)return hi(u);const pts=T.some(t=>t.c.s==1||(t.c.s==0&&t.c.r==12));
+        if(T.length==3&&!pts){const nq=L.filter(c=>!(c.s==0&&c.r==12));return hi(nq.length?nq:L)}return lo(L)}
+      const q=L.find(c=>c.s==0&&c.r==12);if(q)return q;const h=L.filter(c=>c.s==1);return hi(h.length?h:L)}
+    const nt=a=>{const n=a.filter(c=>c.s!==this.trump);return n.length?n:a};
+    if(!T.length){const ace=L.find(c=>c.r==1&&c.s!==this.trump);return ace||lo(nt(L))}
+    const pw=this.win(T)==(p+2)%4,wins=L.filter(c=>this.win([...T,{p,c}])==p);
+    if(pw||!wins.length)return lo(nt(L));return lo(wins)},
+  collect(){const w=this.win(this.T);this.tk[w]++;
+    if(o.hearts)this.pt[w]+=this.T.reduce((a,t)=>a+(t.c.s==1?1:t.c.s==0&&t.c.r==12?13:0),0);
+    this.T=[];this.first=false;this.turn=w;this.msg=(w?NM[w]+" takes":"You take")+" the trick.";
+    if(!this.H[0].length){this.phase="done";this.msg=o.score(this)}else this.next()},
+  ctl(){if(this.phase=="bid")return "Your bid: "+R13(13).map(n=>btn(n+1,A("bid",n+1))).join("");
+    if(this.phase=="done"&&!this.over)return btn("Next hand ▶",A("next"));return ""},
+  view(){const g=this,bk=p=>`<div class="opp${g.turn==p&&g.phase=="play"?" on":""}">${NM[p]}${o.bids?" · bid "+(g.bid[p]??"?"):""} · ${o.hearts?g.pt[p]+" pts":g.tk[p]+" tricks"}<div class="mini">${g.H[p].map(()=>"<i></i>").join("")}</div></div>`;
+    const pos=[[75,120],[0,60],[75,0],[150,60]],leg=g.phase=="play"&&!g.turn&&g.T.length<4?g.legal(0):[];
+    return `<div class="info">${o.info(g)}</div><div class="tt"><div></div>${bk(2)}<div></div>${bk(1)}<div class="trk">${g.T.map(t=>`<div style="position:absolute;left:${pos[t.p][0]}px;top:${pos[t.p][1]}px">${cd(t.c)}</div>`).join("")}</div>${bk(3)}</div>
+    <div class="opp${!g.turn&&g.phase=="play"?" on":""}" style="max-width:620px">You${o.bids?" · bid "+(g.bid[0]??"?"):""} · ${o.hearts?g.pt[0]+" pts":g.tk[0]+" tricks"}</div>
+    <div class="row hand">${g.H[0].map((c,i)=>cd(c,A("c",i),leg.length&&!leg.includes(c)?"dim":"")).join("")}</div>`}}}
+function aiBid(h){let b=0;const sp=h.filter(c=>c.s==0);
+  h.forEach(c=>{if(c.s){if(c.r==1)b++;else if(c.r==13&&h.filter(x=>x.s==c.s).length>1)b+=.6}});
+  b+=sp.filter(c=>c.r==1||c.r==13||(c.r==12&&sp.length>2)).length+Math.max(0,sp.length-3)*.7;return Math.max(1,Math.round(b))}
+const team=(a,t)=>a[t]+a[t+2];
+
+/* ---------- poker ---------- */
+const HN=["High card","Pair","Two pair","Three of a kind","Straight","Flush","Full house","Four of a kind","Straight flush"];
+function ev(h){const rs=h.map(hv).sort((a,b)=>b-a),cnt={};rs.forEach(r=>cnt[r]=(cnt[r]||0)+1);
+  const g=Object.entries(cnt).map(([r,n])=>[n,+r]).sort((a,b)=>b[0]-a[0]||b[1]-a[1]);
+  const fl=h.length==5&&h.every(c=>c.s==h[0].s),u=[...new Set(rs)];let st=u.length==5&&u[0]-u[4]==4,top=u[0];
+  if(u.length==5&&u[0]==14&&u[1]==5){st=true;top=5}
+  const n0=g[0][0],n1=g[1]?g[1][0]:0;
+  const cat=st&&fl?8:n0==4?7:n0==3&&n1==2?6:fl?5:st?4:n0==3?3:n0==2&&n1==2?2:n0==2?1:0;
+  return [cat,...(st?[top]:g.map(x=>x[1]))]}
+const cmp=(a,b)=>{for(let i=0;i<Math.max(a.length,b.length);i++){const d=(a[i]||0)-(b[i]||0);if(d)return d}return 0};
+function comb(a,k){const r=[];(function f(s,acc){if(acc.length==k){r.push(acc);return}for(let i=s;i<a.length;i++)f(i+1,[...acc,a[i]])})(0,[]);return r}
+function b5(c){if(c.length<=5)return ev(c);let b=null;for(const k of comb(c,5)){const e=ev(k);if(!b||cmp(e,b)>0)b=e}return b}
+function bestOf(kind,h,b){if(kind=="omaha"&&b.length>=3){let best=null;for(const x of comb(h,2))for(const y of comb(b,3)){const e=ev([...x,...y]);if(!best||cmp(e,best)>0)best=e}return best}return b5([...h,...b])}
+function poker(kind){
+  const deal2=n=>g=>{g.y=g.dr(n);g.c=g.dr(n,1)},board=n=>g=>g.b.push(...g.dr(n)),both=h=>g=>{g.y.push(...g.dr(1,h));g.c.push(...g.dr(1,h))};
+  const ST={holdem:[deal2(2),board(3),board(1),board(1)],omaha:[deal2(4),board(3),board(1),board(1)],
+    stud:[g=>{g.y=[...g.dr(2,1),...g.dr(1)];g.c=[...g.dr(2,1),...g.dr(1)]},both(0),both(0),both(0),both(1)],
+    draw:[deal2(5),g=>{g.drawing=true;g.sel=[]}]}[kind];
+  return{
+  init(){this.chips=200;this.deal()},
+  dr(n,h){return this.d.splice(0,n).map(c=>(c.up=!h,c))},
+  deal(){if(this.chips<10){this.done=true;this.msg="You're out of chips. Press New game.";return}
+    this.d=deck();this.b=[];this.y=[];this.c=[];this.pot=20;this.chips-=10;this.st=0;this.done=false;this.facing=false;this.drawing=false;this.sel=[];
+    ST[0](this);this.msg="Ante 10 each. "+this.yh()+" — check or bet?"},
+  yh(){return "You have: "+HN[bestOf(kind,this.y,this.b)[0]]},
+  cs(){return bestOf(kind,this.c,this.b)[0]},
+  on(a,i){
+    if(this.done){if(a=="next")this.deal();return}
+    if(a=="tog"){if(!this.drawing)return;const k=this.sel.indexOf(i);k<0?this.sel.push(i):this.sel.splice(k,1);return}
+    if(a=="draw"&&this.drawing){this.sel.forEach(i=>{this.y[i]=this.dr(1)[0]});this.sel=[];
+      const cnt={};this.c.forEach(c=>cnt[c.r]=(cnt[c.r]||0)+1);let keep=this.c.filter(c=>cnt[c.r]>1);
+      if(ev(this.c)[0]>=4)keep=this.c;if(!keep.length)keep=[this.c.reduce((a,b)=>hv(b)>hv(a)?b:a)];
+      const n=5-keep.length;this.c=[...keep,...this.dr(n,1)];this.drawing=false;this.msg="CPU drew "+n+". "+this.yh()+" — check or bet?";return}
+    if(this.drawing)return;
+    if(a=="fold"){this.end(1,"You folded.");return}
+    if(a=="call"&&this.facing){if(this.chips<20){this.end(1,"Not enough chips to call.");return}this.chips-=20;this.pot+=20;this.facing=false;this.adv("You call. ");return}
+    if(this.facing)return;
+    if(a=="check"){const s=this.cs();if((s>=1&&Math.random()<.55)||Math.random()<.12){this.pot+=20;this.facing=true;this.msg="CPU bets 20. Call or fold?";return}this.adv("Both check. ");return}
+    if(a=="bet"){if(this.chips<20)return;this.chips-=20;this.pot+=20;const s=this.cs();
+      if(s>=2||(s==1&&Math.random()<.8)||Math.random()<.35){this.pot+=20;this.adv("CPU calls. ")}else this.end(0,"CPU folds.")}},
+  adv(t){this.st++;if(this.st>=ST.length)return this.show();ST[this.st](this);this.msg=t+(this.drawing?"Click cards to discard, then Draw.":this.yh()+" — check or bet?")},
+  show(){const a=bestOf(kind,this.y,this.b),b=bestOf(kind,this.c,this.b),r=cmp(a,b),t=`You: ${HN[a[0]]} · CPU: ${HN[b[0]]}. `;
+    if(r>0)this.end(0,t);else if(r<0)this.end(1,t);else{this.done=true;this.chips+=this.pot/2;this.msg=t+"Split pot."}},
+  end(w,t){this.done=true;if(!w)this.chips+=this.pot;this.msg=t+(w?" CPU wins "+this.pot+".":" 🎉 You win "+this.pot+"!")},
+  ctl(){if(this.done)return this.chips>=10?btn("Next hand ▶",A("next")):"";
+    if(this.drawing)return btn("Draw "+this.sel.length,A("draw"));
+    if(this.facing)return btn("Call 20",A("call"))+btn("Fold",A("fold"));
+    return btn("Check",A("check"))+btn("Bet 20",A("bet"),this.chips<20)+btn("Fold",A("fold"))},
+  view(){const sh=c=>c.up||this.done?{...c,up:true}:BK;
+    return `<div class="info">Your chips: ${this.chips} · Pot: ${this.pot}</div><div class="lbl">CPU</div><div class="row">${this.c.map(c=>cd(sh(c))).join("")}</div>
+    ${kind=="holdem"||kind=="omaha"?`<div class="lbl">Board</div><div class="row">${R13(5).map(i=>cd(this.b[i]||null)).join("")}</div>`:""}
+    <div class="lbl">You</div><div class="row">${this.y.map((c,i)=>cd({...c,up:true},A("tog",i),this.sel.includes(i)?"sel":"")).join("")}</div>`}}}
+
+/* ---------- gin helpers ---------- */
+function dw(h){const v=c=>Math.min(c.r,10),tot=h.reduce((a,c)=>a+v(c),0),M=[];
+  for(let r=1;r<14;r++){const s=h.filter(c=>c.r==r);if(s.length>=3){M.push(s);if(s.length==4)s.forEach(x=>M.push(s.filter(y=>y!==x)))}}
+  for(let s=0;s<4;s++){const x=h.filter(c=>c.s==s).sort((a,b)=>a.r-b.r);for(let i=0;i<x.length;i++){let run=[x[i]];for(let j=i+1;j<x.length&&x[j].r==topOf(run).r+1;j++){run=[...run,x[j]];if(run.length>=3)M.push(run)}}}
+  let best=tot;const used=new Set();
+  (function go(i,sum){best=Math.min(best,tot-sum);for(let k=i;k<M.length;k++)if(M[k].every(c=>!used.has(c))){M[k].forEach(c=>used.add(c));go(k+1,sum+M[k].reduce((a,c)=>a+v(c),0));M[k].forEach(c=>used.delete(c))}})(0,0);
+  return best}
+function bd(h,ex){let b=null;h.forEach(c=>{if(c===ex)return;const d=dw(h.filter(x=>x!==c));if(!b||d<b.d||(d==b.d&&Math.min(c.r,10)>Math.min(b.c.r,10)))b={c,d}});return b}
+
+/* ---------- shedding engine (Crazy Eights, Mau-Mau, Uno-style) ---------- */
+const NM3=["You","CPU 1","CPU 2"];
+function shed(o){const W=o.wild,nx=(p,d)=>(p+d+3)%3;return{
+  init(){const d=o.deck?o.deck():deck();this.H=[srt(d.splice(0,5)),d.splice(0,5),d.splice(0,5)];this.s=d;const t=d.pop();this.pile=[t];this.suit=t.s;this.turn=0;this.dir=1;this.ch=false;this.over=false;this.msg="Match the suit or rank. "+o.note+" Your turn."},
+  top(){return topOf(this.pile)},
+  ok(c){return c.r==W||c.s==this.suit||c.r==this.top().r},
+  drawOne(){if(!this.s.length&&this.pile.length>1){const t=this.pile.pop();this.s=shuf(this.pile);this.s.forEach(c=>c.up=true);this.pile=[t]}return this.s.pop()},
+  on(a,i){if(this.over||this.turn)return;
+    if(a=="suit"&&this.ch){this.suit=i;this.ch=false;this.next("You chose "+S[i]+".",null);return}
+    if(this.ch)return;
+    if(a=="play"){const c=this.H[0][i];if(!this.ok(c)){this.msg="That card doesn't match.";return}this.H[0].splice(i,1);this.pile.push(c);
+      if(c.r==W&&this.H[0].length){this.ch=true;this.msg="Choose a suit.";return}this.suit=c.s;this.next("You played "+cs(c)+".",c)}
+    if(a=="draw"){const c=this.drawOne();if(!c){this.next("No cards left, you pass.",null);return}this.H[0].push(c);srt(this.H[0]);this.msg="You drew "+cs(c)+"."}},
+  next(t,c){const p=this.turn;this.msg=p?this.msg+" "+t:t;if(!this.H[p].length){this.over=true;this.msg+=" "+(p?NM3[p]+" wins.":"🎉 You win!");return}
+    if(c&&c.r===o.rev){this.dir=-this.dir;this.msg+=" Direction reversed."}
+    let n=nx(p,this.dir);
+    if(c&&c.r===o.skip){this.msg+=` ${NM3[n]} ${n?"is":"are"} skipped.`;n=nx(n,this.dir)}
+    else if(c&&c.r===o.d2){const h=this.H[n];let k=0;for(;k<2;k++){const x=this.drawOne();if(!x)break;h.push(x)}if(!n)srt(h);
+      this.msg+=` ${NM3[n]} ${n?"draws":"draw"} ${k} and ${n?"loses":"lose"} a turn.`;n=nx(n,this.dir)}
+    this.turn=n;if(n)later(()=>this.cpu(),800);else this.msg+=" Your turn."},
+  cpu(){const p=this.turn,h=this.H[p];let n=0,c;
+    while(true){c=h.find(x=>x.r!=W&&this.ok(x))||h.find(x=>x.r==W);if(c)break;const d=this.drawOne();if(!d)break;h.push(d);n++}
+    if(!c){this.next(NM3[p]+" drew "+n+" and passed.",null);return}
+    h.splice(h.indexOf(c),1);this.pile.push(c);
+    if(c.r==W){const k=[0,0,0,0];h.forEach(x=>k[x.s]++);this.suit=k.indexOf(Math.max(...k))}else this.suit=c.s;
+    this.next(NM3[p]+(n?" drew "+n+" and":"")+" played "+cs(c)+(c.r==W?", chose "+S[this.suit]:"")+".",c)},
+  ctl(){return this.ch?"Suit: "+R13(4).map(s=>btn(S[s],A("suit",s))).join(""):btn("Draw a card",A("draw"),this.turn||this.over)},
+  view(){return `<div class="info">Suit to match: <b class="${this.suit==1||this.suit==2?"rt":""}">${S[this.suit]}</b> · Stock ${this.s.length}${o.rev?" · Order: "+(this.dir>0?"You → CPU 1 → CPU 2":"You → CPU 2 → CPU 1"):""}</div>
+    <div class="row" style="gap:30px">${[1,2].map(p=>`<div class="opp${this.turn==p?" on":""}"><div class="lbl">${NM3[p]} · ${this.H[p].length}</div><div class="mini">${this.H[p].map(()=>"<i></i>").join("")}</div></div>`).join("")}</div>
+    <div class="row">${cd(this.s.length?BK:null,A("draw"))}${cd(this.top())}</div>
+    <div class="lbl">You</div><div class="row">${this.H[0].map((c,i)=>cd(c,A("play",i),this.turn||this.ok(c)?"":"dim")).join("")}</div>`}}}
+
+/* ---------- the games ---------- */
+const bjv=h=>{let t=0,a=0;h.forEach(c=>{if(!c.up)return;t+=Math.min(c.r,10);if(c.r==1)a++});return a&&t+10<=21?t+10:t};
+const bv=h=>h.reduce((a,c)=>a+(c.r>=10?0:c.r),0)%10;
+const prs=h=>{const m={};h.forEach(c=>(m[c.r]=m[c.r]||[]).push(c));return Object.values(m).flatMap(a=>a.length%2?[a[0]]:[]).sort((a,b)=>a.r-b.r)};
+const pen=c=>({11:1,12:2,13:3,1:4})[c.r]||0;
+
+const GAMES={
+klon:sol({
+  setup(p){const d=deck();for(let i=0;i<7;i++){p["t"+i]=d.splice(0,i+1);p["t"+i].forEach((c,j)=>c.up=j==i)}for(let i=0;i<4;i++)p["f"+i]=[];d.forEach(c=>c.up=false);p.s=d;p.w=[]},
+  stock(p){if(p.s.length){const c=p.s.pop();c.up=true;p.w.push(c)}else{p.s=p.w.reverse();p.s.forEach(c=>c.up=false);p.w=[]}},
+  pick:(pile,j,k)=>k[0]=="t"?seq(pile.slice(j),alt):j==pile.length-1,
+  drop(m,k,p){const t=p[k];if(k[0]=="f")return m.length==1&&fOK(m[0],t);if(k[0]=="t")return t.length?alt(m[0],topOf(t)):m[0].r==13;return false},
+  won:p=>R13(4).every(i=>p["f"+i].length==13),
+  view:g=>`<div class="row">${stockH(g)}${topH(g,"w")}<span class="gap"></span>${fH(g)}</div><div class="row">${colsH(g,7)}</div>`}),
+free:sol({
+  setup(p){const d=deck();for(let i=0;i<8;i++)p["t"+i]=[];d.forEach((c,i)=>p["t"+i%8].push(c));for(let i=0;i<4;i++){p["f"+i]=[];p["c"+i]=[]}},
+  stock(){},
+  pick:(pile,j,k)=>k[0]=="t"?seq(pile.slice(j),alt):true,
+  drop(m,k,p){const t=p[k];if(k[0]=="f")return m.length==1&&fOK(m[0],t);if(k[0]=="c")return m.length==1&&!t.length;
+    const fc=R13(4).filter(i=>!p["c"+i].length).length,ec=R13(8).filter(i=>!p["t"+i].length&&"t"+i!=k).length;
+    if(m.length>(fc+1)*2**ec)return false;return t.length?alt(m[0],topOf(t)):true},
+  won:p=>R13(4).every(i=>p["f"+i].length==13),
+  view:g=>`<div class="row">${R13(4).map(i=>topH(g,"c"+i)).join("")}<span class="gap"></span>${fH(g)}</div><div class="row">${colsH(g,8)}</div>`}),
+spider:sol({
+  setup(p){const d=deck(8,[0]);for(let i=0;i<10;i++){const n=i<4?6:5;p["t"+i]=d.splice(0,n);p["t"+i].forEach((c,j)=>c.up=j==n-1)}d.forEach(c=>c.up=false);p.s=d;p.done=0},
+  stock(p){if(!p.s.length)return;for(let i=0;i<10;i++){const c=p.s.pop();c.up=true;p["t"+i].push(c)}},
+  pick:(pile,j)=>seq(pile.slice(j),(a,b)=>a.s==b.s&&b.r==a.r+1),
+  drop:(m,k,p)=>k[0]=="t"&&(p[k].length?topOf(p[k]).r==m[0].r+1:true),
+  after(p){for(let i=0;i<10;i++){const t=p["t"+i];if(t.length>=13){const r=t.slice(-13);if(r.every((c,j)=>c.up&&c.s==r[0].s&&c.r==13-j)){t.splice(-13);p.done++;if(t.length)topOf(t).up=true}}}},
+  won:p=>p.done==8,
+  view:g=>`<div class="row">${stockH(g)}<span class="lbl">Runs done: ${g.p.done} / 8 · Click the stock to deal a row</span></div><div class="row">${colsH(g,10)}</div>`}),
+pyr:{
+  init(){const d=deck();this.L=[];const ix=(r,i)=>r*(r+1)/2+i;
+    for(let r=0;r<7;r++)for(let i=0;i<=r;i++)this.L.push({c:d.pop(),x:(6-r)*35+i*70,y:r*46,cov:r<6?[ix(r+1,i),ix(r+1,i+1)]:[]});
+    this.s=d;this.w=[];this.sel=null;this.pass=0;this.msg="Pair open cards that add to 13. Kings go alone."},
+  on(t,i){
+    if(t=="s"){if(this.s.length)this.w.push(this.s.pop());else if(this.pass<2){this.s=this.w.reverse();this.w=[];this.pass++}else this.msg="No redeals left.";this.sel=null;return}
+    if(t=="l"&&!free(this.L,i))return;
+    const ref=t=="l"?{t,i,c:this.L[i].c}:{t,c:topOf(this.w)};if(!ref.c)return;
+    if(ref.c.r==13){this.rm(ref);this.sel=null}
+    else if(!this.sel){this.sel=ref;return}
+    else{const a=this.sel;this.sel=null;if(a.t==ref.t&&a.i==ref.i)return;if(a.c.r+ref.c.r==13){this.rm(a);this.rm(ref)}else{this.msg="Those don't add to 13.";return}}
+    this.msg=this.L.every(l=>l.gone)?"🎉 Pyramid cleared!":"Cards left in pyramid: "+this.L.filter(l=>!l.gone).length},
+  rm(r){if(r.t=="l")this.L[r.i].gone=true;else this.w.pop()},
+  view(){const s=this.sel;return `<div class="lay" style="height:370px;width:480px">${this.L.map((l,i)=>l.gone?"":at(l.x,l.y,cd(l.c,A("l",i),(s&&s.t=="l"&&s.i==i?"sel":"")+(free(this.L,i)?"":" dim")))).join("")}</div>
+    <div class="row"><div>${cd(this.s.length?BK:null,A("s"),"","","↻")}<div class="cnt">${this.s.length} · redeals ${2-this.pass}</div></div>${cd(topOf(this.w)||null,A("w"),s&&s.t=="w"?"sel":"")}</div>`}},
+tri:{
+  init(){const d=deck(),W=64;this.L=[];const add=(x,y,cov)=>this.L.push({c:d.pop(),x,y,cov});
+    for(let p=0;p<3;p++)add((3*p+1.5)*W,0,[3+2*p,4+2*p]);
+    for(let p=0;p<3;p++)for(let k=0;k<2;k++)add((3*p+k+1)*W,40,[9+3*p+k,10+3*p+k]);
+    for(let j=0;j<9;j++)add((j+.5)*W,80,[18+j,19+j]);
+    for(let i=0;i<10;i++)add(i*W,120,[]);
+    this.s=d;this.w=[d.pop()];this.streak=0;this.best=0;this.msg="Play open cards one higher or lower than the waste card (K–A wraps)."},
+  on(t,i){if(t=="s"){if(this.s.length){this.w.push(this.s.pop());this.streak=0}return}
+    if(!free(this.L,i))return;const c=this.L[i].c,w=topOf(this.w),d=Math.abs(c.r-w.r);
+    if(d!=1&&d!=12){this.msg="Must be one rank up or down.";return}
+    this.L[i].gone=true;this.w.push(c);this.streak++;this.best=Math.max(this.best,this.streak);
+    this.msg=this.L.every(l=>l.gone)?"🎉 All peaks cleared! Best streak "+this.best:"Streak: "+this.streak},
+  view(){return `<div class="lay" style="height:215px;width:660px">${this.L.map((l,i)=>l.gone?"":at(l.x,l.y,cd(free(this.L,i)?l.c:BK,A("l",i)))).join("")}</div>
+    <div class="row"><div>${cd(this.s.length?BK:null,A("s"))}<div class="cnt">${this.s.length}</div></div>${cd(topOf(this.w))}</div>`}},
+golf:{
+  init(){const d=deck();this.t=R13(7).map(()=>d.splice(0,5));this.s=d;this.w=[d.pop()];this.msg="Play a column's bottom card one higher or lower than the waste."},
+  on(a,i){if(a=="s"){if(this.s.length)this.w.push(this.s.pop());}
+    else{const col=this.t[i];if(!col.length)return;const c=topOf(col);if(Math.abs(c.r-topOf(this.w).r)!=1){this.msg="Must be one rank up or down.";return}this.w.push(col.pop())}
+    const left=this.t.reduce((a,c)=>a+c.length,0);this.msg=left?"Cards left: "+left+(this.s.length?"":" · stock empty"):"🎉 All clear!"},
+  view(){return `<div class="row">${this.t.map((col,i)=>`<div class="col">${col.length?col.map(c=>cd(c,A("t",i))).join(""):cd(null)}</div>`).join("")}</div>
+    <div class="row" style="margin-top:20px"><div>${cd(this.s.length?BK:null,A("s"))}<div class="cnt">${this.s.length}</div></div>${cd(topOf(this.w))}</div>`}},
+clock:{
+  init(){const d=deck();this.P=R13(13).map(i=>d.slice(i*4,i*4+4).map(c=>(c.up=false,c)));this.U=R13(13).map(()=>[]);this.cur=this.P[12].pop();this.over=false;
+    this.msg="Each card goes under its hour (J=11, Q=12, K in the middle)."},
+  on(a){const n=a=="all"?60:1;for(let k=0;k<n&&!this.over;k++)this.step()},
+  step(){const c=this.cur,i=c.r-1;c.up=true;this.U[i].push(c);
+    if(this.P[i].length){this.cur=this.P[i].pop();this.msg="Placed "+cs(c)+(i==12?" in the middle.":" at "+(i+1)+" o'clock.")}
+    else{this.over=true;this.cur=null;const n=this.U.reduce((a,u)=>a+u.length,0);this.msg=n==52?"🎉 Every card placed. You win!":"The fourth king came out early: "+n+" of 52 placed."}},
+  ctl(){return btn("Next card",A("n"),this.over)+btn("Play it out",A("all"),this.over)},
+  view(){const pile=i=>`<div>${cd(topOf(this.U[i])||(this.P[i].length?BK:null))}<div class="cnt">${RK[i+1]} · ${this.P[i].length} down</div></div>`;
+    return `<div class="lay" style="height:400px;width:420px">${R13(12).map(i=>{const a=(i+1)*Math.PI/6;return at(180+150*Math.sin(a),160-150*Math.cos(a),pile(i))}).join("")}${at(180,160,pile(12))}</div>
+    <div class="lbl">Card in hand:</div>${this.cur?cd({...this.cur,up:true}):""}`}},
+acc:{
+  init(){this.a=deck().map(c=>({c,n:1}));this.sel=null;this.msg="Click a pile, then the pile 1 or 3 to its left with the same suit or rank."},
+  on(a,i){if(this.sel==null){this.sel=i;return}const s=this.sel;this.sel=null;const f=Math.max(s,i),t=Math.min(s,i),d=f-t;
+    if(d!=1&&d!=3){if(d)this.msg="Only 1 or 3 places to the left.";return}
+    const x=this.a[f].c,y=this.a[t].c;if(x.r!=y.r&&x.s!=y.s){this.msg="Suit or rank must match.";return}
+    this.a[t]={c:x,n:this.a[t].n+this.a[f].n};this.a.splice(f,1);this.msg=this.a.length==1?"🎉 One pile — you win!":"Piles: "+this.a.length},
+  view(){return `<div class="row">${this.a.map((p,i)=>`<div>${cd(p.c,A("a",i),"sm"+(this.sel==i?" sel":""))}<div class="cnt">${p.n>1?p.n:""}</div></div>`).join("")}</div>`}},
+war:{
+  init(){const d=deck();this.y=d.slice(0,26);this.c=d.slice(26);this.last=null;this.over=false;this.msg="Flip to battle. Ace is high."},
+  on(a){const n=a=="auto"?100:1;for(let k=0;k<n&&!this.over;k++)this.flip()},
+  flip(){const y=this.y,c=this.c,pot=[];let wars=0;
+    while(true){if(!y.length){c.push(...pot);break}if(!c.length){y.push(...pot);break}
+      const a=y.shift(),b=c.shift();pot.push(a,b);this.last=[a,b];
+      if(hv(a)!=hv(b)){(hv(a)>hv(b)?y:c).push(...shuf(pot));this.msg=(hv(a)>hv(b)?"You take ":"CPU takes ")+pot.length+" cards"+(wars?" after "+wars+" war"+(wars>1?"s":"")+"!":".");break}
+      wars++;for(let k=0;k<3;k++){if(y.length>1)pot.push(y.shift());if(c.length>1)pot.push(c.shift())}}
+    if(!y.length||!c.length){this.over=true;this.msg=y.length?"🎉 You won the war!":"CPU won the war."}},
+  ctl(){return btn("Flip",A("f"),this.over)+btn("Flip ×100",A("auto"),this.over)},
+  view(){const l=this.last;return `<div class="row" style="gap:40px"><div><div class="lbl">You · ${this.y.length} cards</div>${l?cd(l[0]):cd(null)}</div><div><div class="lbl">CPU · ${this.c.length} cards</div>${l?cd(l[1]):cd(null)}</div></div>`}},
+beg:{
+  init(){const d=deck();this.h=[d.slice(0,26),d.slice(26)];this.pile=[];this.turn=0;this.debt=0;this.own=0;this.over=false;this.msg="Take turns flipping. J/Q/K/A make the other side pay 1/2/3/4 cards."},
+  on(a){const n=a=="auto"?20000:1;for(let k=0;k<n&&!this.over;k++)this.step()},
+  step(){const h=this.h[this.turn];
+    if(!h.length){this.h[1-this.turn].push(...this.pile);this.pile=[];this.over=true;this.msg=this.turn?"🎉 CPU ran out. You win!":"You ran out. CPU wins.";return}
+    const c=h.shift();this.pile.push(c);const p=pen(c);
+    if(p){this.debt=p;this.own=this.turn;this.turn^=1;this.msg=(this.own?"CPU":"You")+" played "+cs(c)+": "+(this.own?"you":"CPU")+" must pay "+p+"."}
+    else if(this.debt){this.debt--;if(!this.debt){const n=this.pile.length;this.h[this.own].push(...this.pile);this.pile=[];this.turn=this.own;this.msg=(this.own?"CPU takes":"You take")+" the pile ("+n+" cards)."}}
+    else{this.turn^=1;this.msg=""}},
+  ctl(){return btn((this.turn?"CPU":"You")+": flip",A("f"),this.over)+btn("Play to the end",A("auto"),this.over)},
+  view(){return `<div class="row" style="gap:40px"><div class="lbl">You · ${this.h[0].length}</div><div>${cd(topOf(this.pile)||null)}<div class="cnt">pile ${this.pile.length}${this.debt?" · owed "+this.debt:""}</div></div><div class="lbl">CPU · ${this.h[1].length}</div></div>`}},
+snap:{
+  init(){const d=deck();this.y=d.slice(0,26);this.c=d.slice(26);this.yp=[];this.cp=[];this.turn=0;this.go=false;this.over=false;this.msg="Press Start. Hit SNAP (or Space) when both top cards match in rank."},
+  on(a){if(a=="start"&&!this.go&&!this.over){this.go=true;this.tick()}if(a=="snap")this.snap(0)},
+  match(){const a=topOf(this.yp),b=topOf(this.cp);return a&&b&&a.r==b.r},
+  tick(){if(this.over)return;const h=this.turn?this.c:this.y,p=this.turn?this.cp:this.yp;
+    if(!h.length)h.push(...p.splice(0));
+    if(!h.length){this.over=true;this.msg=this.turn?"CPU ran out. 🎉 You win!":"You ran out. CPU wins.";return}
+    p.push(h.shift());this.turn^=1;
+    if(this.match()){const n=this.yp.length+this.cp.length;later(()=>{if(this.match()&&this.yp.length+this.cp.length==n)this.snap(1)},450+Math.random()*650)}
+    later(()=>this.tick(),1200)},
+  snap(p){if(!this.go||this.over)return;
+    if(this.match()){(p?this.c:this.y).push(...this.yp.splice(0),...this.cp.splice(0));this.msg=p?"CPU snapped first!":"✋ Snap! You take both piles."}
+    else if(!p){this.c.push(...this.yp.splice(0));this.msg="No match! Your pile goes to the CPU."}
+    if(!this.y.length&&!this.yp.length){this.over=true;this.msg+=" CPU wins."}
+    if(!this.c.length&&!this.cp.length){this.over=true;this.msg+=" 🎉 You win!"}},
+  ctl(){return btn("Start",A("start"),this.go)+`<button onclick="C('snap')" style="background:#e05561;color:#fff;font-weight:bold">SNAP!</button>`},
+  view(){return `<div class="row" style="gap:40px"><div><div class="lbl">You · ${this.y.length} in hand</div>${cd(topOf(this.yp)||null)}</div><div><div class="lbl">CPU · ${this.c.length} in hand</div>${cd(topOf(this.cp)||null)}</div></div>`}},
+conc:{
+  init(){this.L=deck().map(c=>(c.up=false,c));this.open=[];this.tries=0;this.busy=false;this.msg="Flip two cards. Matching ranks stay up."},
+  on(a,i){const c=this.L[i];if(this.busy||c.up)return;c.up=true;this.open.push(c);
+    if(this.open.length<2)return;this.tries++;const[x,y]=this.open;
+    if(x.r==y.r){this.open=[];this.msg=this.L.every(c=>c.up)?"🎉 All pairs found in "+this.tries+" tries!":"Match! Tries: "+this.tries}
+    else{this.busy=true;this.msg="No match. Tries: "+this.tries;later(()=>{x.up=y.up=false;this.open=[];this.busy=false},850)}},
+  view(){return `<div class="grid13">${this.L.map((c,i)=>cd(c,A("c",i),"sm")).join("")}</div>`}},
+fish:{
+  init(){const d=deck();this.H=[srtR(d.splice(0,7)),d.splice(0,7)];this.s=d;this.bk=[0,0];this.turn=0;this.mem=[];this.over=false;this.books(0);this.books(1);this.msg="Click a card to ask the CPU for that rank."},
+  books(p){let h=this.H[p];for(let r=1;r<14;r++)if(h.filter(c=>c.r==r).length==4){h=h.filter(c=>c.r!=r);this.bk[p]++}this.H[p]=srtR(h)},
+  ask(p,r){const me=this.H[p],op=this.H[1-p],got=op.filter(c=>c.r==r),who=p?"CPU":"You";let again=false,t;
+    if(!p&&!this.mem.includes(r))this.mem.push(r);
+    if(got.length){this.H[1-p]=op.filter(c=>c.r!=r);me.push(...got);again=true;t=`${who} asked for ${RK[r]}s and got ${got.length}.`;if(p)this.mem=this.mem.filter(x=>x!=r)}
+    else{t=`${who} asked for ${RK[r]}s. Go fish!`;if(this.s.length){const c=this.s.pop();me.push(c);if(c.r==r){again=true;t+=` ${who} fished the ${RK[r]}!`}}}
+    this.books(p);for(const q of[0,1])if(!this.H[q].length&&this.s.length){this.H[q].push(this.s.pop());this.books(q)}
+    if(this.bk[0]+this.bk[1]==13){this.over=true;this.msg=t+` Game over: ${this.bk[0]}–${this.bk[1]}. `+(this.bk[0]>this.bk[1]?"🎉 You win!":"CPU wins.");return}
+    this.turn=again?p:1-p;if(!this.H[this.turn].length)this.turn=1-this.turn;
+    this.msg=(p&&this.msg.startsWith("CPU")?this.msg+" ":"")+t;
+    if(this.turn)later(()=>this.cpu(),1100);else this.msg+=" Your turn."},
+  cpu(){const h=this.H[1];if(!h.length){this.turn=0;return}const r=[...this.mem].reverse().find(r=>h.some(c=>c.r==r))||h[Math.random()*h.length|0].r;this.ask(1,r)},
+  on(a,i){if(this.turn||this.over)return;this.msg="";this.ask(0,this.H[0][i].r)},
+  view(){return `<div class="info">Books — You ${this.bk[0]} · CPU ${this.bk[1]} · Stock ${this.s.length}</div><div class="lbl">CPU</div><div class="row hand">${this.H[1].map(()=>cd(BK,"","sm")).join("")}</div>
+    <div class="lbl">You (click to ask)</div><div class="row">${this.H[0].map((c,i)=>cd(c,A("a",i))).join("")}</div>`}},
+maid:{
+  init(){const d=deck().filter(c=>!(c.r==12&&c.s==3));this.y=[];this.c=[];d.forEach((c,i)=>(i%2?this.c:this.y).push(c));this.y=prs(this.y);this.c=shuf(prs(this.c));this.turn=0;this.over=false;this.msg="Pairs are thrown out. Pick a card from the CPU's hand.";this.chk()},
+  on(a,i){if(this.turn||this.over)return;const c=this.c.splice(i,1)[0];this.y.push(c);const n=this.y.length;this.y=prs(this.y);
+    this.msg="You drew "+cs(c)+(this.y.length<n?": a pair!":".");if(this.chk())return;this.turn=1;later(()=>this.cpu(),900)},
+  cpu(){const c=this.y.splice(Math.random()*this.y.length|0,1)[0];this.c.push(c);const n=this.c.length;this.c=shuf(prs(this.c));
+    this.msg+=" CPU took your "+cs(c)+(this.c.length<n?" and made a pair.":".");this.turn=0;if(!this.chk())this.msg+=" Your pick."},
+  chk(){if(!this.y.length){this.over=true;this.msg+=" 🎉 You're out! CPU is stuck with the Old Maid.";return true}if(!this.c.length){this.over=true;this.msg+=" CPU is out. You're stuck with the Old Maid.";return true}},
+  view(){return `<div class="lbl">CPU (click a card to take it)</div><div class="row">${this.c.map((c,i)=>cd(BK,A("p",i))).join("")}</div><div class="lbl">You</div><div class="row">${this.y.map(c=>cd(c)).join("")}</div>`}},
+eights:shed({wild:8,note:"8s are wild."}),
+mau:shed({wild:11,d2:7,skip:8,deck:()=>deck().filter(c=>c.r==1||c.r>=7),note:"J is wild, 7 = next draws two, 8 = skip."}),
+uno:shed({wild:8,d2:2,skip:12,rev:1,note:"8 is wild, 2 = next draws two, Q = skip, A = reverse."}),
+hearts:trick({hearts:true,noLead:1,
+  info:g=>"Scores (game to 100): "+NM.map((n,i)=>n+" "+g.sc[i]).join(" · "),
+  score(g){let pt=g.pt.slice();const m=pt.indexOf(26);let t="";if(m>=0){pt=pt.map((x,i)=>i==m?0:26);t=NM[m]+" shot the moon! "}
+    pt.forEach((x,i)=>g.sc[i]+=x);t+="Hand: "+NM.map((n,i)=>n+" +"+pt[i]).join(", ")+".";
+    if(Math.max(...g.sc)>=100){g.over=true;const lo=Math.min(...g.sc),w=g.sc.indexOf(lo);t+=" Game over — "+(w?NM[w]+" wins.":"🎉 You win!")}return t}}),
+spades:trick({bids:true,noLead:0,trump:()=>0,
+  info:g=>`Spades are trump · Us ${g.sc[0]} (bags ${g.bags[0]}) · Them ${g.sc[1]} (bags ${g.bags[1]}) · First to 500`+(g.bid[0]!=null?` · Bid us ${team(g.bid,0)} / them ${team(g.bid,1)} · Tricks us ${team(g.tk,0)} / them ${team(g.tk,1)}`:` · Partner bid ${g.bid[2]}`),
+  score(g){let t="";for(const s of[0,1]){const b=team(g.bid,s),k=team(g.tk,s);
+      if(k>=b){g.sc[s]+=10*b+(k-b);g.bags[s]+=k-b;if(g.bags[s]>=10){g.sc[s]-=100;g.bags[s]-=10}}else g.sc[s]-=10*b;
+      t+=(s?" Them":"Us")+": bid "+b+", took "+k+(k>=b?" ✔.":" ✘.")}
+    if(Math.max(...g.sc)>=500||Math.min(...g.sc)<=-200){g.over=true;t+=g.sc[0]>g.sc[1]?" 🎉 Your team wins!":" Their team wins."}return t}}),
+whist:trick({trump:d=>d[51].s,
+  info:g=>`Trump: <b class="${g.trump==1||g.trump==2?"rt":""}">${S[g.trump]}</b> · Tricks us ${team(g.tk,0)} / them ${team(g.tk,1)} · Score us ${g.sc[0]} / them ${g.sc[1]} (first to 5)`,
+  score(g){let t="";for(const s of[0,1]){const k=team(g.tk,s);if(k>6){g.sc[s]+=k-6;t=(s?"They":"You")+" score "+(k-6)+"."}}
+    if(Math.max(g.sc[0],g.sc[1])>=5){g.over=true;t+=g.sc[0]>=5?" 🎉 Your team wins!":" Their team wins."}return t}}),
+bj:{
+  init(){this.chips=100;this.bet=10;this.ph="bet";this.p=[];this.d=[];this.msg="Pick a bet and deal."},
+  card(){if(!this.shoe||this.shoe.length<20)this.shoe=deck(6);return this.shoe.pop()},
+  on(a,v){
+    if(a=="bet"&&this.ph!="play"){this.bet=v;return}
+    if(a=="deal"&&this.ph!="play"){if(this.chips<this.bet){this.msg="Not enough chips.";return}this.chips-=this.bet;this.stake=this.bet;
+      this.p=[this.card(),this.card()];this.d=[this.card(),this.card()];this.d[1].up=false;this.ph="play";this.msg="Hit or stand?";if(bjv(this.p)==21)this.stand();return}
+    if(this.ph!="play")return;
+    if(a=="hit"){this.p.push(this.card());const v=bjv(this.p);if(v>21)this.fin("Bust! You lose "+this.stake+".",0);else if(v==21)this.stand()}
+    if(a=="stand")this.stand();
+    if(a=="double"&&this.p.length==2&&this.chips>=this.stake){this.chips-=this.stake;this.stake*=2;this.p.push(this.card());if(bjv(this.p)>21)this.fin("Bust! You lose "+this.stake+".",0);else this.stand()}},
+  stand(){this.d[1].up=true;const pb=bjv(this.p)==21&&this.p.length==2,db=bjv(this.d)==21;
+    if(!pb)while(bjv(this.d)<17)this.d.push(this.card());const p=bjv(this.p),d=bjv(this.d);
+    if(pb&&!db)this.fin("Blackjack! You win "+this.stake*1.5+".",2.5);
+    else if(db&&this.d.length==2&&!pb)this.fin("Dealer has blackjack.",0);
+    else if(d>21)this.fin("Dealer busts! You win "+this.stake+".",2);
+    else if(p>d)this.fin("You win "+this.stake+".",2);
+    else if(p==d)this.fin("Push.",1);
+    else this.fin("Dealer wins.",0)},
+  fin(t,m){this.d.forEach(c=>c.up=true);this.chips+=this.stake*m;this.ph="done";this.msg=t},
+  ctl(){const pl=this.ph=="play";return pl?btn("Hit",A("hit"))+btn("Stand",A("stand"))+btn("Double",A("double"),this.p.length!=2||this.chips<this.stake)
+    :"Bet: "+[5,10,25,50].map(b=>`<button onclick="${A("bet",b)}" style="${b==this.bet?"background:#e05561":""}">${b}</button>`).join("")+btn("Deal",A("deal"))},
+  view(){return `<div class="info">Chips: ${this.chips}</div><div class="lbl">Dealer ${this.d.length?"· "+bjv(this.d):""}</div><div class="row">${this.d.map(c=>cd(c)).join("")}</div>
+    <div class="lbl">You ${this.p.length?"· "+bjv(this.p):""}</div><div class="row">${this.p.map(c=>cd(c)).join("")}</div>`}},
+bac:{
+  init(){this.chips=100;this.amt=10;this.P=[];this.B=[];this.msg="Pick an amount, then bet on Player, Banker or Tie."},
+  on(a,v){if(a=="amt"){this.amt=v;return}if(a!="bet")return;if(this.chips<this.amt){this.msg="Not enough chips.";return}
+    const sh=deck(6),P=[sh.pop(),sh.pop()],B=[sh.pop(),sh.pop()];let p3=null;
+    if(bv(P)<8&&bv(B)<8){if(bv(P)<=5){p3=sh.pop();P.push(p3)}const b=bv(B),x=p3?bv([p3]):null;
+      if(p3==null?b<=5:(b<=2||(b==3&&x!=8)||(b==4&&x>=2&&x<=7)||(b==5&&x>=4&&x<=7)||(b==6&&x>=6&&x<=7)))B.push(sh.pop())}
+    this.P=P;this.B=B;const p=bv(P),b=bv(B),r=p>b?"P":b>p?"B":"T";this.chips-=this.amt;let win=0;
+    if(v==r)win=v=="P"?this.amt*2:v=="B"?this.amt*1.95:this.amt*9;else if(r=="T")win=this.amt;
+    this.chips=Math.round((this.chips+win)*100)/100;
+    this.msg=`Player ${p} – Banker ${b}: ${{P:"Player wins",B:"Banker wins",T:"Tie"}[r]}. `+(win>this.amt?"You win "+Math.round((win-this.amt)*100)/100+"!":win==this.amt?"Push.":"You lose "+this.amt+".")},
+  ctl(){return "Amount: "+[5,10,25].map(b=>`<button onclick="${A("amt",b)}" style="${b==this.amt?"background:#e05561":""}">${b}</button>`).join("")+" Bet on: "+btn("Player",A("bet","P"))+btn("Banker",A("bet","B"))+btn("Tie",A("bet","T"))},
+  view(){return `<div class="info">Chips: ${this.chips}</div><div class="row" style="gap:50px"><div><div class="lbl">Player ${this.P.length?bv(this.P):""}</div><div class="row">${this.P.map(c=>cd(c)).join("")}</div></div>
+    <div><div class="lbl">Banker ${this.B.length?bv(this.B):""}</div><div class="row">${this.B.map(c=>cd(c)).join("")}</div></div></div>`}},
+holdem:poker("holdem"),omaha:poker("omaha"),stud:poker("stud"),draw:poker("draw"),
+gin:{
+  init(){this.sc=[0,0];this.deal()},
+  deal(){const d=deck();this.y=srt(d.splice(0,10));this.c=d.splice(0,10);this.dp=[d.pop()];this.s=d;this.ph="draw";this.took=null;this.km=false;this.done=false;this.msg="Draw from the stock or take the discard."},
+  void(){this.done=true;this.msg="The stock ran out. No score this hand."},
+  on(a,i){
+    if(a=="next"){if(this.done)Math.max(...this.sc)>=100?this.init():this.deal();return}
+    if(this.done)return;
+    if(this.ph=="draw"&&(a=="stock"||a=="dp")){if(a=="stock"){if(this.s.length<=2)return this.void();this.y.push(this.s.pop());this.took=null}else{this.took=this.dp.pop();this.y.push(this.took)}
+      srt(this.y);this.ph="disc";this.msg="Click a card to discard"+(this.took?" (not the one you just took).":".");return}
+    if(a=="knock"&&this.ph=="disc"){this.km=!this.km;this.msg=this.km?"Now click the card to discard and knock with.":"Knock cancelled.";return}
+    if(a=="c"&&this.ph=="disc"){const c=this.y[i];if(c===this.took){this.msg="You can't discard the card you just took.";return}
+      const rest=this.y.filter(x=>x!==c);
+      if(this.km&&dw(rest)>10){this.msg="Deadwood would be "+dw(rest)+". You need 10 or less to knock.";this.km=false;return}
+      this.y=rest;this.dp.push(c);if(this.km)return this.end(0);
+      this.ph="cpu";this.msg="CPU's turn...";later(()=>this.cpu(),800)}},
+  cpu(){if(this.s.length<=2)return this.void();
+    const top=topOf(this.dp),wt=bd([...this.c,top],top);let took=null;
+    if(wt.d<dw(this.c)-1){took=this.dp.pop();this.c.push(took)}else this.c.push(this.s.pop());
+    const b=bd(this.c,took);this.c=this.c.filter(x=>x!==b.c);this.dp.push(b.c);
+    if(b.d<=10&&(b.d<=4||this.s.length<16))return this.end(1);
+    this.ph="draw";this.msg="CPU "+(took?"took "+cs(took):"drew from the stock")+" and threw "+cs(b.c)+". Your turn."},
+  end(k){const dy=dw(this.y),dc=dw(this.c),kd=k?dc:dy,od=k?dy:dc;let w,p,t;
+    if(kd==0){w=k;p=od+25;t="Gin!"}else if(od<=kd){w=1-k;p=kd-od+25;t="Undercut!"}else{w=k;p=od-kd;t=""}
+    this.sc[w]+=p;this.done=true;
+    this.msg=(k?"CPU knocks":"You knock")+` (deadwood you ${dy}, CPU ${dc}). ${t} ${w?"CPU":"You"} score${w?"s":""} ${p}.`+(Math.max(...this.sc)>=100?(this.sc[0]>=100?" 🎉 You win the game!":" CPU wins the game."):"")},
+  ctl(){return this.done?btn(Math.max(...this.sc)>=100?"Play again":"Next hand ▶",A("next")):btn(this.km?"Cancel knock":"Knock",A("knock"),this.ph!="disc")},
+  view(){return `<div class="info">Score (to 100) — You ${this.sc[0]} · CPU ${this.sc[1]} · Your deadwood: ${dw(this.y)}</div>
+    <div class="lbl">CPU</div><div class="row hand">${(this.done?srt(this.c):this.c).map(c=>cd(this.done?c:BK)).join("")}</div>
+    <div class="row" style="margin:14px 0"><div>${cd(this.s.length?BK:null,A("stock"))}<div class="cnt">stock ${this.s.length}</div></div><div>${cd(topOf(this.dp)||null,A("dp"))}<div class="cnt">discard</div></div></div>
+    <div class="lbl">You</div><div class="row">${this.y.map((c,i)=>cd(c,A("c",i),c===this.took?"sel":"")).join("")}</div>`}}
+};
+document.addEventListener("keydown",e=>{if(cur===GAMES.snap&&e.code=="Space"){e.preventDefault();C("snap")}});
+
+/* ---------- library ---------- */
+function draw(){
+  const q=$("q").value.toLowerCase(),only=$("only").checked,groups={};let n=0;
+  const np=G.length-Object.keys(PLAY).length;
+  G.forEach((g,i)=>{if(only&&!can(g[0]))return;if(!(g.join(" ")+" "+(WHY[g[0]]||"")).toLowerCase().includes(q))return;(groups[g[1]]=groups[g[1]]||[]).push(i);n++});
+  $("count").textContent=n+" of "+G.length+" games · "+Object.keys(PLAY).length+" playable";
+  const note=only?"":`<div class="note"><b>Why isn't every game playable?</b> Each playable game has its own rules and its own computer players written by hand, so games are added one at a time. The other ${np} need things this table doesn't have yet: bidding auctions, special decks (tarot, Italian, jokers, double decks), real-time play with no turns, or many players at once. Each one says why below. Ask in chat to add any of them.</div>`;
+  $("out").innerHTML=note+(Object.keys(groups).map(k=>`<h2>${esc(k)} <small>(${groups[k].length})</small></h2>`+
+    groups[k].sort((a,b)=>G[a][0].localeCompare(G[b][0])).map(i=>{const g=G[i],pl=can(g[0]);return `<div class="g"><b>${esc(g[0])}</b>${pl?`<button class="pl" onclick="play(${i})">▶ Play</button>`:'<span class="tag">rules only</span>'}<span class="tag">👥 ${esc(g[2])}</span><span class="tag">🃏 ${esc(g[3])}</span><p>${esc(g[4])}</p>${!pl&&WHY[g[0]]?`<p class="why">Not playable yet: ${esc(WHY[g[0]])}</p>`:""}</div>`}).join("")
+  ).join("")||'<p class="muted">No games match.</p>');
+}
+$("q").oninput=draw;$("only").onchange=draw;draw();
+</script>
+</body>
+</html>

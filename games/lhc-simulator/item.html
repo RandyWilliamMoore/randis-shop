@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>LHC Simulator</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;background:#1e1f22;color:#e6e6e6;font:13px/1.45 "Segoe UI",system-ui,sans-serif}
+header{display:flex;align-items:center;gap:14px;padding:8px 14px;border-bottom:1px solid #313338;background:#1a1b1e;flex-wrap:wrap}
+header h1{font-size:16px;margin:0;font-weight:600}
+header small{color:#8a8f98}
+#mode{margin-left:auto;font-family:Consolas,monospace;font-weight:bold;padding:3px 10px;border-radius:4px;background:#2a2c31}
+main{display:grid;grid-template-columns:270px minmax(0,1fr) 310px;gap:10px;padding:10px}
+@media(max-width:1100px){main{grid-template-columns:1fr}}
+.panel{background:#25272b;border:1px solid #33363c;border-radius:8px;padding:10px;margin-bottom:10px}
+.panel h2{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:#8fa3bf;margin:0 0 8px;font-weight:600}
+.sl{margin:7px 0}
+.sl div{display:flex;justify-content:space-between;color:#b9bec7;font-size:12px}
+.sl b{color:#e6e6e6;font-family:Consolas,monospace;font-weight:normal}
+input[type=range]{width:100%;accent-color:#4a8cff}
+input:disabled{opacity:.45}
+.btns{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+button{background:#33363d;color:#e6e6e6;border:1px solid #444851;border-radius:5px;padding:6px 10px;cursor:pointer;font:inherit}
+button:hover:not(:disabled){background:#3d4149}
+button:disabled{opacity:.4;cursor:default}
+button.go{background:#1f5fd1;border-color:#2b6fe6}
+button.stop{background:#8a2323;border-color:#a33}
+button.fate{background:#3a1414;border-color:#5a1d1d;color:#ff9a9a}
+.pre{display:flex;flex-wrap:wrap;gap:4px}
+.pre button{padding:3px 7px;font-size:11px}
+.hint{color:#80868f;font-size:11px;margin-top:4px}
+.kv{display:grid;grid-template-columns:1fr auto;gap:1px 10px;font-size:12px}
+.kv span:nth-child(odd){color:#9298a2}
+.kv span:nth-child(even){font-family:Consolas,monospace;text-align:right}
+#ring{width:100%;height:440px;display:block;background:#101215;border-radius:6px}
+#evt{width:100%;height:320px;display:block;background:#0b0c0f;border-radius:6px}
+.phases{display:flex;gap:4px;margin:8px 0 0}
+.ph{flex:1;padding:4px 2px;text-align:center;background:#1a1b1e;border-radius:4px;font-size:10px;color:#6c717a;letter-spacing:.04em}
+.ph.on{background:#1f5fd1;color:#fff}
+.ph.done{color:#5fbf73}
+#evlabel{margin-top:6px;font-family:Consolas,monospace;color:#ffd27a;min-height:18px}
+.sys{display:grid;grid-template-columns:auto 1fr auto;gap:3px 7px;font-size:12px;align-items:center}
+.dot{width:9px;height:9px;border-radius:50%;background:#555;display:inline-block}
+.g{background:#3ccf62;box-shadow:0 0 6px #3ccf62}.y{background:#e8b730;box-shadow:0 0 6px #e8b730}.r{background:#ff4040;box-shadow:0 0 6px #ff4040}
+#log{height:170px;overflow:auto;font-family:Consolas,monospace;font-size:11px;background:#1a1b1e;border-radius:5px;padding:6px}
+#log div{margin-bottom:2px}
+.bad{color:#ff7a7a}.ok{color:#7ddc8f}.warn{color:#f1c862}
+canvas.chart{width:100%;display:block;background:#1a1b1e;border-radius:5px;margin-top:6px}
+#fact{color:#c9d3e0;min-height:54px}
+.res{columns:3 250px;column-gap:24px}
+.res h3{font-size:12px;color:#8fa3bf;margin:6px 0 4px}
+.res a{display:block;color:#7fb2ff;text-decoration:none;padding:1px 0;break-inside:avoid}
+.res a:hover{text-decoration:underline}
+.foot{color:#777d86;font-size:11px;padding:0 14px 14px}
+#fx{position:fixed;inset:0;width:100vw;height:100vh;display:none;z-index:99;background:#000}
+.risk{font-size:12px}
+.risk b{font-family:Consolas,monospace;color:#ff9a9a}
+</style></head><body>
+<header><h1>LHC Simulator</h1><small>Large Hadron Collider · CERN · 26.7 km · 1 real second = 20 simulated minutes</small><div id="mode">NO BEAM</div></header>
+<main>
+<div>
+ <div class="panel"><h2>Machine settings</h2>
+  <div class="pre" id="presets"></div>
+  <div id="sliders"></div>
+  <div class="hint">Above 6.8 TeV the quench risk climbs: the magnets still need "training" to reach the 7 TeV design energy.</div>
+  <div class="btns">
+   <button class="go" id="go">▶ Start fill</button>
+   <button class="stop" id="dump">Dump beam</button>
+   <button id="mute">🔊 Sound</button>
+   <button class="fate" id="fate">☠ Tempt fate</button>
+   <button id="reset">Reset stats</button>
+  </div>
+ </div>
+ <div class="panel"><h2>Systems</h2><div class="sys" id="sys"></div></div>
+ <div class="panel"><h2>Risk department</h2><div class="risk" id="risk"></div></div>
+ <div class="panel"><h2>Did you know?</h2><div id="fact"></div></div>
+</div>
+<div>
+ <div class="panel"><h2>Ring view: Geneva area, top-down</h2><canvas id="ring"></canvas>
+  <div class="phases" id="phases"></div></div>
+ <div class="panel"><h2>Event display: detector cross-section</h2><canvas id="evt"></canvas><div id="evlabel">—</div></div>
+</div>
+<div>
+ <div class="panel"><h2>Live beam readout</h2><div class="kv" id="live"></div></div>
+ <div class="panel"><h2>Totals</h2><div class="kv" id="tot"></div>
+  <canvas class="chart" id="lc" style="height:80px"></canvas>
+  <canvas class="chart" id="hc" style="height:130px"></canvas></div>
+ <div class="panel"><h2>Control room log</h2><div id="log"></div></div>
+</div>
+</main>
+<div class="panel" style="margin:0 10px 10px"><h2>Learn more: the real LHC and the science behind it</h2>
+<div class="res">
+ <h3>CERN, official</h3>
+ <a target="_blank" href="https://home.cern/science/accelerators/large-hadron-collider">The Large Hadron Collider: overview</a>
+ <a target="_blank" href="https://home.cern/science/accelerators/accelerator-complex">The CERN accelerator complex (injector chain)</a>
+ <a target="_blank" href="https://home.cern/science/accelerators/large-hadron-collider/safety-lhc">The safety of the LHC (black holes etc.)</a>
+ <a target="_blank" href="https://atlas.cern">ATLAS experiment</a>
+ <a target="_blank" href="https://cms.cern">CMS experiment</a>
+ <a target="_blank" href="https://home.cern/science/experiments/alice">ALICE experiment</a>
+ <a target="_blank" href="https://home.cern/science/experiments/lhcb">LHCb experiment</a>
+ <a target="_blank" href="https://op-webtools.web.cern.ch/vistar/vistars.php?usr=LHC1">LHC Page 1: live machine status</a>
+ <a target="_blank" href="https://opendata.cern.ch">CERN Open Data: real collision data</a>
+ <a target="_blank" href="https://cds.cern.ch">CERN Document Server: photos and videos</a>
+ <h3>YouTube channels</h3>
+ <a target="_blank" href="https://www.youtube.com/@CERN">CERN</a>
+ <a target="_blank" href="https://www.youtube.com/@fermilab">Fermilab (Don Lincoln explains)</a>
+ <a target="_blank" href="https://www.youtube.com/@sixtysymbols">Sixty Symbols</a>
+ <a target="_blank" href="https://www.youtube.com/@pbsspacetime">PBS Space Time</a>
+ <h3>YouTube topics</h3>
+ <a target="_blank" href="https://www.youtube.com/results?search_query=how+the+large+hadron+collider+works">How the LHC works</a>
+ <a target="_blank" href="https://www.youtube.com/results?search_query=higgs+boson+explained">The Higgs boson explained</a>
+ <a target="_blank" href="https://www.youtube.com/results?search_query=LHC+black+hole+safety+explained">LHC black hole fears explained</a>
+ <a target="_blank" href="https://www.youtube.com/results?search_query=Particle+Fever+documentary">Particle Fever (documentary)</a>
+ <a target="_blank" href="https://www.youtube.com/results?search_query=ATLAS+detector+virtual+tour">ATLAS / CMS virtual tours</a>
+ <a target="_blank" href="https://www.youtube.com/results?search_query=LHC+superconducting+magnet+quench">Superconducting magnets and quenches</a>
+ <a target="_blank" href="https://www.youtube.com/results?search_query=standard+model+of+particle+physics+explained">The Standard Model explained</a>
+ <h3>Learn the physics</h3>
+ <a target="_blank" href="https://www.particleadventure.org">The Particle Adventure</a>
+ <a target="_blank" href="https://physicsmasterclasses.org">Physics Masterclasses: analyse real LHC data</a>
+ <a target="_blank" href="http://hyperphysics.phy-astr.gsu.edu/hbase/Particles/parcon.html">HyperPhysics: particle physics</a>
+ <a target="_blank" href="https://ocw.mit.edu/search/?q=particle%20physics">MIT OpenCourseWare: particle physics</a>
+ <a target="_blank" href="https://www.symmetrymagazine.org">Symmetry magazine</a>
+ <a target="_blank" href="https://pdg.lbl.gov">Particle Data Group (the reference tables)</a>
+ <a target="_blank" href="https://arxiv.org/list/hep-ex/new">arXiv: new experimental particle physics papers</a>
+ <a target="_blank" href="https://inspirehep.net">INSPIRE-HEP literature search</a>
+ <a target="_blank" href="https://www.nobelprize.org/prizes/physics/2013/summary/">Nobel Prize in Physics 2013 (Englert and Higgs)</a>
+ <a target="_blank" href="https://en.wikipedia.org/wiki/Large_Hadron_Collider">Wikipedia: Large Hadron Collider</a>
+</div></div>
+<div class="foot">The physics is simplified but uses real formulas and parameters: luminosity from bunch population, β*, emittance and crossing angle; dipole field from beam rigidity; cross-sections scaled with √s. The hell portal is fiction. The real LHC is safe: cosmic rays have been doing this for billions of years.</div>
+<canvas id="fx"></canvas>
+<script>
+const $=id=>document.getElementById(id);
+const R=Math.random,TAU2=Math.PI*2,MP=0.938272,RHO=2803.95,FREV=11245.5,SPEED=1200,LTAU=14*3600,NB=90,P5A=Math.PI/4*5;
+let DPR=window.devicePixelRatio||1;
+const DEFSET={energy:6.8,bunches:2352,intensity:1.4,betaStar:30,emit:2.3,xing:160};
+function defTot(){return{runs:0,fills:0,intLumi:0,higgs:0,z:0,top:0,coll:0,rec:0,quench:0,peakL:0,hist:new Array(60).fill(0),hs:0,hb:0,disc:false,accS:0,accB:0}}
+let S=null;try{S=JSON.parse(localStorage.getItem('lhcsim_v1'))}catch(e){}
+if(!S||!S.settings)S={settings:{...DEFSET},totals:defTot(),runsSince:0,apocalypses:0,checkpoint:null};
+S.settings={...DEFSET,...S.settings};S.totals={...defTot(),...S.totals};
+function save(){try{localStorage.setItem('lhcsim_v1',JSON.stringify(S))}catch(e){}}
+
+let run={active:false,phase:-1,filled:0,beta:S.settings.betaStar,E:.45,L:0,fill:0};
+let apoc=null,curEvent=null,lumiHist=[],temp=1.9,b1a=0,b2a=0,clock=0,muted=false,AC=null;
+const cv=$('ring'),cx=cv.getContext('2d'),ev=$('evt'),ex=ev.getContext('2d'),fx=$('fx'),fc=fx.getContext('2d');
+
+function fit(c){DPR=window.devicePixelRatio||1;const r=c.getBoundingClientRect();const w=Math.max(1,r.width*DPR|0),h=Math.max(1,r.height*DPR|0);if(c.width!==w||c.height!==h){c.width=w;c.height=h}return[w,h]}
+function sci(x,d=2){if(!x)return'0';const e=Math.floor(Math.log10(Math.abs(x)));return(x/Math.pow(10,e)).toFixed(d)+'×10'+String(e).split('').map(ch=>'⁰¹²³⁴⁵⁶⁷⁸⁹'['0123456789'.indexOf(ch)]||'⁻').join('')}
+function big(x){return x<1e6?Math.round(x).toLocaleString():sci(x)}
+function hms(s){const h=Math.floor(s/3600),m=Math.floor(s%3600/60);return h+'h '+String(m).padStart(2,'0')+'m'}
+function gauss(){return Math.sqrt(-2*Math.log(1-R()))*Math.cos(TAU2*R())}
+function log(m,cl){const el=$('log'),dv=document.createElement('div');dv.textContent='['+new Date().toTimeString().slice(0,8)+'] '+m;if(cl)dv.className=cl;el.prepend(dv);while(el.children.length>150)el.lastChild.remove()}
+function tone(f,d,type,v,slide){if(muted)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain(),n=AC.currentTime;o.type=type||'sine';o.frequency.setValueAtTime(f,n);if(slide)o.frequency.exponentialRampToValueAtTime(slide,n+d);g.gain.setValueAtTime(v||.05,n);g.gain.exponentialRampToValueAtTime(.0001,n+d);o.connect(g).connect(AC.destination);o.start(n);o.stop(n+d)}catch(e){}}
+
+function phys(E,beta){
+ const s=S.settings,g=E*1000/MP,B=E*1000/(0.299792458*RHO),sqs=2*E;
+ const eps=s.emit*1e-6/g,sig=Math.sqrt((beta||s.betaStar)/100*eps);
+ const Np=s.intensity*1e11,nb=s.bunches,th=s.xing*1e-6,sz=0.0755;
+ const F=1/Math.sqrt(1+Math.pow(th*sz/(2*sig),2));
+ const L=FREV*nb*Np*Np/(4*Math.PI*sig*sig)*F/1e4;
+ const sInel=80e-27*Math.pow(sqs/13.6,0.13);
+ return{g,B,I:B/8.33*11850,sqs,sig,F,L,sInel,mu:L*sInel/(FREV*nb),stored:nb*Np*E*1e12*1.602e-19/1e6,
+  sH:55e-36*Math.pow(sqs/13.6,1.7),sZ:60e-33*Math.pow(sqs/13.6,0.8),sT:920e-36*Math.pow(sqs/13.6,2.6),dv:299792458/(2*g*g)};
+}
+
+/* ---------- controls ---------- */
+const SL=[['energy','Beam energy','TeV',.45,7,.05,2],['bunches','Bunches per beam','',1,2808,1,0],['intensity','Protons per bunch','×10¹¹',.1,2.3,.05,2],['betaStar','β* at IP1/IP5','cm',15,1100,1,0],['emit','Norm. emittance','µm',1.5,4,.1,1],['xing','Half crossing angle','µrad',0,250,5,0]];
+$('sliders').innerHTML=SL.map(([k,n,u,mi,ma,st])=>`<div class="sl"><div>${n}<b id="o_${k}"></b></div><input type="range" id="s_${k}" min="${mi}" max="${ma}" step="${st}"></div>`).join('');
+SL.forEach(([k,n,u,mi,ma,st,dec])=>{const el=$('s_'+k);el.oninput=()=>{S.settings[k]=+el.value;$('o_'+k).textContent=(+el.value).toFixed(dec)+' '+u;save()}});
+function syncSliders(){SL.forEach(([k,n,u,mi,ma,st,dec])=>{$('s_'+k).value=S.settings[k];$('o_'+k).textContent=(+S.settings[k]).toFixed(dec)+' '+u})}
+const PRE={'Run 1 (2012)':{energy:4,bunches:1374,intensity:1.6,betaStar:60,emit:2.5,xing:145},'Run 2 (2018)':{energy:6.5,bunches:2556,intensity:1.15,betaStar:30,emit:2.0,xing:160},'Run 3 (2024)':{energy:6.8,bunches:2352,intensity:1.4,betaStar:30,emit:2.3,xing:160},'HL-LHC (~2030)':{energy:7,bunches:2748,intensity:2.2,betaStar:15,emit:2.5,xing:250}};
+$('presets').innerHTML=Object.keys(PRE).map(k=>`<button data-p="${k}">${k}</button>`).join('');
+$('presets').onclick=e=>{const k=e.target.dataset.p;if(!k||run.active)return;S.settings={...PRE[k]};syncSliders();save();log('Loaded preset: '+k)};
+$('go').onclick=()=>startRun(false);
+$('fate').onclick=()=>startRun(true);
+$('dump').onclick=()=>{if(run.active&&run.phase<5){log('Operator requested a beam dump.','warn');setPhase(5)}};
+$('mute').onclick=()=>{muted=!muted;$('mute').textContent=muted?'🔇 Muted':'🔊 Sound'};
+$('reset').onclick=()=>{if(run.active)return;if(confirm('Reset all totals and the portal counter?')){S.totals=defTot();S.runsSince=0;S.checkpoint=null;save();log('Statistics reset.')}};
+syncSliders();
+
+const MODES=['INJECTION','RAMP','SQUEEZE','ADJUST','STABLE BEAMS','BEAM DUMP'],DUR=[7,7,3,2,1e9,3];
+$('phases').innerHTML=MODES.map((m,i)=>`<div class="ph" id="ph${i}">${m}</div>`).join('');
+
+/* ---------- run logic ---------- */
+function startRun(force){
+ if(run.active||apoc)return;
+ if(temp>2.05){log('Cryogenics still recovering from the quench. Wait for 1.9 K.','warn');return}
+ S.checkpoint=JSON.parse(JSON.stringify({settings:S.settings,totals:S.totals}));
+ S.totals.runs++;S.runsSince++;
+ const E=S.settings.energy,pq=0.01+Math.max(0,E-6.8)*0.5;
+ run={active:true,phase:0,t:0,E:.45,filled:0,beta:1100,fill:0,L:0,doomed:!!force||R()<0.01,quenchAt:R()<pq?1.5+R()*5:0,evT:0,hadStable:false,lt:0};
+ curEvent=null;drawEvent();
+ log('Run '+S.totals.runs+' started · Fill '+(9000+S.totals.fills+1));
+ if(force)log('You tempted fate.','bad');
+ setPhase(0);
+}
+function setPhase(n){
+ run.phase=n;run.t=0;const st=S.settings,p=phys(st.energy);
+ const msg=['Injection: LINAC4 (160 MeV H⁻) → PS Booster (2 GeV) → PS (26 GeV) → SPS (450 GeV) → LHC via TI2 and TI8',
+ 'Ramp: dipoles rising to '+p.I.toFixed(0)+' A, '+p.B.toFixed(2)+' T, target '+(st.energy*1000).toFixed(0)+' GeV',
+ 'Flat top. Squeezing β* from 11 m to '+st.betaStar+' cm at IP1 and IP5',
+ 'Adjust: separation bumps closed, beams brought into collision at IP1, IP2, IP5, IP8',
+ 'STABLE BEAMS declared. ATLAS, ALICE, CMS and LHCb are taking data.',
+ 'Beam dump: kicker magnets fire, beams swept onto the graphite dump blocks at IP6'][n];
+ log(msg,n===4?'ok':n===5?'warn':'');
+ if(n===4){[523,659,784,1046].forEach((f,i)=>setTimeout(()=>tone(f,.25,'triangle',.05),i*130));run.hadStable=true;lumiHist=[]}
+ else if(n===5)tone(70,.8,'sine',.12,30);else tone(660,.12,'sine',.04);
+ save();
+}
+function quench(){S.totals.quench++;temp=40;log('QUENCH in dipole MB.'+'ABC'[R()*3|0]+(10+R()*20|0)+'R'+(1+R()*8|0)+': quench heaters fired, energy extracted, beams dumped.','bad');tone(220,.6,'sawtooth',.06,110);setPhase(5)}
+function endRun(){if(run.hadStable)S.totals.fills++;run.active=false;run.phase=-1;run.filled=0;log('Ramp down complete. Machine ready for the next fill.');save()}
+function fillHist(dfb){const T=S.totals;T.accB+=dfb*3000;T.accS+=dfb*30;
+ while(T.accB>=1){T.accB--;const k=.03;addH(100-Math.log(1-R()*(1-Math.exp(-60*k)))/k,0)}
+ while(T.accS>=1){T.accS--;addH(125.1+gauss()*1.6,1)}}
+function addH(v,sig){const i=Math.floor(v-100);if(i<0||i>=60)return;S.totals.hist[i]++;if(v>=121&&v<129){if(sig)S.totals.hs++;else S.totals.hb++}}
+
+function update(dt){
+ clock+=dt;b1a+=dt*1.3;b2a-=dt*1.3;temp=1.9+(temp-1.9)*Math.exp(-dt/4);
+ if(!run.active)return;
+ run.t+=dt;const st=S.settings,ph=run.phase,T=S.totals;
+ if(ph===0){run.filled=Math.min(1,run.t/DUR[0]);run.E=.45}
+ else if(ph===1){const k=Math.min(1,run.t/DUR[1]);run.E=.45+(st.energy-.45)*k*k*(3-2*k);if(run.quenchAt&&run.t>run.quenchAt){quench();return}}
+ else if(ph===2){run.beta=1100+(st.betaStar-1100)*Math.min(1,run.t/DUR[2])}
+ else if(ph===4){
+  if(run.doomed&&run.t>2.5){startApoc();return}
+  const dts=dt*SPEED,p=phys(st.energy);run.fill+=dts;run.L=p.L*Math.exp(-run.fill/LTAU);
+  const dfb=run.L*dts/1e39;T.intLumi+=dfb;T.higgs+=run.L*p.sH*dts;T.z+=run.L*p.sZ*dts;T.top+=run.L*p.sT*dts;T.coll+=run.L*p.sInel*dts;T.rec+=1500*dts;
+  if(run.L>T.peakL)T.peakL=run.L;fillHist(dfb*(p.sH/55e-36));
+  run.lt-=dt;if(run.lt<=0){run.lt=.25;lumiHist.push([run.fill,run.L])}
+  run.evT-=dt;if(run.evT<=0){run.evT=.8;curEvent=genEvent();drawEvent()}
+  if(!run.doomed&&R()<dt*0.012){const bg=R()<.25;log((bg?'Beam loss above BLM threshold':'UFO (falling dust particle) seen by beam loss monitors')+' near '+['IR3','IR7','arc 12','arc 56','arc 81'][R()*5|0]+(bg?': interlock dump!':', below threshold.'),bg?'bad':'warn');if(bg){setPhase(5);return}}
+  if(run.fill>12*3600){log('End of fill: luminosity has decayed. Programmed dump.');setPhase(5);return}
+ }
+ else if(ph===5){if(run.t>DUR[5])endRun();return}
+ if(ph<4&&run.t>DUR[ph])setPhase(ph+1);
+}
+
+/* ---------- ring and landscape drawing ---------- */
+let seed=7;const sr=()=>(seed=seed*16807%2147483647)/2147483647;
+const PATCH=[];for(let i=0;i<260;i++)PATCH.push([sr()*30-15,sr()*30-15,.3+sr()*1.2,.2+sr()*.8,sr()<.5]);
+const LAKE=[[2.3,.45],[2.6,.2],[3.2,-.3],[4.5,-1.2],[6.5,-2.2],[9,-2.6],[11,-2.2],[10.5,-1.6],[8,-1.2],[5.5,-.4],[3.6,.3],[2.7,.6]];
+const BORDER=[[-.6,2.6],[.2,1.6],[.45,.98],[.6,.62],[.98,.44],[1.3,-.2],[1.7,-.75],[2.5,-1.1],[3.4,-.6],[4.3,.1]];
+const LABELS=[['Lac Léman',5.6,-1.0,'#7fa8d8'],['Genève',2.4,.85,'#e8c890'],['Jura',-2.2,-2.0,'#8fb38a'],['Salève',3.3,2.75,'#8fb38a'],['Rhône',-1.2,2.35,'#7fa8d8'],['FRANCE',-2.3,.4,'#aab'],['SUISSE',2.6,1.6,'#aab'],['GVA airport',1.5,-.08,'#99a']];
+const EXP={1:['ATLAS','#e8a33c'],2:['ALICE','#4ac9a0'],5:['CMS','#e05555'],8:['LHCb','#9a7cff']},OTH={3:'Collimation',4:'RF',6:'Beam dump',7:'Collimation'};
+const SPS=[.3,.62,.26];
+function txt(c,px,s,x,y,col,size,al){c.save();c.translate(x,y);c.scale(px,px);c.fillStyle=col;c.font=(size||11)+'px Segoe UI,sans-serif';c.textAlign=al||'center';c.textBaseline='middle';c.fillText(s,0,0);c.restore()}
+function path(c,pts){c.beginPath();pts.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y))}
+function land(c,px,o){
+ c.fillStyle='#121518';c.fillRect(-80,-80,160,160);
+ for(const[x,y,w,h,a]of PATCH){c.fillStyle=a?'#151a16':'#17181a';c.fillRect(x,y,w,h)}
+ c.save();c.rotate(-.7);c.fillStyle='#1b2419';c.fillRect(-20,-3.2,40,1.6);c.fillStyle='#212d1e';c.fillRect(-20,-2.8,40,.6);c.restore();
+ c.save();c.translate(3.2,2.4);c.rotate(-.5);c.fillStyle='#1b2419';c.fillRect(-1.6,-.25,3.2,.5);c.restore();
+ c.fillStyle='#132a42';path(c,LAKE);c.closePath();c.fill();
+ c.strokeStyle='#17324d';c.lineWidth=Math.max(.03,2*px);c.beginPath();c.moveTo(2.35,.5);c.quadraticCurveTo(1.6,1.5,.3,1.85);c.quadraticCurveTo(-1.5,2.1,-3.5,2.8);c.stroke();
+ const g=c.createRadialGradient(2.4,.55,0,2.4,.55,.7);g.addColorStop(0,'rgba(255,200,120,.25)');g.addColorStop(1,'rgba(255,200,120,0)');c.fillStyle=g;c.beginPath();c.arc(2.4,.55,.7,0,TAU2);c.fill();
+ c.save();c.translate(1.3,.2);c.rotate(-.6);c.fillStyle='#2a2d33';c.fillRect(-.45,-.025,.9,.05);c.restore();
+ c.setLineDash([.06,.05]);c.strokeStyle='rgba(200,200,220,.25)';c.lineWidth=Math.max(.008,px);path(c,BORDER);c.stroke();c.setLineDash([]);
+ if(o.zoom<.95){c.globalAlpha=Math.min(1,(1-o.zoom)*3);LABELS.forEach(([s,x,y,col])=>txt(c,px,s,x,y,col,12));c.globalAlpha=1}
+}
+function drawRingWorld(c,px,o){
+ const P=(a,r)=>[Math.cos(a)*r,Math.sin(a)*r];
+ c.lineWidth=9*px;c.strokeStyle='#202a3c';c.beginPath();c.arc(0,0,1,0,TAU2);c.stroke();
+ c.lineWidth=1.2*px;c.strokeStyle='#4f6ea3';c.beginPath();c.arc(0,0,1.015,0,TAU2);c.stroke();c.beginPath();c.arc(0,0,.985,0,TAU2);c.stroke();
+ c.strokeStyle='#7a6640';c.lineWidth=2.5*px;c.beginPath();c.arc(SPS[0],SPS[1],SPS[2],0,TAU2);c.stroke();
+ c.beginPath();c.arc(.88,.88,.04,0,TAU2);c.stroke();c.beginPath();c.arc(.94,.8,.016,0,TAU2);c.stroke();
+ c.lineWidth=1.5*px;path(c,[[1.06,.72],[.955,.795]]);c.stroke();path(c,[[.85,.86],[.537,.726]]);c.stroke();
+ c.beginPath();c.moveTo(.139,.824);c.quadraticCurveTo(.06,.93,.02,.99);c.stroke();
+ c.beginPath();c.moveTo(.495,.448);c.quadraticCurveTo(.8,.2,.99,.06);c.stroke();
+ txt(c,px,'SPS',SPS[0],SPS[1],'#a8925f',11);txt(c,px,'PS',.88,.96,'#a8925f',10);txt(c,px,'LINAC4',1.13,.68,'#a8925f',9);
+ txt(c,px,'TI2',.1,.86,'#7d6d4c',9,'right');txt(c,px,'TI8',.74,.24,'#7d6d4c',9);
+ for(let n=1;n<=8;n++){const a=Math.PI/4*n,[x,y]=P(a,1);
+  if(EXP[n]){c.save();c.translate(x,y);c.rotate(a);c.fillStyle=EXP[n][1];c.fillRect(-.035,-.05,.07,.1);c.restore();const[lx,ly]=P(a,1.14);txt(c,px,EXP[n][0],lx,ly,EXP[n][1],12);const[lx2,ly2]=P(a,1.22);txt(c,px,'IP'+n,lx2,ly2,'#667',9)}
+  else{c.fillStyle='#667';c.beginPath();c.arc(x,y,3*px,0,TAU2);c.fill();const[lx,ly]=P(a,1.12);txt(c,px,'IP'+n+' '+OTH[n],lx,ly,'#7a808a',9)}}
+ if(run.active&&run.filled>0){
+  const nd=Math.max(2,Math.min(48,Math.round(S.settings.bunches/58))),vis=Math.round(nd*run.filled),al=run.phase===5?Math.max(0,1-run.t):1;
+  const sep=run.phase===3?.012*(1-run.t/DUR[3]):run.phase>3?0:.012;
+  c.save();c.globalAlpha=al;c.shadowBlur=8*DPR;
+  for(let i=0;i<vis;i++){const da=i*TAU2*.86/nd;
+   c.shadowColor=c.fillStyle='#4aa3ff';let[x,y]=P(b1a+da,1+sep);c.beginPath();c.arc(x,y,2.6*px,0,TAU2);c.fill();
+   c.shadowColor=c.fillStyle='#ff5a5a';[x,y]=P(b2a-da,1-sep);c.beginPath();c.arc(x,y,2.6*px,0,TAU2);c.fill()}
+  c.restore();
+ }
+ if(run.active&&run.phase===0){c.fillStyle='#ffcf6a';const a=clock*6;c.beginPath();c.arc(SPS[0]+Math.cos(a)*SPS[2],SPS[1]+Math.sin(a)*SPS[2],3*px,0,TAU2);c.fill();
+  const k=(clock*1.5)%1,ti=Math.floor(clock*1.5)%2;const[x0,y0,x1,y1]=ti?[.139,.824,.02,.99]:[.495,.448,.99,.06];c.beginPath();c.arc(x0+(x1-x0)*k,y0+(y1-y0)*k,3*px,0,TAU2);c.fill()}
+ if(run.active&&run.phase===4){c.save();c.globalCompositeOperation='lighter';for(const n of[1,2,5,8])if(R()<.6){const[x,y]=P(Math.PI/4*n,1),rr=.03+R()*.05,g=c.createRadialGradient(x,y,0,x,y,rr);g.addColorStop(0,'rgba(255,255,255,.95)');g.addColorStop(.4,'rgba(140,190,255,.5)');g.addColorStop(1,'rgba(80,120,255,0)');c.fillStyle=g;c.beginPath();c.arc(x,y,rr,0,TAU2);c.fill()}c.restore()}
+}
+function drawWorld(c,W,H,o){
+ const sc=Math.min(W,H)*.4*o.zoom,px=DPR/sc;
+ c.save();c.translate(W/2+(o.sx||0),H/2+(o.sy||0));if(o.rot)c.rotate(o.rot);c.scale(sc,sc);
+ land(c,px,o);drawRingWorld(c,px,o);if(o.apoc)apocWorld(c,px);c.restore();
+}
+function renderRing(){
+ const[W,H]=fit(cv),c=cx,d=DPR;c.setTransform(1,0,0,1,0,0);c.fillStyle='#101215';c.fillRect(0,0,W,H);
+ drawWorld(c,W,H,{zoom:1});
+ c.font=12*d+'px Consolas,monospace';c.textAlign='left';c.textBaseline='top';
+ c.fillStyle='#8fa3bf';c.fillText('LHC ring · 4.3 km radius · injectors enlarged',10*d,10*d);
+ c.fillStyle='#4aa3ff';c.fillText('● Beam 1 (clockwise)',10*d,H-36*d);c.fillStyle='#ff5a5a';c.fillText('● Beam 2 (anticlockwise)',10*d,H-20*d);
+}
+
+/* ---------- event display ---------- */
+function detector(c,W,H){
+ const k=Math.min(W,H)/2/7.7,X=W/2,Y=H/2,d=DPR;
+ c.setTransform(1,0,0,1,0,0);c.fillStyle='#0b0c0f';c.fillRect(0,0,W,H);
+ const poly=r=>{for(let i=0;i<=12;i++){const a=i*Math.PI/6+Math.PI/12,x=X+Math.cos(a)*r*k,y=Y+Math.sin(a)*r*k;i?c.lineTo(x,y):c.moveTo(x,y)}};
+ const band=(r1,r2,col,pol)=>{c.beginPath();if(pol){poly(r2);poly(r1)}else{c.arc(X,Y,r2*k,0,TAU2);c.moveTo(X+r1*k,Y);c.arc(X,Y,r1*k,0,TAU2)}c.fillStyle=col;c.fill('evenodd')};
+ band(4.0,4.5,'#3a2326',1);band(5.0,5.6,'#3a2326',1);band(6.1,6.9,'#3a2326',1);
+ c.strokeStyle='#5a6070';c.lineWidth=d;for(const r of[4.75,5.85,7.15,7.5]){c.beginPath();poly(r);c.stroke()}
+ band(2.95,3.5,'#3b3f48');band(1.8,2.9,'#16304d');band(1.29,1.75,'#173f2d');
+ c.strokeStyle='#2a2f38';for(const r of[.04,.07,.11,.16,.25,.34,.43,.52,.61,.7,.8,.9,1,1.1]){c.beginPath();c.arc(X,Y,r*k,0,TAU2);c.stroke()}
+ return{X,Y,k,d};
+}
+function tower(c,g,t){const a=.045;c.beginPath();c.arc(g.X,g.Y,(t.r0+t.len)*g.k,t.phi-a,t.phi+a);c.arc(g.X,g.Y,t.r0*g.k,t.phi+a,t.phi-a,true);c.closePath();c.fillStyle=t.col;c.fill()}
+function trk(c,g,t){let x=0,y=0,th=t.phi,s=0;const ds=.025,maxS=Math.min(9,t.pt/1.14*Math.PI*3);c.beginPath();c.moveTo(g.X,g.Y);
+ while(s<maxS){const r=Math.hypot(x,y);if(r>t.rmax)break;const B=r<2.95?3.8:(r>3.9&&r<7?-1.8:0);th+=t.q*.3*B/t.pt*ds;x+=Math.cos(th)*ds;y+=Math.sin(th)*ds;s+=ds;c.lineTo(g.X+x*g.k,g.Y+y*g.k)}
+ c.strokeStyle=t.col;c.lineWidth=t.w*g.d;c.stroke()}
+function genEvent(){
+ const p=phys(S.settings.energy),e={tracks:[],towers:[],phot:[],met:null,pu:Math.max(1,Math.round(p.mu*(run.L/p.L||1)*(.85+R()*.3))),n:Math.floor(1e8+R()*9e8),sqs:p.sqs,label:''};
+ const G=()=>gauss(),q=()=>R()<.5?1:-1,tl=E=>Math.min(1.15,.1+Math.log10(1+E)*.33),p0=R()*TAU2,npu=Math.min(160,12+e.pu);
+ for(let i=0;i<npu;i++)e.tracks.push({pt:.15-Math.log(1-R())*.55,phi:R()*TAU2,q:q(),col:'rgba(150,165,190,.5)',w:1,rmax:1.29});
+ for(let i=0;i<npu/3;i++)e.towers.push({phi:R()*TAU2,r0:1.29,len:.02+R()*.07,col:'rgba(60,200,120,.35)'});
+ const mu=(phi,pt)=>e.tracks.push({pt,phi,q:q(),col:'#ff4545',w:2.6,rmax:7.45});
+ const el=(phi,E)=>{e.tracks.push({pt:E,phi,q:q(),col:'#45ff95',w:2.2,rmax:1.29});e.towers.push({phi,r0:1.29,len:tl(E),col:'rgba(90,255,150,.95)'})};
+ const ga=(phi,E)=>{e.phot.push(phi);e.towers.push({phi,r0:1.29,len:tl(E),col:'rgba(255,215,60,.95)'})};
+ const jet=(phi,E)=>{const n=4+Math.min(14,E/25|0);for(let i=0;i<n;i++)e.tracks.push({pt:Math.max(1,E/n*(.4+R()*1.2)),phi:phi+G()*.08,q:q(),col:'rgba(255,165,60,.9)',w:1.5,rmax:1.29});e.towers.push({phi,r0:1.29,len:tl(E)*.55,col:'rgba(90,255,150,.7)'});e.towers.push({phi,r0:1.8,len:tl(E)*1.1,col:'rgba(70,150,255,.9)'})};
+ const r=R(),m=(c,s)=>(c+G()*s).toFixed(1);
+ if(r<.07){ga(p0,40+R()*40);ga(p0+Math.PI+G()*.4,40+R()*40);e.label='H → γγ candidate · mγγ = '+m(125.1,1.6)+' GeV'}
+ else if(r<.11){for(let i=0;i<4;i++)mu(p0+i*1.4+G()*.4,8+R()*45);e.label='H → ZZ* → 4μ candidate · m4ℓ = '+m(125.1,1.2)+' GeV'}
+ else if(r<.26){mu(p0,35+R()*15);mu(p0+Math.PI+G()*.2,35+R()*15);e.label='Z → μ⁺μ⁻ · mμμ = '+m(91.19,2.5)+' GeV'}
+ else if(r<.40){el(p0,30+R()*20);e.met={phi:p0+Math.PI+G()*.3,E:30+R()*20};e.label='W → eν · mT = '+m(76,6)+' GeV'}
+ else if(r<.50){for(let i=0;i<4;i++)jet(p0+i*1.57+G()*.4,40+R()*120);mu(p0+.8,25+R()*40);e.met={phi:p0+2.4,E:40+R()*60};e.label='tt̄ → μ + jets candidate (2 b-tagged jets)'}
+ else if(r<.55){mu(p0,30+R()*20);mu(p0+2.6,30+R()*20);jet(p0+Math.PI*1.3,60+R()*60);jet(p0+Math.PI*1.7,60+R()*60);e.label='ZH → μμ bb̄ candidate · mbb = '+m(124,9)+' GeV'}
+ else if(r<.59){jet(p0,300+R()*400);e.met={phi:p0+Math.PI,E:300+R()*400};e.label='Monojet + missing energy · supersymmetry search: nothing found (again)'}
+ else if(r<.95){const E=100+R()*1500;jet(p0,E);jet(p0+Math.PI+G()*.15,E*(.8+R()*.2));e.label='Dijet · mjj = '+(2*E*(.9+R()*.1)).toFixed(0)+' GeV'}
+ else e.label='Minimum-bias event (pile-up only)';
+ return e;
+}
+function drawEvent(){
+ const[W,H]=fit(ev),c=ex,g=detector(c,W,H),d=DPR,e=curEvent;
+ c.textAlign='left';c.textBaseline='top';c.font=12*d+'px Segoe UI';
+ if(!e){c.fillStyle='#7c828c';c.fillText(run.active?'Detectors on standby: waiting for STABLE BEAMS':'No beam in the machine',10*d,10*d);$('evlabel').textContent='—';return}
+ c.globalCompositeOperation='lighter';
+ for(const t of e.towers)tower(c,g,t);
+ c.setLineDash([4*d,4*d]);c.strokeStyle='rgba(255,215,60,.8)';c.lineWidth=1.5*d;
+ for(const a of e.phot){c.beginPath();c.moveTo(g.X,g.Y);c.lineTo(g.X+Math.cos(a)*1.29*g.k,g.Y+Math.sin(a)*1.29*g.k);c.stroke()}
+ if(e.met){const L=Math.min(3.4,1.2+e.met.E/150);c.strokeStyle='#ff4dff';c.lineWidth=2.5*d;c.beginPath();c.moveTo(g.X,g.Y);c.lineTo(g.X+Math.cos(e.met.phi)*L*g.k,g.Y+Math.sin(e.met.phi)*L*g.k);c.stroke()}
+ c.setLineDash([]);
+ for(const t of e.tracks)trk(c,g,t);
+ c.globalCompositeOperation='source-over';
+ c.fillStyle='#c9d3e0';['Simulated event display (CMS-style)','Run '+(386000+S.totals.fills)+' · Event '+e.n,'√s = '+e.sqs.toFixed(1)+' TeV · pile-up '+e.pu].forEach((s,i)=>c.fillText(s,10*d,(10+i*16)*d));
+ [['#ff4545','muon'],['#45ff95','electron'],['#ffd23c','photon'],['#ffa53c','jet'],['#ff4dff','missing ET'],['#4696ff','hadron calorimeter']].forEach(([col,s],i)=>{c.fillStyle=col;c.fillText('■ '+s,10*d,H-(14+i*15)*d)});
+ $('evlabel').textContent=e.label;
+}
+window.addEventListener('resize',drawEvent);
+
+/* ---------- the 1% ---------- */
+const AMSG=[[0,'⚠ ENERGY SPIKE AT IP5: 1.21 PeV AND RISING'],[1.5,'CMS: the tracker reports a hole in spacetime (not a typo)'],[3,'PORTAL TO HELL OPENED AT IP5'],[5,'Demons in the tunnel. The superconducting magnets are on fire.'],[8,'Cryogenics: 1.9 K → 300 K → 6,000,000 K'],[10.5,'Pulling back to satellite view…'],[14.5,'A black hole is forming. Hawking radiation: not showing up.'],[18,'The Pays de Gex has crossed the event horizon.']];
+function startApoc(){S.apocalypses=(S.apocalypses||0)+1;save();apoc={t:0,dt:.016,demons:[],parts:[],burn:new Array(NB).fill(0),sp:0,si:0,sw:false,logged:{},deb:null};run.active=false;fx.style.display='block'}
+function bucket(a){return Math.floor(((a/TAU2)%1+1)%1*NB)%NB}
+function once(A,k,cond,f){if(cond&&!A[k]){A[k]=1;f()}}
+function demonPos(dm,t){const x5=Math.cos(P5A),y5=Math.sin(P5A),age=t-dm.born,k=Math.min(1,age/.7);
+ if(dm.fly&&age>.7){const tt=age-.7;return[x5+dm.fly[0]*tt,y5+dm.fly[1]*tt-.05*tt]}
+ const rr=1+dm.ro+.02*Math.sin(t*6+dm.ph),tx=Math.cos(dm.a)*rr,ty=Math.sin(dm.a)*rr;return[x5+(tx-x5)*k,y5+(ty-y5)*k]}
+function drawDemon(c,x,y,s,t){
+ c.save();c.translate(x,y);const f=Math.sin(t*12)*.5;
+ c.fillStyle='#3a0606';for(const sd of[-1,1]){c.beginPath();c.moveTo(0,0);c.lineTo(sd*s*1.6,-s*(.8+f));c.lineTo(sd*s*1.2,s*.1);c.lineTo(sd*s*.9,-s*.2);c.lineTo(sd*s*.6,s*.3);c.closePath();c.fill()}
+ c.fillStyle='#b01010';c.beginPath();c.ellipse(0,s*.2,s*.45,s*.6,0,0,TAU2);c.fill();c.beginPath();c.arc(0,-s*.5,s*.35,0,TAU2);c.fill();
+ c.fillStyle='#eee0c0';for(const sd of[-1,1]){c.beginPath();c.moveTo(sd*s*.15,-s*.75);c.quadraticCurveTo(sd*s*.45,-s*1.05,sd*s*.35,-s*1.3);c.lineTo(sd*s*.3,-s*.7);c.fill()}
+ c.fillStyle='#ffea00';c.fillRect(-s*.18,-s*.58,s*.12,s*.07);c.fillRect(s*.06,-s*.58,s*.12,s*.07);
+ c.strokeStyle='#b01010';c.lineWidth=s*.08;c.beginPath();c.moveTo(0,s*.7);c.quadraticCurveTo(s*.6,s*(1.1+f*.3),s*.5,s*1.4);c.stroke();c.restore()}
+function apocWorld(c,px){
+ const A=apoc,t=A.t,x5=Math.cos(P5A),y5=Math.sin(P5A);
+ c.save();c.globalCompositeOperation='lighter';c.lineWidth=Math.max(.05,4*px);
+ for(let i=0;i<NB;i++)if(A.burn[i]){const a0=i/NB*TAU2,fl=.5+.5*Math.sin(t*13+i);c.strokeStyle=`rgba(255,${90+fl*80|0},20,${.35+.3*fl})`;c.beginPath();c.arc(0,0,1,a0,a0+TAU2/NB+.01);c.stroke()}
+ for(const q of A.parts){const f=q.life/q.max;c.fillStyle=f>.7?`rgba(255,240,170,${f})`:f>.35?`rgba(255,140,20,${f})`:`rgba(220,40,10,${f})`;c.fillRect(q.x-q.s/2,q.y-q.s/2,q.s,q.s)}
+ c.restore();
+ if(t>.5){const pr=Math.min(1,(t-.5)/2.5)*.14*(1+.06*Math.sin(t*9)),g=c.createRadialGradient(x5,y5,0,x5,y5,pr*1.8);
+  g.addColorStop(0,'#000');g.addColorStop(.45,'#2a0000');g.addColorStop(.6,'rgba(255,40,0,.9)');g.addColorStop(1,'rgba(255,0,0,0)');
+  c.fillStyle=g;c.beginPath();c.arc(x5,y5,pr*1.8,0,TAU2);c.fill();c.strokeStyle='rgba(255,120,30,.8)';c.lineWidth=3*px;
+  for(let i=0;i<5;i++){const a=t*(2+i)+i;c.beginPath();c.arc(x5,y5,pr*(.4+i*.15),a,a+2.2);c.stroke()}}
+ for(const dm of A.demons){const[x,y]=demonPos(dm,t);drawDemon(c,x,y,dm.sz,t+dm.ph)}
+}
+function updateApoc(dt){
+ const A=apoc;A.t+=dt;A.dt=dt;const t=A.t;
+ if(t>2.2&&t<9.5){A.sp-=dt;if(A.sp<=0){A.sp=.16;A.demons.push({a:P5A+(R()-.5)*.08,dir:R()<.5?1:-1,v:.35+R()*.8,ro:(R()-.5)*.18,born:t,sz:.05+R()*.04,ph:R()*6,fly:R()<.22?[(R()-.5)*.7,(R()-.5)*.7]:null})}}
+ if(t>3){const b=bucket(P5A);A.burn[b]=A.burn[b]||t}
+ for(const dm of A.demons)if(t-dm.born>.7&&!dm.fly){dm.a+=dm.dir*dm.v*dt;const b=bucket(dm.a);if(!A.burn[b])A.burn[b]=t}
+ if(t<21)for(let i=0;i<NB;i++)if(A.burn[i]&&R()<dt*16&&A.parts.length<3500){const a=(i+R())/NB*TAU2,rr=1+(R()-.5)*.06,mx=.5+R()*.8;A.parts.push({x:Math.cos(a)*rr,y:Math.sin(a)*rr,vx:(R()-.5)*.05,vy:-(.08+R()*.16),life:mx,max:mx,s:.015+R()*.03})}
+ for(const q of A.parts){q.x+=q.vx*dt;q.y+=q.vy*dt;q.vy-=.06*dt;q.life-=dt}
+ A.parts=A.parts.filter(q=>q.life>0);
+ if(t<14.5){A.si-=dt;if(A.si<=0){A.si=.5;A.sw=!A.sw;tone(A.sw?880:587,.45,'square',.025)}}
+ once(A,'growl',t>3,()=>tone(80,1.6,'sawtooth',.09,35));
+ once(A,'rumble',t>14.5,()=>tone(55,6.5,'sawtooth',.08,14));
+ once(A,'boom',t>21,()=>tone(45,2.5,'sine',.15,20));
+ for(const[mt,ms]of AMSG)if(t>=mt&&!A.logged[mt]){A.logged[mt]=1;log(ms,'bad')}
+ if(t>25.5)restore();
+}
+function renderApoc(){
+ const[W,H]=fit(fx),c=fc,A=apoc,t=A.t,d=DPR,m=Math.min(W,H),X=W/2,Y=H/2;
+ c.setTransform(1,0,0,1,0,0);c.fillStyle='#000';c.fillRect(0,0,W,H);
+ const ez=x=>x<0?0:x>1?1:x*x*(3-2*x),pb=Math.max(0,Math.min(1,(t-14.5)/6.5));
+ if(t<21.5){
+  const z=(1-.89*ez((t-10.5)/4))*(1-.97*pb*pb)+.0005,sh=(t<10.5?Math.min(1,t/2)*7:t<14.5?2:3+pb*14)*d;
+  drawWorld(c,W,H,{zoom:z,rot:pb*pb*9,sx:(R()-.5)*sh,sy:(R()-.5)*sh,apoc:1});
+  if(t<14.5){const pu=.5+.5*Math.sin(t*7),vg=c.createRadialGradient(X,Y,m*.3,X,Y,Math.max(W,H)*.75);vg.addColorStop(0,'rgba(255,0,0,0)');vg.addColorStop(1,`rgba(255,0,0,${.15+.25*pu})`);c.fillStyle=vg;c.fillRect(0,0,W,H)}
+  if(t>14.5){
+   let rh=m*(.015+.06*pb);if(pb>.82)rh*=1+Math.pow((pb-.82)/.18,2)*14;
+   if(!A.deb){A.deb=[];const M=Math.hypot(W,H)/2,cols=['#ff9a3c','#ffd27a','#ff3b1f','#6fa8ff','#4f7a44','#ffffff','#b0b0b0'];for(let i=0;i<800;i++)A.deb.push({r:m*.1+R()*M,a:R()*TAU2,c:cols[i%7]})}
+   c.lineWidth=2*d;
+   for(const q of A.deb){const r0=q.r,a0=q.a;q.r-=(m*.04+m*m*.03/(q.r+m*.02))*A.dt*(.4+pb*2.5);q.a+=Math.min(9,m*.9/(q.r+m*.05))*A.dt;
+    if(q.r<rh*.9){q.r=pb<.8?Math.hypot(W,H)/2:0;continue}
+    c.strokeStyle=q.c;c.beginPath();c.moveTo(X+Math.cos(a0)*r0,Y+Math.sin(a0)*r0);c.lineTo(X+Math.cos(q.a)*q.r,Y+Math.sin(q.a)*q.r);c.stroke()}
+   c.save();c.globalCompositeOperation='lighter';
+   for(let i=0;i<90;i++){const k=i%9,rr=rh*(1.5+k*.28),a=i*2.4+t*(4-k*.3);c.strokeStyle=`hsla(${20+k*4},100%,${60-k*4}%,.5)`;c.lineWidth=rh*.12;c.beginPath();c.ellipse(X,Y,rr,rr*.32,-.25,a,a+.9);c.stroke()}
+   const g=c.createRadialGradient(X,Y,rh*.95,X,Y,rh*1.6);g.addColorStop(0,'rgba(255,220,160,.9)');g.addColorStop(1,'rgba(255,120,0,0)');c.fillStyle=g;c.beginPath();c.arc(X,Y,rh*1.6,0,TAU2);c.fill();c.restore();
+   c.fillStyle='#000';c.beginPath();c.arc(X,Y,rh,0,TAU2);c.fill();
+  }
+ }
+ c.textAlign='center';c.textBaseline='middle';
+ if(t<20.5){let msg='';for(const[mt,ms]of AMSG)if(t>=mt)msg=ms;if(Math.sin(t*14)>-.6){c.font='bold '+22*d+'px Segoe UI';c.fillStyle='#ff4a3a';c.shadowColor='#f00';c.shadowBlur=12*d;c.fillText(msg,X,48*d);c.shadowBlur=0}}
+ if(t>20.5){c.fillStyle=`rgba(0,0,0,${Math.min(1,t-20.5)})`;c.fillRect(0,0,W,H)}
+ if(t>21.3){
+  c.fillStyle='#ff5040';c.font='bold '+28*d+'px Segoe UI';c.fillText('THE LHC HAS BEEN CONSUMED',X,Y-40*d);
+  c.fillStyle='#ccc';c.font=15*d+'px Segoe UI';c.fillText('Universes lost so far: '+S.apocalypses,X,Y);c.fillText('Restoring from your last checkpoint… hell-portal counter reset',X,Y+26*d);
+  const pr=Math.min(1,(t-21.3)/4);c.fillStyle='#333';c.fillRect(X-150*d,Y+50*d,300*d,6*d);c.fillStyle='#4a8cff';c.fillRect(X-150*d,Y+50*d,300*d*pr,6*d);
+  c.fillStyle='#777';c.font=12*d+'px Segoe UI';c.fillText('(Fiction. Any microscopic black hole the LHC could make would evaporate at once. See the LHC Safety Report.)',X,Y+80*d)}
+}
+function restore(){
+ const cp=S.checkpoint;if(cp){S.settings={...DEFSET,...cp.settings};S.totals={...defTot(),...cp.totals}}
+ S.runsSince=0;apoc=null;fx.style.display='none';run={active:false,phase:-1,filled:0,beta:S.settings.betaStar,E:.45,L:0,fill:0};
+ curEvent=null;lumiHist=[];temp=1.9;syncSliders();drawEvent();save();
+ log('Spacetime restored from the checkpoint before run '+(S.totals.runs+1)+'. Hell-portal counter reset to 0.','ok');
+}
+
+/* ---------- panels and charts ---------- */
+function chartL(){const el=$('lc'),[W,H]=fit(el),c=el.getContext('2d'),d=DPR;c.clearRect(0,0,W,H);c.fillStyle='#8a909a';c.font=10*d+'px Segoe UI';c.textAlign='left';c.textBaseline='top';c.fillText('Luminosity this fill (12 h)',6*d,4*d);
+ if(lumiHist.length<2)return;const mx=Math.max(...lumiHist.map(v=>v[1]));c.strokeStyle='#4a8cff';c.lineWidth=1.5*d;c.beginPath();
+ lumiHist.forEach(([t,v],i)=>{const x=6*d+t/43200*(W-12*d),y=H-6*d-v/mx*(H-24*d);i?c.lineTo(x,y):c.moveTo(x,y)});c.stroke();c.textAlign='right';c.fillText(sci(mx,1)+' cm⁻²s⁻¹',W-6*d,4*d)}
+function chartH(){const el=$('hc'),[W,H]=fit(el),c=el.getContext('2d'),d=DPR,h=S.totals.hist,mx=Math.max(5,...h),bw=(W-12*d)/60,T=S.totals;c.clearRect(0,0,W,H);
+ c.fillStyle='rgba(255,215,60,.08)';c.fillRect(6*d+21*bw,16*d,8*bw,H-30*d);
+ for(let i=0;i<60;i++){const bh=h[i]/mx*(H-30*d);c.fillStyle=i>=21&&i<29?'#ffd23c':'#6fa8ff';c.fillRect(6*d+i*bw+.5,H-14*d-bh,Math.max(1,bw-1),bh)}
+ c.fillStyle='#8a909a';c.font=10*d+'px Segoe UI';c.textBaseline='top';c.textAlign='left';c.fillText('Diphoton mass mγγ',6*d,3*d);
+ const Z=T.hb>0?T.hs/Math.sqrt(T.hb):0;c.textAlign='right';c.fillStyle=Z>=5?'#7ddc8f':'#8a909a';c.fillText('local significance ≈ '+Z.toFixed(1)+'σ',W-6*d,3*d);
+ c.fillStyle='#8a909a';c.textBaseline='bottom';c.textAlign='left';c.fillText('100',6*d,H-1*d);c.textAlign='center';c.fillText('125',6*d+25*bw,H-1*d);c.textAlign='right';c.fillText('160 GeV',W-6*d,H-1*d);
+ if(Z>=5&&!T.disc){T.disc=true;log('5σ! You have discovered a Higgs-like boson at 125 GeV. Book a flight to Stockholm.','ok');[784,988,1175,1568].forEach((f,i)=>setTimeout(()=>tone(f,.3,'triangle',.05),i*150))}}
+function ui(){
+ const st=S.settings,T=S.totals,ph=run.active?run.phase:-1,E=run.active?(ph<=1?run.E:st.energy):.45,p=phys(E,run.active?run.beta:st.betaStar),stable=ph===4,L=stable?run.L:0;
+ const kv=a=>a.map(([k,v])=>`<span>${k}</span><span>${v}</span>`).join('');
+ $('live').innerHTML=kv([['Beam energy',(E*1000).toFixed(0)+' GeV'],['Collision energy √s',(2*E).toFixed(2)+' TeV'],['Lorentz factor γ',p.g.toFixed(0)],['Speed','c − '+p.dv.toFixed(2)+' m/s'],['Dipole field',p.B.toFixed(2)+' T'],['Dipole current',p.I.toFixed(0)+' A'],
+  ['Stored energy / beam',run.active&&ph<5?(p.stored*run.filled).toFixed(0)+' MJ':'0 MJ'],['β* (IP1/5)',(run.active?run.beta:st.betaStar).toFixed(0)+' cm'],['Beam size σ*',(p.sig*1e6).toFixed(1)+' µm'],['Crossing factor F',p.F.toFixed(2)],
+  ['Luminosity',stable?sci(L)+' cm⁻²s⁻¹':'—'],['Pile-up μ',stable?(p.mu*L/p.L).toFixed(0):'—'],['Collision rate',stable?sci(L*p.sInel)+' /s':'—'],['Trigger L1 → HLT',stable?'100 kHz → 1.5 kHz':'—'],['Revolution freq.','11 245 Hz'],['RF','400.79 MHz · 16 MV'],['Fill time (sim)',stable?hms(run.fill):'—']]);
+ $('tot').innerHTML=kv([['Runs started',T.runs],['Fills to stable beams',T.fills],['Integrated luminosity',T.intLumi.toFixed(3)+' fb⁻¹'],['Peak luminosity',T.peakL?sci(T.peakL):'—'],['Collisions',big(T.coll)],['Events recorded',big(T.rec)],['Higgs bosons made',big(T.higgs)],['…seen as H→γγ',big(T.higgs*.00227*.4)],['Z bosons made',big(T.z)],['Top-quark pairs',big(T.top)],['Magnet quenches',T.quench]]);
+ $('risk').innerHTML=`Hell-portal chance per run: <b>1%</b><br>Runs since last portal: <b>${S.runsSince}</b><br>Odds of getting this far unscathed: <b>${(Math.pow(.99,S.runsSince)*100).toFixed(1)}%</b><br>Universes lost: <b>${S.apocalypses||0}</b>`;
+ const hot=temp>2.05,sys=[['Cryogenics',temp<2.05?'g':temp<5?'y':'r',temp.toFixed(1)+' K'],['Beam vacuum','g','~10⁻¹⁰ mbar'],['RF cavities',ph>=0&&ph<5?'g':'y',ph>=0&&ph<5?'on':'standby'],['Injector chain',ph===0?'g':'y',ph===0?'injecting':'standby'],['Quench protection',hot?'r':'g',hot?'TRIGGERED':'armed'],['Beam interlock',ph===5?'r':'g',ph===5?'dump':'OK'],['Collimators',ph>=1&&ph<4?'y':'g',ph===4?'physics':ph>=1&&ph<4?'moving':'parked'],['Experiments',ph===4?'g':'y',ph===4?'taking data':'standby']];
+ $('sys').innerHTML=sys.map(([n,cl,v])=>`<i class="dot ${cl}"></i><span>${n}</span><span style="font-family:Consolas,monospace;color:#aab">${v}</span>`).join('');
+ const md=$('mode');md.textContent=run.active?'Fill '+(9000+T.fills+1)+' · '+MODES[ph]:'NO BEAM';md.style.color=ph===4?'#5fdc7a':ph===5?'#ff7a7a':run.active?'#7fb2ff':'#999';
+ for(let i=0;i<6;i++)$('ph'+i).className='ph'+(i===ph?' on':ph>i?' done':'');
+ $('go').disabled=run.active||hot;$('fate').disabled=run.active||hot;$('dump').disabled=!run.active||ph===5;$('reset').disabled=run.active;
+ SL.forEach(([k])=>$('s_'+k).disabled=run.active);document.querySelectorAll('#presets button').forEach(b=>b.disabled=run.active);
+ chartL();chartH();
+}
+const FACTS=['The LHC tunnel is 26.7 km around and 50–175 m underground. It crosses the border between France and Switzerland.',
+'1,232 superconducting dipole magnets, each 15 m long and about 35 tonnes, bend the beams around the ring.',
+'The magnets are cooled with superfluid helium to 1.9 K (−271.3 °C), colder than outer space (2.7 K).',
+'At 6.8 TeV a proton moves at 99.999999% of the speed of light and laps the ring about 11,245 times a second.',
+'The beam pipes hold an ultra-high vacuum, about as empty as interplanetary space.',
+'At full intensity each beam stores over 300 MJ, about the energy of a high-speed train at 150 km/h.',
+'ATLAS and CMS announced the Higgs boson on 4 July 2012. Englert and Higgs won the 2013 Nobel Prize.',
+'There are 40 million bunch crossings a second. Triggers keep only about a thousand events a second.',
+'Roughly one Higgs boson is made for every billion or so proton collisions.',
+'In September 2008 a faulty electrical splice caused a helium release that damaged dozens of magnets. Physics restarted in 2009–2010.',
+'Cosmic rays have hit Earth with far higher energies for billions of years. That is a key reason the LHC is safe.',
+'ALICE studies quark–gluon plasma from lead–lead collisions, about 100,000 times hotter than the centre of the Sun.',
+'LHCb uses b quarks to study why the universe has more matter than antimatter.',
+'The Worldwide LHC Computing Grid links about 170 computing centres in more than 40 countries.',
+'The beam dump is a graphite block about 8 m long, encased in steel and concrete.',
+'The High-Luminosity LHC upgrade aims to collect about 10 times more data than the LHC so far.'];
+let fi=R()*FACTS.length|0;function fact(){$('fact').textContent=FACTS[fi++%FACTS.length]}fact();setInterval(fact,9000);
+
+let last=performance.now(),uiT=0,saveT=3;
+function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;
+ if(apoc){updateApoc(dt);if(apoc)renderApoc()}else{update(dt);renderRing()}
+ uiT-=dt;if(uiT<=0&&!apoc){uiT=.2;ui()}
+ saveT-=dt;if(saveT<=0){saveT=3;save()}
+ requestAnimationFrame(frame)}
+log('LHC control room online. Choose settings and press Start fill.');
+if(S.runsSince)log('Welcome back. Runs since last portal: '+S.runsSince+'.');
+drawEvent();requestAnimationFrame(frame);
+</script></body></html>
