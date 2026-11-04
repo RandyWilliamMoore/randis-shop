@@ -1,7 +1,9 @@
 "use strict";
+const SOFTWARE = Array.isArray(window.SOFTWARE) ? window.SOFTWARE : [];
+const UDS = SOFTWARE.find(s => s.slug === "randis-uds");
 const SHOP = {
   repo: "https://github.com/RandyWilliamMoore/randis-uds",
-  download: "https://github.com/RandyWilliamMoore/randis-uds/releases/tag/v0.1.3",
+  download: (UDS && UDS.download) || "https://github.com/RandyWilliamMoore/randis-uds/releases",
   video: "https://youtu.be/VZeMAVmKJrY",
   videoPic: "https://img.youtube.com/vi/VZeMAVmKJrY/maxresdefault.jpg",
   guestbook: "https://github.com/RandyWilliamMoore/randis-uds/discussions",
@@ -76,6 +78,11 @@ function softwareBox(i) {
     el("b", {}, i.name), el("img", { src: i.logo, alt: "" }), el("small", {}, "BY " + i.by.toUpperCase()));
 }
 
+function downloadBox(s) {
+  return el("a", { class: "box", href: `#/software/${s.slug}`, "data-item": s.slug },
+    el("b", {}, s.name), el("img", { src: s.logo, alt: "" }), el("small", {}, "VERSION " + s.version + ": DOWNLOAD"));
+}
+
 function arcade() {
   const items = byKind("games");
   return win(SECTIONS.games, el("div", { class: "arcade" },
@@ -84,9 +91,25 @@ function arcade() {
 }
 
 function shelf() {
-  const items = byKind("apps");
+  const boxes = [...SOFTWARE.map(downloadBox), ...byKind("apps").map(softwareBox)];
   return win(SECTIONS.apps, el("div", { class: "shelf" },
-    el("div", { class: "boxes" }, ...(items.length ? items.map(softwareBox) : [el("p", { class: "empty" }, "The shelf is empty right now.")]))));
+    el("div", { class: "boxes" }, ...(boxes.length ? boxes : [el("p", { class: "empty" }, "The shelf is empty right now.")]))));
+}
+
+function softwarePage(s) {
+  const link = safeWeb(s.download);
+  return [win(s.name + " " + s.version,
+    el("div", { class: "item-top" },
+      el("div", { class: "item-logo" }, el("img", { src: s.logo, alt: s.name + " logo" })),
+      el("div", {},
+        el("p", {}, s.blurb),
+        el("p", {}, "By " + s.by + ". Version " + s.version + "."),
+        el("div", { class: "actions" },
+          link ? out(link, `Download ${s.name} ${s.version}`, "btn go") : null,
+          safeWeb(s.source) ? out(s.source, "See the code", "btn") : null,
+          el("a", { class: "btn", href: "#/apps" }, "Back")),
+        el("p", { class: "fine" }, s.fine)))),
+    win("What's new in " + s.version, el("div", { class: "inset" }, el("ul", { class: "news" }, ...s.new.map(t => el("li", {}, t)))))];
 }
 
 function frontDoor() {
@@ -176,8 +199,10 @@ function render() {
   const parts = location.hash.replace(/^#\/?/, "").split("/").filter(Boolean);
   const [kind, slug, act] = parts;
   const item = slug ? window.ITEMS.find(i => i.kind === kind && i.slug === slug) : null;
+  const soft = kind === "software" && slug && !act ? SOFTWARE.find(s => s.slug === slug) : null;
   let main;
-  if (!kind) main = frontDoor();
+  if (soft) main = softwarePage(soft);
+  else if (!kind) main = frontDoor();
   else if (kind === "games" && !slug) main = [arcade()];
   else if (kind === "apps" && !slug) main = [shelf()];
   else if (item) main = itemPage(item);
@@ -185,7 +210,7 @@ function render() {
   const page = el("div", { class: "page" }, header(), ...main, footer());
   app.replaceChildren(page);
   if (item && act === "play" && item.status !== "flagged") app.append(playWindow(item));
-  document.title = item ? `${item.name} | The Randis Shop` : "The Randis Shop";
+  document.title = item || soft ? `${(item || soft).name} | The Randis Shop` : "The Randis Shop";
   window.scrollTo(0, 0);
 }
 
