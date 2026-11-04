@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Slot Player</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#1e1f22;color:#e6e6e6;font-family:Segoe UI,Arial,sans-serif;padding:16px}
+h1{margin:0 0 4px;font-size:22px}
+.top{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.stat{background:#2b2d31;padding:8px 14px;border-radius:8px}
+.stat b{color:#f5c542}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+button{background:#3a3d44;color:#e6e6e6;border:1px solid #4a4d55;border-radius:6px;padding:7px 12px;cursor:pointer;font-size:14px}
+button:hover{background:#474a52}
+button.on{background:#5865f2;border-color:#5865f2}
+button:disabled{opacity:.4;cursor:default}
+.wrap{display:flex;align-items:flex-start;gap:0;max-width:700px}
+.machine{flex:1;background:linear-gradient(#b3261e,#7a1712);border:6px solid #f5c542;border-radius:22px 22px 12px 12px;padding:14px;box-shadow:0 8px 24px #000a}
+.marquee{background:#111214;border-radius:10px;padding:8px;text-align:center;margin-bottom:10px;border:2px solid #f5c54288}
+.mname{font-size:22px;font-weight:bold;color:#f5c542;text-shadow:0 0 8px #f5c542}
+.lights{letter-spacing:6px;color:#f5c542;font-size:12px}
+.lights.flash{animation:fl .25s infinite alternate}
+@keyframes fl{from{color:#f5c542}to{color:#ff4d4d}}
+.desc{color:#ddd;font-size:13px;margin:4px 0 0}
+.jp{text-align:center;font-size:18px;margin-bottom:10px;color:#fff;font-weight:bold;background:#0008;border-radius:8px;padding:4px}
+.jp span{color:#ffdf6b}
+.reels{display:flex;gap:6px;justify-content:center;background:#111214;padding:12px;border-radius:10px;border:3px solid #333;box-shadow:inset 0 0 18px #000}
+.reel{display:flex;flex-direction:column;gap:6px;align-items:center}
+.cell{width:70px;height:70px;background:linear-gradient(#ddd,#fff 40%,#fff 60%,#ccc);color:#222;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:40px;transition:transform .1s}
+.cell.bar{font-size:20px;font-weight:900;letter-spacing:1px}
+.cell.win{background:#f5c542;transform:scale(1.07);box-shadow:0 0 14px #f5c542}
+.cell.blur{filter:blur(2px)}
+.hold{font-size:12px;padding:4px 8px}
+.hold.on{background:#e0452f;border-color:#e0452f}
+.ctrl{display:flex;gap:8px;align-items:center;justify-content:center;margin-top:12px;flex-wrap:wrap}
+.spin{background:#2e9e4f;border-color:#2e9e4f;font-size:18px;padding:10px 30px;font-weight:bold}
+.spin:hover{background:#36b85c}
+.msg{text-align:center;min-height:24px;margin-top:10px;font-size:16px;background:#0008;border-radius:8px;padding:4px}
+.mult{text-align:center;color:#7bd3ff;font-weight:bold;margin-top:6px;min-height:20px}
+.pay{margin-top:12px;font-size:13px;color:#eee;display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:4px;background:#0006;border-radius:8px;padding:8px}
+.lever{width:50px;height:240px;position:relative;margin-top:60px;cursor:pointer}
+.lever .rod{position:absolute;left:21px;bottom:20px;width:8px;height:180px;background:linear-gradient(90deg,#888,#eee,#888);border-radius:4px;transform-origin:bottom center;transition:transform .2s}
+.lever .ball{position:absolute;left:-11px;top:-26px;width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ff8080,#c00)}
+.lever .base{position:absolute;left:5px;bottom:0;width:40px;height:40px;background:#555;border-radius:8px}
+.lever.pulled .rod{transform:scaleY(-.6)}
+.ebay{margin-top:16px;background:#2b2d31;padding:12px;border-radius:10px;max-width:700px;font-size:14px}
+.ebay code{background:#111214;padding:3px 6px;border-radius:4px;word-break:break-all;display:block;margin:6px 0}
+</style></head><body>
+<h1>🎰 Slot Player</h1>
+<div class="top">
+  <div class="stat">Credits: <b id="cr">0</b></div>
+  <div class="stat">Last win: <b id="lw">0</b></div>
+  <div class="stat">Free spins: <b id="fs">0</b></div>
+  <button id="refill">Refill to 1000</button>
+  <button id="snd">🔊 Sound: on</button>
+</div>
+<div class="tabs" id="tabs"></div>
+<div class="wrap">
+<div class="machine">
+  <div class="marquee">
+    <div class="lights" id="lights">● ● ● ● ● ● ● ● ●</div>
+    <div class="mname" id="mname"></div>
+    <div class="desc" id="desc"></div>
+  </div>
+  <div class="jp">JACKPOT: <span id="jp"></span></div>
+  <div class="reels" id="reels"></div>
+  <div class="mult" id="mult"></div>
+  <div class="ctrl">
+    <span>Line bet:</span>
+    <span id="bets"></span>
+    <span id="total"></span>
+  </div>
+  <div class="ctrl">
+    <button class="spin" id="spin">SPIN</button>
+    <button id="auto">Auto: off</button>
+  </div>
+  <div class="msg" id="msg">Press SPIN, pull the lever, or press the space bar.</div>
+  <div class="pay" id="pay"></div>
+</div>
+<div class="lever" id="lever" title="Pull to spin"><div class="base"></div><div class="rod"><div class="ball"></div></div></div>
+</div>
+<div class="ebay">
+  <b>🛒 Real one-arm bandits</b><br>
+  Want a real machine? Paste this into your browser to search eBay:
+  <code id="ebayUrl">https://www.ebay.com/sch/i.html?_nkw=vintage+one+arm+bandit+slot+machine</code>
+  <button id="copy">Copy link</button>
+  <span style="color:#aaa;font-size:12px"> Try also: "Mills slot machine", "Jennings slot", "Pachislo", "mini toy slot machine".</span>
+</div>
+<script>
+// ---- storage that never crashes (tabs may block localStorage) ----
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+
+// ---- sound (Web Audio, made on the fly) ----
+let actx=null,soundOn=store.get('slotsSound')!=='off';
+function ac(){if(!actx){try{actx=new (window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
+function tone(f,d,type,vol,when){if(!soundOn)return;const a=ac();if(!a)return;const t=a.currentTime+(when||0);
+ const o=a.createOscillator(),g=a.createGain();o.type=type||'square';o.frequency.setValueAtTime(f,t);
+ g.gain.setValueAtTime(vol||.08,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+d+.02)}
+const sfx={
+ tick:()=>tone(900+Math.random()*300,.03,'square',.03),
+ stop:()=>{tone(160,.12,'triangle',.2);tone(90,.15,'sine',.2)},
+ lever:()=>{tone(300,.08,'sawtooth',.06);tone(200,.12,'sawtooth',.06,.06)},
+ coin:()=>tone(1400,.08,'square',.05),
+ win:()=>[523,659,784,1047].forEach((f,i)=>tone(f,.18,'square',.07,i*.1)),
+ big:()=>{for(let i=0;i<12;i++)tone([523,659,784,1047][i%4]*(i>7?2:1),.15,'square',.07,i*.08)},
+ lose:()=>{tone(300,.15,'triangle',.06);tone(220,.25,'triangle',.06,.12)},
+ bonus:()=>[784,988,1175,1568,1175,1568].forEach((f,i)=>tone(f,.12,'triangle',.08,i*.09))
+};
+
+const LINES5=[[1,1,1,1,1],[0,0,0,0,0],[2,2,2,2,2],[0,1,2,1,0],[2,1,0,1,2]];
+const M={
+ classic:{name:'Classic Bandit',desc:'3 reels, 1 line, old-school. After a losing spin you can HOLD reels. 💎💎💎 wins the jackpot!',reels:3,rows:1,hold:true,
+  sym:[['🍒',8,{1:1,2:3,3:10}],['🍋',7,{3:15}],['🔔',5,{3:25}],['BAR',4,{3:50}],['7️⃣',2,{3:100}],['💎',1,{3:'J'}]],
+  lines:[[0,0,0]]},
+ fruit:{name:'Fruit Frenzy',desc:'5 reels, 5 lines. ⭐ is wild and stands in for any fruit.',reels:5,rows:3,wild:'⭐',
+  sym:[['🍒',9,{3:2,4:5,5:15}],['🍋',8,{3:3,4:8,5:20}],['🍊',7,{3:4,4:10,5:30}],['🍇',5,{3:6,4:20,5:60}],['🍉',4,{3:10,4:30,5:100}],['⭐',2,{3:20,4:60,5:250}]],
+  lines:LINES5},
+ cosmic:{name:'Cosmic Spins',desc:'5 reels, 9 lines. 🌟 is wild. 3+ 🪐 anywhere gives free spins. 5 👽 wins the jackpot!',reels:5,rows:3,wild:'🌟',scatter:'🪐',
+  sym:[['🚀',9,{3:2,4:6,5:20}],['🛸',8,{3:3,4:8,5:25}],['🌙',7,{3:4,4:12,5:40}],['☄️',5,{3:8,4:25,5:80}],['👽',2,{3:15,4:50,5:'J'}],['🌟',2,{3:25,4:80,5:300}],['🪐',3,{}]],
+  lines:LINES5.concat([[0,0,1,2,2],[2,2,1,0,0],[1,0,0,0,1],[1,2,2,2,1]])},
+ mania:{name:'Multiplier Mania',desc:'3x3 grid, 5 lines (rows and diagonals). Every spin rolls a random 1x to 10x win multiplier.',reels:3,rows:3,mult:true,
+  sym:[['🍀',8,{3:4}],['🎲',7,{3:6}],['💰',5,{3:10}],['👑',3,{3:20}],['🔥',2,{3:40}]],
+  lines:[[0,0,0],[1,1,1],[2,2,2],[0,1,2],[2,1,0]]}
+};
+const $=id=>document.getElementById(id);
+let st=null;try{st=JSON.parse(store.get('slotsState')||'null')}catch(e){}
+if(!st||typeof st.cr!=='number')st={cr:1000,jp:5000};
+const save=()=>store.set('slotsState',JSON.stringify(st));
+let cur='classic',lineBet=1,spinning=false,free=0,held=[],canHold=false,grid=[],cells=[],holdBtns=[],auto=false,mult=1;
+
+function pick(m){let t=m.sym.reduce((a,s)=>a+s[1],0),r=Math.random()*t;for(const s of m.sym){if((r-=s[1])<0)return s[0]}return m.sym[0][0]}
+function stats(){$('cr').textContent=st.cr;$('jp').textContent=st.jp;$('fs').textContent=free;
+ const m=M[cur];$('total').textContent='Total bet: '+(free?'FREE':lineBet*m.lines.length);}
+function setCell(el,s){el.textContent=s;el.classList.toggle('bar',s==='BAR')}
+function build(){
+ const m=M[cur];$('mname').textContent=m.name;$('desc').textContent=m.desc;
+ $('reels').innerHTML='';cells=[];holdBtns=[];held=Array(m.reels).fill(false);canHold=false;free=0;$('mult').textContent='';
+ grid=Array.from({length:m.reels},()=>Array.from({length:m.rows},()=>pick(m)));
+ for(let r=0;r<m.reels;r++){
+  const reel=document.createElement('div');reel.className='reel';cells[r]=[];
+  for(let y=0;y<m.rows;y++){const c=document.createElement('div');c.className='cell';setCell(c,grid[r][y]);reel.appendChild(c);cells[r][y]=c}
+  if(m.hold){const b=document.createElement('button');b.className='hold';b.textContent='HOLD';b.disabled=true;
+   b.onclick=()=>{held[r]=!held[r];b.classList.toggle('on',held[r]);sfx.coin()};reel.appendChild(b);holdBtns[r]=b}
+  $('reels').appendChild(reel);
+ }
+ $('pay').innerHTML=m.sym.map(s=>{const p=Object.entries(s[2]).map(([n,v])=>n+'×: '+(v==='J'?'JACKPOT':v)).join(', ');
+  return '<div><b>'+s[0]+'</b> '+(s[0]===m.scatter?'scatter: 3/4/5 = 8/12/20 free spins':s[0]===m.wild?'wild, '+p:p)+'</div>'}).join('');
+ document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.k===cur));
+ $('msg').textContent='Press SPIN, pull the lever, or press the space bar.';stats();
+}
+function evalLine(m,line){
+ const s=line.map((y,r)=>grid[r][y]);
+ const base=s.find(x=>x!==m.wild)||m.wild;
+ if(base===m.scatter)return null;
+ let n=0;for(const x of s){if(x===base||x===m.wild)n++;else break}
+ const e=m.sym.find(q=>q[0]===base);const p=e&&e[2][n];
+ return p?{n,p}:null;
+}
+function spin(){
+ if(spinning)return;const m=M[cur];
+ const cost=free>0?0:lineBet*m.lines.length;
+ if(st.cr<cost){$('msg').textContent='Not enough credits. Hit Refill.';setAuto(false);sfx.lose();return}
+ st.cr-=cost;st.jp+=Math.ceil(cost*0.05);if(free>0)free--;
+ spinning=true;const usedHold=held.some(x=>x);
+ const lv=$('lever');lv.classList.add('pulled');setTimeout(()=>lv.classList.remove('pulled'),250);sfx.lever();
+ cells.flat().forEach(c=>c.classList.remove('win'));holdBtns.forEach(b=>b.disabled=true);
+ const fin=grid.map((col,r)=>held[r]?col.slice():Array.from({length:m.rows},()=>pick(m)));
+ if(m.mult){const o=[1,1,1,2,2,2,3,3,5,10];mult=o[Math.floor(Math.random()*o.length)];$('mult').textContent='Multiplier: '+mult+'x'}else mult=1;
+ $('msg').textContent='Spinning...';stats();
+ let done=0;const tick=setInterval(sfx.tick,70);
+ for(let r=0;r<m.reels;r++){
+  if(held[r]){done++;continue}
+  cells[r].forEach(c=>c.classList.add('blur'));
+  const iv=setInterval(()=>cells[r].forEach(c=>setCell(c,pick(m))),60);
+  setTimeout(()=>{clearInterval(iv);cells[r].forEach((c,y)=>{c.classList.remove('blur');setCell(c,fin[r][y])});sfx.stop();
+   if(++done===m.reels){clearInterval(tick);finish(m,fin,usedHold)}},450+r*260);
+ }
+ if(done===m.reels){clearInterval(tick);finish(m,fin,usedHold)}
+}
+function finish(m,fin,usedHold){
+ grid=fin;let total=0,jack=false,notes=[],bonus=false;
+ m.lines.forEach(line=>{const w=evalLine(m,line);if(!w)return;
+  for(let r=0;r<w.n;r++)cells[r][line[r]].classList.add('win');
+  if(w.p==='J'){jack=true}else total+=w.p*lineBet;});
+ total*=mult;
+ if(jack){total+=st.jp;notes.push('💥 JACKPOT '+st.jp+'!');st.jp=5000}
+ if(m.scatter){let n=0;grid.forEach(col=>col.forEach(s=>{if(s===m.scatter)n++}));
+  if(n>=3){grid.forEach((col,r)=>col.forEach((s,y)=>{if(s===m.scatter)cells[r][y].classList.add('win')}));
+   const f={3:8,4:12,5:20}[Math.min(n,5)];free+=f;bonus=true;notes.push('🪐 '+f+' free spins!')}}
+ st.cr+=total;$('lw').textContent=total;
+ $('msg').textContent=(total?'You win '+total+'!'+(mult>1?' ('+mult+'x)':''):'No win.')+' '+notes.join(' ');
+ if(jack||total>=lineBet*50){sfx.big();flash()}else if(total){sfx.win();flash()}else if(bonus){}else sfx.lose();
+ if(bonus)setTimeout(sfx.bonus,total?500:0);
+ held=held.map(()=>false);holdBtns.forEach(b=>b.classList.remove('on'));
+ if(m.hold){canHold=!usedHold&&total===0;holdBtns.forEach(b=>b.disabled=!canHold);if(canHold)$('msg').textContent+=' You may HOLD reels.'}
+ spinning=false;save();stats();
+ if(free>0||auto)setTimeout(spin,free>0?900:700);
+}
+function flash(){const l=$('lights');l.classList.add('flash');setTimeout(()=>l.classList.remove('flash'),1500)}
+function setAuto(v){auto=v;$('auto').textContent='Auto: '+(v?'on':'off');$('auto').classList.toggle('on',v);if(v)spin()}
+Object.keys(M).forEach(k=>{const b=document.createElement('button');b.textContent=M[k].name;b.dataset.k=k;
+ b.onclick=()=>{if(spinning)return;setAuto(false);cur=k;sfx.coin();build()};$('tabs').appendChild(b)});
+[1,2,5,10].forEach(v=>{const b=document.createElement('button');b.textContent=v;b.onclick=()=>{if(spinning)return;lineBet=v;sfx.coin();
+ document.querySelectorAll('#bets button').forEach(x=>x.classList.toggle('on',x===b));stats()};if(v===1)b.classList.add('on');$('bets').appendChild(b)});
+$('spin').onclick=spin;$('lever').onclick=spin;$('auto').onclick=()=>setAuto(!auto);
+$('refill').onclick=()=>{st.cr=Math.max(st.cr,1000);save();stats();for(let i=0;i<5;i++)tone(1200+i*100,.07,'square',.05,i*.06)};
+function sndLabel(){$('snd').textContent=(soundOn?'🔊 Sound: on':'🔇 Sound: off')}
+$('snd').onclick=()=>{soundOn=!soundOn;store.set('slotsSound',soundOn?'on':'off');sndLabel();if(soundOn)sfx.coin()};sndLabel();
+$('copy').onclick=()=>{const t=$('ebayUrl').textContent;
+ (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>$('copy').textContent='Copied!').catch(()=>{
+  const r=document.createRange();r.selectNodeContents($('ebayUrl'));getSelection().removeAllRanges();getSelection().addRange(r);$('copy').textContent='Selected, press Ctrl+C'})};
+document.addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();spin()}});
+build();
+</script></body></html>

@@ -1,0 +1,11 @@
+{
+ "name": "Dice Master",
+ "by": "Randy",
+ "blurb": "Roll any dice from d4 to d100, or play Pig, Ship, Captain & Crew and High Roll against the computer. Links to custom dice makers and dice shops.",
+ "status": "ok",
+ "real_items": "https://www.etsy.com/shop/UberRandis",
+ "reviews": {
+  "randy": null,
+  "maker": null
+ }
+}

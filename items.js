@@ -53,6 +53,23 @@ window.ITEMS = [
  },
  {
   "kind": "games",
+  "slug": "dice-master",
+  "name": "Dice Master",
+  "by": "Randy",
+  "blurb": "Roll any dice from d4 to d100, or play Pig, Ship, Captain & Crew and High Roll against the computer. Links to custom dice makers and dice shops.",
+  "status": "ok",
+  "real_items": "https://www.etsy.com/shop/UberRandis",
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=games/dice-master",
+  "file": "games/dice-master/item.html",
+  "logo": "games/dice-master/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "games",
   "slug": "diesel-gen-mechanic-simulator",
   "name": "Diesel Gen Mechanic Simulator",
   "by": "Randy",
@@ -169,6 +186,23 @@ window.ITEMS = [
   "file": "games/skateboard-collector/item.html",
   "logo": "games/skateboard-collector/logo.png",
   "video_pic": "games/skateboard-collector/video.png"
+ },
+ {
+  "kind": "games",
+  "slug": "slot-player",
+  "name": "Slot Player",
+  "by": "Randy",
+  "blurb": "Spin four machines: Classic Bandit, Fruit Frenzy, Cosmic Spins and Multiplier Mania. Hold reels, set your bet, spin on auto, with sound. Find a real one-arm bandit on eBay.",
+  "status": "ok",
+  "real_items": "https://www.etsy.com/shop/UberRandis",
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=games/slot-player",
+  "file": "games/slot-player/item.html",
+  "logo": "games/slot-player/logo.svg",
+  "video_pic": null
  },
  {
   "kind": "games",
