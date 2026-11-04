@@ -123,7 +123,10 @@ function frontDoor() {
       el("div", {},
         el("p", {}, "Randis UDS is a universal software with no fixed purpose. Describe what you need, and the LLM inside it builds that into the app while you're using it."),
         el("p", {}, "Everything in this shop was made with it."),
-        out(SHOP.download, "Get Randis UDS", "btn go")))),
+        out(SHOP.download, "Get Randis UDS", "btn go"),
+        UDS && UDS.screenshot ? el("a", { class: "front-shot", href: `#/software/${UDS.slug}`, title: "More about Randis UDS" },
+          el("img", { class: "screenshot", src: UDS.screenshot, alt: "Randis UDS with three tabs open: a notepad, Randis Paint, and the Randis Shop tab listing the shop's games" }),
+          el("small", {}, "What it looks like. Click for more.")) : null))),
     arcade(), shelf(),
     win("Got something to put on the shelf?", el("div", { class: "inset" }, "Submissions open once the safety checks are built. Everything sent in will be checked before it goes on a shelf.")),
   ];
