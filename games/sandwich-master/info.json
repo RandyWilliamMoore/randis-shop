@@ -1,0 +1,11 @@
+{
+ "name": "Sandwich Master",
+ "by": "Randy",
+ "blurb": "Run a sandwich shop: take each order, build it bread first in the ticket's order, wrap it and serve it before the customer runs out of patience. Earn fame and coins to unlock ingredients and upgrades.",
+ "status": "ok",
+ "real_items": "https://www.etsy.com/shop/UberRandis",
+ "reviews": {
+  "randy": null,
+  "maker": null
+ }
+}
