@@ -138,6 +138,23 @@ window.ITEMS = [
  },
  {
   "kind": "games",
+  "slug": "hotdog-tycoon",
+  "name": "Hotdog Tycoon",
+  "by": "Randy",
+  "blurb": "Start with one hotdog stand and grow to a national hotdog empire. Serve the line, buy upgrades from a condiment bar to your own sausage factory, and move from the beach boardwalk to the big league ballpark.",
+  "status": "ok",
+  "real_items": "https://www.etsy.com/shop/UberRandis",
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=games/hotdog-tycoon",
+  "file": "games/hotdog-tycoon/item.html",
+  "logo": "games/hotdog-tycoon/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "games",
   "slug": "lhc-simulator",
   "name": "LHC Simulator",
   "by": "Randy",
@@ -219,6 +236,40 @@ window.ITEMS = [
   "open_with": "randisuds://open?item=games/milk-cap-champ",
   "file": "games/milk-cap-champ/item.html",
   "logo": "games/milk-cap-champ/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "games",
+  "slug": "pachinko-player",
+  "name": "Pachinko Player",
+  "by": "Randy",
+  "blurb": "Shoot balls into a Tokyo pachinko machine and hit the START pocket to spin for FEVER. Trade balls for prize tokens at the counter, then find your way through the back alleys to the little window that buys them.",
+  "status": "ok",
+  "real_items": "https://www.etsy.com/shop/UberRandis",
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=games/pachinko-player",
+  "file": "games/pachinko-player/item.html",
+  "logo": "games/pachinko-player/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "games",
+  "slug": "sandwich-master",
+  "name": "Sandwich Master",
+  "by": "Randy",
+  "blurb": "Run a sandwich shop: take each order, build it bread first in the ticket's order, wrap it and serve it before the customer runs out of patience. Earn fame and coins to unlock ingredients and upgrades.",
+  "status": "ok",
+  "real_items": "https://www.etsy.com/shop/UberRandis",
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=games/sandwich-master",
+  "file": "games/sandwich-master/item.html",
+  "logo": "games/sandwich-master/logo.svg",
   "video_pic": null
  },
  {

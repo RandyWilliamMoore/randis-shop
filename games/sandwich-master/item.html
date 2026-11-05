@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Sandwich Master</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#1e1f22;color:#e6e6e6;font-family:Segoe UI,system-ui,sans-serif}
+.wrap{max-width:900px;margin:0 auto;padding:16px}
+h1{margin:0 0 4px;font-size:24px}.sub{color:#9aa0a6;font-size:13px;margin-bottom:12px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.stat{background:#2b2d31;border-radius:8px;padding:8px 12px;font-size:14px}.stat b{color:#f5c26b}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{background:#2b2d31;border-radius:10px;padding:12px}
+.card h3{margin:0 0 8px;font-size:15px;color:#cfd3d8}
+.full{grid-column:1/3}
+button{background:#3a3c42;color:#e6e6e6;border:1px solid #4a4d55;border-radius:6px;padding:7px 10px;cursor:pointer;font-size:13px}
+button:hover{background:#464952}button:disabled{opacity:.4;cursor:default}
+.go{background:#2f6f45;border-color:#3d8a57}.go:hover{background:#38834f}
+.bad{background:#6f2f2f;border-color:#8a3d3d}.bad:hover{background:#823838}
+.tip{color:#9aa0a6;font-size:13px}
+.msg{min-height:22px;margin-top:8px;font-size:14px}.ok{color:#7ee09a}.no{color:#ff8a8a}
+.scene{position:relative;height:270px;border-radius:10px;overflow:hidden;background:linear-gradient(#2c2f38 0,#2c2f38 40%,#3a332b 40%,#3a332b 100%)}
+.wall{position:absolute;top:8px;right:12px;font-size:12px;color:#9aa0a6}
+#cust{position:absolute;top:38px;left:-15%;font-size:48px;transition:left 1.2s ease;z-index:2}
+.bubble{position:absolute;left:62px;top:-14px;width:230px;background:#f4f4f4;color:#111;border-radius:10px;padding:6px 9px;font-size:13px;line-height:1.35;display:none}
+.bubble:before{content:"";position:absolute;left:-7px;top:18px;border:7px solid transparent;border-right-color:#f4f4f4;border-left:0}
+.case{position:absolute;top:108px;left:8%;width:60%;height:58px;background:linear-gradient(rgba(170,215,235,.28),rgba(170,215,235,.08));border:2px solid #9cc7d6;border-bottom:0;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:space-around;font-size:24px;z-index:3}
+.base{position:absolute;top:166px;left:8%;width:60%;height:16px;background:#6b4f35;border-radius:0 0 4px 4px;z-index:3}
+.station{position:absolute;right:3%;top:118px;width:24%;height:64px;background:#5a4630;border-radius:6px;text-align:center;font-size:12px;color:#e9d8b8;padding-top:5px}
+.station div{font-size:20px;margin-top:3px}
+#chef{position:absolute;top:196px;left:36%;font-size:44px;transition:left .6s ease;z-index:4}
+#held{position:absolute;right:-16px;top:-4px;font-size:24px;display:none}
+#fly{position:absolute;font-size:30px;display:none;z-index:5;left:38%;top:190px}
+.pat{height:8px;background:#3a3c42;border-radius:4px;overflow:hidden;margin:8px 0}
+.pat i{display:block;height:100%;width:100%;background:#5fbf77;transition:width .1s linear}
+.ticket{background:#f6efd9;color:#222;border-radius:6px;padding:8px 10px;font-size:14px;margin-bottom:10px}
+.ticket .tip{color:#6a6a6a}
+.mk{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ings{display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start}
+.stack{min-height:150px;display:flex;flex-direction:column-reverse;align-items:center;padding:6px;background:#24262a;border-radius:8px}
+.layer{width:80%;text-align:center;padding:3px;margin-top:2px;border-radius:5px;font-size:13px;color:#111;font-weight:600}
+.row{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:8px}
+.ups{display:flex;flex-direction:column;gap:6px}.ups button{text-align:left}
+.ov{position:fixed;inset:0;background:rgba(15,16,18,.94);display:none;align-items:center;justify-content:center;z-index:50}
+.ov .box{background:#2b2d31;border-radius:12px;padding:24px;max-width:440px;width:90%;text-align:center}
+.ov .big{font-size:56px}
+.menu{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.menu button{font-size:15px;padding:10px}
+.how{text-align:left;font-size:13px;color:#cfd3d8;background:#24262a;border-radius:8px;padding:10px;margin-top:10px;display:none;line-height:1.5}
+</style></head><body><div class="wrap">
+<h1>🥪 Sandwich Master</h1>
+<div class="sub">Customers come up to the counter. Take their order, make it at the sandwich station, and serve it over the display case.</div>
+<div class="bar">
+<div class="stat">Shop: <b id="rank"></b></div>
+<div class="stat">Fame: <b id="rep"></b> <span id="next" style="color:#9aa0a6"></span></div>
+<div class="stat">Coins: <b id="coins"></b></div>
+<div class="stat">Streak: <b id="streak"></b></div>
+<div class="stat">Served: <b id="served"></b></div>
+<button id="pauseBtn">⏸ Pause (Esc)</button>
+<button id="homeBtn">🏠 Home</button>
+</div>
+<div class="grid">
+<div class="card full">
+ <div class="scene">
+  <div class="wall">🕒 Open daily · 🥪 Fresh made</div>
+  <div id="cust"><span id="face"></span><div class="bubble" id="bubble"></div></div>
+  <div class="case">🥖 🥯 🥗 🧁 🥐</div><div class="base"></div>
+  <div class="station">🔪 Sandwich station<div>🍞🥬🧀🍅🥓</div></div>
+  <div id="chef">🧑‍🍳<span id="held">🥪</span></div>
+  <div id="fly">🥪</div>
+ </div>
+ <div class="pat"><i id="pat"></i></div>
+ <div id="panel"></div>
+ <div class="msg" id="msg"></div>
+</div>
+<div class="card"><h3>Upgrades</h3><div class="ups" id="ups"></div></div>
+<div class="card"><h3>Progress</h3>
+<p class="tip" style="margin-top:0">Your shop is saved in this tab when the app allows it.</p>
+<button id="reset">Reset progress</button></div>
+</div></div>
+
+<!-- Home screen -->
+<div class="ov" id="homeOv"><div class="box"><div class="big">🥪</div><h2 style="margin:4px 0">Sandwich Master</h2>
+<div class="tip" id="homeStats"></div>
+<div class="menu">
+ <button class="go" id="play"></button>
+ <button id="howBtn">❓ How to play</button>
+ <button id="newGame">🆕 New game</button>
+ <button class="bad" id="quitGame">🚪 Quit game</button>
+</div>
+<div class="how" id="how">
+1. Open the shop and a customer walks up.<br>
+2. Take their order and walk to the sandwich station.<br>
+3. Bread first, then the fillings. Same order as the ticket = master's bonus.<br>
+4. Wrap it, walk back, and serve it over the case before their patience runs out.<br>
+5. Earn fame to grow your shop and unlock ingredients. Spend coins on upgrades.<br>
+Press <b>Esc</b> or <b>P</b> any time to pause.
+</div></div></div>
+
+<!-- Pause menu -->
+<div class="ov" id="pauseOv"><div class="box"><div class="big">⏸</div><h2 style="margin:4px 0">Paused</h2>
+<p class="tip">The customer will wait (patience paused).</p>
+<div class="menu">
+ <button class="go" id="resume">▶ Resume</button>
+ <button id="toHome">🏠 Exit to home screen</button>
+ <button id="quitP">🚪 Quit game</button>
+ <button class="bad" id="quit">🧺 Give up sandwich life for good</button>
+</div></div></div>
+
+<!-- Quit screen -->
+<div class="ov" id="quitOv"><div class="box"><div class="big">👋</div><h2>Shop closed for the day</h2>
+<p class="tip">Your progress is saved. See you next shift!</p>
+<div class="row"><button class="go" id="quitBack">Back to home screen</button></div></div></div>
+
+<!-- Retired -->
+<div class="ov" id="retOv"><div class="box"><div class="big">🧺</div><h2>You hung up your apron for good.</h2>
+<p id="retTxt" class="tip"></p>
+<div class="row"><button class="go" id="unret">Come out of retirement</button><button id="fresh">Start a brand new sandwich life</button></div></div></div>
+
+<script>
+const BREADS=[["White","#f3ead2"],["Wheat","#c99a5b"],["Rye","#8a5a3a"],["Sourdough","#e2c48f"],["Ciabatta","#d9b77a"],["Brioche","#f0c060"]];
+const FILL=[["Turkey","#e8b9a0"],["Ham","#f19aa8"],["Cheddar","#f5a623"],["Lettuce","#7ccf5b"],["Tomato","#e5483b"],["Mayo","#fff7d6"],
+["Swiss","#fbeaa0"],["Salami","#b8323f"],["Onion","#d9b3e6"],["Pickles","#8fae3b"],["Mustard","#e6c229"],["Chicken","#e9cf9b"],
+["Avocado","#9cc95a"],["Peppers","#3fa34d"],["Bacon","#c0563a"],["Pesto","#5f9a3a"],["Provolone","#f7e2a8"],["Roast Beef","#9b4a3c"],
+["Egg","#ffe27a"],["Spinach","#3f8f3f"],["Tofu","#efe6cf"],["Jalapeños","#58b04a"],["Hummus","#d9c08a"],["Truffle Aioli","#e8dcb5"]];
+const RANKS=[[0,"Street Cart",6,1,2,40],[40,"Corner Deli",9,2,3,36],[120,"Town Favorite",12,3,4,32],[260,"City Landmark",16,4,5,30],
+[500,"National Icon",20,5,6,28],[900,"World Famous",24,6,7,26],[1500,"The World's Most Renowned Sandwich Shop",24,6,8,24]];
+const FACES=["🧑","👩","👨","🧓","👵","👴","👩‍🎤","🧑‍💼","👮","🧙","🦸","🤠","🧛","👸","🤴"];
+const UPS=[["tip","Bigger tip jar (+25% coins)",30],["clock","Comfy chairs (+3s patience)",40],["sign","Neon sign (+1 fame per order)",60]];
+const KEY="sandwichMaster";
+function load(){try{return JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){return null}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const D={rep:0,coins:0,streak:0,served:0,retired:false,up:{tip:0,clock:0,sign:0}};
+let L=load()||{};
+let S=Object.assign({},D,L);S.up=Object.assign({},D.up,L.up||{});
+let phase="closed",paused=false,pendingNext=false,order=null,built=[],t=0,tMax=1,timers=[];
+const $=id=>document.getElementById(id);
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+function later(fn,ms){const id=setTimeout(()=>{timers=timers.filter(x=>x!==id);fn()},ms);timers.push(id)}
+function clearLater(){timers.forEach(clearTimeout);timers=[]}
+function rankIdx(){let i=0;RANKS.forEach((r,k)=>{if(S.rep>=r[0])i=k});return i}
+function R(){return RANKS[rankIdx()]}
+function col(n){const x=BREADS.find(b=>b[0]==n)||FILL.find(f=>f[0]==n);return x?x[1]:"#ccc"}
+function isBread(n){return BREADS.some(b=>b[0]==n)}
+function msg(s,c){$("msg").textContent=s;$("msg").className="msg "+(c||"")}
+function bubble(h){const b=$("bubble");if(h){b.innerHTML=h;b.style.display="block"}else b.style.display="none"}
+function setChef(w){$("chef").style.left=w=="station"?"80%":"36%"}
+function held(on){$("held").style.display=on?"block":"none"}
+function setPat(f){$("pat").style.width=f*100+"%";$("pat").style.background=f<.3?"#d9534f":f<.6?"#e0b341":"#5fbf77"}
+function on(id,fn){const e=$(id);if(e)e.addEventListener("click",fn)}
+function show(id,v){$(id).style.display=v?"flex":"none"}
+function isShown(id){return $(id).style.display=="flex"}
+
+function renderStats(){
+ const i=rankIdx(),r=RANKS[i];
+ $("rank").textContent=r[1];$("rep").textContent=S.rep;$("coins").textContent=S.coins;
+ $("streak").textContent=S.streak;$("served").textContent=S.served;
+ $("next").textContent=RANKS[i+1]?`(next at ${RANKS[i+1][0]})`:"(top of the world!)";
+ const u=$("ups");u.innerHTML="";
+ UPS.forEach(([k,l,base])=>{const cost=Math.round(base*Math.pow(1.8,S.up[k]));
+  const b=document.createElement("button");b.textContent=`${l} — Lv ${S.up[k]} — ${cost} coins`;
+  b.disabled=S.coins<cost;b.addEventListener("click",()=>{if(S.coins<cost)return;S.coins-=cost;S.up[k]++;save();renderStats()});u.appendChild(b)});
+}
+function renderPanel(){
+ const p=$("panel");let h="";
+ if(phase=="closed")h=`<div class="row" style="justify-content:flex-start"><button class="go" id="open">Open the shop</button></div><div class="tip" style="margin-top:6px">Customers will walk up to the display case.</div>`;
+ else if(phase=="arriving")h=`<div class="tip">A customer is walking up to the counter…</div>`;
+ else if(phase=="ordering")h=`<div>${order.face} is waiting at the counter.</div><div class="row" style="justify-content:flex-start"><button class="go" id="take">📝 Take the order &amp; go to the sandwich station</button></div>`;
+ else if(phase=="walking")h=`<div class="tip">Walking…</div>`;
+ else if(phase=="making"){
+  h=`<div class="ticket"><b>Ticket:</b> ${order.bread} bread → ${order.items.join(" → ")}<div class="tip">Bread first. Bonus for stacking in this exact order.</div></div>
+  <div class="mk"><div class="ings" id="ings"></div><div><div class="stack" id="stack"></div>
+  <div class="row"><button id="undo">Undo</button><button class="bad" id="toss">Toss it</button><button class="go" id="wrap">Wrap it &amp; walk to the counter</button></div></div></div>`}
+ else if(phase=="carry")h=`<div>You're back at the counter holding: <b>${built.join(" + ")}</b></div>
+  <div class="row" style="justify-content:flex-start"><button class="go" id="srv">🥪 Serve it over the case</button><button id="back">Back to the station</button></div>`;
+ else h=`<div class="tip">…</div>`;
+ p.innerHTML=h;
+ on("open",arrive);on("take",takeOrder);on("wrap",toCounter);on("srv",serveOver);on("back",backToStation);
+ on("undo",()=>{built.pop();renderPanel()});on("toss",()=>{built=[];renderPanel()});
+ if(phase=="making"){
+  const r=R(),ing=$("ings");
+  BREADS.slice(0,r[3]).concat(FILL.slice(0,r[2])).forEach(([n,c])=>{
+   const b=document.createElement("button");b.textContent=n;b.style.borderLeft="6px solid "+c;
+   b.addEventListener("click",()=>add(n));ing.appendChild(b)});
+  const st=$("stack");
+  built.forEach(n=>{const d=document.createElement("div");d.className="layer";d.textContent=n;d.style.background=col(n);st.appendChild(d)});
+ }
+}
+function add(n){
+ if(paused)return;
+ if(!built.length&&!isBread(n)){msg("Start with the bread!","no");return}
+ if(built.length&&isBread(n)){msg("One bread per sandwich.","no");return}
+ if(built.length>10){msg("That's tall enough!","no");return}
+ built.push(n);msg("");renderPanel()}
+
+function arrive(){
+ if(S.retired)return;
+ if(paused){pendingNext=true;return}
+ const r=R(),pool=FILL.slice(0,r[2]).map(f=>f[0]),n=1+Math.floor(Math.random()*r[4]);
+ const items=[];for(let k=0;k<n;k++)items.push(pick(pool));
+ order={face:pick(FACES),bread:pick(BREADS.slice(0,r[3]))[0],items};
+ built=[];tMax=r[5]+n*2+S.up.clock*3;t=tMax;setPat(1);
+ $("face").textContent=order.face;bubble(null);
+ const c=$("cust");c.style.transition="none";c.style.left="-15%";void c.offsetWidth;
+ c.style.transition="left 1.2s ease";c.style.left="36%";
+ setChef("counter");held(false);msg("");phase="arriving";renderPanel();
+ later(()=>{if(phase!="arriving")return;phase="ordering";
+  bubble(`Hi! I'd like <b>${order.bread}</b> bread with ${order.items.join(", ")}.`);renderPanel()},1200)}
+function takeOrder(){phase="walking";setChef("station");renderPanel();
+ later(()=>{if(phase!="walking")return;phase="making";renderPanel()},600)}
+function toCounter(){
+ if(!built.length){msg("Make the sandwich first.","no");return}
+ phase="walking";held(true);setChef("counter");msg("");renderPanel();
+ later(()=>{if(phase!="walking")return;phase="carry";renderPanel()},600)}
+function backToStation(){phase="walking";held(false);setChef("station");renderPanel();
+ later(()=>{if(phase!="walking")return;phase="making";renderPanel()},600)}
+function serveOver(){
+ phase="serving";held(false);renderPanel();
+ const f=$("fly");f.style.display="block";
+ const a=f.animate([{top:"190px",left:"38%",transform:"scale(1)"},
+  {top:"50px",left:"40%",transform:"scale(1.4) rotate(-20deg)",offset:.55},
+  {top:"72px",left:"42%",transform:"scale(1) rotate(0)"}],{duration:800,easing:"ease-out"});
+ a.onfinish=()=>{f.style.display="none";if(order)judge()}}
+function key(a){return a.slice().sort().join("|")}
+function judge(){
+ const ok=built[0]==order.bread&&key(built.slice(1))==key(order.items);
+ if(ok){const exact=built.slice(1).join("|")==order.items.join("|");S.streak++;S.served++;
+  const speed=Math.max(0,t/tMax);
+  const fame=2+order.items.length+(exact?2:0)+(speed>.5?1:0)+S.up.sign+Math.min(5,Math.floor(S.streak/3));
+  const coins=Math.round((5+order.items.length*3+Math.round(speed*8))*(1+.25*S.up.tip));
+  const before=rankIdx();S.rep+=fame;S.coins+=coins;save();
+  let m=`Perfect! +${fame} fame, +${coins} coins${exact?" (master's bonus!)":""}`;
+  if(rankIdx()>before)m+=` 🎉 Your shop is now a ${R()[1]}! New ingredients unlocked.`;
+  msg(m,"ok");leave(exact?"Stacked just right! 😋":"Mmm, thanks! 😋")}
+ else{S.streak=0;S.rep=Math.max(0,S.rep-2);save();msg(`${order.face} says: "That's not what I ordered!" -2 fame`,"no");leave("That's not what I ordered! 😠")}
+ built=[];renderStats()}
+function leave(text){
+ phase="leaving";order=null;bubble(text);renderPanel();
+ later(()=>{bubble(null);$("cust").style.left="115%";later(arrive,1400)},1100)}
+function tick(){
+ if(paused||!order||!["ordering","making","carry","walking"].includes(phase))return;
+ t-=.1;setPat(Math.max(0,t/tMax));
+ if(t<=0){S.rep=Math.max(0,S.rep-3);S.streak=0;save();
+  msg(order.face+" got tired of waiting and left. -3 fame","no");
+  built=[];held(false);setChef("counter");leave("I've waited long enough! 😤");renderStats()}}
+setInterval(tick,100);
+
+// stop the shift cleanly (no penalty)
+function stopAll(){clearLater();order=null;built=[];phase="closed";paused=false;pendingNext=false;
+ const c=$("cust");c.style.transition="none";c.style.left="-15%";bubble(null);setChef("counter");held(false);setPat(1);
+ $("fly").style.display="none";show("pauseOv",false);renderPanel()}
+
+// pause
+function pause(){if(S.retired)return;paused=true;show("pauseOv",true)}
+function resume(){paused=false;show("pauseOv",false);
+ quitArmed=false;$("quit").textContent="🧺 Give up sandwich life for good";
+ if(pendingNext){pendingNext=false;arrive()}}
+$("pauseBtn").addEventListener("click",pause);
+$("resume").addEventListener("click",resume);
+document.addEventListener("keydown",e=>{
+ if(e.key!="Escape"&&e.key.toLowerCase()!="p")return;
+ if(isShown("homeOv")||isShown("quitOv")||isShown("retOv"))return;
+ isShown("pauseOv")?resume():pause()});
+
+// home screen
+function showHome(){
+ if(S.retired){showRetired();return}
+ stopAll();save();
+ $("homeStats").innerHTML=S.served?`${R()[1]} · Fame ${S.rep} · ${S.coins} coins · ${S.served} served`:"A brand new sandwich shop awaits.";
+ $("play").textContent=S.served?"▶ Continue your shop":"▶ Start your first shift";
+ $("newGame").textContent="🆕 New game";newArmed=false;
+ $("how").style.display="none";show("homeOv",true)}
+$("homeBtn").addEventListener("click",showHome);
+$("toHome").addEventListener("click",showHome);
+$("play").addEventListener("click",()=>{show("homeOv",false);msg("Shop's open! 🥪","ok");arrive()});
+$("howBtn").addEventListener("click",()=>{const h=$("how");h.style.display=h.style.display=="block"?"none":"block"});
+let newArmed=false;
+$("newGame").addEventListener("click",()=>{
+ if(S.served&&!newArmed){newArmed=true;$("newGame").textContent="Erase your shop? Click again";return}
+ doReset();show("homeOv",false);msg("A brand new sandwich life begins.","ok");arrive()});
+
+// quit game
+function quitGame(){stopAll();save();show("homeOv",false);show("quitOv",true)}
+$("quitGame").addEventListener("click",quitGame);
+$("quitP").addEventListener("click",quitGame);
+$("quitBack").addEventListener("click",()=>{show("quitOv",false);showHome()});
+
+// give up for good
+function showRetired(){
+ $("retTxt").innerHTML=`Final shop: <b>${R()[1]}</b><br>Fame ${S.rep} · ${S.served} sandwiches served · ${S.coins} coins left in the tip jar.<br>The display case goes dark. The bread goes stale. It's over.`;
+ show("homeOv",false);show("retOv",true)}
+let quitArmed=false;
+$("quit").addEventListener("click",()=>{
+ if(!quitArmed){quitArmed=true;$("quit").textContent="Really? Click again to quit forever";return}
+ quitArmed=false;$("quit").textContent="🧺 Give up sandwich life for good";
+ stopAll();S.retired=true;save();showRetired()});
+$("unret").addEventListener("click",()=>{S.retired=false;save();show("retOv",false);showHome()});
+$("fresh").addEventListener("click",()=>{doReset();show("retOv",false);showHome()});
+
+// reset
+function doReset(){try{localStorage.removeItem(KEY)}catch(e){}
+ stopAll();S=JSON.parse(JSON.stringify(D));renderStats();renderPanel()}
+let resetArmed=false;
+$("reset").addEventListener("click",()=>{
+ if(!resetArmed){resetArmed=true;$("reset").textContent="Click again to reset";setTimeout(()=>{resetArmed=false;$("reset").textContent="Reset progress"},3000);return}
+ resetArmed=false;$("reset").textContent="Reset progress";doReset();msg("Progress reset.","ok")});
+
+renderStats();renderPanel();showHome();
+</script></body></html>

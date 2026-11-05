@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Hotdog Tycoon</title>
+<style>
+body{margin:0;background:#1e1f22;color:#e6e6e6;font-family:Segoe UI,Arial,sans-serif}
+.wrap{max-width:900px;margin:0 auto;padding:16px}
+.top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+h1{margin:0 0 4px;font-size:24px}
+.tb{display:flex;gap:6px;flex-wrap:wrap}
+.tb button,.mbtn{background:#2b2d31;border:1px solid #444;color:#e6e6e6;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:13px}
+.tb button:hover,.mbtn:hover{background:#35373c}
+.sub{color:#9aa0a6;margin-bottom:12px}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.stat{background:#2b2d31;border-radius:8px;padding:10px 14px;flex:1;min-width:120px}
+.stat b{display:block;font-size:20px;color:#ffd166}
+.row{display:flex;gap:14px;flex-wrap:wrap}
+.col{flex:1;min-width:280px}
+.card{background:#2b2d31;border-radius:10px;padding:14px;margin-bottom:12px}
+.big{width:100%;padding:12px;font-size:16px;border:none;border-radius:8px;background:#e76f51;color:#fff;cursor:pointer;font-weight:bold}
+.big:disabled{background:#444;color:#888;cursor:default}
+.item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #3a3c42}
+.item:last-child{border:none}
+.item small{color:#9aa0a6;display:block}
+.item button{padding:7px 12px;border:none;border-radius:6px;background:#2a9d8f;color:#fff;cursor:pointer;min-width:90px}
+.item button:disabled{background:#444;color:#888;cursor:default}
+.bar{height:10px;background:#3a3c42;border-radius:5px;overflow:hidden;margin:8px 0}
+.bar div{height:100%;background:#ffd166;width:0}
+#log{font-size:13px;color:#b8bcc2;max-height:120px;overflow:auto}
+a{color:#8ecae6}
+.pop{position:fixed;color:#ffd166;font-weight:bold;pointer-events:none;animation:up .8s forwards;z-index:9;text-shadow:0 1px 2px #000}
+@keyframes up{to{transform:translateY(-50px);opacity:0}}
+.reset.warn,.mbtn.warn{border-color:#e76f51!important;color:#e76f51!important}
+#win{display:none;background:#3a2f12;border:1px solid #ffd166;color:#ffd166;border-radius:8px;padding:10px;margin-bottom:12px;font-weight:bold;text-align:center}
+/* overlays */
+.ov{position:fixed;inset:0;background:#1e1f22f2;z-index:20;display:none;align-items:center;justify-content:center}
+.ov.show{display:flex}
+.panel{background:#2b2d31;border-radius:14px;padding:26px 30px;width:300px;text-align:center;box-shadow:0 10px 40px #000a}
+.panel h2{margin:4px 0 6px}
+.panel p{color:#9aa0a6;margin:0 0 16px;font-size:14px}
+.panel .mbtn{display:block;width:100%;margin-top:8px;padding:9px;font-size:14px}
+.panel .tg{display:flex;gap:8px;margin-top:8px}
+.panel .tg .mbtn{margin-top:0}
+.bigdog{font-size:64px;animation:bob2 1.2s infinite alternate}
+@keyframes bob2{to{transform:translateY(-6px) rotate(-6deg)}}
+/* scene */
+#scene{position:relative;height:230px;border-radius:10px;overflow:hidden;cursor:pointer;user-select:none}
+.loc0{background:repeating-linear-gradient(90deg,#9a6a3e 0 38px,#7a4e2c 38px 40px) bottom/100% 32% no-repeat,linear-gradient(#7ec8f0 0 40%,#2f8fc0 40% 55%,#e9d39a 55%)}
+.loc1{background:linear-gradient(#a9d6f5 0 45%,#5fae4a 45% 68%,#b9b2a6 68%)}
+.loc2{background:linear-gradient(#3b2a6b 0,#c0607e 45%,#4d8a3f 45% 62%,#c9a37a 62%)}
+.loc3{background:linear-gradient(#0d1b3a 0 40%,#2f6d2f 40% 66%,#8a8f99 66%)}
+.dec{position:absolute;line-height:1;pointer-events:none}
+.locname{position:absolute;left:10px;top:8px;background:#0008;color:#fff;padding:3px 8px;border-radius:6px;font-size:13px;z-index:5}
+#cart{position:absolute;right:30px;bottom:20px;width:120px;height:120px;z-index:2}
+.umb{position:absolute;left:30px;top:-6px;font-size:52px}
+.vend{position:absolute;top:34px;font-size:32px}
+.box{position:absolute;bottom:14px;left:0;right:0;height:46px;background:#c0392b;border:3px solid #ffffff44;border-radius:8px;color:#fff;font-weight:bold;font-size:13px;display:flex;align-items:center;justify-content:center;text-align:center}
+.wheel{position:absolute;bottom:0;width:18px;height:18px;border-radius:50%;background:#222;border:3px solid #999}
+.cust{position:absolute;bottom:22px;width:44px;text-align:center;transition:left 1s ease-out,bottom .4s;z-index:3}
+.face{font-size:34px;line-height:1}
+.cust.walk .face{animation:bob .25s infinite alternate}
+@keyframes bob{to{transform:translateY(-3px)}}
+.bub{background:#fff;color:#222;border-radius:8px;font-size:11px;padding:1px 5px;white-space:nowrap;display:inline-block;margin-bottom:2px}
+.cust.front .bub{outline:2px solid #ffd166}
+.pat{height:4px;background:#0006;border-radius:2px;margin-top:2px;overflow:hidden}
+.pat div{height:100%;background:#4caf50}
+#hint{color:#9aa0a6;font-size:13px;margin-top:8px;text-align:center}
+</style></head><body>
+
+<div class="ov show" id="homeOv"><div class="panel">
+ <div class="bigdog">🌭</div>
+ <h2>Hotdog Tycoon</h2>
+ <p id="homeInfo"></p>
+ <button class="big" id="playBtn">▶ Play</button>
+ <button class="mbtn" id="newBtn">🆕 New game</button>
+ <div class="tg"><button class="mbtn" data-t="music"></button><button class="mbtn" data-t="sfx"></button></div>
+ <button class="mbtn" id="quitBtn2">⏻ Quit game</button>
+</div></div>
+
+<div class="ov" id="pauseOv"><div class="panel">
+ <div style="font-size:48px">⏸️</div>
+ <h2>Paused</h2>
+ <p>Customers will wait. Press Esc or P to resume.</p>
+ <button class="big" id="resumeBtn">▶ Resume</button>
+ <div class="tg"><button class="mbtn" data-t="music"></button><button class="mbtn" data-t="sfx"></button></div>
+ <button class="mbtn" id="homeBtn2">🏠 Exit to home screen</button>
+ <button class="mbtn" id="quitBtn3">⏻ Quit game</button>
+</div></div>
+
+<div class="ov" id="quitOv"><div class="panel">
+ <div style="font-size:56px">👋</div>
+ <h2>Thanks for playing!</h2>
+ <p>Your progress is saved. Come back any time.</p>
+ <button class="big" id="backBtn">Back to title</button>
+</div></div>
+
+<div class="wrap">
+<div class="top">
+ <h1>🌭 Hotdog Tycoon</h1>
+ <div class="tb">
+  <button id="pauseBtn">⏸ Pause</button>
+  <button data-t="music"></button>
+  <button data-t="sfx"></button>
+  <button id="homeBtn">🏠 Home</button>
+  <button id="quitBtn">⏻ Quit</button>
+  <button class="reset" id="resetBtn">Reset</button>
+ </div>
+</div>
+<div class="sub" id="title"></div>
+<div id="win">🏆 You did it! Hotdogs in all 50 states! You are the Hotdog King of America!</div>
+<div class="stats">
+<div class="stat">Cash<b id="cash"></b></div>
+<div class="stat">Hotdogs sold<b id="sold"></b></div>
+<div class="stat">Happy customers<b id="served"></b></div>
+<div class="stat">Per dog<b id="per"></b></div>
+<div class="stat">Auto dogs/sec<b id="auto"></b></div>
+</div>
+<div class="card">
+<div id="scene" title="Click to serve the customer at the front">
+ <div class="locname" id="locname"></div>
+ <div id="decor"></div>
+ <div id="cart">
+  <div class="umb">⛱️</div>
+  <div id="vends"></div>
+  <div class="box" id="sign"></div>
+  <div class="wheel" style="left:12px"></div><div class="wheel" style="right:12px"></div>
+ </div>
+</div>
+<div id="hint"></div>
+</div>
+<div class="row">
+<div class="col">
+<div class="card">
+<div id="goalTxt"></div>
+<div class="bar"><div id="goalBar"></div></div>
+<button class="big" id="goalBtn"></button>
+</div>
+<div class="card"><b>News</b><div id="log"></div></div>
+</div>
+<div class="col">
+<div class="card"><b>Upgrades</b><div id="items"></div></div>
+<div class="card">
+<b>Hungry for the real thing?</b>
+<p style="margin:6px 0">Get real Costco hotdogs delivered:</p>
+<a href="https://www.costco.com/s?keyword=hot%20dogs" target="_blank">Costco.com – hot dogs</a><br>
+<a href="https://sameday.costco.com/store/costco/s?k=hot%20dogs" target="_blank">Costco Same-Day Delivery – hot dogs</a>
+</div>
+</div>
+</div>
+</div>
+<script>
+// Safe storage: works even when localStorage is blocked in the tab
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
+const STAGES=[
+ {name:"Stand Attendant",desc:"You work Big Sal's cart on the beach boardwalk for a small cut per dog.",base:0.5,goal:500,goalText:"Buy your own stand"},
+ {name:"Stand Owner",desc:"Your own cart in the city park! You keep the profit on every dog.",base:2,goal:8000,goalText:"Start a fleet of carts"},
+ {name:"Fleet Boss",desc:"Your flagship cart sits by the rides at the theme park. Carts all over town.",base:3,goal:300000,goalText:"Go national"},
+ {name:"National Hotdog Mogul",desc:"Your cart works the big ballpark. Franchises coast to coast. Reach all 50 states!",base:4,goal:null}
+];
+const LOCS=[
+ {name:"🏖️ Beach Boardwalk",sign:"🌭 Big Sal's",cls:"loc0",every:.9,
+  people:["👩","👨","🧒","👧","🧔","👱‍♀️","🏄","👴"],
+  decor:[["☀️",6,10,40],["🌴",20,70,60],["⛵",45,74,26],["🐦",58,20,22],["⛱️",34,98,34]],
+  events:[["Surfers paddle in starving 🏄",1],["A beach volleyball game ends 🏐",1],["A seagull swipes a bun 🐦",0],["Fog rolls in off the water 🌫️",0]]},
+ {name:"🌳 City Park",sign:"🌭 My Dogs",cls:"loc1",every:.75,
+  people:["👩‍💼","👨‍💼","🧑","👵","🚴","🧒","👮"],
+  decor:[["🏙️",4,30,70],["🌳",30,52,52],["⛲",46,80,36],["🌳",60,50,48],["🕊️",40,15,22]],
+  events:[["Office lunch rush 🏃",1],["A food blogger posts about your dogs 📸",1],["Rain slows things down ☔",0]]},
+ {name:"🎢 Theme Park",sign:"🌭 Top Dog",cls:"loc2",every:.6,
+  people:["🧒","👦","👧","🤡","👩","🧑‍🦱","👨"],
+  decor:[["🎡",3,10,80],["🎪",30,40,46],["🎢",42,60,50],["🎠",58,80,34],["🎈",66,18,26]],
+  events:[["The roller coaster line lets out 🎢",1],["A parade passes by 🎉",1],["A kid drops their dog… you give a free one 😢",0]]},
+ {name:"🏟️ Big League Ballpark",sign:"🌭 Top Dog USA",cls:"loc3",every:.45,
+  people:["🧔","👨","👩","🧑","👦","👴","🧑‍🦰"],
+  decor:[["💡",5,8,28],["🏟️",18,22,70],["🎆",42,6,34],["⚾",52,60,24],["💡",68,8,28]],
+  events:[["Seventh-inning stretch rush ⚾",1],["A home run! The crowd goes wild 🎆",1],["Rain delay ☔",0]]}
+];
+const ITEMS=[
+ {id:"onion",st:0,name:"Grilled onion smell",desc:"+25% more customers",cost:40,type:"crowd",v:.25},
+ {id:"hands",st:0,name:"Faster hands",desc:"+1 dog per click",cost:25,type:"click",v:1},
+ {id:"smile",st:0,name:"Big smile",desc:"+$0.25 tips per dog",cost:60,type:"bonus",v:.25},
+ {id:"helper",st:1,name:"Hire a helper",desc:"+0.5 dogs/sec",cost:150,type:"auto",v:.5},
+ {id:"sign",st:1,name:"Bright sign",desc:"+30% more customers",cost:300,type:"crowd",v:.3},
+ {id:"cond",st:1,name:"Condiment bar",desc:"+$0.50 per dog",cost:400,type:"bonus",v:.5},
+ {id:"grill",st:1,name:"Bigger grill",desc:"+2 dogs per click",cost:600,type:"click",v:2},
+ {id:"cart",st:2,name:"New cart + driver",desc:"+4 dogs/sec",cost:2500,type:"auto",v:4},
+ {id:"spot",st:2,name:"Prime spot by the rides",desc:"+40% more customers",cost:5000,type:"crowd",v:.4},
+ {id:"supplier",st:2,name:"Bulk supplier deal",desc:"+$1 per dog",cost:12000,type:"bonus",v:1},
+ {id:"truck",st:2,name:"Hotdog food truck",desc:"+15 dogs/sec",cost:20000,type:"auto",v:15},
+ {id:"state",st:3,name:"Franchise a new state",desc:"+80 dogs/sec (max 50)",cost:150000,type:"auto",v:80,max:50},
+ {id:"ads",st:3,name:"National TV ad",desc:"x1.5 profit on every dog",cost:1000000,type:"mult",v:1.5},
+ {id:"factory",st:3,name:"Own sausage factory",desc:"+$3 per dog",cost:2500000,type:"bonus",v:3}
+];
+function fresh(){return {cash:0,stage:0,sold:0,served:0,lost:0,own:{},won:false,log:[]}}
+let S;
+try{S=JSON.parse(store.get("hdt")||"null")}catch(e){S=null}
+if(!S||typeof S!=="object")S=fresh();
+S=Object.assign(fresh(),S);
+if(!S.own||typeof S.own!=="object")S.own={};
+if(!Array.isArray(S.log))S.log=[];
+if(!(S.stage>=0&&S.stage<STAGES.length))S.stage=0;
+["cash","sold","served","lost"].forEach(k=>{if(!isFinite(S[k]))S[k]=0});
+
+// options (music / sound effects)
+let opts;
+try{opts=JSON.parse(store.get("hdt_opts")||"null")}catch(e){opts=null}
+opts=Object.assign({music:true,sfx:true},opts||{});
+function saveOpts(){store.set("hdt_opts",JSON.stringify(opts))}
+
+const $=id=>document.getElementById(id);
+const scene=$("scene");
+const fmt=n=>"$"+(n>=1e6?(n/1e6).toFixed(2)+"M":n>=1e4?Math.floor(n).toLocaleString():n.toFixed(2));
+const own=id=>S.own[id]||0;
+const cost=it=>it.cost*Math.pow(1.18,own(it.id));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+function sum(t){return ITEMS.filter(i=>i.type==t).reduce((a,i)=>a+own(i.id)*i.v,0)}
+function per(){let m=1;ITEMS.filter(i=>i.type=="mult").forEach(i=>m*=Math.pow(i.v,own(i.id)));return (STAGES[S.stage].base+sum("bonus"))*m}
+function perClick(){return 1+sum("click")}
+function log(t){S.log.unshift(t);S.log=S.log.slice(0,30)}
+function sell(n){S.cash+=n*per();S.sold+=n}
+function save(){store.set("hdt",JSON.stringify(S))}
+function pop(x,y,t){const p=document.createElement("div");p.className="pop";p.textContent=t;p.style.left=x+"px";p.style.top=(y-20)+"px";document.body.appendChild(p);setTimeout(()=>p.remove(),800)}
+
+// ---- audio (all made in the browser, no files) ----
+let AC=null,musG,sfxG,noiseBuf;
+const mf=m=>440*Math.pow(2,(m-69)/12);
+function initAudio(){
+ if(!AC){
+  try{
+   AC=new (window.AudioContext||window.webkitAudioContext)();
+   musG=AC.createGain();musG.gain.value=.5;musG.connect(AC.destination);
+   sfxG=AC.createGain();sfxG.gain.value=.8;sfxG.connect(AC.destination);
+   noiseBuf=AC.createBuffer(1,AC.sampleRate*.05,AC.sampleRate);
+   const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+  }catch(e){AC=null;return}
+ }
+ if(AC.state==="suspended")AC.resume();
+ syncMusic();
+}
+function tone(f,t,d,type,v,dest){
+ const o=AC.createOscillator(),g=AC.createGain();
+ o.type=type;o.frequency.setValueAtTime(f,t);
+ g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+d);
+ o.connect(g);g.connect(dest);o.start(t);o.stop(t+d+.03);return o;
+}
+function noise(t,d,v){
+ const s=AC.createBufferSource(),g=AC.createGain(),f=AC.createBiquadFilter();
+ s.buffer=noiseBuf;f.type="highpass";f.frequency.value=6000;
+ g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);
+ s.connect(f);f.connect(g);g.connect(musG);s.start(t);s.stop(t+d+.01);
+}
+function sfx(n){
+ if(!opts.sfx||!AC)return;
+ const t=AC.currentTime,d=sfxG,seq=(ns,gap,len,type,v)=>ns.forEach((m,i)=>tone(mf(m),t+i*gap,len,type,v,d));
+ switch(n){
+  case"serve":tone(880,t,.07,"square",.12,d);tone(1320,t+.05,.09,"square",.1,d);break;
+  case"happy":seq([72,76,79],.07,.15,"triangle",.25);break;
+  case"angry":{const o=tone(220,t,.35,"sawtooth",.1,d);o.frequency.exponentialRampToValueAtTime(80,t+.35)}break;
+  case"nope":tone(150,t,.12,"square",.08,d);break;
+  case"buy":seq([67,71,74,79],.05,.12,"square",.1);break;
+  case"level":seq([60,64,67,72,67,72,76,79],.09,.2,"square",.1);break;
+  case"event":seq([79,83,86],.06,.12,"triangle",.2);break;
+  case"win":seq([60,64,67,72,64,67,72,76,67,72,76,84],.1,.3,"square",.1);break;
+  case"ui":tone(660,t,.05,"triangle",.15,d);break;
+ }
+}
+// background music: a simple looping tune, a bit faster at each new location
+const PROG=[[60,64,67],[57,60,64],[53,57,60],[55,59,62]]; // C Am F G
+const MEL=[[0,null,1,2,null,1,0,null,2,null,3,null,2,1,null,null],[2,null,1,0,null,1,2,3,null,2,null,1,0,null,null,null]];
+let step=0,nextT=0,musicTimer=null;
+function playStep(s,t){
+ const bar=s>>4,i=s&15,ch=PROG[bar];
+ if(i==0)ch.forEach(m=>tone(mf(m),t,.9,"sine",.05,musG));
+ if(i%4==0)tone(mf(ch[0]-24),t,.22,"triangle",.35,musG);
+ if(i%4==2)tone(mf(ch[0]-12),t,.12,"triangle",.2,musG);
+ const m=MEL[bar%2][i];
+ if(m!=null)tone(mf(ch[m%3]+(m>2?24:12)),t,.16,"square",.06,musG);
+ if(i%2==1)noise(t,.03,.05);
+}
+function schedule(){
+ const spb=60/(108+S.stage*8)/4;
+ if(nextT<AC.currentTime-.1)nextT=AC.currentTime+.05;
+ while(nextT<AC.currentTime+.2){playStep(step,nextT);step=(step+1)%64;nextT+=spb}
+}
+function syncMusic(){
+ const want=AC&&opts.music&&(mode=="play"||mode=="home");
+ if(want&&!musicTimer){nextT=AC.currentTime+.05;musicTimer=setInterval(schedule,50)}
+ if(!want&&musicTimer){clearInterval(musicTimer);musicTimer=null}
+}
+document.addEventListener("pointerdown",initAudio,true);
+document.addEventListener("keydown",initAudio,true);
+
+// ---- screens: home, play, pause, quit ----
+let mode="home";
+function setMode(m){
+ mode=m;
+ $("homeOv").classList.toggle("show",m=="home");
+ $("pauseOv").classList.toggle("show",m=="pause");
+ $("quitOv").classList.toggle("show",m=="quit");
+ if(m!="play")save();
+ if(m=="home"){
+  const isNew=!S.sold&&!S.stage&&!S.cash;
+  $("playBtn").textContent=isNew?"▶ Start game":"▶ Continue";
+  $("homeInfo").textContent=isNew?"Start at Big Sal's boardwalk cart and build a hotdog empire!":STAGES[S.stage].name+" · "+fmt(S.cash)+" cash · "+Math.floor(S.sold).toLocaleString()+" dogs sold";
+ }
+ last=Date.now();
+ syncMusic();
+}
+function renderToggles(){
+ document.querySelectorAll('[data-t="music"]').forEach(b=>b.textContent=opts.music?"🎵 Music on":"🎵 Music off");
+ document.querySelectorAll('[data-t="sfx"]').forEach(b=>b.textContent=opts.sfx?"🔊 Sound on":"🔇 Sound off");
+}
+document.addEventListener("click",e=>{
+ const b=e.target.closest("[data-t]");if(!b)return;
+ opts[b.dataset.t]=!opts[b.dataset.t];saveOpts();renderToggles();syncMusic();sfx("ui");
+});
+$("playBtn").addEventListener("click",()=>{sfx("ui");setMode("play")});
+$("pauseBtn").addEventListener("click",()=>{sfx("ui");setMode("pause")});
+$("resumeBtn").addEventListener("click",()=>{sfx("ui");setMode("play")});
+$("homeBtn").addEventListener("click",()=>{sfx("ui");setMode("home")});
+$("homeBtn2").addEventListener("click",()=>{sfx("ui");setMode("home")});
+["quitBtn","quitBtn2","quitBtn3"].forEach(id=>$(id).addEventListener("click",()=>{sfx("ui");setMode("quit")}));
+$("backBtn").addEventListener("click",()=>{sfx("ui");setMode("home")});
+
+// two-click confirm for starting over
+function confirmBtn(btn,label,fn){
+ let armed=false,t;
+ btn.addEventListener("click",()=>{
+  if(!armed){armed=true;btn.textContent="Click again to start over";btn.classList.add("warn");sfx("nope");
+   t=setTimeout(()=>{armed=false;btn.textContent=label;btn.classList.remove("warn")},3000);return}
+  clearTimeout(t);armed=false;btn.textContent=label;btn.classList.remove("warn");fn();
+ });
+}
+function newGame(){
+ store.del("hdt");S=fresh();log("Day one at Big Sal's boardwalk cart. Grab some tongs!");setLoc();save();render(true);
+}
+confirmBtn($("resetBtn"),"Reset",()=>{newGame();sfx("ui")});
+confirmBtn($("newBtn"),"🆕 New game",()=>{newGame();sfx("ui");setMode("play")});
+
+// ---- customers ----
+let Q=[],spawnAcc=99;
+function maxQ(){return Math.max(2,Math.min(7,Math.floor((scene.clientWidth-200)/46)+1))}
+function spawn(){
+ if(Q.length>=maxQ())return;
+ const el=document.createElement("div");el.className="cust walk";
+ el.innerHTML='<div class="bub"></div><div class="face">'+pick(LOCS[S.stage].people)+'</div><div class="pat"><div></div></div>';
+ el.style.left="-50px";scene.appendChild(el);el.offsetWidth;
+ const c={el,want:perClick()*(1+Math.floor(Math.random()*3)),got:0,pat:12,max:12,born:Date.now(),moveT:Date.now()};
+ Q.push(c);upd(c);layout();
+}
+function layout(){
+ const W=scene.clientWidth;
+ Q.forEach((c,i)=>{const x=W-200-i*46;if(c.x!==x){c.x=x;c.el.style.left=x+"px";c.el.classList.add("walk");c.moveT=Date.now()}c.el.classList.toggle("front",i==0)});
+}
+function upd(c){
+ c.el.querySelector(".bub").textContent="🌭×"+(c.want-c.got);
+ const r=Math.max(0,c.pat/c.max),b=c.el.querySelector(".pat div");
+ if(b){b.style.width=r*100+"%";b.style.background=r>.5?"#4caf50":r>.25?"#ffd166":"#e76f51"}
+}
+function leave(c,happy){
+ Q=Q.filter(q=>q!==c);
+ sfx(happy?"happy":"angry");
+ const el=c.el;el.classList.remove("front");el.classList.add("walk");
+ el.querySelector(".bub").textContent=happy?"😋 Yum!":"😤 Too slow!";
+ const p=el.querySelector(".pat");if(p)p.remove();
+ el.style.transition="left 1.6s linear,bottom .3s";el.style.bottom="2px";
+ el.style.left=(happy?scene.clientWidth+60:-60)+"px";
+ setTimeout(()=>el.remove(),1700);layout();
+}
+function serve(x,y){
+ if(mode!="play")return;
+ const c=Q[0];
+ if(!c||Date.now()-c.born<800){pop(x,y,"Waiting for customers…");sfx("nope");return}
+ const n=Math.min(perClick(),c.want-c.got);c.got+=n;sell(n);pop(x,y,"+"+fmt(n*per()));sfx("serve");
+ if(c.got>=c.want){S.served++;leave(c,true)}else upd(c);
+ render();
+}
+scene.addEventListener("click",e=>serve(e.clientX,e.clientY));
+document.addEventListener("keydown",e=>{
+ if(e.code=="Escape"||e.code=="KeyP"){
+  if(mode=="play"){sfx("ui");setMode("pause")}else if(mode=="pause"){sfx("ui");setMode("play")}
+  return;
+ }
+ if(e.code=="Space"&&e.target.tagName!="BUTTON"&&mode=="play"){e.preventDefault();const r=scene.getBoundingClientRect();serve(r.right-160,r.top+120)}
+});
+
+function setLoc(){
+ const L=LOCS[S.stage];
+ scene.className=L.cls;$("locname").textContent=L.name;$("sign").textContent=L.sign;
+ $("decor").innerHTML=L.decor.map(d=>`<span class="dec" style="left:${d[1]}%;top:${d[2]}px;font-size:${d[3]}px">${d[0]}</span>`).join("");
+ scene.querySelectorAll(".cust").forEach(el=>el.remove());Q=[];spawnAcc=99;
+}
+
+$("goalBtn").addEventListener("click",()=>{
+ const g=STAGES[S.stage];
+ if(g.goal&&S.cash>=g.goal){S.cash-=g.goal;S.stage++;sfx("level");log("🎉 You are now a "+STAGES[S.stage].name+"! New spot: "+LOCS[S.stage].name);setLoc();save();render(true)}
+});
+$("items").addEventListener("click",e=>{
+ const b=e.target.closest("button[data-id]");if(b)buy(b.dataset.id);
+});
+function buy(id){
+ const it=ITEMS.find(i=>i.id==id);if(!it)return;
+ const c=cost(it);if(S.cash<c||(it.max&&own(id)>=it.max)){sfx("nope");return}
+ S.cash-=c;S.own[id]=own(id)+1;sfx("buy");
+ log("Bought: "+it.name+(it.id=="state"?" ("+own(id)+"/50 states)":""));save();render(true);
+}
+let lastLog="";
+function render(full){
+ const st=STAGES[S.stage];
+ $("title").textContent=st.name+" — "+st.desc;
+ $("cash").textContent=fmt(S.cash);$("sold").textContent=Math.floor(S.sold).toLocaleString();
+ $("served").textContent=S.served.toLocaleString();
+ $("per").textContent=fmt(per());$("auto").textContent=sum("auto").toFixed(1);
+ const pc=perClick();
+ $("hint").textContent="Click the scene (or press Space) to hand up to "+pc+" dog"+(pc>1?"s":"")+" ("+fmt(pc*per())+") to the customer at the front · Esc pauses · 😤 walked away: "+S.lost;
+ if(st.goal){
+  $("goalTxt").innerHTML="<b>Next step:</b> "+st.goalText+" ("+fmt(st.goal)+")";
+  $("goalBar").style.width=Math.min(100,S.cash/st.goal*100)+"%";
+  $("goalBtn").textContent=st.goalText;$("goalBtn").disabled=S.cash<st.goal;$("goalBtn").style.display="";
+ }else{
+  const n=own("state");
+  $("goalTxt").innerHTML="<b>Final goal:</b> franchises in all 50 states ("+n+"/50)";
+  $("goalBar").style.width=Math.min(100,n*2)+"%";$("goalBtn").style.display="none";
+  if(n>=50&&!S.won){S.won=true;sfx("win");log("🏆 50 states! You are the Hotdog King of America!");save()}
+ }
+ $("win").style.display=S.won?"block":"none";
+ const avail=ITEMS.filter(i=>i.st<=S.stage);
+ if(full||$("items").children.length!==avail.length){
+  $("items").innerHTML=avail.map(i=>`<div class="item"><div>${i.name} <span style="color:#ffd166">x${own(i.id)}</span><small>${i.desc}</small></div><button data-id="${i.id}" id="b_${i.id}"></button></div>`).join("");
+  const h=Math.min(2,own("helper"));
+  $("vends").innerHTML='<span class="vend" style="left:44px">🧑‍🍳</span>'+(h>0?'<span class="vend" style="left:8px">🧑‍🍳</span>':'')+(h>1?'<span class="vend" style="left:80px">🧑‍🍳</span>':'');
+ }
+ avail.forEach(i=>{const b=$("b_"+i.id);if(!b)return;const maxed=i.max&&own(i.id)>=i.max;b.textContent=maxed?"Maxed":fmt(cost(i));b.disabled=!!(maxed||S.cash<cost(i))});
+ const lg=S.log.join("|");
+ if(lg!==lastLog){lastLog=lg;$("log").innerHTML=S.log.map(l=>"<div>"+l+"</div>").join("")}
+}
+let last=Date.now(),saveT=0;
+setInterval(()=>{
+ const now=Date.now();
+ if(mode!="play"){last=now;return} // paused, home or quit: time stands still
+ const dt=Math.min(5,(now-last)/1000);last=now;
+ sell(sum("auto")*dt);
+ // customers arrive
+ spawnAcc+=dt;
+ if(spawnAcc>=Math.max(.15,LOCS[S.stage].every/(1+sum("crowd")))){spawnAcc=0;spawn()}
+ Q.slice().forEach(c=>{
+  c.pat-=dt;
+  if(c.pat<=0){S.lost++;leave(c,false);return}
+  if(now-c.moveT>1000)c.el.classList.remove("walk");
+  upd(c);
+ });
+ // random events at this location
+ if(Math.random()<.002){
+  const ev=pick(LOCS[S.stage].events);
+  const bonus=ev[1]?Math.max(5,per()*perClick()*20+sum("auto")*10):0;
+  S.cash+=bonus;log(ev[0]+(bonus?" +"+fmt(bonus):""));
+  if(ev[1]){sfx("event");for(let i=0;i<3;i++)spawn()}
+ }
+ if((saveT+=dt)>2){saveT=0;save()}
+ render();
+},100);
+window.addEventListener("resize",layout);
+window.addEventListener("beforeunload",save);
+if(!S.log.length)log("Day one at Big Sal's boardwalk cart. Grab some tongs!");
+setLoc();
+renderToggles();
+render(true);
+setMode("home");
+</script></body></html>

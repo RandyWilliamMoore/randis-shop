@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Pachinko Player</title>
+<style>
+body{margin:0;background:#1e1f22;color:#e6e6e6;font-family:system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;user-select:none}
+#hud{display:flex;gap:14px;padding:10px;font-size:15px;background:#26282c;width:100%;justify-content:center;align-items:center;box-sizing:border-box;flex-wrap:wrap}
+#hud b{color:#ffd166}
+nav{margin:8px 0;display:flex;gap:6px}
+button{background:#33363b;color:#e6e6e6;border:1px solid #4a4e55;border-radius:6px;padding:7px 12px;cursor:pointer;font-size:14px;touch-action:none}
+button:hover{background:#3d4148}button:active{transform:translateY(1px)}
+button.poor{opacity:.5}
+button.small{padding:3px 8px;font-size:13px}
+nav button.on,button.lit{background:#c2185b;border-color:#e91e63}
+.scr{display:none;flex-direction:column;align-items:center;gap:8px;max-width:520px;width:100%}
+.scr.on{display:flex}
+canvas{background:#14151a;border:3px solid #c9a227;border-radius:10px}
+#slot{font:bold 34px monospace;background:#000;padding:4px 16px;border-radius:6px;border:2px solid #e91e63;letter-spacing:10px;min-width:130px;text-align:center}
+#msg{min-height:20px;color:#ff80ab;font-weight:bold;text-align:center}
+#cmsg{min-height:20px;color:#ffd166;font-weight:bold;text-align:center}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
+.card{background:#26282c;border:1px solid #3a3d43;border-radius:8px;padding:12px;width:100%;box-sizing:border-box}
+#log{background:#15161a;padding:10px;border-radius:6px;min-height:90px;white-space:pre-wrap;line-height:1.4;font-size:14px}
+.route{display:block;width:100%;text-align:left;margin:4px 0}
+small{color:#9aa0a6}
+</style></head><body>
+<div id="hud">💴 ¥<b id="yen"></b> ⚪ Balls <b id="balls"></b> 🎫 S<b id="ts"></b> M<b id="tm"></b> L<b id="tl"></b> 🍫<b id="sn"></b>
+ <button id="musBtn" class="small">🎵 Music on</button><button id="sfxBtn" class="small">🔊 Sound on</button></div>
+<nav><button data-s="parlor" class="on">🎰 Parlor</button><button data-s="counter">🎁 Prize Counter</button><button data-s="alley">🏮 Back Alley</button></nav>
+
+<div id="parlor" class="scr on">
+  <div class="row"><div id="slot">- - -</div><div><small>Reserve:</small> <b id="res">0</b></div></div>
+  <div id="msg">Click anywhere to start the sound. Hold the shoot button or Space.</div>
+  <canvas id="cv" width="360" height="480"></canvas>
+  <div class="row"><small>Power</small><input type="range" id="pow" min="0" max="100" value="55">
+  <button id="shoot">🔫 Hold to shoot</button><button id="auto">♻️ Auto: off</button></div>
+  <small>Hit the center START pocket to spin. Three of a kind = FEVER! The big gate opens.</small>
+</div>
+
+<div id="counter" class="scr">
+  <div id="cmsg"></div>
+  <div class="card"><h3>Ball rental</h3><div class="row"><button id="buyBtn">¥1,000 → 250 balls</button><button id="mom" style="display:none">📞 Call mom (+¥5,000)</button></div></div>
+  <div class="card"><h3>Special prizes (tokens)</h3>
+  <small>The counter can't give you cash, of course. Just these little gold tokens... 😉</small>
+  <div class="row" style="margin-top:8px">
+  <button data-tok="s" data-c="100">Small token — 100 balls</button>
+  <button data-tok="m" data-c="500">Medium — 500 balls</button>
+  <button data-tok="l" data-c="2000">Large — 2,000 balls</button>
+  <button id="snackBtn">🍫 Chocolate — 20 balls</button></div></div>
+  <div class="card"><small>Rumor: there's a little window somewhere in the alleys out back that "buys" gold tokens. Small ¥350 · Medium ¥1,750 · Large ¥7,000.</small></div>
+</div>
+
+<div id="alley" class="scr">
+  <div class="card"><h3 id="ah">Shinjuku back alleys</h3><div id="log"></div><div id="routes"></div></div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+window.onerror=(m,src,line)=>{try{$('msg').textContent='⚠ '+m+' (line '+line+')'}catch(e){}};
+
+// Storage may be blocked in a sandboxed frame; fall back to memory.
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+let saved={};try{saved=JSON.parse(store.get('pachi')||'{}')||{}}catch(e){saved={}}
+const S=Object.assign({yen:9000,balls:250,tok:{s:0,m:0,l:0},sn:0,mus:true,sfx:true},saved);
+S.tok=Object.assign({s:0,m:0,l:0},S.tok);
+for(const k of ['yen','balls','sn'])if(!isFinite(S[k]))S[k]=0;
+
+// ---------- Sound (made live, no files) ----------
+let AC=null,master,musG,sfxG,noiseBuf;
+function initAudio(){
+ if(AC){if(AC.state=='suspended')AC.resume();return}
+ try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){return}
+ master=AC.createGain();master.gain.value=.5;master.connect(AC.destination);
+ musG=AC.createGain();musG.gain.value=S.mus?.3:0;musG.connect(master);
+ sfxG=AC.createGain();sfxG.gain.value=S.sfx?.7:0;sfxG.connect(master);
+ noiseBuf=AC.createBuffer(1,AC.sampleRate*.5,AC.sampleRate);
+ const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+ nextT=AC.currentTime+.1;setInterval(sched,25);
+ if($('msg').textContent.startsWith('Click'))$('msg').textContent='';
+}
+function tone(f,dur,o={}){if(!AC)return;const t=o.at??AC.currentTime+(o.d||0),os=AC.createOscillator(),g=AC.createGain();
+ os.type=o.type||'square';os.frequency.setValueAtTime(f,t);if(o.slide)os.frequency.exponentialRampToValueAtTime(o.slide,t+dur);
+ g.gain.setValueAtTime(o.v??.15,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);
+ os.connect(g);g.connect(o.dest||sfxG);os.start(t);os.stop(t+dur+.02)}
+function noise(dur,o={}){if(!AC)return;const t=o.at??AC.currentTime,s=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain();
+ s.buffer=noiseBuf;f.type='highpass';f.frequency.value=o.hp||5000;g.gain.setValueAtTime(o.v??.1,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);
+ s.connect(f);f.connect(g);g.connect(o.dest||sfxG);s.start(t);s.stop(t+dur)}
+let lastPin=0,lastTick=0;
+const SFX={
+ click(){tone(900,.04,{type:'triangle',v:.12})},
+ shoot(){noise(.04,{v:.12,hp:3000})},
+ pin(){const n=performance.now();if(n-lastPin<35)return;lastPin=n;tone(2200+Math.random()*1800,.05,{type:'triangle',v:.04})},
+ start(){tone(880,.08);tone(1320,.12,{d:.07})},
+ tulip(){[660,880,1100].forEach((f,i)=>tone(f,.1,{d:i*.06,type:'triangle',v:.18}))},
+ att(){tone(1200,.06,{v:.12});tone(1600,.08,{d:.05,v:.12})},
+ tick(){const n=performance.now();if(n-lastTick<70)return;lastTick=n;tone(500,.03,{v:.06})},
+ stop(){tone(300,.08,{type:'sawtooth',v:.12})},
+ reach(){tone(600,.5,{slide:1200,type:'sawtooth',v:.1});tone(1200,.5,{d:.5,slide:600,type:'sawtooth',v:.1})},
+ fever(){[523,659,784,1047,784,1047,1319].forEach((f,i)=>tone(f,.18,{d:i*.11,v:.18}))},
+ coin(){tone(1568,.06,{v:.15});tone(2093,.2,{d:.06,v:.15})},
+ cash(){for(let i=0;i<5;i++){tone(1568,.05,{d:i*.1,v:.12});tone(2093,.12,{d:i*.1+.05,v:.12})}},
+ bad(){tone(220,.3,{slide:90,type:'sawtooth',v:.15})},
+ good(){tone(660,.07,{type:'triangle'});tone(990,.1,{d:.07,type:'triangle'})},
+ phone(){for(let i=0;i<6;i++)tone(i%2?1000:800,.07,{d:i*.08,v:.1})},
+ munch(){for(let i=0;i<3;i++)noise(.05,{at:AC&&AC.currentTime+i*.09,v:.15,hp:800})}
+};
+function sfx(n){try{if(AC)SFX[n]()}catch(e){}}
+
+// Music: a looping tune on a Japanese pentatonic scale; faster and brighter during FEVER.
+const D4=293.66,D2=73.42,fq=(s,b)=>b*2**(s/12);
+const MEL=[12,-1,9,7, 9,-1,12,14, 12,9,7,-1, 5,7,9,-1, 7,-1,5,2, 5,-1,7,9, 7,5,2,-1, 0,-1,-1,-1];
+const BASS=[0,5,7,0];
+let mStep=0,nextT=0;
+function sched(){if(!AC)return;
+ if(nextT<AC.currentTime-.5)nextT=AC.currentTime+.05;
+ while(nextT<AC.currentTime+.15){const fever=performance.now()<feverUntil,dur=fever?.085:.115,t=nextT;
+  if(mStep%2==0){const n=MEL[(mStep/2)%32];if(n>=0)tone(fq(n+(fever?12:0),D4),dur*1.8,{at:t,type:fever?'square':'triangle',v:fever?.12:.18,dest:musG})}
+  if(mStep%4==0){const r=BASS[Math.floor(mStep/16)%4];tone(fq(r+(mStep%8?12:0),D2),dur*3,{at:t,type:'triangle',v:.3,dest:musG})}
+  if(mStep%8==0)tone(130,.12,{at:t,type:'sine',slide:45,v:.5,dest:musG});
+  if(mStep%4==2)noise(.04,{at:t,v:.06,dest:musG});
+  if(fever&&mStep%2==1)noise(.02,{at:t,v:.03,dest:musG});
+  nextT+=dur;mStep=(mStep+1)%64}}
+function setVol(){if(!AC)return;musG.gain.value=S.mus?.3:0;sfxG.gain.value=S.sfx?.7:0}
+$('musBtn').onclick=()=>{S.mus=!S.mus;setVol();save()};
+$('sfxBtn').onclick=()=>{S.sfx=!S.sfx;setVol();save();sfx('click')};
+// Browsers only allow sound after you click or press a key.
+document.addEventListener('pointerdown',e=>{initAudio();if(e.target.closest('button')&&e.target.id!='shoot')sfx('click')},true);
+document.addEventListener('keydown',initAudio,true);
+
+// ---------- HUD ----------
+function hud(){$('yen').textContent=S.yen.toLocaleString();$('balls').textContent=S.balls;$('ts').textContent=S.tok.s;$('tm').textContent=S.tok.m;$('tl').textContent=S.tok.l;$('sn').textContent=S.sn;
+ $('mom').style.display=(S.yen<1000&&S.balls<20&&!S.tok.s&&!S.tok.m&&!S.tok.l)?'':'none';
+ $('buyBtn').classList.toggle('poor',S.yen<1000);
+ document.querySelectorAll('[data-tok]').forEach(b=>b.classList.toggle('poor',S.balls<+b.dataset.c));
+ $('snackBtn').classList.toggle('poor',S.balls<20);
+ $('musBtn').textContent=S.mus?'🎵 Music on':'🎵 Music off';$('sfxBtn').textContent=S.sfx?'🔊 Sound on':'🔈 Sound off'}
+function save(){store.set('pachi',JSON.stringify(S));hud()}
+let cmsgT;function cmsg(t){$('cmsg').textContent=t;clearTimeout(cmsgT);cmsgT=setTimeout(()=>$('cmsg').textContent='',3000)}
+
+let A=null;
+document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>{
+ document.querySelectorAll('nav button,.scr').forEach(e=>e.classList.remove('on'));
+ b.classList.add('on');$(b.dataset.s).classList.add('on');b.blur();
+ if(b.dataset.s=='alley'&&!A)startAlley()}));
+
+// ---------- Counter ----------
+$('buyBtn').onclick=()=>{if(S.yen<1000){sfx('bad');return cmsg('Not enough cash. You need ¥1,000.')}S.yen-=1000;S.balls+=250;sfx('coin');cmsg('Clatter clatter... 250 balls!');save()};
+$('mom').onclick=()=>{S.yen+=5000;sfx('phone');save();cmsg('📞 Mom: "Again?? Fine. Eat something real."')};
+document.querySelectorAll('[data-tok]').forEach(b=>b.onclick=()=>{const k=b.dataset.tok,c=+b.dataset.c;
+ if(S.balls<c){sfx('bad');return cmsg(`You need ${c-S.balls} more balls.`)}
+ S.balls-=c;S.tok[k]++;sfx('coin');cmsg('Here you go. Just a little gold token. 😉');save()});
+$('snackBtn').onclick=()=>{if(S.balls<20){sfx('bad');return cmsg('You need 20 balls for chocolate.')}S.balls-=20;S.sn++;sfx('munch');cmsg('🍫 Mmm.');save()};
+
+// ---------- Pachinko ----------
+const cv=$('cv'),cx=cv.getContext('2d'),W=360,H=480;
+const pockets=[{x:180,y:360,w:20,t:'start'},{x:75,y:290,w:18,t:'tulip'},{x:285,y:290,w:18,t:'tulip'},{x:180,y:445,w:80,t:'att'}];
+const pins=[];
+for(let r=0;r<13;r++){const y=60+r*28,off=r%2?15:0;for(let x=20+off;x<=340;x+=30){
+ if(pockets.some(p=>Math.abs(x-p.x)<p.w/2+8&&y>p.y-24&&y<p.y+8))continue;pins.push([x,y])}}
+let balls=[],holding=false,auto=false,lastShot=0,reserve=0,spinning=null,feverUntil=0,msgT=0;
+function msg(t){$('msg').textContent=t;msgT=performance.now()+2500}
+function shoot(){if(S.balls<=0){msg('Out of balls — rent more at the Prize Counter');holding=false;setAuto(false);return}
+ S.balls--;sfx('shoot');const p=$('pow').value/100;
+ balls.push({x:20+p*320+(Math.random()-.5)*14,y:8,vx:(Math.random()-.5)*1.2,vy:1})}
+function catchBall(p){
+ if(p.t=='start'){S.balls+=3;if(reserve<4)reserve++;sfx('start')}
+ else if(p.t=='tulip'){S.balls+=10;sfx('tulip')}
+ else{S.balls+=15;sfx('att')}}
+function spin(now){reserve--;const jack=Math.random()<1/25;let d;
+ if(jack){const n=Math.floor(Math.random()*9)+1;d=[n,n,n]}
+ else{d=[1,2,3].map(()=>Math.floor(Math.random()*9)+1);if(Math.random()<.2)d[1]=d[0];if(d[0]==d[1]&&d[1]==d[2])d[2]=d[2]%9+1}
+ const reach=d[0]==d[1];spinning={d,jack,end:now+1400+(reach?1200:0),reach,locked:0,reachSnd:false}}
+function step(now){
+ if((holding||auto)&&now-lastShot>140){lastShot=now;shoot()}
+ const fever=now<feverUntil;
+ for(let s=0;s<2;s++)for(let i=balls.length-1;i>=0;i--){const b=balls[i];
+  b.vy+=0.08;b.x+=b.vx/1.4;b.y+=b.vy/1.4;
+  if(b.x<6){b.x=6;b.vx=Math.abs(b.vx)*.6}if(b.x>354){b.x=354;b.vx=-Math.abs(b.vx)*.6}
+  for(const [px,py] of pins){const dx=b.x-px,dy=b.y-py,d=Math.hypot(dx,dy);
+   if(d<7&&d>0){const nx=dx/d,ny=dy/d;b.x=px+nx*7;b.y=py+ny*7;const dot=b.vx*nx+b.vy*ny;
+    if(dot<0){b.vx-=1.6*dot*nx;b.vy-=1.6*dot*ny;b.vx+=(Math.random()-.5)*.4;if(dot<-.6)sfx('pin')}}}
+  let gone=false;
+  for(const p of pockets){if(p.t=='att'&&!fever)continue;
+   if(b.vy>0&&Math.abs(b.x-p.x)<p.w/2&&b.y>p.y-4&&b.y<p.y+4){catchBall(p);gone=true;break}}
+  if(gone||b.y>H+5)balls.splice(i,1)}
+ if(!spinning&&reserve>0)spin(now);
+ if(spinning){const sp=spinning,left=sp.end-now;
+  const lockedNow=[0,1,2].filter(i=>left<(2-i)*350).length;
+  if(lockedNow>sp.locked){sp.locked=lockedNow;sfx('stop')}else if(left>0)sfx('tick');
+  let txt=sp.d.map((v,i)=>left<(2-i)*350?v:Math.floor(Math.random()*9)+1).join(' ');
+  if(sp.reach&&left<1500&&left>0){$('msg').textContent='🔥 REACH!! 🔥';if(!sp.reachSnd){sp.reachSnd=true;sfx('reach')}}
+  if(left<=0){txt=sp.d.join(' ');
+   if(sp.jack){const big=sp.d[0]==7;feverUntil=now+(big?25000:15000);sfx('fever');msg(big?'🎉 7-7-7 SUPER FEVER!!! 🎉':'🎉 FEVER! Gate open! 🎉')}
+   else if(sp.reach)msg('So close...');
+   spinning=null}
+  $('slot').textContent=txt}
+ if(msgT&&now>msgT){$('msg').textContent=fever?'💥 FEVER '+Math.ceil((feverUntil-now)/1000)+'s 💥':'';msgT=fever?now+300:0}
+ draw(now,fever);$('res').textContent=reserve}
+function draw(now,fever){cx.fillStyle=fever?`hsl(${now/10%360},40%,10%)`:'#14151a';cx.fillRect(0,0,W,H);
+ cx.fillStyle='#c9a227';for(const [x,y] of pins){cx.beginPath();cx.arc(x,y,2.5,0,7);cx.fill()}
+ for(const p of pockets){const open=p.t!='att'||fever;
+  cx.strokeStyle=p.t=='start'?'#e91e63':p.t=='tulip'?'#4fc3f7':(open?'#76ff03':'#555');cx.lineWidth=3;
+  cx.beginPath();cx.moveTo(p.x-p.w/2,p.y-10);cx.lineTo(p.x-p.w/2,p.y+4);cx.lineTo(p.x+p.w/2,p.y+4);cx.lineTo(p.x+p.w/2,p.y-10);cx.stroke();
+  if(!open){cx.fillStyle='#444';cx.fillRect(p.x-p.w/2,p.y-10,p.w,6)}
+  cx.fillStyle='#ccc';cx.font='9px sans-serif';cx.textAlign='center';cx.fillText(p.t=='start'?'START':p.t=='tulip'?'+10':(open?'OPEN +15':'closed'),p.x,p.y+16)}
+ const px=20+$('pow').value/100*320;cx.fillStyle='#e91e63';cx.beginPath();cx.moveTo(px-5,0);cx.lineTo(px+5,0);cx.lineTo(px,7);cx.fill();
+ cx.fillStyle='#e0e0e0';for(const b of balls){cx.beginPath();cx.arc(b.x,b.y,4,0,7);cx.fill()}}
+let saveT=0;
+function loop(now){try{step(now)}catch(e){console.error(e);$('msg').textContent='⚠ '+e.message}if(now-saveT>500){saveT=now;save()}requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+
+const sh=$('shoot');
+sh.addEventListener('pointerdown',e=>{e.preventDefault();holding=true;try{sh.setPointerCapture(e.pointerId)}catch(_){};sh.classList.add('lit')});
+const release=()=>{holding=false;sh.classList.remove('lit')};
+sh.addEventListener('pointerup',release);sh.addEventListener('pointercancel',release);
+window.addEventListener('pointerup',release);window.addEventListener('blur',release);
+sh.addEventListener('contextmenu',e=>e.preventDefault());
+function setAuto(v){auto=v;$('auto').textContent='♻️ Auto: '+(v?'on':'off');$('auto').classList.toggle('lit',v)}
+$('auto').onclick=()=>{setAuto(!auto);$('auto').blur()};
+cv.addEventListener('pointerdown',e=>{const r=cv.getBoundingClientRect();$('pow').value=Math.max(0,Math.min(100,((e.clientX-r.left)*W/r.width-20)/3.2))});
+window.addEventListener('keydown',e=>{if(e.code=='Space'&&$('parlor').classList.contains('on')){holding=true;sh.classList.add('lit');e.preventDefault()}});
+window.addEventListener('keyup',e=>{if(e.code=='Space'){release();e.preventDefault()}});
+
+// ---------- Back alley ----------
+const ROUTES=[
+ {n:'Neon main drag of Kabukicho',r:.35,ev:'cop'},{n:'Narrow lane behind a host club',r:.3,ev:'tout'},
+ {n:'Omoide Yokocho yakitori smoke alley',r:.2,ev:'drunk'},{n:'Dark gap between two buildings',r:.4,ev:'pick'},
+ {n:'Stairwell above a ramen shop',r:.1,ev:'ramen'},{n:'Golden Gai backstreet',r:.2,ev:'cat'},
+ {n:'Under the train tracks (rumble rumble)',r:.25,ev:'lost'},{n:'Loading dock behind a Don Quijote',r:.3,ev:'pick'}];
+const GOOD=['You slip past the glowing vending machines unseen.','Nobody even glances at your paper bag.','A shortcut! Steam from a vent hides you.','You blend in with a crowd of tired salarymen.',"An old lady nods at you knowingly. You're on the right track."];
+function startAlley(){A={step:0,need:3,log:'You step out the side door of the parlor, prize bag in hand.\nThe exchange window is somewhere back here...'};renderAlley()}
+function alog(t){A.log=t}
+function choose(rt){const bad=Math.random()<rt.r;
+ if(!bad){
+  if(rt.ev=='cat'&&Math.random()<.5){S.yen+=100;sfx('coin');alog('A lucky maneki-neko cat leads you on... and you find a ¥100 coin!')}
+  else{sfx('good');alog(GOOD[Math.floor(Math.random()*GOOD.length)])}A.step++}
+ else{sfx('bad');switch(rt.ev){
+  case'cop':alog('👮 An officer at the koban eyes your bag. "Just prizes?" "Just prizes." He waves you on, but you have to double back.');break;
+  case'tout':S.yen=Math.max(0,S.yen-500);alog('🕴️ A tout drags you into "just one look." You escape ¥500 poorer.');break;
+  case'drunk':alog('🍶 A drunk salaryman hugs you and sings enka. Five minutes lost.');break;
+  case'lost':alog('🚃 Trains roar overhead. You get turned around and end up where you started.');A.step=Math.max(0,A.step-1);break;
+  case'ramen':alog('🍜 The smell is too much. You stop for ramen (¥900). Worth it.');S.yen=Math.max(0,S.yen-900);A.step++;break;
+  case'pick':{const k=['l','m','s'].find(k=>S.tok[k]>0);
+   if(k){S.tok[k]--;alog('🫳 Someone bumps you in the dark... a '+{s:'Small',m:'Medium',l:'Large'}[k]+' token is gone!')}
+   else alog('🫳 Someone bumps you, pats your empty bag, and sighs.');}}}
+ save();renderAlley()}
+function sell(){const v=S.tok.s*350+S.tok.m*1750+S.tok.l*7000;
+ A.log=v?`A hand slides out from behind the frosted glass. It takes your tokens.\nIt slides back... ¥${v.toLocaleString()} in cash. Not a word is said.`:'The hand appears, waits, and slowly withdraws. You have no tokens.';
+ sfx(v?'cash':'bad');S.yen+=v;S.tok={s:0,m:0,l:0};A.done=true;save();renderAlley()}
+function addRoute(text,fn){const b=document.createElement('button');b.className='route';b.textContent=text;b.addEventListener('click',fn);$('routes').append(b)}
+function renderAlley(){$('log').textContent=A.log;$('routes').innerHTML='';
+ if(A.done){$('ah').textContent='The little window';
+  addRoute('🎰 Walk back to the parlor',()=>{startAlley();document.querySelector('[data-s=parlor]').click()});return}
+ if(A.step>=A.need){$('ah').textContent='🪟 A tiny window with frosted glass';addRoute('Slide your tokens under the window',sell);return}
+ $('ah').textContent=`Shinjuku back alleys — ${A.step}/${A.need} blocks to the window`;
+ const pick=[...ROUTES].sort(()=>Math.random()-.5).slice(0,3);
+ for(const rt of pick)addRoute(`${rt.n}  ${'⚠️'.repeat(Math.ceil(rt.r*10/1.5))}`,()=>choose(rt))}
+hud();
+</script></body></html>
