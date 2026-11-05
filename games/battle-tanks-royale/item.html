@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Battle Tanks Royale</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#1e1f22;color:#e6e6e6;font:14px system-ui,sans-serif;user-select:none}
+body.chat{padding-right:270px}
+#top{display:flex;gap:14px;align-items:center;padding:8px 14px;background:#26272b;border-bottom:1px solid #333}
+#top b{color:#f3b33d;letter-spacing:1px}#xpb{width:120px;height:8px;background:#111;border-radius:4px;overflow:hidden}#xpf{height:100%;background:#5fbf5f}
+#chbtn{margin-left:auto;padding:4px 10px}#unr{background:#e05050;color:#fff;border-radius:9px;padding:0 6px;font-size:11px;margin-left:4px}#unr:empty{display:none}
+.scr{padding:16px;max-width:980px;margin:auto}.hide{display:none!important}
+button{background:#3a3d44;color:#e6e6e6;border:1px solid #555;border-radius:6px;padding:8px 14px;cursor:pointer;font:inherit}
+button:hover:not(:disabled){background:#4a4e57}button:disabled{opacity:.4;cursor:default}button.big{display:block;width:280px;margin:10px auto;padding:14px;font-size:16px}
+h1{text-align:center;color:#f3b33d;letter-spacing:3px}h2{color:#f3b33d;margin:6px 0}h3{color:#f3b33d;margin:10px 0 4px}
+.row{display:flex;justify-content:space-between;align-items:center;padding:8px;background:#26272b;border-radius:6px;margin:6px 0;gap:8px}
+.row small{color:#999}.cols{display:flex;gap:16px;flex-wrap:wrap}.cols>div{flex:1;min-width:280px}
+input,select,textarea{background:#111;color:#e6e6e6;border:1px solid #555;border-radius:4px;padding:5px}
+textarea{display:block;width:100%;height:58px;margin:4px 0;font:11px monospace;resize:vertical;user-select:text;word-break:break-all}
+.diary{font-style:italic;color:#cfc6a8;background:#2a2820;padding:10px;border-left:3px solid #f3b33d}
+#game{position:relative;padding:4px}#cv{display:block;margin:auto;width:min(100%,calc((100vh - 60px)*1.5));background:#2b2d24;border-radius:6px;cursor:crosshair}
+#ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(20,20,22,.85);text-align:center;padding:30px}
+#ov p{max-width:520px}.ch{cursor:pointer}.ch.lock{opacity:.4;cursor:default}
+.steps{background:#26272b;border-radius:6px;padding:10px 14px 10px 32px;margin:8px 0}.steps li{margin:5px 0}
+#code{text-transform:uppercase;letter-spacing:1px;font-weight:bold;width:150px}#cmsg{color:#5fbf5f;min-width:60px}
+.box{background:#232428;border:1px solid #3a3d44;border-radius:8px;padding:12px;margin:12px 0}
+#nst{min-height:18px;font-weight:bold}
+#chat{position:fixed;top:41px;right:0;bottom:0;width:270px;background:#232428;border-left:1px solid #333;display:flex;flex-direction:column;z-index:5}
+#chhead{padding:8px 10px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #333;gap:6px}
+#chhead button{padding:2px 8px}#chwho{font-size:12px;color:#bbb;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#msgs{flex:1;overflow-y:auto;padding:8px;user-select:text}
+.m{margin:5px 0;word-wrap:break-word;line-height:1.35}.m b{color:#4aa3df}.m.them b{color:#e05050}.m.sys{color:#888;font-style:italic;font-size:12px}
+#chform{display:flex;gap:4px;padding:8px;border-top:1px solid #333}#chin{flex:1;min-width:0}#chsend{padding:5px 10px}
+#chtip{color:#777;font-size:11px;padding:0 8px 8px}
+</style></head><body>
+<div id="top"><b>BATTLE TANKS ROYALE</b><span id="who"></span><span id="lv"></span><div id="xpb"><div id="xpf"></div></div><span id="co"></span><button id="chbtn" onclick="toggleChat()">💬 Chat<span id="unr"></span></button></div>
+
+<div id="chat" class="hide"><div id="chhead"><span id="chwho">⚪ Not connected</span><button onclick="toggleChat(false)" title="Close chat">✕</button></div>
+<div id="msgs"><div class="m sys">Chat with your friend while you play online. Link up in Versus → Play a friend over the internet.</div></div>
+<div id="chform"><input id="chin" maxlength="200" autocomplete="off"><button id="chsend" onclick="sendChat()">Send</button></div>
+<div id="chtip">Press T in a battle to chat, Enter to send, Esc to go back to driving.</div></div>
+
+<div id="menu" class="scr"><h1>BATTLE TANKS ROYALE</h1>
+<button class="big" onclick="startGame('defend')">🛡 Defend Your Base</button>
+<button class="big" onclick="showStory()">📖 Story: A Tanker's War</button>
+<button class="big" onclick="showVs()">⚔ Versus a Friend (online or same keyboard)</button>
+<button class="big" onclick="showGarage()">🔧 Garage</button>
+<p style="text-align:center;color:#999">Drive W/S, turn A/D, aim with the mouse, click or Space to fire. Esc leaves a battle.</p></div>
+
+<div id="garage" class="scr hide"><button onclick="show('menu')">← Back</button>
+<div class="cols"><div><h2>Upgrades</h2><div id="ups"></div><h2>Gear</h2><div id="gear"></div></div>
+<div><h2>Custom Detail</h2><canvas id="pv" width="220" height="160" style="background:#2b2d24;border-radius:6px;display:block;margin:auto"></canvas>
+<div class="row">Name <input id="cName" maxlength="12"></div>
+<div class="row">Hull colour <input type="color" id="cBody"></div>
+<div class="row">Turret colour <input type="color" id="cTur"></div>
+<div class="row">Camo <select id="cCamo"><option>none</option><option>stripes</option><option>spots</option><option>digital</option></select></div>
+<div class="row">Decal <select id="cDecal"><option>none</option><option>star</option><option>cross</option><option>ring</option></select></div>
+<div id="stats" class="row"></div></div></div></div>
+
+<div id="story" class="scr hide"><button onclick="show('menu')">← Back</button><h2>A Tanker's War</h2><div id="chs"></div><div id="chd"></div></div>
+
+<div id="vs" class="scr hide"><button onclick="show('menu')">← Back</button><h2>Versus a Friend</h2>
+<div class="cols"><div>
+<div class="row">Match code <input id="code" maxlength="12" placeholder="e.g. HILL9"><button onclick="genCode()">🎲 Random</button><button onclick="copyCode()">📋 Copy</button><span id="cmsg"></span></div>
+<ol class="steps">
+<li><b>The code is the map.</b> Type any word or number, or press 🎲 Random. It decides where every wall goes.</li>
+<li><b>Same code, same map.</b> Capitals don't matter; only letters, numbers and dashes count.</li>
+<li><b>Online, the host's code is used.</b> Leave it blank and a random one is picked.</li>
+</ol></div><div>
+<canvas id="mp" width="240" height="160" style="background:#2b2d24;border-radius:6px;display:block;margin:10px auto"></canvas>
+<p style="text-align:center;color:#999;margin:4px" id="mpl">Map preview</p></div></div>
+
+<div class="box"><h3>🌐 Play a friend over the internet</h3>
+<p style="color:#999;margin:4px 0">You both need Battle Tanks Royale open. One of you hosts and gets a private invite code; the other types it in. That's it.</p>
+<div><button onclick="netHost()">🏠 Host a game</button> <button onclick="netJoinUI()">🔗 Join a friend's game</button></div>
+<div id="nethost" class="hide"><ol class="steps">
+<li>Send this <b>invite code</b> to your friend, privately (a text or a call):<textarea id="inv" readonly rows="1"></textarea><button onclick="copyBox('inv',this)">📋 Copy invite</button></li>
+<li>Wait here. You link up as soon as they type it in.</li></ol></div>
+<div id="netjoin" class="hide"><ol class="steps">
+<li>Type or paste your friend's <b>invite code</b>:<textarea id="inv2" rows="1" placeholder="E-XXXX-XXXX-XXXX-XXXX-XXXX"></textarea><button onclick="netJoin()">Join</button></li></ol></div>
+<p id="nst"></p><div id="nbtn"></div>
+<p style="color:#888;font-size:12px;margin:6px 0 0">Online controls: W/S/A/D or arrow keys to drive, Space or Enter to fire, T to chat. The host is blue (bottom base), the guest is red (top base). 🔒 Everything is sealed end to end with AES-256 using a key made from the invite code. Randis UDS carries the sealed messages through a public relay server, which can see that two computers are talking but can't read the game or the chat. Anyone with the code can join, so only share it with your friend, and host again for a fresh code each time.</p></div>
+
+<div class="box"><h3>⌨ Same keyboard</h3>
+<p><b>Player 1:</b> W/S/A/D, Space to fire. &nbsp; <b>Player 2:</b> Arrow keys, Enter to fire.<br>Destroy the other base to win. Fair fight: both tanks have the same stats.</p>
+<button class="big" onclick="startVs()">Start local match</button></div></div>
+
+<div id="game" class="scr hide" style="max-width:none"><canvas id="cv" width="960" height="640"></canvas><div id="ov" class="hide"></div></div>
+
+<script>
+const $=id=>document.getElementById(id),W=960,H=640,PI=Math.PI,cv=$('cv'),cx=cv.getContext('2d');
+const esc=s=>String(s).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
+const DEF={lvl:1,xp:0,coins:100,up:{armor:0,dmg:0,rate:0,speed:0},gear:{},eq:{},body:'#5a7d3a',tur:'#3e5a28',camo:'stripes',decal:'star',name:'Rookie',story:0};
+let S;try{S=Object.assign({},DEF,JSON.parse(localStorage.getItem('btr_save')||'{}'))}catch(e){S={...DEF}}
+function save(){try{localStorage.setItem('btr_save',JSON.stringify(S))}catch(e){}}
+const need=()=>S.lvl*100;
+function addXP(n){S.xp+=n;let up=0;while(S.xp>=need()){S.xp-=need();S.lvl++;S.coins+=50;up++}return up}
+function updTop(){$('who').textContent=S.name;$('lv').textContent='Lv '+S.lvl;$('xpf').style.width=(S.xp/need()*100)+'%';$('co').textContent='💰 '+S.coins}
+function show(id){document.querySelectorAll('.scr').forEach(e=>e.classList.add('hide'));$(id).classList.remove('hide');updTop()}
+
+/* ---------- Side chat ---------- */
+let chatOpen=false,unread=0;
+function updUnr(){$('unr').textContent=unread?String(Math.min(99,unread)):''}
+function placeChat(){$('chat').style.top=$('top').offsetHeight+'px'}
+function toggleChat(f){chatOpen=f===undefined?!chatOpen:!!f;$('chat').classList.toggle('hide',!chatOpen);document.body.classList.toggle('chat',chatOpen);
+ if(chatOpen){unread=0;placeChat();chatState();$('msgs').scrollTop=$('msgs').scrollHeight}else $('chin').blur();updUnr()}
+function addMsg(who,txt,cls){const d=document.createElement('div'),m=$('msgs');d.className='m '+(cls||'');
+ d.innerHTML=cls=='sys'?esc(txt):`<b>${esc(who)}:</b> ${esc(txt)}`;m.appendChild(d);while(m.children.length>150)m.firstChild.remove();m.scrollTop=m.scrollHeight;
+ if(!chatOpen&&cls=='them'){unread++;updUnr()}}
+function chatState(){const on=!!NET.on;$('chin').disabled=$('chsend').disabled=!on;
+ $('chin').placeholder=on?'Message '+NET.peer.name+'…':'Connect online in Versus to chat';$('chwho').textContent=on?'🟢 '+NET.peer.name:'⚪ Not connected'}
+function sendChat(){const i=$('chin'),t=i.value.trim().slice(0,200);if(!t||!NET.on)return;netSend(NET.c,{t:'chat',x:t});addMsg(S.name,t,'me');i.value=''}
+addEventListener('resize',placeChat);
+
+/* ---------- Garage ---------- */
+const UPS=[['armor','Armor plating','+25 max HP'],['dmg','Main cannon','+6 damage'],['rate','Autoloader','Faster reload'],['speed','Engine','+12 speed']];
+const GEAR=[{id:'regen',n:'Field Repair Kit',d:'Slowly repairs your hull',c:200,l:2},{id:'twin',n:'Twin Barrel',d:'Fires two shells at once',c:350,l:3},{id:'ric',n:'Ricochet Shells',d:'Shells bounce off walls once',c:450,l:5}];
+const ucost=k=>Math.round(60*Math.pow(1.45,S.up[k]));
+function pStats(){const u=S.up;return{hp:100+25*u.armor,dmg:20+6*u.dmg,rate:.6*Math.pow(.9,u.rate),spd:115+12*u.speed}}
+function renderGarage(){
+ $('ups').innerHTML=UPS.map(([k,n,d])=>{const mx=S.up[k]>=10;return`<div class="row"><div>${n} <b>${S.up[k]}/10</b><br><small>${d}</small></div><button ${mx||S.coins<ucost(k)?'disabled':''} onclick="buyUp('${k}')">${mx?'MAX':'💰 '+ucost(k)}</button></div>`}).join('');
+ $('gear').innerHTML=GEAR.map(g=>{const own=S.gear[g.id];return`<div class="row"><div>${g.n}<br><small>${g.d} · needs Lv ${g.l}</small></div>${own?`<button onclick="eqG('${g.id}')">${S.eq[g.id]?'Equipped ✓':'Equip'}</button>`:`<button ${S.lvl<g.l||S.coins<g.c?'disabled':''} onclick="buyG('${g.id}')">💰 ${g.c}</button>`}</div>`}).join('');
+ const s=pStats();$('stats').innerHTML=`HP ${s.hp} · DMG ${s.dmg} · Reload ${s.rate.toFixed(2)}s · Speed ${s.spd}`;updTop()}
+function buyUp(k){const c=ucost(k);if(S.coins>=c&&S.up[k]<10){S.coins-=c;S.up[k]++;save();renderGarage()}}
+function buyG(id){const g=GEAR.find(x=>x.id==id);if(S.coins>=g.c&&S.lvl>=g.l){S.coins-=g.c;S.gear[id]=1;S.eq[id]=1;save();renderGarage()}}
+function eqG(id){S.eq[id]=!S.eq[id];save();renderGarage()}
+[['cName','name'],['cBody','body'],['cTur','tur'],['cCamo','camo'],['cDecal','decal']].forEach(([i,k])=>$(i).addEventListener('input',e=>{S[k]=e.target.value||'Rookie';save();updTop()}));
+let pvA=0;
+function showGarage(){$('cName').value=S.name;$('cBody').value=S.body;$('cTur').value=S.tur;$('cCamo').value=S.camo;$('cDecal').value=S.decal;renderGarage();show('garage');pvLoop()}
+function pvLoop(){if($('garage').classList.contains('hide'))return;const c=$('pv').getContext('2d');c.clearRect(0,0,220,160);pvA+=.01;
+ drawTank(c,{x:110,y:80,r:40,a:pvA,ta:pvA+Math.sin(pvA*3)*.6,body:S.body,tur:S.tur,camo:S.camo,decal:S.decal,twin:S.eq.twin});requestAnimationFrame(pvLoop)}
+
+/* ---------- Story ---------- */
+const STORY=[
+{t:'Boot Camp',w:2,m:.7,txt:'Day 1. They gave me an old hull and told me not to scratch the paint. Scouts are probing the supply depot. Hold it.',after:'The scouts turned tail. Sergeant Vale said I drive like a farmer. I think that was a compliment.'},
+{t:'First Blood',w:3,m:.85,txt:'Day 12. The front moved closer last night. Our forward base is all that stands between them and the river crossing.',after:'We held. I wrote home tonight, but I left out the parts about the fire.'},
+{t:'The Long Night',w:4,m:1,txt:'Day 30. Fog, no radio, and engines in the dark. Vale says keep the base lights on so we remember what we are protecting.',after:'Dawn came, and so did our relief column. My hands are still shaking.'},
+{t:'Iron Rain',w:5,m:1.15,txt:'Day 47. Their heavy armour has arrived. Command wants the base held until the bridges are blown.',after:'The bridges are gone. Vale got hit. The medics say he will walk again.'},
+{t:'Brothers in Steel',w:5,m:1.3,txt:'Day 60. I command my own crew now. Three kids fresh from boot camp, just like I was.',after:'Every one of them came back. That is the only score that matters.'},
+{t:'Last Stand at Hill 9',w:7,m:1.5,txt:'Day 73. This is it. Everything they have left is coming for Hill 9. If it holds, the war ends here.',after:'Hill 9 held. The guns went quiet at noon. I am going home. (End of the tanker\'s diary. You can replay any chapter for coins.)'}];
+function showStory(){$('chs').innerHTML=STORY.map((c,i)=>`<div class="row ch ${i>S.story?'lock':''}" onclick="pickCh(${i})"><span>Chapter ${i+1}: ${c.t}</span><small>${i>S.story?'🔒 Locked':i<S.story?'✓ Done':'▶ Next'} · ${c.w} waves</small></div>`).join('');$('chd').innerHTML='';show('story')}
+function pickCh(i){if(i>S.story)return;const c=STORY[i];$('chd').innerHTML=`<p class="diary">${c.txt}</p><button class="big" onclick="startGame('story',{ch:${i},waves:${c.w},mult:${c.m}})">Deploy</button>`}
+
+/* ---------- Versus code ---------- */
+const nc=s=>String(s||'').toUpperCase().replace(/[^A-Z0-9-]/g,'').slice(0,12);
+let lastCode='';
+function genCode(){const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='BTR-';for(let i=0;i<5;i++)s+=a[Math.random()*a.length|0];$('code').value=s;drawMapPv();return s}
+function hash(s){let h=2166136261;for(const ch of s)h=Math.imul(h^ch.charCodeAt(0),16777619);return h>>>0}
+function rng(a){return()=>{a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function genMap(seed){const r=rng(seed),w=[];for(let i=0;i<7;i++){const ww=40+r()*110,hh=20+r()*60,x=40+r()*(W-80-ww),y=95+r()*(H/2-135-hh);w.push({x,y,w:ww,h:hh},{x:W-x-ww,y:H-y-hh,w:ww,h:hh})}return w}
+function showVs(){if(lastCode&&!$('code').value)$('code').value=lastCode;drawMapPv();renderNet();show('vs')}
+function drawMapPv(){const c=$('mp').getContext('2d'),k=240/W,code=nc($('code').value);c.fillStyle='#2b2d24';c.fillRect(0,0,240,160);
+ if(!code){c.fillStyle='#999';c.font='13px sans-serif';c.textAlign='center';c.fillText('Type a code or press Random',120,84);$('mpl').textContent='Map preview';return}
+ c.fillStyle='#5c606a';genMap(hash(code)).forEach(w=>c.fillRect(w.x*k,w.y*k,w.w*k,w.h*k));
+ [[W/2,H-40,'#4aa3df'],[W/2,40,'#e05050']].forEach(([x,y,col])=>{c.fillStyle=col;c.beginPath();c.arc(x*k,y*k,28*k,0,7);c.fill()});
+ $('mpl').textContent='Map for code '+code}
+function copyText(i){let ok=false;try{navigator.clipboard.writeText(i.value).then(()=>{},()=>{});ok=true}catch(e){}
+ try{i.select();ok=document.execCommand('copy')||ok}catch(e){}return ok}
+function copyCode(){const i=$('code');if(!nc(i.value))genCode();i.value=nc(i.value);const ok=copyText(i);
+ $('cmsg').textContent=ok?'Copied!':'Select it and press Ctrl+C';setTimeout(()=>$('cmsg').textContent='',1800)}
+function copyBox(id,btn){const i=$(id);if(!i.value)return;const ok=copyText(i),t=btn.textContent;btn.textContent=ok?'✓ Copied!':'Select it and press Ctrl+C';setTimeout(()=>btn.textContent=t,1800)}
+$('code').addEventListener('input',drawMapPv);
+function startVs(){const code=nc($('code').value)||genCode();$('code').value=code;startGame('vs',{code})}
+
+/* ---------- Online (through Randis UDS: sealed end to end, carried by a relay) ---------- */
+let NET={};
+function nst(t,col){$('nst').textContent=t;$('nst').style.color=col||'#e6e6e6'}
+function netSend(ch,o){if(NET.link)parent.postMessage({uds:'net',op:'send',data:o},'*')}
+function cleanLook(l){l=l||{};const col=v=>/^#[0-9a-f]{6}$/i.test(v)?v:'#777777';
+ return{body:col(l.body),tur:col(l.tur),camo:['none','stripes','spots','digital'].includes(l.camo)?l.camo:'none',decal:['none','star','cross','ring'].includes(l.decal)?l.decal:'none',name:String(l.name||'Friend').slice(0,12)}}
+function hello(ack){netSend(0,{t:'hello',role:NET.role,ack:ack?1:0,look:myLook()})}
+addEventListener('message',e=>{const m=e.data;if(e.source!==parent||!m||m.uds!=='net'||!NET.role)return;NET.got=1;
+ if(m.ev=='status')nst(m.msg,'#f3b33d');
+ else if(m.ev=='error'){nst((NET.role=='host'?'Hosting failed: ':'Joining failed: ')+m.msg,'#e05050');NET={};renderNet()}
+ else if(m.ev=='code'){$('inv').value=m.code}
+ else if(m.ev=='open'){NET.link=true;NET.heard=Date.now();
+  if(NET.role=='host')nst('Send the invite code to your friend. Waiting for them to join…','#f3b33d');else{nst('Reaching your friend…','#f3b33d');hello(false)}}
+ else if(m.ev=='msg'){NET.heard=Date.now();onNet(m.data)}
+ else if(m.ev=='closed')netLost()});
+setInterval(()=>{if(!NET.on)return;netSend(0,{t:'p'});if(Date.now()-NET.heard>12000)netLost()},3000);
+function netReset(){if(NET.role){if(NET.on){addMsg('','You disconnected.','sys');netSend(0,{t:'leave'})}parent.postMessage({uds:'net',op:'leave'},'*')}NET={};
+ ['nethost','netjoin'].forEach(i=>$(i).classList.add('hide'));['inv','inv2'].forEach(i=>$(i).value='');nst('');renderNet()}
+function netHost(){netReset();NET={role:'host',on:false};$('nethost').classList.remove('hide');nst('Making your private invite code…','#f3b33d');parent.postMessage({uds:'net',op:'host'},'*');setTimeout(()=>{if(NET.role&&!NET.got)nst('Online play needs the Randis UDS app. Defend, Story and same-keyboard Versus work here.','#e05050')},5000)}
+function netJoinUI(){netReset();$('netjoin').classList.remove('hide');nst('Type the invite code your friend sent you.')}
+function netJoin(){const txt=$('inv2').value.trim();if(!txt)return nst('Type the invite code first.','#e05050');netReset();$('netjoin').classList.remove('hide');$('inv2').value=txt;
+ NET={role:'guest',on:false};parent.postMessage({uds:'net',op:'join',code:txt},'*');setTimeout(()=>{if(NET.role&&!NET.got)nst('Online play needs the Randis UDS app. Defend, Story and same-keyboard Versus work here.','#e05050')},5000);
+ setTimeout(()=>{if(NET.role=='guest'&&NET.link&&!NET.on)nst('No answer yet. Check the code, and that your friend is still on the Host screen.','#e05050')},10000)}
+function netLost(){if(!NET.role)return;const was=NET.on;NET.on=false;NET.link=false;
+ if(G&&G.net&&!G.over)end(true,'The connection to your friend was lost.');
+ parent.postMessage({uds:'net',op:'leave'},'*');
+ nst(was?'Your friend disconnected. Host or join again.':'The link dropped. Host or join again.','#e05050');if(was)addMsg('','Connection lost.','sys');renderNet()}
+function renderNet(){const n=$('nbtn');chatState();if(!NET.on){n.innerHTML='';return}
+ n.innerHTML=(NET.role=='host'?'<button class="big" onclick="netStart()">▶ Start online match</button>':'<p>Waiting for your friend (the host) to start the match…</p>')+'<button onclick="netReset()">Disconnect</button>'}
+function netStart(){if(!NET.on||NET.role!='host')return;const code=nc($('code').value)||genCode();$('code').value=code;
+ const l2=NET.peer;startGame('vs',{code,net:'host',look2:l2});netSend(NET.c,{t:'start',code,l1:myLook(),l2})}
+function netRematch(){if(!NET.on){ov('<h2>Not connected</h2><p>Your friend is no longer linked.</p><button onclick="quit()">Back</button>');return}
+ if(NET.role=='host')netStart();else{netSend(NET.c,{t:'rematch'});ov('<h2>Rematch asked</h2><p>Waiting for the host…</p><button onclick="quit()">Back</button>')}}
+function onNet(raw){let m;try{m=JSON.parse(raw)}catch(e){return}if(!m||typeof m!='object')return;
+ if(m.t=='hello'){if(m.role==NET.role){nst(NET.role=='host'?'Someone else is hosting with this code too.':'You both pressed Join. One of you should Host.','#e05050');return}
+  const first=!NET.on;NET.peer=cleanLook(m.look);NET.on=true;if(!m.ack)hello(true);if(!first)return;['nethost','netjoin'].forEach(i=>$(i).classList.add('hide'));
+  nst('🔒 Connected to '+NET.peer.name+' (sealed end to end)!','#5fbf5f');addMsg('','Connected to '+NET.peer.name+'. Say hi!','sys');renderNet();toggleChat(true)}
+ else if(m.t=='chat'&&NET.on){const x=String(m.x||'').trim().slice(0,200);if(x)addMsg(NET.peer.name,x,'them')}
+ else if(m.t=='start'&&NET.role=='guest'){startGame('vs',{code:nc(m.code),net:'guest',look1:cleanLook(m.l1),look2:myLook()})}
+ else if(m.t=='i'&&NET.role=='host'){if(G&&G.net=='host')G.rin={u:!!m.u,d:!!m.d,l:!!m.l,r:!!m.r,f:!!m.f}}
+ else if(m.t=='s'&&NET.role=='guest'){if(G&&G.net=='guest'&&!G.over)applySnap(m)}
+ else if(m.t=='end'&&NET.role=='guest'){if(G&&G.net=='guest')end(true,String(m.msg).slice(0,120))}
+ else if(m.t=='p'){}
+ else if(m.t=='leave'){if(G&&G.net&&!G.over)end(true,'Your friend left the match.');if(NET.on)addMsg('',(NET.peer?NET.peer.name:'Your friend')+' disconnected.','sys');
+  NET.on=false;nst('Your friend disconnected.','#e05050');renderNet()}
+ else if(m.t=='rematch'&&NET.role=='host'){if(!G||G.over)netStart()}}
+const r1=v=>Math.round(v*10)/10,r2=v=>Math.round(v*100)/100;
+function sendSnap(){netSend(NET.u,{t:'s',k:[G.p1,G.p2].map(t=>[r1(t.x),r1(t.y),r2(t.a),r2(t.ta),Math.round(t.hp),t.dead?1:0,r1(t.resp||0)]),
+ b:G.bases.map(b=>Math.round(b.hp)),u:G.bullets.map(b=>[b.x|0,b.y|0]),sc:G.score,m:G.msg,mt:r1(G.msgT),fx:G.fx});G.fx=[]}
+function applySnap(s){const n=v=>+v||0;
+ if(Array.isArray(s.k))s.k.slice(0,2).forEach((a,i)=>{const t=[G.p1,G.p2][i];t.x=n(a[0]);t.y=n(a[1]);t.a=n(a[2]);t.ta=n(a[3]);t.hp=n(a[4]);t.dead=!!a[5];t.resp=n(a[6])});
+ if(Array.isArray(s.b))G.bases.forEach((b,i)=>b.hp=n(s.b[i]));
+ if(Array.isArray(s.u))G.bullets=s.u.slice(0,200).map(a=>({x:n(a[0]),y:n(a[1])}));
+ if(Array.isArray(s.sc))G.score=[n(s.sc[0]),n(s.sc[1])];G.msg=String(s.m||'').slice(0,20);G.msgT=n(s.mt);
+ if(Array.isArray(s.fx))s.fx.slice(0,40).forEach(f=>puff(n(f[0]),n(f[1]),/^#[0-9a-f]{3,6}$/i.test(f[2])?f[2]:'#aaa',Math.min(30,n(f[3]))))}
+
+/* ---------- Game ---------- */
+let G=null,keys={},mouse={x:W/2,y:H/2,down:false},last=0;
+function mkTank(team,x,y,a,st,look){return Object.assign({team,x,y,a,ta:a,sx:x,sy:y,sa:a,hp:st.hp,max:st.hp,dmg:st.dmg,rate:st.rate,spd:st.spd,cd:0,r:16},look)}
+const mkBase=(team,x,y,hp)=>({team,x,y,r:28,hp,max:hp});
+const myLook=()=>({body:S.body,tur:S.tur,camo:S.camo,decal:S.decal,name:S.name});
+function startGame(mode,o={}){
+ G={mode,net:o.net||'',code:o.code||'',walls:genMap(hash(o.code||String(Math.random()))),bullets:[],parts:[],pick:[],tanks:[],bases:[],fx:[],rin:{},fr:0,wave:0,toSpawn:0,spawnT:0,phase:'break',inter:2,kills:0,earnC:0,earnX:0,over:false,ch:o.ch,maxW:o.waves||0,mult:o.mult||1,score:[0,0],msg:'',msgT:0};
+ if(mode=='vs'){lastCode=o.code;const f={hp:150,dmg:25,rate:.55,spd:130};
+  G.bases.push(mkBase(0,W/2,H-40,250),mkBase(1,W/2,40,250));
+  G.p1=mkTank(0,W/2-90,H-50,-PI/2,f,o.look1||myLook());G.p2=mkTank(1,W/2+90,50,PI/2,f,o.look2||{body:'#2e5a8a',tur:'#1d3b5c',camo:'digital',decal:'star',name:'Player 2'});
+  G.tanks.push(G.p1,G.p2);G.msg='FIGHT!';G.msgT=2;
+ }else{G.bases.push(mkBase(0,W/2,H-40,300));
+  G.p1=mkTank(0,W/2,H-110,-PI/2,pStats(),Object.assign(myLook(),{twin:S.eq.twin,regen:S.eq.regen,ric:S.eq.ric}));G.tanks.push(G.p1)}
+ $('ov').classList.add('hide');show('game');$('chin').blur();const g=G;last=performance.now();
+ const loop=now=>{if(G!==g)return;const dt=Math.min(.033,(now-last)/1000);last=now;
+  if(G.net=='guest')guestTick(dt);else if(!G.over)update(dt);
+  if(G.net=='host'&&!G.over&&++G.fr%3==0)sendSnap();
+  draw();requestAnimationFrame(loop)};requestAnimationFrame(loop)}
+function quit(){const m=G&&G.mode;G=null;$('ov').classList.add('hide');if(m=='vs')showVs();else show('menu')}
+function rematch(){startGame('vs',{code:lastCode})}
+function ov(h){$('ov').innerHTML=h;$('ov').classList.remove('hide')}
+
+const norm=a=>Math.atan2(Math.sin(a),Math.cos(a));
+function circRect(x,y,r,w){const nx=Math.max(w.x,Math.min(x,w.x+w.w)),ny=Math.max(w.y,Math.min(y,w.y+w.h));return(x-nx)**2+(y-ny)**2<r*r}
+function blocked(x,y,r,s){if(x<r||y<r||x>W-r||y>H-r)return true;for(const w of G.walls)if(circRect(x,y,r,w))return true;
+ for(const b of G.bases)if(Math.hypot(x-b.x,y-b.y)<r+b.r)return true;
+ for(const o of G.tanks){if(o===s||o.dead)continue;const d=Math.hypot(x-o.x,y-o.y);if(d<r+o.r&&d<Math.hypot(s.x-o.x,s.y-o.y))return true}return false}
+function move(t,f,turn,dt){t.a+=turn*2.8*dt;const sp=t.spd*f*dt,nx=t.x+Math.cos(t.a)*sp,ny=t.y+Math.sin(t.a)*sp;if(!blocked(nx,t.y,t.r,t))t.x=nx;if(!blocked(t.x,ny,t.r,t))t.y=ny}
+function puff(x,y,c,n){if(G.net=='host')G.fx.push([x|0,y|0,c,n]);for(let i=0;i<n;i++){const a=Math.random()*7,s=30+Math.random()*90;G.parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,l:.4+Math.random()*.3,c})}}
+function boom(x,y){puff(x,y,'#f84',24);puff(x,y,'#555',14)}
+function fire(t){if(t.cd>0||t.dead)return;t.cd=t.ai?t.rate*(.8+Math.random()*.5):t.rate;const c=Math.cos(t.ta),s=Math.sin(t.ta),L=26*t.r/16;
+ for(const o of t.twin?[-4,4]:[0])G.bullets.push({x:t.x+c*L-s*o,y:t.y+s*L+c*o,vx:c*430,vy:s*430,dmg:t.dmg*(t.twin?.65:1),team:t.team,life:1.6,bo:t.ric?1:0,by:t});puff(t.x+c*L,t.y+s*L,'#fc6',4)}
+const K=(...c)=>c.some(x=>keys[x]);
+const P1K=()=>({u:K('KeyW'),d:K('KeyS'),l:K('KeyA'),r:K('KeyD'),f:K('Space')});
+const P2K=()=>({u:K('ArrowUp'),d:K('ArrowDown'),l:K('ArrowLeft'),r:K('ArrowRight'),f:K('Enter','NumpadEnter')});
+const ANYK=()=>{const a=P1K(),b=P2K();return{u:a.u||b.u,d:a.d||b.d,l:a.l||b.l,r:a.r||b.r,f:a.f||b.f}};
+function ctl(t,i,dt,aim){if(t.dead)return;
+ move(t,(i.u?1:0)-(i.d?.6:0),(i.r?1:0)-(i.l?1:0),dt);t.ta=aim?Math.atan2(mouse.y-t.y,mouse.x-t.x):t.a;if(i.f||(aim&&mouse.down))fire(t)}
+function spawnEnemy(boss){const m=G.mult,w=G.wave;let x,y=32,n=0;do{x=60+Math.random()*(W-120)}while(n++<15&&blocked(x,y,boss?22:16,{x:-999,y:-999}));
+ const t=mkTank(1,x,y,PI/2,{hp:(35+w*8)*m*(boss?4:1),dmg:(7+w*1.2)*m*(boss?1.5:1),rate:1.5,spd:Math.min(120,55+w*3)*(boss?.7:1)},boss?{body:'#3a3a3a',tur:'#151515',camo:'digital',decal:'cross',name:'HEAVY'}:{body:'#7a2e2e',tur:'#4e1c1c',camo:'spots',decal:'none',name:''});
+ t.ai=1;t.boss=boss;if(boss)t.r=22;G.tanks.push(t)}
+function ai(t,dt){const p=G.p1,b=G.bases[0];let tg=b;if(!p.dead&&Math.hypot(p.x-t.x,p.y-t.y)<260)tg=p;
+ const ang=Math.atan2(tg.y-t.y,tg.x-t.x),d=Math.hypot(tg.x-t.x,tg.y-t.y),td=norm(ang-t.ta);t.ta+=Math.max(-2.5*dt,Math.min(2.5*dt,td));
+ if(t.stuck>0){t.stuck-=dt;move(t,-.7,t.sdir,dt)}else{const diff=norm(ang-t.a),want=d>tg.r+110?1:0,ox=t.x,oy=t.y;
+  move(t,Math.abs(diff)<.8?want:.2*want,Math.max(-1,Math.min(1,diff*3)),dt);
+  if(want&&Math.hypot(t.x-ox,t.y-oy)<t.spd*dt*.2){t.sc=(t.sc||0)+dt;if(t.sc>.4){t.stuck=.7;t.sdir=Math.random()<.5?-1:1;t.sc=0}}else t.sc=0}
+ if(d<420&&Math.abs(norm(ang-t.ta))<.15)fire(t)}
+function kill(t,by){boom(t.x,t.y);t.dead=true;
+ if(G.mode=='vs'){t.resp=3;G.score[by.team]++;return}
+ if(t.ai){G.kills++;const k=t.boss?5:1;G.earnC+=Math.round((5+G.wave*2)*k);G.earnX+=Math.round((12+G.wave*3)*k);if(Math.random()<.18)G.pick.push({x:t.x,y:t.y,l:12})}
+ else end(false,'Your tank was destroyed.')}
+function hitW(b){if(b.x<0||b.y<0||b.x>W||b.y>H)return true;return G.walls.some(w=>b.x>w.x&&b.x<w.x+w.w&&b.y>w.y&&b.y<w.y+w.h)}
+function partsTick(dt){G.parts.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.92;p.vy*=.92;p.l-=dt});G.parts=G.parts.filter(p=>p.l>0);G.msgT-=dt}
+function guestTick(dt){if(!G.over){const k=JSON.stringify(ANYK()),t=Date.now();if(k!==G.lastK||t-(G.lastKT||0)>150){G.lastK=k;G.lastKT=t;netSend(0,Object.assign({t:'i'},ANYK()))}}partsTick(dt)}
+function update(dt){
+ if(G.mode=='vs'){if(G.net=='host'){ctl(G.p1,ANYK(),dt,false);ctl(G.p2,G.rin,dt,false)}else{ctl(G.p1,P1K(),dt,false);ctl(G.p2,P2K(),dt,false)}
+  for(const p of[G.p1,G.p2])if(p.dead&&(p.resp-=dt)<=0){Object.assign(p,{x:p.sx,y:p.sy,a:p.sa,ta:p.sa,hp:p.max,dead:false,resp:0})}}
+ else{ctl(G.p1,P1K(),dt,true);
+  const foes=G.tanks.filter(t=>t.ai&&!t.dead);foes.forEach(t=>ai(t,dt));
+  if(G.phase=='break'){if((G.inter-=dt)<=0){G.wave++;G.toSpawn=Math.round(2+G.wave*1.4);G.phase='fight';G.msg='WAVE '+G.wave;G.msgT=2}}
+  else{if(G.toSpawn>0&&(G.spawnT-=dt)<=0){G.toSpawn--;spawnEnemy(G.toSpawn==0&&(G.wave%5==0||(G.maxW&&G.wave==G.maxW&&G.ch>=3)));G.spawnT=1.1}
+   if(G.toSpawn==0&&!foes.length){if(G.maxW&&G.wave>=G.maxW)return end(true,'Mission complete!');
+    G.phase='break';G.inter=3;const b=G.bases[0];b.hp=Math.min(b.max,b.hp+b.max*.15);G.earnC+=10*G.wave;G.msg='Wave cleared!';G.msgT=2}}
+  G.pick.forEach(k=>{k.l-=dt;const p=G.p1;if(Math.hypot(p.x-k.x,p.y-k.y)<24){p.hp=Math.min(p.max,p.hp+35);k.l=0;puff(k.x,k.y,'#6f6',10)}});G.pick=G.pick.filter(k=>k.l>0)}
+ for(const t of G.tanks){t.cd-=dt;if(t.regen&&!t.dead)t.hp=Math.min(t.max,t.hp+3*dt)}
+ for(const b of G.bullets){b.life-=dt;
+  b.x+=b.vx*dt;if(hitW(b)){if(b.bo>0){b.x-=b.vx*dt;b.vx*=-1;b.bo--}else{b.life=0;puff(b.x,b.y,'#aaa',5)}}
+  b.y+=b.vy*dt;if(b.life>0&&hitW(b)){if(b.bo>0){b.y-=b.vy*dt;b.vy*=-1;b.bo--}else{b.life=0;puff(b.x,b.y,'#aaa',5)}}
+  if(b.life<=0)continue;
+  for(const t of G.tanks)if(!t.dead&&t.team!=b.team&&Math.hypot(t.x-b.x,t.y-b.y)<t.r){t.hp-=b.dmg;b.life=0;puff(b.x,b.y,'#fa4',8);if(t.hp<=0)kill(t,b.by);break}
+  if(b.life<=0)continue;
+  for(const s of G.bases)if(s.team!=b.team&&Math.hypot(s.x-b.x,s.y-b.y)<s.r){s.hp-=b.dmg;b.life=0;puff(b.x,b.y,'#fa4',8);
+   if(s.hp<=0){boom(s.x,s.y);if(G.mode=='vs')end(true,(s.team==1?G.p1.name:G.p2.name)+' destroyed the enemy base!');else end(false,'Your base has fallen.')}break}}
+ G.bullets=G.bullets.filter(b=>b.life>0);G.tanks=G.tanks.filter(t=>!(t.ai&&t.dead));partsTick(dt)}
+function end(win,msg){if(!G||G.over)return;G.over=true;let c=G.earnC,x=G.earnX,extra='',title=win?'VICTORY':'DEFEAT',btns='<button onclick="quit()">Back to HQ</button>';
+ if(G.net=='host')netSend(NET.c,{t:'end',msg});
+ if(G.mode=='story'&&win){c+=100*(G.ch+1);x+=60*(G.ch+1);if(S.story<=G.ch)S.story=Math.min(STORY.length-1,Math.max(S.story,G.ch+1));extra=STORY[G.ch].after}
+ if(G.mode=='defend'){x+=G.wave*10;title='Held out to wave '+G.wave}
+ if(G.mode=='vs'){c=30;x=40;title='MATCH OVER';extra='';
+  const codeP=`<p>Map code: <b style="color:#f3b33d;letter-spacing:1px">${esc(G.code)}</b><br><small style="color:#999">Type this code in Versus any time to play this map again.</small></p>`;
+  btns=G.net?codeP+`<div><button onclick="netRematch()">🔁 Rematch online</button> <button onclick="quit()">Back</button></div>`
+   :codeP+`<div><button onclick="rematch()">🔁 Rematch, same map</button> <button onclick="quit()">Change code</button></div>`}
+ S.coins+=c;const lv=addXP(x);save();updTop();
+ ov(`<h2>${title}</h2><p>${esc(msg)}</p>${extra?`<p class="diary">${extra}</p>`:''}<p>+${c} coins · +${x} XP${lv?' · <b style="color:#5fbf5f">LEVEL UP! Now level '+S.lvl+'</b>':''}</p>${btns}`)}
+
+/* ---------- Drawing ---------- */
+function camo(c,k){c.fillStyle='rgba(0,0,0,.28)';
+ if(k=='stripes')for(let i=-30;i<30;i+=9){c.beginPath();c.moveTo(i,-10);c.lineTo(i+4,-10);c.lineTo(i+14,10);c.lineTo(i+10,10);c.fill()}
+ if(k=='spots')[[-9,-4,4],[2,3,5],[9,-5,3],[-3,6,3],[12,5,3]].forEach(([x,y,r])=>{c.beginPath();c.arc(x,y,r,0,7);c.fill()});
+ if(k=='digital')[[-13,-8],[-6,2],[0,-7],[6,4],[10,-3],[-10,4],[3,-1],[-2,6]].forEach(([x,y])=>c.fillRect(x,y,4,4))}
+function decal(c,k){c.fillStyle=c.strokeStyle='rgba(255,255,255,.85)';c.lineWidth=1.5;
+ if(k=='star'){c.beginPath();for(let i=0;i<10;i++){const r=i%2?1.8:4.5,a=i*PI/5-PI/2;c.lineTo(-7+Math.cos(a)*r,Math.sin(a)*r)}c.fill()}
+ if(k=='cross'){c.fillRect(-10,-1,7,2);c.fillRect(-7.5,-3.5,2,7)}
+ if(k=='ring'){c.beginPath();c.arc(-7,0,3.5,0,7);c.stroke()}}
+function drawTank(c,t,hud){c.save();c.translate(t.x,t.y);c.scale(t.r/16,t.r/16);c.save();c.rotate(t.a);
+ c.fillStyle='#1a1a1a';c.fillRect(-18,-16,36,8);c.fillRect(-18,8,36,8);c.fillStyle='#3a3a3a';for(let i=-16;i<18;i+=5){c.fillRect(i,-16,2,8);c.fillRect(i,8,2,8)}
+ c.fillStyle=t.body;c.fillRect(-15,-10,30,20);c.save();c.beginPath();c.rect(-15,-10,30,20);c.clip();camo(c,t.camo);c.restore();decal(c,t.decal);c.restore();
+ c.rotate(t.ta);c.fillStyle=t.tur;if(t.twin){c.fillRect(2,-6,22,4);c.fillRect(2,2,22,4)}else c.fillRect(2,-3,24,6);
+ c.beginPath();c.arc(0,0,8,0,7);c.fill();c.strokeStyle='rgba(0,0,0,.4)';c.lineWidth=1;c.stroke();c.restore();
+ if(hud){bar(c,t.x-18,t.y-t.r-10,36,t.hp/t.max);if(t.name){c.fillStyle='#ddd';c.font='11px sans-serif';c.textAlign='center';c.fillText(t.name,t.x,t.y-t.r-14)}}}
+function bar(c,x,y,w,f){c.fillStyle='#111';c.fillRect(x,y,w,4);c.fillStyle=f>.5?'#5fbf5f':f>.25?'#e0b040':'#e05050';c.fillRect(x,y,w*Math.max(0,f),4)}
+function draw(){const c=cx;c.fillStyle='#2b2d24';c.fillRect(0,0,W,H);c.fillStyle='#33352b';for(let x=0;x<W;x+=40)for(let y=0;y<H;y+=40)c.fillRect(x,y,2,2);
+ for(const w of G.walls){c.fillStyle='#4a4d55';c.fillRect(w.x,w.y,w.w,w.h);c.fillStyle='#5c606a';c.fillRect(w.x,w.y,w.w,4)}
+ for(const b of G.bases){if(b.hp<=0)continue;c.fillStyle=b.team?'#5a2a2a':'#2a4a5a';c.beginPath();c.arc(b.x,b.y,b.r,0,7);c.fill();c.strokeStyle='#888';c.lineWidth=3;c.stroke();
+  c.fillStyle='#ddd';c.fillRect(b.x-1,b.y-18,2,26);c.fillStyle=b.team?'#e05050':'#4aa3df';c.fillRect(b.x+1,b.y-18,12,8);bar(c,b.x-28,b.y+b.r+4>H?b.y-b.r-8:b.y+b.r+4,56,b.hp/b.max)}
+ G.pick.forEach(k=>{c.fillStyle='#2a6';c.fillRect(k.x-8,k.y-8,16,16);c.fillStyle='#fff';c.fillRect(k.x-6,k.y-1.5,12,3);c.fillRect(k.x-1.5,k.y-6,3,12)});
+ G.tanks.forEach(t=>{if(!t.dead)drawTank(c,t,true)});
+ c.fillStyle='#ffd866';G.bullets.forEach(b=>{c.beginPath();c.arc(b.x,b.y,3,0,7);c.fill()});
+ G.parts.forEach(p=>{c.globalAlpha=Math.max(0,p.l*2);c.fillStyle=p.c;c.fillRect(p.x-2,p.y-2,4,4)});c.globalAlpha=1;
+ c.fillStyle='#e6e6e6';c.font='bold 15px sans-serif';c.textAlign='left';
+ if(G.mode=='vs'){c.fillText(`${G.p1.name} ${G.score[0]}   ${G.p2.name} ${G.score[1]}${G.net?'   🌐 '+(G.net=='host'?'You are blue':'You are red'):''}`,12,22);
+  c.textAlign='right';c.fillStyle='#f3b33d';c.fillText('Map code: '+G.code,W-12,22);c.fillStyle='#e6e6e6';
+  [G.p1,G.p2].forEach(p=>{if(p.dead){c.textAlign='center';c.fillText('Respawn '+Math.ceil(p.resp),p.sx,p.sy-(p.team?-34:34))}});c.textAlign='left'}
+ else c.fillText(`${G.mode=='story'?'Ch.'+(G.ch+1)+' · ':''}Wave ${G.wave}${G.maxW?'/'+G.maxW:''}   Kills ${G.kills}   +${G.earnC} 💰`,12,22);
+ if(G.msgT>0){c.globalAlpha=Math.min(1,G.msgT);c.font='bold 44px sans-serif';c.textAlign='center';c.fillStyle='#f3b33d';c.fillText(G.msg,W/2,H/2);c.globalAlpha=1}}
+
+/* ---------- Input ---------- */
+addEventListener('keydown',e=>{const tg=e.target.tagName;
+ if(tg=='INPUT'||tg=='TEXTAREA'||tg=='SELECT'){if(e.target.id=='chin'){if(e.code=='Enter'||e.code=='NumpadEnter'){e.preventDefault();sendChat()}else if(e.code=='Escape')e.target.blur()}return}
+ if(e.code=='KeyT'&&NET.on&&!e.ctrlKey&&!e.altKey){e.preventDefault();keys={};toggleChat(true);$('chin').focus();return}
+ keys[e.code]=true;if(G&&!$('game').classList.contains('hide')){if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Enter'].includes(e.code))e.preventDefault();
+ if(e.code=='Escape'){if(G.over)quit();else if(G.net){netSend(NET.c,{t:'leave'});end(false,'You left the match.')}else end(false,'You pulled out of the battle.')}}});
+addEventListener('keyup',e=>keys[e.code]=false);addEventListener('blur',()=>{keys={};mouse.down=false});
+$('chin').addEventListener('focus',()=>{keys={};mouse.down=false});
+cv.addEventListener('mousemove',e=>{const r=cv.getBoundingClientRect();mouse.x=(e.clientX-r.left)*W/r.width;mouse.y=(e.clientY-r.top)*H/r.height});
+cv.addEventListener('mousedown',()=>{mouse.down=true;$('chin').blur()});addEventListener('mouseup',()=>mouse.down=false);
+updTop();chatState();
+</script></body></html>

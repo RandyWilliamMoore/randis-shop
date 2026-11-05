@@ -2,6 +2,23 @@
 window.ITEMS = [
  {
   "kind": "games",
+  "slug": "battle-tanks-royale",
+  "name": "Battle Tanks Royale",
+  "by": "Randy",
+  "blurb": "Drive a tank, defend your base and play the story, A Tanker's War. Earn coins for upgrades and gear, paint your tank in the garage, or fight a friend on the same keyboard. Online play needs the Randis UDS app.",
+  "status": "ok",
+  "real_items": "https://www.etsy.com/shop/UberRandis",
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=games/battle-tanks-royale",
+  "file": "games/battle-tanks-royale/item.html",
+  "logo": "games/battle-tanks-royale/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "games",
   "slug": "bindy-and-louis",
   "name": "Bindy & Louis",
   "by": "Randy",
