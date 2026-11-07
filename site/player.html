@@ -7,6 +7,9 @@
 </head>
 <body>
 <script>
+Object.getOwnPropertyNames(window).filter(function (k) { return /^(webkit)?RTC/.test(k); }).forEach(function (k) {
+  try { Object.defineProperty(window, k, { value: undefined, writable: false, configurable: false }); } catch (e) {}
+});
 addEventListener("message", function take(e) {
   if (e.source !== parent || typeof e.data !== "string") return;
   removeEventListener("message", take);
