@@ -309,8 +309,10 @@ window.Band = (() => {
   }
 
   function beatNow(dt) {
-    if (playing && analyser && !playing.paused) {
-      analyser.getByteFrequencyData(bins);
+    const an = playing && playing.getByteFrequencyData ? playing : analyser;
+    if (playing && an && !playing.paused) {
+      if (!bins || bins.length !== an.frequencyBinCount) bins = new Uint8Array(an.frequencyBinCount);
+      an.getByteFrequencyData(bins);
       let bass = 0; for (let k = 1; k < 10; k++) bass += bins[k]; bass /= 9 * 255;
       avg = avg * .95 + bass * .05;
       if (bass > avg * 1.12 + .02) pulse = Math.min(1, pulse + (bass - avg) * 4);
@@ -380,7 +382,7 @@ window.Band = (() => {
       if (!raf) raf = requestAnimationFrame(frame);
       return box;
     },
-    play(audio, genre, title) { listenTo(audio); playing = audio; theme = themeFor(genre); name = title; avg = 0; },
+    play(source, genre, title) { if (!source.getByteFrequencyData) listenTo(source); if (playing !== source) avg = 0; playing = source; theme = themeFor(genre); name = title; },
     stop(audio) { if (playing === audio) playing = null; },
   };
 })();
