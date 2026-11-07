@@ -129,6 +129,7 @@ h2.sect, h3 { margin: 0 0 8px; }
 .track-play { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 6px 0; }
 .track-play audio { flex: 1; min-width: min(100%, 240px); }
 .track small { font-size: 12px; }
+.credit { margin: 4px 0 6px; padding: 4px 8px; font-size: 13px; background: #fff1a8; border: 1px dashed #c98a2e; overflow-wrap: anywhere; }
 .juke-empty { text-align: center; font: 700 15px var(--mono); color: var(--coin); }
 .jukebox .terms { color: var(--ink); font-size: 14px; }
 .juke-made { margin: 10px 0 0; }

@@ -11,7 +11,17 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 KINDS = (".wav", ".mp3", ".ogg", ".flac")
 SHOP = "https://randywilliammoore.github.io/randis-shop/#/music"
 ALBUM = "Randis Shop Jukebox"
-TERMS = f"Royalty free from the Randis Shop: use it in anything, paid work included, no payment needed. Don't sell or hand out the song itself as your own music. {SHOP}"
+SHOP_PAGE = "randywilliammoore.github.io/randis-shop"
+
+
+def credit_for(title, artist):
+    """The credit everyone who uses the song must give; the Jukebox shows the same words."""
+    return f'Music: "{title}" by {artist}, from the Randis Shop ({SHOP_PAGE})'
+
+
+def terms_for(title, artist):
+    return (f"Royalty free, with credit required. Use it in anything, paid work included, no payment needed, but credit it wherever "
+            f"you use it: {credit_for(title, artist)}. Don't sell or hand out the song itself as your own music. Terms: {SHOP}")
 ARTISTS = {"Randy": "Randy Moore"}
 
 
@@ -94,7 +104,8 @@ def main():
             band_cover(a.genre, a.name, ARTISTS.get(a.by, a.by), cover)
         artist = ARTISTS.get(a.by, a.by)
         tags = {"title": a.name, "artist": artist, "album_artist": artist, "album": ALBUM, "genre": a.genre, "date": str(today.year),
-                "comment": a.blurb.strip(), "copyright": TERMS, "publisher": "The Randis Shop"}
+                "comment": a.blurb.strip(), "copyright": terms_for(a.name, artist), "publisher": "The Randis Shop",
+                "Attribution": credit_for(a.name, artist)}
         song = os.path.join(work, "song.mp3")
         audio = ["-c:a", "copy"] if a.file.lower().endswith(".mp3") else ["-c:a", "libmp3lame", "-b:a", "192k"]
         cmd = [ffmpeg(), "-v", "error", "-i", a.file, "-i", cover, "-map", "0:a:0", "-map", "1:v:0", *audio, "-c:v", "copy",

@@ -66,8 +66,10 @@ def tools_check(check):
         tags = {k.lower(): v for k, v in inside.get("format", {}).get("tags", {}).items()}
         check("the MP3 carries its title, artist, album, genre and year", tags.get("title") == "My Lobby Song!" and tags.get("artist") == "Randy Moore"
               and tags.get("album") == "Randis Shop Jukebox" and tags.get("genre") == "Elevator Music" and tags.get("date", "").isdigit(), tags)
-        check("and its description and the royalty-free note", tags.get("comment") == "Soft and slow, for a hotel lobby."
-              and "Royalty free" in tags.get("copyright", "") and "randis-shop" in tags.get("copyright", ""), tags)
+        credit = 'Music: "My Lobby Song!" by Randy Moore, from the Randis Shop (randywilliammoore.github.io/randis-shop)'
+        check("and its description and the royalty-free terms, with credit required", tags.get("comment") == "Soft and slow, for a hotel lobby."
+              and "Royalty free, with credit required" in tags.get("copyright", "") and credit in tags.get("copyright", ""), tags)
+        check("and its exact credit line, in its own tag", tags.get("attribution") == credit, tags)
         pics = [st for st in inside.get("streams", []) if st.get("codec_type") == "video" and st.get("disposition", {}).get("attached_pic") == 1]
         check("and its cover art", len(pics) == 1 and pics[0].get("codec_name") == "mjpeg", inside.get("streams"))
         from PIL import Image
@@ -184,8 +186,11 @@ def test(page, check):
     page.js("location.hash = '#/music/lobby-test'"); time.sleep(0.6)
     check("each song shows its cover art", page.js("(() => { const i = document.querySelector('#song-lobby-test .track-cover'); return !!i && i.getAttribute('src') === 'music/lobby-test/cover.jpg'; })()") is True)
     check("a song's own link shows the Jukebox and points out that song", page.js("!!document.querySelector('#song-lobby-test.picked')") is True)
-    check("the terms say royalty free, paid work included, no payment",
-          all(w in (page.js("document.querySelector('.terms').textContent") or "") for w in ("Royalty free", "paid work", "No payment")))
+    terms = page.js("document.querySelector('.terms').textContent") or ""
+    check("the terms say royalty free, paid work included, no payment, and credit required",
+          all(w in terms for w in ("Royalty free, with credit", "paid work", "No payment", "must credit")) and "never required" not in terms, terms)
+    check("each song shows the exact credit to give, the same as inside its MP3",
+          page.js("document.querySelector('#song-lobby-test .credit-line').textContent") == 'Music: "Lobby Test" by Randy Moore, from the Randis Shop (randywilliammoore.github.io/randis-shop)')
     link = page.json("(() => { const a = document.querySelector('[data-act=download-song]'); return [a.getAttribute('href'), a.download]; })()")
     check("its download button hands out the song under its own name", link == ["music/lobby-test/song.wav", "Lobby Test.wav"], link)
     page.js("window.__csp = []; document.addEventListener('securitypolicyviolation', e => __csp.push(e.violatedDirective)); "

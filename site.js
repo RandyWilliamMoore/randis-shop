@@ -21,9 +21,13 @@ const SHOP = {
 };
 const SECTIONS = { games: "The Arcade", apps: "The Software Shelf", music: "The Jukebox" };
 // The terms every song in the Jukebox comes with.
-const ROYALTY_FREE = "Royalty free: use these songs in anything, paid work included: videos, streams, games, podcasts, shops, on hold lines. "
+const ROYALTY_FREE = "Royalty free, with credit: use these songs in anything, paid work included: videos, streams, games, podcasts, shops, on hold lines. "
   + "No payment, no sign-up, no permission needed. The one thing you can't do is sell or hand out the songs themselves as your own music. "
-  + "A credit like \"Music by Randy Moore, from the Randis Shop\" is welcome, never required.";
+  + "You must credit the song wherever you use it, with the credit line shown under it (in a video, the description is fine).";
+const SHOP_PAGE = "randywilliammoore.github.io/randis-shop";
+const ARTISTS = { Randy: "Randy Moore" };
+// the exact credit for one song, the same words that are inside its MP3
+const creditFor = t => `Music: "${t.name}" by ${ARTISTS[t.by] || t.by}, from the Randis Shop (${SHOP_PAGE})`;
 
 function el(tag, attrs, ...kids) {
   const e = document.createElement(tag);
@@ -122,7 +126,12 @@ function track(t) {
     t.blurb ? el("p", {}, t.blurb) : null,
     el("div", { class: "track-play" }, audio,
       el("a", { class: "btn", href: t.file, download: t.download, "data-act": "download-song" }, "Download, royalty free")),
-    el("small", {}, "By " + t.by + ". Made with Randis Sound Forge. The download has its title, description and cover art inside it.")));
+    el("div", { class: "credit" }, el("b", {}, "Credit required: "), el("span", { class: "credit-line" }, creditFor(t)), " ",
+      el("button", { class: "btn small", "data-act": "copy-credit", on: { click: e => {
+        const b = e.currentTarget;
+        navigator.clipboard.writeText(creditFor(t)).then(() => { b.textContent = "Copied"; }, () => { b.textContent = "Select it and copy"; });
+      } } }, "Copy")),
+    el("small", {}, "By " + t.by + ". Made with Randis Sound Forge. The download has its title, description, credit line and cover art inside it.")));
 }
 
 function jukebox(short) {
