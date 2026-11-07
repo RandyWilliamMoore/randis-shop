@@ -18,6 +18,8 @@ Each song is one folder under `music/`. To add one:
 python tools/add_music.py "C:/path/My Song.wav" --name "My Song" --genre "Elevator Music" --blurb "Soft piano for a hotel lobby."
 ```
 
+With [ffmpeg](https://ffmpeg.org/) installed, a WAV is made into a 192 kbps MP3, about a tenth the size; add `--keep-wav` to keep the WAV.
+
 ## Tests
 
 They run the real shop page in a real browser window (Edge WebView2, through pywebview), on Windows, from a test server on this computer. The window opens off screen.

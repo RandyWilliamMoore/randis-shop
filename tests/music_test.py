@@ -43,9 +43,15 @@ def tools_check(check):
         info = json.load(open(os.path.join(top, "music", "my-lobby-song", "info.json"), encoding="utf-8")) if r.returncode == 0 else {}
         check("add_music.py puts a song in the Jukebox, with its length read from the file",
               r.returncode == 0 and info.get("length") == "0:03" and info.get("genre") == "Elevator Music"
-              and os.path.isfile(os.path.join(top, "music", "my-lobby-song", "song.wav")), r.stdout + r.stderr)
+              and os.listdir(os.path.join(top, "music", "my-lobby-song")) == ["info.json", "song.mp3"], r.stdout + r.stderr)
+        mp3 = os.path.join(top, "music", "my-lobby-song", "song.mp3")
+        head = open(mp3, "rb").read(3) if os.path.isfile(mp3) else b""
+        check("the WAV became a real, smaller MP3", (head == b"ID3" or head[:1] == bytes([255])) and os.path.getsize(mp3) < len(SONG) / 2,
+              (head, os.path.getsize(mp3) if head else 0, len(SONG)))
         listed = open(os.path.join(top, "music.js"), encoding="utf-8").read()
-        check("music.js lists it, with a plain download name", '"download": "My Lobby Song.wav"' in listed and '"file": "music/my-lobby-song/song.wav"' in listed, listed[:300])
+        check("music.js lists it, with a plain download name", '"download": "My Lobby Song.mp3"' in listed and '"file": "music/my-lobby-song/song.mp3"' in listed, listed[:300])
+        r = run(song, "--name", "Kept", "--genre", "x", "--keep-wav")
+        check("--keep-wav keeps the WAV", r.returncode == 0 and os.path.isfile(os.path.join(top, "music", "kept", "song.wav")), r.stdout + r.stderr)
         check("the same name twice is refused", run(song, "--name", "My Lobby Song!", "--genre", "x").returncode != 0)
         bad = os.path.join(top, "page.html")
         open(bad, "w").write("<p>x</p>")
