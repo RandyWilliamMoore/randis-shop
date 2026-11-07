@@ -7,6 +7,10 @@
 </head>
 <body>
 <script>
+// WebRTC can talk to any server and the rules above can't stop it, so it's taken away before the page runs.
+Object.getOwnPropertyNames(window).filter(function (k) { return /^(webkit)?RTC/.test(k); }).forEach(function (k) {
+  try { Object.defineProperty(window, k, { value: undefined, writable: false, configurable: false }); } catch (e) {}
+});
 // Runs in a walled-off frame. The shop hands over one page; the rules above stay in force for it and block ordinary loads from the internet.
 addEventListener("message", function take(e) {
   if (e.source !== parent || typeof e.data !== "string") return;
