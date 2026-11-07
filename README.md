@@ -7,3 +7,18 @@ Games and apps made with [Randis UDS](https://github.com/RandyWilliamMoore/randi
 ![Randis UDS with three tabs open: a notepad, Randis Paint, and the Randis Shop tab listing the shop's games](site/screens/randis-uds.png)
 
 Each item is one folder under `games/` or `apps/`. Randis UDS itself, a download rather than a page that plays here, is `software/randis-uds/`. Run `python tools/build_index.py` after changing one.
+
+## Tests
+
+They run the real shop page in a real browser window (Edge WebView2, through pywebview), on Windows, from a test server on this computer. The window opens off screen.
+
+```powershell
+pip install pywebview
+python tests/ship_test.py       # every item: listed, logo, page, Play opens the walled player, runs under its rules, every first-screen button
+python tests/security_test.py   # a hostile test game tries to get out of the player; then every item still opens
+python tests/link_test.py       # outside links ask first, and only "Open it" opens one
+python tests/save_test.py       # files a game makes are saved by the shop page: known kinds only, one at a time
+python tests/play_test.py       # real rounds of the games that have a play check
+```
+
+`ship_test.py` and `play_test.py` take item names to test only those, like `python tests/ship_test.py dice-master`. Run all five before pushing a change to `site/`, `index.html` or `site.js`; run `ship_test.py` on any item you add or change.
