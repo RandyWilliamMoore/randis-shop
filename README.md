@@ -18,7 +18,7 @@ Each song is one folder under `music/`: `song.mp3`, `cover.jpg` and `info.json`.
 python tools/add_music.py "C:/path/My Song.wav" --name "My Song" --genre "Elevator Music" --blurb "Soft piano for a hotel lobby." [--cover art.png]
 ```
 
-On the Jukebox's stage, the Raisin Band plays along with whatever song is on, dressed for its genre, and bounces on its beat (`site/band.js`).
+On the Jukebox's stage, the Raisin Band plays along with whatever song is on, dressed for its genre, and bounces on its beat (`site/band.js`). Randis Sound Forge and Hotdog Tycoon carry their own copy of it; after changing `site/band.js`, run `python tools/sync_band.py`.
 
 ## Tests
 
