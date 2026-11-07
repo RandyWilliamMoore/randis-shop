@@ -210,15 +210,15 @@ window.Band = (() => {
       band: [{ acc: ["wizard", "beard"], act: "staff" }, { acc: ["elf"], act: "lute" }, { acc: ["horned", "beard"], act: "drums" }, { acc: ["knight"], act: "sing" }] },
     { id: "medieval", name: "the Raisins of the Round Table", test: /Medieval|Tavern|Celtic|Fantasy|Nordic|Shanty|Bard/i, bg: "castle",
       band: [{ acc: ["wizard", "beard"], act: "staff" }, { acc: ["elf"], act: "lute" }, { acc: ["horned", "beard"], act: "drums" }, { acc: ["knight"], act: "sing" }] },
-    { id: "rock", name: "Raisin Hell", test: /Rock|Metal|Punk|Grunge|Djent|Shoegaze|Surf/i, bg: "rock", wild: 1,
-      band: [{ acc: ["mohawk", "leather"], act: "guitar" }, { acc: ["longhair", "leather"], act: "sing" }, { acc: ["bandana"], act: "drums" }, { acc: ["longhair", "leather", "round"], act: "bass" }] },
     { id: "synth", name: "the Neon Raisins", test: /Synthwave|Outrun|Darksynth|Dreamwave|Vaporwave|Chillwave|Cyberpunk|80s|City Pop|Italo/i, bg: "grid",
       band: [{ acc: ["mullet", "visor"], act: "keytar" }, { acc: ["headband", "vipers"], act: "keys" }, { acc: ["mullet", "vipers"], act: "drums" }, { acc: ["visor"], act: "sing" }] },
+    { id: "rock", name: "Raisin Hell", test: /Rock|Metal|Punk|Grunge|Djent|Shoegaze|Surf/i, bg: "rock", wild: 1,
+      band: [{ acc: ["mohawk", "leather"], act: "guitar" }, { acc: ["longhair", "leather"], act: "sing" }, { acc: ["bandana"], act: "drums" }, { acc: ["longhair", "leather", "round"], act: "bass" }] },
     { id: "lofi", name: "the Sun-Dried Study Club", test: /Lo-fi|Chillhop|Study|Jazzhop|Cozy|Reading|Rainy|Deep Work|Coding|Trip Hop|Chillout|Downtempo|Downbeat|Lounge/i, bg: "room", calm: 1,
       band: [{ acc: ["hoodie", "headphones"], act: "laptop" }, { acc: ["beanie"], act: "keys" }, { acc: ["hoodie"], act: "nod" }, { acc: ["beanie", "headphones"], act: "upright" }] },
-    { id: "hiphop", name: "Raisin the Roof Crew", test: /Hip|Trap|Drill|Boom Bap|Golden Era|Coast|Phonk|Grime|Crunk|Bounce|Rap|G-Funk|Plugg|Rage|Reggaeton|Dembow/i, bg: "city",
+    { id: "hiphop", name: "Raisin the Roof Crew", test: /Hip|Trap|Drill|Boom Bap|Golden Era|Coast|Phonk|Grime|Crunk|Bounce|Rap|G-Funk|Plugg|\bRage\b|Reggaeton|Dembow/i, bg: "city",
       band: [{ acc: ["capback", "chain", "headphones"], act: "scratch" }, { acc: ["capback", "chain", "vipers"], act: "mic" }, { acc: ["chain", "beanie"], act: "hype" }, { acc: ["capback", "chain"], act: "pads" }] },
-    { id: "club", name: "the Sun-Maid Selectors", test: /House|Techno|Trance|Disco|Electro|EDM|Dance|Big Room|Garage|2-Step|Hardstyle|Hardcore|Gabber|Eurodance|Eurobeat|Future|Dubstep|Riddim|Brostep|DnB|Drum|Jungle|Neuro|Breaks|Big Beat|Amapiano|Gqom|Psy|Goa|Glitch|IDM|Gaming Stream|Starting Soon/i, bg: "club", wild: 1,
+    { id: "club", name: "the Sun-Maid Selectors", test: /House|Techno|Trance|Disco|Electro|EDM|Dance(?!hall)|Break|Big Beat|Big Room|Garage|2-Step|Hardstyle|Hardcore|Gabber|Eurodance|Eurobeat|Future|Dubstep|Riddim|Brostep|DnB|Drum|Jungle|Neuro|Breaks|Big Beat|Amapiano|Gqom|Psy|Goa|Glitch|IDM|Gaming Stream|Starting Soon/i, bg: "club", wild: 1,
       band: [{ acc: ["headphones", "vipers"], act: "djear", glove: 1 }, { acc: ["vipers"], act: "point", glove: 1 }, { acc: ["vipers", "headphones"], act: "decks", glove: 1 }, { acc: ["vipers"], act: "hype", glove: 1 }] },
     { id: "jazz", name: "Raisin Cane and the Prunes", test: /Jazz|Swing|Bebop|Blues|Soul|Funk|Motown|R&B|Gospel|Bossa|Big Band|Boogie/i, bg: "jazz", calm: 1,
       band: [{ acc: ["beret", "round"], act: "sax" }, { acc: ["fedora", "bowtie"], act: "keys" }, { acc: ["beret"], act: "upright" }, { acc: ["fedora", "bowtie"], act: "drums" }] },
@@ -511,26 +511,43 @@ window.Band = (() => {
   // ---------- the stage ----------
   let canvas, low, theme = THEMES[0], name = "", playing = null, raf = 0, last = 0, clock = 0;
   let bare = false, fixed = null;    // bare: just the band, no backdrop (on top of a game's own scene). fixed: one band, not taking turns
-  let ctx, analyser, bins, avg = 0, pulse = 0;
+  let ctx, analyser, wave, pulse = 0, since = 9;
+  const lvl = { bass: [0, 0], all: [0, 0] }, beats = [];    // each: [recent average, recent spread]
   const sources = new WeakMap();
 
   function listenTo(audio) {
     try {
       ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
-      if (!analyser) { analyser = ctx.createAnalyser(); analyser.fftSize = 1024; analyser.smoothingTimeConstant = .6; analyser.connect(ctx.destination); bins = new Uint8Array(analyser.frequencyBinCount); }
+      if (!analyser) { analyser = ctx.createAnalyser(); analyser.fftSize = 2048; analyser.connect(ctx.destination); }
       if (!sources.has(audio)) { const s = ctx.createMediaElementSource(audio); s.connect(analyser); sources.set(audio, s); }
       if (ctx.state === "suspended") ctx.resume();
     } catch (e) { analyser = null; }    // the band still plays, just to its own beat
   }
 
+  // how loud the bass and the whole sound are in the newest 1024 samples
+  function loudness(an) {
+    if (!wave || wave.length !== an.fftSize) wave = new Float32Array(an.fftSize);
+    an.getFloatTimeDomainData(wave);
+    const a = 1 - Math.exp(-2 * Math.PI * 150 / an.context.sampleRate), from = Math.max(0, wave.length - 1024);
+    let y = 0, bass = 0, all = 0;
+    for (let k = 0; k < wave.length; k++) {
+      y += a * (wave[k] - y);
+      if (k >= from) { bass += y * y; all += wave[k] * wave[k]; }
+    }
+    const n = wave.length - from;
+    return { bass: Math.sqrt(bass / n), all: Math.sqrt(all / n) };
+  }
+
   function beatNow(dt) {
     const an = playing && playing.getByteFrequencyData ? playing : analyser;    // a page's own analyser, or ours on a song
+    since += dt;
     if (playing && an && !playing.paused) {
-      if (!bins || bins.length !== an.frequencyBinCount) bins = new Uint8Array(an.frequencyBinCount);
-      an.getByteFrequencyData(bins);
-      let bass = 0; for (let k = 1; k < 10; k++) bass += bins[k]; bass /= 9 * 255;
-      avg = avg * .95 + bass * .05;
-      if (bass > avg * 1.12 + .02) pulse = Math.min(1, pulse + (bass - avg) * 4);
+      const now = loudness(an), keep = Math.exp(-dt / 1.5);
+      const which = lvl.bass[0] > lvl.all[0] * .2 ? "bass" : "all", e = now[which], [m, v] = lvl[which];
+      if (since > .22 && e > .004 && e > m * 1.2 + Math.sqrt(v) * .8) {
+        pulse = theme.calm ? .7 : 1; since = 0; beats.push(clock); if (beats.length > 32) beats.shift();
+      }
+      for (const k in lvl) { const x = now[k], [m0, v0] = lvl[k]; lvl[k] = m0 ? [m0 * keep + x * (1 - keep), v0 * keep + (x - m0) ** 2 * (1 - keep)] : [x, x * x / 4]; }
     } else {
       const bpm = theme.calm ? 70 : 112, ph = (clock * bpm / 60) % 1;
       if (ph < dt * bpm / 60) pulse = theme.calm ? .4 : .8;
@@ -605,10 +622,16 @@ window.Band = (() => {
       return box;
     },
     // source: an <audio> element, or an AnalyserNode the page already has on its own sound (Randis Sound Forge)
-    play(source, genre, title) { if (!source.getByteFrequencyData) listenTo(source); if (playing !== source) avg = 0; playing = source; theme = themeFor(genre); name = title; },
+    play(source, genre, title) {
+      if (!source.getByteFrequencyData) listenTo(source);
+      if (playing !== source) { lvl.bass = [0, 0]; lvl.all = [0, 0]; beats.length = 0; since = -.1; }
+      playing = source; theme = themeFor(genre); name = title;
+    },
     stop(audio) { if (playing === audio) playing = null; },
     // one band for when nothing is playing, instead of taking turns: dress("Calypso")
     dress(genre) { fixed = themeFor(genre); if (!playing) theme = fixed; },
+    // when the band heard the last beats (seconds on its own clock), for tests
+    get beats() { return beats.slice(); },
   };
 })();
 </script>
@@ -923,7 +946,9 @@ const h=e=>{if(!e.data)return;if(e.data.uds==='publishing'){note.textContent=e.d
 addEventListener('message',h);parent.postMessage({uds:'publish-song',title:$('pubTitle').value,blurb:$('pubBlurb').value,genre:$('pubGenre').value,data:blob},'*')}}
 function deliver(blob,name,box){const u=URL.createObjectURL(blob);const isV=/video/.test(blob.type),isI=/image/.test(blob.type);
 $(box).innerHTML=`<div>${name} · ${(blob.size/1048576).toFixed(1)} MB</div>`+(isV?`<video src="${u}" controls style="width:100%;max-height:240px"></video>`:isI?`<img src="${u}" style="width:100%">`:`<audio src="${u}" controls></audio>`)+`<div class="row"><button class="b p">💾 Save file</button><span class="muted"></span></div>`;
-const btn=$(box).querySelector('button'),note=$(box).querySelector('.row span');btn.onclick=()=>saveFile(blob,name,note);if(box==='expOut'&&!isV&&!isI)offerPublish(blob,box)}
+const btn=$(box).querySelector('button'),note=$(box).querySelector('.row span');btn.onclick=()=>saveFile(blob,name,note);
+const au=$(box).querySelector('audio');if(au&&window.Band){au.onplay=()=>{if(E.playing)stop(true);Band.play(au,bandGenre(),name.replace(/\.wav$/,'').replace(/_/g,' '))};au.onpause=au.onended=()=>Band.stop(au)}
+if(box==='expOut'&&!isV&&!isI)offerPublish(blob,box)}
 function saveFile(blob,name,note){note.textContent='Choose where to save it…';if(window.parent===window){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();note.textContent='';return}
 const t=setTimeout(()=>note.textContent='No answer from Randis UDS. Close the app and open it again (Reload is not enough), then make the file again and press Save.',6000);
 const h=e=>{if(!e.data)return;if(e.data.uds==='exporting'){clearTimeout(t);note.textContent=e.data.note;return}if(e.data.uds!=='exported')return;clearTimeout(t);removeEventListener('message',h);note.textContent=e.data.note;say(e.data.note)};addEventListener('message',h);parent.postMessage({uds:'export-file',name,data:blob},'*')}

@@ -6,6 +6,14 @@ import base64, io, json, math, os, shutil, struct, subprocess, sys, tempfile, ti
 import harness
 
 
+
+def on_time(beats, bpm):
+    """True when the beats the band heard keep time: most gaps are one beat (or two) at this tempo."""
+    gaps = [round(b - a, 3) for a, b in zip(beats, beats[1:])]
+    one = 60 / bpm
+    good = [g for g in gaps if min(abs(g - one), abs(g - 2 * one)) < 0.07]
+    return len(gaps) >= 4 and len(good) >= 0.8 * len(gaps), gaps
+
 def a_song(secs=3):
     """A real WAV: a soft tone that steps up a major scale."""
     rate, frames = 22050, io.BytesIO()
@@ -173,6 +181,21 @@ def test(page, check):
     check("switching the era to Medieval tavern changes into the castle band, mid-song", page.until("F.Band.theme === 'medieval'", 3), page.js("F.Band.theme"))
     page.js("F.document.getElementById('stop').click()")
     check("Stop sends the band back to rehearsing", page.until("F.document.querySelector('#bandCard .band-cap').textContent.startsWith('Rehearsing')", 3), cap())
+    pick = "(() => { const d = F.document; for (const [id, v] of %s) { const e = d.getElementById(id); e.value = v; e.dispatchEvent(new F.Event('change')); } })()"
+    page.js(pick % '[["cat", "Electronic"], ["genre", "House"], ["sub", "Deep House"], ["era", "Auto"]]')
+    bpm = int(page.js("F.document.getElementById('bpm').value"))
+    page.js("F.document.getElementById('play').click()"); time.sleep(5)
+    ok, gaps = on_time(page.json("F.Band.beats") or [], bpm)
+    check(f"on Play, the band bounces on the song's own beat (Deep House at {bpm} BPM)", ok and page.js("F.Band.theme") == "club", [page.js("F.Band.theme"), gaps])
+    page.js("F.document.getElementById('stop').click()")
+    page.js(pick % '[["cat", "Functional & Long-form"], ["genre", "Elevator & Lobby"], ["sub", "Hotel Lobby"]]')
+    page.js("F.document.getElementById('expLoop').click()")
+    page.until("!!F.document.querySelector('#expOut audio') && F.document.querySelector('#expOut').textContent.includes('Hotel_Lobby')", 90)
+    page.js("const a = F.document.querySelector('#expOut audio'); a.muted = true; a.play()")
+    check("pressing play on the rendered song brings on the band for its genre (the lobby band)",
+          page.until("F.Band.theme === 'elevator' && F.document.querySelector('#bandCard .band-cap').textContent.startsWith('Now playing: Hotel Lobby')", 5), [page.js("F.Band.theme"), cap()])
+    page.js("F.document.querySelector('#expOut audio').pause()")
+    check("pausing it sends the band back to rehearsing", page.until("F.document.querySelector('#bandCard .band-cap').textContent.startsWith('Rehearsing')", 3), cap())
 
     # the Jukebox in the shop
     def extra(path):
@@ -213,6 +236,23 @@ def test(page, check):
     picks = page.json("['Deep House', 'SNES Style', 'Celtic', 'Heavy Metal', 'Hardcore Punk', 'Lo-fi Hip Hop', 'Bossa Nova', 'Baroque', 'Sleep', 'Bluegrass', 'K-Pop'].map(g => Band.themeFor(g).id)")
     check("each genre gets its own band: house DJs, a 16-bit fantasy party, a castle band, rockers...", picks ==
           ["club", "quest", "medieval", "rock", "rock", "lofi", "jazz", "orchestra", "ambient", "country", "pop"], picks)
+    beat = """(() => { const c = new AudioContext(), sr = c.sampleRate, n = sr * 6, buf = c.createBuffer(1, n, sr), d = buf.getChannelData(0);
+      for (let i = 0; i < n; i++) d[i] = 0.05 * Math.sin(2 * Math.PI * 220 * i / sr) + 0.02 * (Math.random() * 2 - 1);   // a pad and hiss
+      for (let t = 0.3; t < 6; t += 60 / %(bpm)s) for (let i = 0; i < sr * 0.15; i++) {                             // the beats
+        const k = Math.floor(t * sr) + i, e = Math.exp(-i / sr * 25);
+        if (k < n) d[k] += %(bass)s ? 0.8 * e * Math.sin(2 * Math.PI * (50 + 80 * e) * i / sr) : 0.5 * e * Math.sin(2 * Math.PI * 880 * i / sr);
+      }
+      const s = c.createBufferSource(), an = c.createAnalyser(), hush = c.createGain(); an.fftSize = 2048; hush.gain.value = 0;
+      s.buffer = buf; s.connect(an); an.connect(hush); hush.connect(c.destination); s.start();
+      Band.play(an, %(genre)s, 'test beat'); window.__testBeat = an; })()"""
+    for bpm, bass, genre in ((120, "true", "'Deep House'"), (90, "true", "'Boom Bap'"), (100, "false", "'Elevator Music'")):
+        page.js(beat % {"bpm": bpm, "bass": bass, "genre": genre}); time.sleep(5)
+        ok, gaps = on_time(page.json("Band.beats") or [], bpm)
+        check(f"the band bounces on the beat at {bpm} BPM" + ("" if bass == "true" else ", even with no bass (a piano)"), ok, gaps)
+        page.js("Band.stop(window.__testBeat)")
+    picks = page.json("['UK Garage', 'Breakcore', 'Cyberpunk', 'Dancehall', 'Garage Rock'].map(g => Band.themeFor(g).id)")
+    check("garage and breaks get the club band, cyberpunk the neon band, dancehall the beach band",
+          picks == ["club", "club", "synth", "tropic", "rock"], picks)
     page.js("document.querySelector('.track audio').pause()"); time.sleep(0.4)
     check("with the song paused, the band rehearses", (page.js("document.querySelector('.band-cap').textContent") or "").startswith("Rehearsing"))
     check("Sound Forge is linked from the Jukebox", page.js("!!document.querySelector('.jukebox a[href=\"#/apps/randis-sound-forge\"]')") is True)
