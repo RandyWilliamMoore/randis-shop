@@ -115,8 +115,13 @@ h2.sect, h3 { margin: 0 0 8px; }
 .juke-sign { text-align: center; margin: 4px 0 14px; }
 .juke-sign b { display: block; font: 900 30px var(--mono); letter-spacing: 6px; color: var(--coin); text-shadow: 0 0 6px #ff9a2e, 0 0 14px var(--neon); }
 .juke-sign span { font: 700 13px var(--mono); color: var(--neon-2); }
+.band { margin: 0 auto 14px; max-width: 720px; border: 6px ridge #c98a2e; background: #000; }
+.band-stage { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; image-rendering: auto; }
+.band-cap { padding: 4px 8px; font: 700 13px var(--mono); color: var(--coin); background: #1a0a06; text-align: center; }
 .tracks { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 10px; }
-.track { background: #fff8e6; color: var(--ink); border: 3px solid #c98a2e; border-radius: 6px; padding: 10px 12px; }
+.track { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 12px; align-items: start; background: #fff8e6; color: var(--ink); border: 3px solid #c98a2e; border-radius: 6px; padding: 10px 12px; }
+.track-cover { width: 120px; height: 120px; object-fit: cover; border: 2px solid #3b1408; background: #3b1408; }
+@media (max-width: 520px) { .track { grid-template-columns: 72px minmax(0, 1fr); } .track-cover { width: 72px; height: 72px; } }
 .track.picked { outline: 4px solid var(--neon-2); }
 .track-top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; }
 .track-tags { font: 700 13px var(--mono); color: #7a2a12; }

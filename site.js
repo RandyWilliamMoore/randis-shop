@@ -110,15 +110,19 @@ function shelf() {
 
 // Songs made with Randis Sound Forge. They play right here; download any of them, royalty free.
 function track(t) {
-  const audio = el("audio", { controls: "", preload: "none", src: t.file });
+  const audio = el("audio", { controls: "", preload: "none", src: t.file, on: {
+    play: () => { document.querySelectorAll(".track audio").forEach(a => { if (a !== audio) a.pause(); }); if (window.Band) window.Band.play(audio, t.genre, t.name); },
+    pause: () => { if (window.Band) window.Band.stop(audio); } } });
   return el("li", { class: "track", id: "song-" + t.slug, "data-item": t.slug },
+    el("img", { class: "track-cover", src: t.cover, alt: t.name + " cover art" }),
+    el("div", { class: "track-main" },
     el("div", { class: "track-top" },
       el("b", {}, t.name),
       el("span", { class: "track-tags" }, [t.genre, t.length].filter(Boolean).join(" · "))),
     t.blurb ? el("p", {}, t.blurb) : null,
     el("div", { class: "track-play" }, audio,
       el("a", { class: "btn", href: t.file, download: t.download, "data-act": "download-song" }, "Download, royalty free")),
-    el("small", {}, "By " + t.by + ". Made with Randis Sound Forge."));
+    el("small", {}, "By " + t.by + ". Made with Randis Sound Forge. The download has its title, description and cover art inside it.")));
 }
 
 function jukebox(short) {
@@ -126,6 +130,7 @@ function jukebox(short) {
   const forge = window.ITEMS.find(i => i.kind === "apps" && i.slug === "randis-sound-forge");
   return win(SECTIONS.music, el("div", { class: "jukebox" },
     el("div", { class: "juke-sign" }, el("b", {}, "JUKEBOX"), el("span", {}, "royalty-free music, free to use")),
+    window.Band ? window.Band.stage() : null,
     songs.length ? el("ol", { class: "tracks" }, ...songs.map(track))
       : el("p", { class: "juke-empty" }, "The first songs are on their way. Check back soon."),
     short && MUSIC.length > songs.length ? el("p", {}, el("a", { class: "btn", href: "#/music" }, `All ${MUSIC.length} songs`)) : null,

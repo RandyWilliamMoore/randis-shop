@@ -1,7 +1,7 @@
 """The Jukebox and the music it holds: Randis Sound Forge makes elevator music and saves it, add_music.py puts a song in the
 Jukebox, and the shop plays it and hands it out royalty free. Also Sound Forge's own Save button inside the real shop.
     python tests/music_test.py"""
-import io, json, math, os, shutil, struct, subprocess, sys, tempfile, time, wave
+import base64, io, json, math, os, shutil, struct, subprocess, sys, tempfile, time, wave
 
 import harness
 
@@ -18,8 +18,10 @@ def a_song(secs=3):
 
 
 SONG = a_song()
+COVER = base64.b64decode("/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=")
 SONG_ENTRY = {"kind": "music", "slug": "lobby-test", "name": "Lobby Test", "by": "Randy", "blurb": "A test song.", "genre": "Elevator Music",
-              "length": "0:03", "added": "2026-11-07", "file": "music/lobby-test/song.wav", "download": "Lobby Test.wav"}
+              "length": "0:03", "added": "2026-11-07", "file": "music/lobby-test/song.wav", "cover": "music/lobby-test/cover.jpg",
+              "download": "Lobby Test.wav"}
 # what the shop page saves, read back from the file it hands the browser (the same recorder as save_test.py)
 RECORD = """window.__saved = []; window.__files = {};
 const __make = URL.createObjectURL; URL.createObjectURL = b => { const u = __make.call(URL, b); __files[u] = b; return u; };
@@ -30,33 +32,67 @@ HTMLAnchorElement.prototype.click = function () {
     __saved.push({file: name, size: u.length, head: String.fromCharCode(...u.slice(0, 4))}); }); };"""
 
 
+def probe(path):
+    """What's inside an MP3, read by ffprobe: its tags and whether it carries a picture."""
+    import add_music_tools
+    r = subprocess.run([add_music_tools.ffmpeg("ffprobe"), "-v", "error", "-show_entries", "format_tags:stream=codec_type,codec_name:stream_disposition=attached_pic",
+                        "-of", "json", path], capture_output=True, text=True)
+    return json.loads(r.stdout or "{}")
+
+
 def tools_check(check):
     """add_music.py and build_index.py in a scratch copy of the shop's tools, so the real shop isn't touched."""
     top = tempfile.mkdtemp(prefix="jukebox_test_")
     try:
         shutil.copytree(os.path.join(harness.SHOP, "tools"), os.path.join(top, "tools"))
+        os.makedirs(os.path.join(top, "site"))
+        shutil.copyfile(os.path.join(harness.SHOP, "site", "band.js"), os.path.join(top, "site", "band.js"))
+        sys.path.insert(0, os.path.join(top, "tools"))
+        sys.modules["add_music_tools"] = __import__("add_music")
         song = os.path.join(top, "My Lobby Song.wav")
         with open(song, "wb") as f:
             f.write(SONG)
         run = lambda *a: subprocess.run([sys.executable, os.path.join(top, "tools", "add_music.py"), *a], capture_output=True, text=True)
-        r = run(song, "--name", "My Lobby Song!", "--genre", "Elevator Music", "--blurb", "Soft and slow.")
-        info = json.load(open(os.path.join(top, "music", "my-lobby-song", "info.json"), encoding="utf-8")) if r.returncode == 0 else {}
-        check("add_music.py puts a song in the Jukebox, with its length read from the file",
-              r.returncode == 0 and info.get("length") == "0:03" and info.get("genre") == "Elevator Music"
-              and os.listdir(os.path.join(top, "music", "my-lobby-song")) == ["info.json", "song.mp3"], r.stdout + r.stderr)
-        mp3 = os.path.join(top, "music", "my-lobby-song", "song.mp3")
-        head = open(mp3, "rb").read(3) if os.path.isfile(mp3) else b""
-        check("the WAV became a real, smaller MP3", (head == b"ID3" or head[:1] == bytes([255])) and os.path.getsize(mp3) < len(SONG) / 2,
-              (head, os.path.getsize(mp3) if head else 0, len(SONG)))
+        r = run(song, "--name", "My Lobby Song!", "--genre", "Elevator Music", "--blurb", "Soft and slow, for a hotel lobby.")
+        folder = os.path.join(top, "music", "my-lobby-song")
+        info = json.load(open(os.path.join(folder, "info.json"), encoding="utf-8")) if r.returncode == 0 else {}
+        check("add_music.py puts a song in the Jukebox: an MP3, its cover and its info, with the length read from the file",
+              r.returncode == 0 and info.get("length") == "0:03" and info.get("blurb") == "Soft and slow, for a hotel lobby."
+              and sorted(os.listdir(folder)) == ["cover.jpg", "info.json", "song.mp3"], r.stdout + r.stderr)
+        mp3 = os.path.join(folder, "song.mp3")
+        sound = os.path.getsize(mp3) - os.path.getsize(os.path.join(folder, "cover.jpg")) if os.path.isfile(mp3) else 0
+        check("the WAV became a real MP3, its sound a fraction of the WAV's size", open(mp3, "rb").read(3) == b"ID3" and 0 < sound < len(SONG) / 2, (sound, len(SONG)))
+        inside = probe(mp3) if os.path.isfile(mp3) else {}
+        tags = {k.lower(): v for k, v in inside.get("format", {}).get("tags", {}).items()}
+        check("the MP3 carries its title, artist, album, genre and year", tags.get("title") == "My Lobby Song!" and tags.get("artist") == "Randy Moore"
+              and tags.get("album") == "Randis Shop Jukebox" and tags.get("genre") == "Elevator Music" and tags.get("date", "").isdigit(), tags)
+        check("and its description and the royalty-free note", tags.get("comment") == "Soft and slow, for a hotel lobby."
+              and "Royalty free" in tags.get("copyright", "") and "randis-shop" in tags.get("copyright", ""), tags)
+        pics = [st for st in inside.get("streams", []) if st.get("codec_type") == "video" and st.get("disposition", {}).get("attached_pic") == 1]
+        check("and its cover art", len(pics) == 1 and pics[0].get("codec_name") == "mjpeg", inside.get("streams"))
+        from PIL import Image
+        art = Image.open(os.path.join(folder, "cover.jpg")) if os.path.isfile(os.path.join(folder, "cover.jpg")) else None
+        colours = len(art.resize((50, 50)).getcolors(10000) or []) if art else 0
+        check("the cover is a square picture of the band, not a blank", art and art.size == (1000, 1000) and colours > 200, (art and art.size, colours))
         listed = open(os.path.join(top, "music.js"), encoding="utf-8").read()
-        check("music.js lists it, with a plain download name", '"download": "My Lobby Song.mp3"' in listed and '"file": "music/my-lobby-song/song.mp3"' in listed, listed[:300])
-        r = run(song, "--name", "Kept", "--genre", "x", "--keep-wav")
-        check("--keep-wav keeps the WAV", r.returncode == 0 and os.path.isfile(os.path.join(top, "music", "kept", "song.wav")), r.stdout + r.stderr)
-        check("the same name twice is refused", run(song, "--name", "My Lobby Song!", "--genre", "x").returncode != 0)
+        check("music.js lists it, with its cover and a plain download name", '"download": "My Lobby Song.mp3"' in listed
+              and '"cover": "music/my-lobby-song/cover.jpg"' in listed, listed[:400])
+        mine = os.path.join(top, "mine.png")
+        Image.new("RGB", (640, 400), (20, 140, 90)).save(mine)
+        r = run(song, "--name", "Own Art", "--genre", "Celtic", "--blurb", "x", "--cover", mine)
+        own = Image.open(os.path.join(top, "music", "own-art", "cover.jpg")) if r.returncode == 0 else None
+        check("--cover uses your own picture, squared to 1000 x 1000", own and own.size == (1000, 1000) and abs(own.getpixel((500, 500))[1] - 140) < 12, r.stderr)
+        check("a song with no description is refused", run(song, "--name", "No Words", "--genre", "x", "--blurb", " ").returncode != 0
+              and not os.path.exists(os.path.join(top, "music", "no-words")))
+        check("the same name twice is refused", run(song, "--name", "My Lobby Song!", "--genre", "x", "--blurb", "x").returncode != 0)
         bad = os.path.join(top, "page.html")
         open(bad, "w").write("<p>x</p>")
-        check("anything but a song file is refused", run(bad, "--name", "Page", "--genre", "x").returncode != 0 and not os.path.exists(os.path.join(top, "music", "page")))
-        open(os.path.join(top, "music", "my-lobby-song", "extra.exe"), "w").write("MZ")
+        check("anything but a song file is refused", run(bad, "--name", "Page", "--genre", "x", "--blurb", "x").returncode != 0 and not os.path.exists(os.path.join(top, "music", "page")))
+        os.remove(os.path.join(top, "music", "own-art", "cover.jpg"))
+        r = subprocess.run([sys.executable, os.path.join(top, "tools", "build_index.py")], capture_output=True, text=True)
+        check("a song with no cover stops the build", r.returncode != 0 and "cover.jpg" in r.stdout + r.stderr, r.stdout + r.stderr)
+        shutil.rmtree(os.path.join(top, "music", "own-art"))
+        open(os.path.join(folder, "extra.exe"), "w").write("MZ")
         r = subprocess.run([sys.executable, os.path.join(top, "tools", "build_index.py")], capture_output=True, text=True)
         check("a song folder with anything else in it stops the build", r.returncode != 0 and "don't belong" in r.stdout + r.stderr, r.stdout + r.stderr)
     finally:
@@ -96,12 +132,15 @@ def test(page, check):
             return "window.MUSIC = " + json.dumps([SONG_ENTRY]) + ";", "application/javascript"
         if path == "/music/lobby-test/song.wav":
             return SONG, "audio/wav"
+        if path == "/music/lobby-test/cover.jpg":
+            return COVER, "image/jpeg"
     base = harness.serve(extra)
     page.go(base + "index.html#/")
     page.until("!!document.querySelector('.jukebox')")
     check("the front door has the Jukebox, with the song", "Lobby Test" in (page.js("document.querySelector('.jukebox').textContent") or ""))
     check("the menu has a Jukebox button", page.js("[...document.querySelectorAll('.nav a')].some(a => a.getAttribute('href') === '#/music')") is True)
     page.js("location.hash = '#/music/lobby-test'"); time.sleep(0.6)
+    check("each song shows its cover art", page.js("(() => { const i = document.querySelector('#song-lobby-test .track-cover'); return !!i && i.getAttribute('src') === 'music/lobby-test/cover.jpg'; })()") is True)
     check("a song's own link shows the Jukebox and points out that song", page.js("!!document.querySelector('#song-lobby-test.picked')") is True)
     check("the terms say royalty free, paid work included, no payment",
           all(w in (page.js("document.querySelector('.terms').textContent") or "") for w in ("Royalty free", "paid work", "No payment")))
@@ -112,11 +151,25 @@ def test(page, check):
     played = page.until("document.querySelector('.track audio').currentTime > 0.5", 10)
     check("the song plays right in the shop, under the shop's rules", played and not page.json("__csp") and not page.js("window.__playErr"),
           [page.js("document.querySelector('.track audio').currentTime"), page.json("__csp"), page.js("window.__playErr")])
+    cap = page.js("document.querySelector('.band-cap').textContent") or ""
+    check("the Raisin Band plays along, dressed for the song: an elevator song gets the lobby band",
+          page.js("Band.theme") == "elevator" and cap.startswith("Now playing: Lobby Test"), [page.js("Band.theme"), cap])
+    snap = "(() => { const c = document.querySelector('.band-stage'), d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let h = 0; for (let i = 0; i < d.length; i += 41) h = (h * 31 + d[i]) | 0; return h; })()"
+    frames = set()
+    for _ in range(6):
+        frames.add(page.js(snap)); time.sleep(0.15)
+    check("the band is moving", len(frames) >= 4, len(frames))
+    picks = page.json("['Deep House', 'SNES Style', 'Celtic', 'Heavy Metal', 'Hardcore Punk', 'Lo-fi Hip Hop', 'Bossa Nova', 'Baroque', 'Sleep', 'Bluegrass', 'K-Pop'].map(g => Band.themeFor(g).id)")
+    check("each genre gets its own band: house DJs, a 16-bit fantasy party, a castle band, rockers...", picks ==
+          ["club", "quest", "medieval", "rock", "rock", "lofi", "jazz", "orchestra", "ambient", "country", "pop"], picks)
+    page.js("document.querySelector('.track audio').pause()"); time.sleep(0.4)
+    check("with the song paused, the band rehearses", (page.js("document.querySelector('.band-cap').textContent") or "").startswith("Rehearsing"))
     check("Sound Forge is linked from the Jukebox", page.js("!!document.querySelector('.jukebox a[href=\"#/apps/randis-sound-forge\"]')") is True)
     base = harness.serve(lambda p: ("window.MUSIC = [];", "application/javascript") if p == "/music.js" else None)
     page.go(base + "index.html#/music")
     page.until("!!document.querySelector('.jukebox')")
     check("an empty Jukebox says songs are coming", "on their way" in (page.js("document.querySelector('.jukebox').textContent") or ""))
+    check("and the band still rehearses on its stage", page.until("(document.querySelector('.band-cap') || {}).textContent.startsWith('Rehearsing')", 3))
 
     # Sound Forge's own Save button, in the real shop and the real walled player
     base = harness.serve()
