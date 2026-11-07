@@ -50,8 +50,22 @@ a{color:#8ecae6}
 .dec{position:absolute;line-height:1;pointer-events:none}
 .locname{position:absolute;left:10px;top:8px;background:#0008;color:#fff;padding:3px 8px;border-radius:6px;font-size:13px;z-index:5}
 #cart{position:absolute;right:30px;bottom:20px;width:120px;height:120px;z-index:2}
-.umb{position:absolute;left:30px;top:-6px;font-size:52px}
-.vend{position:absolute;top:34px;font-size:32px}
+.umb{position:absolute;left:30px;top:-66px;font-size:52px}
+.vend{position:absolute;top:8px}
+/* people: a face with a body under it */
+.who{display:flex;flex-direction:column;align-items:center}
+.who .face{font-size:28px;line-height:1;position:relative;z-index:1}
+.tor{width:24px;height:24px;border-radius:9px 9px 4px 4px;margin-top:-5px;position:relative}
+.tor .arm{position:absolute;top:3px;width:6px;height:19px;border-radius:3px;background:inherit;filter:brightness(.8);transform-origin:top center}
+.tor .arm.l{left:-5px;transform:rotate(14deg)}.tor .arm.r{right:-5px;transform:rotate(-14deg)}
+.tor .apron{position:absolute;left:5px;right:5px;top:6px;bottom:0;background:#fff;border-radius:3px 3px 0 0;border:1px solid #ddd}
+.who .hat{position:absolute;left:50%;top:-13px;transform:translateX(-50%);width:22px;height:15px;background:#fff;border:1px solid #ccc;border-radius:9px 9px 2px 2px;box-shadow:inset 0 -3px 0 #e6e6e6}
+.legs{display:flex;gap:4px;margin-top:-1px}
+.legs i{display:block;width:8px;height:16px;border-radius:0 0 4px 4px;transform-origin:top center}
+.walk .legs i:first-child{animation:step .25s infinite alternate}.walk .legs i:last-child{animation:step .25s infinite alternate-reverse}
+@keyframes step{from{transform:rotate(16deg)}to{transform:rotate(-16deg)}}
+.vend .arm.r{animation:tongs .5s infinite alternate}.vend:nth-child(2) .arm.r{animation-delay:.2s}.vend:nth-child(3) .arm.r{animation-delay:.35s}
+@keyframes tongs{from{transform:rotate(-14deg)}to{transform:rotate(-70deg)}}
 .box{position:absolute;bottom:14px;left:0;right:0;height:46px;background:#c0392b;border:3px solid #ffffff44;border-radius:8px;color:#fff;font-weight:bold;font-size:13px;display:flex;align-items:center;justify-content:center;text-align:center}
 .wheel{position:absolute;bottom:0;width:18px;height:18px;border-radius:50%;background:#222;border:3px solid #999}
 .cust{position:absolute;bottom:22px;width:44px;text-align:center;transition:left 1s ease-out,bottom .4s;z-index:3}
@@ -165,11 +179,11 @@ const LOCS=[
   decor:[["🏙️",4,30,70],["🌳",30,52,52],["⛲",46,80,36],["🌳",60,50,48],["🕊️",40,15,22]],
   events:[["Office lunch rush 🏃",1],["A food blogger posts about your dogs 📸",1],["Rain slows things down ☔",0]]},
  {name:"🎢 Theme Park",sign:"🌭 Top Dog",cls:"loc2",every:.6,
-  people:["🧒","👦","👧","🤡","👩","🧑‍🦱","👨"],
+  people:["🧒","👦","👧","🤡","👩","🧔","👨"],
   decor:[["🎡",3,10,80],["🎪",30,40,46],["🎢",42,60,50],["🎠",58,80,34],["🎈",66,18,26]],
   events:[["The roller coaster line lets out 🎢",1],["A parade passes by 🎉",1],["A kid drops their dog… you give a free one 😢",0]]},
  {name:"🏟️ Big League Ballpark",sign:"🌭 Top Dog USA",cls:"loc3",every:.45,
-  people:["🧔","👨","👩","🧑","👦","👴","🧑‍🦰"],
+  people:["🧔","👨","👩","🧑","👦","👴","👱"],
   decor:[["💡",5,8,28],["🏟️",18,22,70],["🎆",42,6,34],["⚾",52,60,24],["💡",68,8,28]],
   events:[["Seventh-inning stretch rush ⚾",1],["A home run! The crowd goes wild 🎆",1],["Rain delay ☔",0]]}
 ];
@@ -337,11 +351,13 @@ confirmBtn($("newBtn"),"🆕 New game",()=>{newGame();sfx("ui");setMode("play")}
 
 // ---- customers ----
 let Q=[],spawnAcc=99;
+const SHIRTS=['#e63946','#457b9d','#2a9d8f','#f4a261','#8e44ad','#f1c40f','#16a085','#d35400','#3d5a80','#ff7eb6'],PANTS=['#264653','#3d405b','#5c4033','#2b2d42','#6c757d','#1d3557'];
+function person(face,shirt,pants,apron){return '<div class="who"><div class="face">'+(apron?'<i class="hat"></i>':'')+face+'</div><div class="tor" style="background:'+shirt+'"><i class="arm l"></i><i class="arm r"></i>'+(apron?'<i class="apron"></i>':'')+'</div><div class="legs"><i style="background:'+pants+'"></i><i style="background:'+pants+'"></i></div></div>'}
 function maxQ(){return Math.max(2,Math.min(7,Math.floor((scene.clientWidth-200)/46)+1))}
 function spawn(){
  if(Q.length>=maxQ())return;
  const el=document.createElement("div");el.className="cust walk";
- el.innerHTML='<div class="bub"></div><div class="face">'+pick(LOCS[S.stage].people)+'</div><div class="pat"><div></div></div>';
+ el.innerHTML='<div class="bub"></div>'+person(pick(LOCS[S.stage].people),pick(SHIRTS),pick(PANTS))+'<div class="pat"><div></div></div>';
  el.style.left="-50px";scene.appendChild(el);el.offsetWidth;
  const c={el,want:perClick()*(1+Math.floor(Math.random()*3)),got:0,pat:12,max:12,born:Date.now(),moveT:Date.now()};
  Q.push(c);upd(c);layout();
@@ -426,7 +442,7 @@ function render(full){
  if(full||$("items").children.length!==avail.length){
   $("items").innerHTML=avail.map(i=>`<div class="item"><div>${i.name} <span style="color:#ffd166">x${own(i.id)}</span><small>${i.desc}</small></div><button data-id="${i.id}" id="b_${i.id}"></button></div>`).join("");
   const h=Math.min(2,own("helper"));
-  $("vends").innerHTML='<span class="vend" style="left:44px">🧑‍🍳</span>'+(h>0?'<span class="vend" style="left:8px">🧑‍🍳</span>':'')+(h>1?'<span class="vend" style="left:80px">🧑‍🍳</span>':'');
+  const cook=()=>person('🧑','#f4f4f4','#333',true);$("vends").innerHTML='<span class="vend" style="left:44px">'+cook()+'</span>'+(h>0?'<span class="vend" style="left:6px">'+cook()+'</span>':'')+(h>1?'<span class="vend" style="left:82px">'+cook()+'</span>':'');
  }
  avail.forEach(i=>{const b=$("b_"+i.id);if(!b)return;const maxed=i.max&&own(i.id)>=i.max;b.textContent=maxed?"Maxed":fmt(cost(i));b.disabled=!!(maxed||S.cash<cost(i))});
  const lg=S.log.join("|");

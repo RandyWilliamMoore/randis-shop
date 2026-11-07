@@ -125,6 +125,48 @@ def test(page, check):
     check("an elevator song renders, and Save hands over a real WAV", rendered and len(got) == 1 and got[0]["head"] == "RIFF"
           and got[0]["name"].endswith(".wav") and got[0]["size"] > 100000, got)
     check("after Save, Sound Forge says it's saved", "Saved" in (page.js("F.document.querySelector('#expOut .row span').textContent") or ""))
+    check("with no app saying publishing is set up (the shop, or anyone else's copy), there's no Publish button",
+          page.js("!F.document.getElementById('pubBtn')") is True)
+    # inside Randis UDS with publishing set up: the app answers, and the button and its filled-in form appear
+    page.js("""addEventListener('message', e => { if (!e.data) return;
+      if (e.data.uds === 'can-publish') e.source.postMessage({uds: 'can-publish', ok: true, shop: 'Test Shop'}, '*');
+      if (e.data.uds === 'publish-song') window.__pub = {title: e.data.title, blurb: e.data.blurb, genre: e.data.genre, size: e.data.data.size, head: ''}; });""")
+    page.js("setTimeout(() => F.document.getElementById('expSong').click(), 0)")
+    check("where publishing is set up, a Publish button sits beside Save", page.until("!!F.document.getElementById('pubBtn')", 90)
+          and "Test Shop" in (page.js("F.document.getElementById('pubBtn').textContent") or ""))
+    page.js("F.document.getElementById('pubBtn').click()")
+    form = page.json("({t: F.document.getElementById('pubTitle').value, b: F.document.getElementById('pubBlurb').value, g: F.document.getElementById('pubGenre').value})") or {}
+    check("its form comes filled in: a made-up title, a description from the song's settings, the genre",
+          len(form.get("t", "")) > 3 and "Elevator Music song at" in form.get("b", "") and "BPM" in form.get("b", "") and form.get("g") == "Elevator Music", form)
+    page.js("F.document.getElementById('pubRoll').click()")
+    titles = {form.get("t")}
+    for _ in range(4):
+        titles.add(page.js("F.document.getElementById('pubTitle').value")); page.js("F.document.getElementById('pubRoll').click()")
+    check("the dice give other titles", len(titles) >= 3, titles)
+    page.js("F.document.getElementById('pubTitle').value = 'My Own Title'; F.document.getElementById('pubGo').click()")
+    pub = page.json("window.__pub") if page.until("!!window.__pub", 5) else None
+    check("Publish hands the app the song with your title, the description and the genre",
+          bool(pub) and pub["title"] == "My Own Title" and pub["genre"] == "Elevator Music" and pub["blurb"] == form.get("b") and pub["size"] > 100000, pub)
+    check("and says to answer the app's question", "Say yes" in (page.js("F.document.getElementById('pubNote').textContent") or ""))
+    # the Raisin Band, inside Sound Forge
+    forge = open(os.path.join(harness.SHOP, "apps", "randis-sound-forge", "item.html"), encoding="utf-8").read().replace("\r\n", "\n")
+    inside = forge.split('<script id="raisin-band">\n', 1)[-1].split("</script>", 1)[0]
+    shop_band = open(os.path.join(harness.SHOP, "site", "band.js"), encoding="utf-8").read().replace("\r\n", "\n")
+    check("Sound Forge's Raisin Band is the same as the Jukebox's (site/band.js)", inside == shop_band, (len(inside), len(shop_band)))
+    cap = lambda: page.js("(F.document.querySelector('#bandCard .band-cap') || {}).textContent || ''") or ""
+    check("Sound Forge shows the band's stage, rehearsing before you play", page.until("(F.document.querySelector('#bandCard .band-cap') || {}).textContent.startsWith('Rehearsing')", 3), cap())
+    page.js("F.document.getElementById('play').click()")
+    playing = page.until("F.Band.theme === 'elevator' && F.document.querySelector('#bandCard .band-cap').textContent.startsWith('Now playing')", 6)
+    check("pressing Play brings on the lobby band for elevator music", playing, [page.js("F.Band.theme"), cap()])
+    snap = "(() => { const c = F.document.querySelector('#bandCard canvas'), d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let h = 0; for (let i = 0; i < d.length; i += 41) h = (h * 31 + d[i]) | 0; return h; })()"
+    frames = set()
+    for _ in range(6):
+        frames.add(page.js(snap)); time.sleep(0.15)
+    check("the band moves with the song", len(frames) >= 4, len(frames))
+    page.js("(() => { const e = F.document.getElementById('era'); e.value = 'Medieval tavern'; e.dispatchEvent(new F.Event('change')); })()")
+    check("switching the era to Medieval tavern changes into the castle band, mid-song", page.until("F.Band.theme === 'medieval'", 3), page.js("F.Band.theme"))
+    page.js("F.document.getElementById('stop').click()")
+    check("Stop sends the band back to rehearsing", page.until("F.document.querySelector('#bandCard .band-cap').textContent.startsWith('Rehearsing')", 3), cap())
 
     # the Jukebox in the shop
     def extra(path):
