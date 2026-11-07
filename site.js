@@ -2,6 +2,7 @@
 "use strict";
 const SOFTWARE = Array.isArray(window.SOFTWARE) ? window.SOFTWARE : [];
 const UDS = SOFTWARE.find(s => s.slug === "randis-uds");
+const MUSIC = Array.isArray(window.MUSIC) ? window.MUSIC : [];
 const SHOP = {
   repo: "https://github.com/RandyWilliamMoore/randis-uds",
   // the newest release, from software/randis-uds/info.json; the fixed page is only for when software.js didn't load
@@ -18,7 +19,11 @@ const SHOP = {
   kofi: "https://ko-fi.com/moorescombinatoricsmatrix",
   etsy: "https://www.etsy.com/shop/UberRandis",
 };
-const SECTIONS = { games: "The Arcade", apps: "The Software Shelf" };
+const SECTIONS = { games: "The Arcade", apps: "The Software Shelf", music: "The Jukebox" };
+// The terms every song in the Jukebox comes with.
+const ROYALTY_FREE = "Royalty free: use these songs in anything, paid work included: videos, streams, games, podcasts, shops, on hold lines. "
+  + "No payment, no sign-up, no permission needed. The one thing you can't do is sell or hand out the songs themselves as your own music. "
+  + "A credit like \"Music by Randy Moore, from the Randis Shop\" is welcome, never required.";
 
 function el(tag, attrs, ...kids) {
   const e = document.createElement(tag);
@@ -53,11 +58,12 @@ function header() {
   return el("section", { class: "win" },
     el("div", { class: "bar" }, el("h1", {}, "The Randis Shop"), el("span", { class: "sq", "aria-hidden": "true" }, "_"), el("span", { class: "sq", "aria-hidden": "true" }, "X")),
     el("div", { class: "sign" }, el("b", {}, "THE RANDIS SHOP"), el("span", {}, "games and apps people made with Randis UDS")),
-    el("div", { class: "ticker" }, el("span", {}, "*** WELCOME TO THE SHOP *** PLAY RIGHT HERE, NOTHING TO INSTALL *** EVERY GAME RUNS WALLED OFF FROM YOUR COMPUTER *** FIND REAL IN-GAME ITEMS AT THE ETSY SHOP ***")),
+    el("div", { class: "ticker" }, el("span", {}, "*** WELCOME TO THE SHOP *** PLAY RIGHT HERE, NOTHING TO INSTALL *** EVERY GAME RUNS WALLED OFF FROM YOUR COMPUTER *** ROYALTY-FREE MUSIC IN THE JUKEBOX *** FIND REAL IN-GAME ITEMS AT THE ETSY SHOP ***")),
     el("nav", { class: "nav" },
       el("a", { class: "btn", href: "#/" }, "Front door"),
       el("a", { class: "btn", href: "#/games" }, "Arcade"),
       el("a", { class: "btn", href: "#/apps" }, "Software Shelf"),
+      el("a", { class: "btn", href: "#/music" }, "Jukebox"),
       out(SHOP.guestbook, "Guestbook", "btn")));
 }
 
@@ -102,6 +108,32 @@ function shelf() {
     el("div", { class: "boxes" }, ...(boxes.length ? boxes : [el("p", { class: "empty" }, "The shelf is empty right now.")]))));
 }
 
+// Songs made with Randis Sound Forge. They play right here; download any of them, royalty free.
+function track(t) {
+  const audio = el("audio", { controls: "", preload: "none", src: t.file });
+  return el("li", { class: "track", id: "song-" + t.slug, "data-item": t.slug },
+    el("div", { class: "track-top" },
+      el("b", {}, t.name),
+      el("span", { class: "track-tags" }, [t.genre, t.length].filter(Boolean).join(" · "))),
+    t.blurb ? el("p", {}, t.blurb) : null,
+    el("div", { class: "track-play" }, audio,
+      el("a", { class: "btn", href: t.file, download: t.download, "data-act": "download-song" }, "Download, royalty free")),
+    el("small", {}, "By " + t.by + ". Made with Randis Sound Forge."));
+}
+
+function jukebox(short) {
+  const songs = short ? MUSIC.slice(0, 3) : MUSIC;
+  const forge = window.ITEMS.find(i => i.kind === "apps" && i.slug === "randis-sound-forge");
+  return win(SECTIONS.music, el("div", { class: "jukebox" },
+    el("div", { class: "juke-sign" }, el("b", {}, "JUKEBOX"), el("span", {}, "royalty-free music, free to use")),
+    songs.length ? el("ol", { class: "tracks" }, ...songs.map(track))
+      : el("p", { class: "juke-empty" }, "The first songs are on their way. Check back soon."),
+    short && MUSIC.length > songs.length ? el("p", {}, el("a", { class: "btn", href: "#/music" }, `All ${MUSIC.length} songs`)) : null,
+    el("div", { class: "inset terms" }, el("b", {}, "The terms. "), ROYALTY_FREE),
+    forge ? el("p", { class: "fine juke-made" }, "Every song here was made with ", el("a", { href: `#/apps/${forge.slug}` }, forge.name),
+      ", which you can play with right here in the shop.") : null));
+}
+
 function softwarePage(s) {
   const link = safeWeb(s.download);
   return [win(s.name + " " + s.version,
@@ -131,7 +163,7 @@ function frontDoor() {
         UDS && UDS.screenshot ? el("a", { class: "front-shot", href: `#/software/${UDS.slug}`, title: "More about Randis UDS" },
           el("img", { class: "screenshot", src: UDS.screenshot, alt: "Randis UDS with three tabs open: a notepad, Randis Paint, and the Randis Shop tab listing the shop's games" }),
           el("small", {}, "What it looks like. Click for more.")) : null))),
-    arcade(), shelf(),
+    arcade(), shelf(), jukebox(true),
     win("Got something to put on the shelf?", el("div", { class: "inset" }, "Submissions open once the safety checks are built. Everything sent in will be checked before it goes on a shelf.")),
   ];
 }
@@ -193,6 +225,15 @@ function playWindow(i) {
         askLink(e.data.url);
       } else if (e.data && e.data.uds === "download" && e.data.data instanceof ArrayBuffer) {
         saveDownload(e.data.name, e.data.data);
+      } else if (e.data && e.data.uds === "export-file" && e.data.data instanceof Blob) {
+        // an app's own Save button (the way it saves inside Randis UDS) hands over the file it made; it hears back either way
+        const src = e.source, d = e.data;
+        const reply = note => src.postMessage({ uds: "exported", ok: /^Saved/.test(note), note }, "*");
+        if (d.data.size > SHOP.maxDownload) reply("That file is too big to save from the shop.");
+        else d.data.arrayBuffer().then(buf => {
+          const file = saveDownload(d.name, buf);
+          reply(file ? `Saved ${file} in your downloads.` : "The shop can't save that kind of file, or a save just happened. Try again in a moment.");
+        });
       }
     };
     window.addEventListener("message", hear);
@@ -223,13 +264,14 @@ function playWindow(i) {
   const saveDownload = (name, buf) => {
     const m = /^(.{0,80}?)\.([a-z0-9]{1,5})$/i.exec(String(name || "").replace(/[^\w .()-]+/g, "_").trim());
     const type = m && SHOP.saveKinds[m[2].toLowerCase()];
-    if (!type || buf.byteLength > SHOP.maxDownload || Date.now() - lastSave < 1500) return;
+    if (!type || buf.byteLength > SHOP.maxDownload || Date.now() - lastSave < 1500) return null;
     lastSave = Date.now();
     const file = `${m[1] || i.slug}.${m[2].toLowerCase()}`;
     const a = el("a", { href: URL.createObjectURL(new Blob([buf], { type })), download: file });
     document.body.append(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 5000);
     note.textContent = `Saved ${file} in your downloads.`;
+    return file;
   };
   const box = el("div", { class: "play", role: "dialog", "aria-label": i.name },
     el("div", { class: "win" },
@@ -251,13 +293,15 @@ function render() {
   else if (!kind) main = frontDoor();
   else if (kind === "games" && !slug) main = [arcade()];
   else if (kind === "apps" && !slug) main = [shelf()];
+  else if (kind === "music" && !act && (!slug || MUSIC.some(t => t.slug === slug))) main = [jukebox(false)];
   else if (item) main = itemPage(item);
   else main = [win("Not on the shelf", el("div", { class: "inset" }, "That item isn't here. ", el("a", { href: "#/" }, "Back to the front door")))];
   const page = el("div", { class: "page" }, header(), ...main, footer());
   app.replaceChildren(page);
   if (item && act === "play" && item.status !== "flagged") app.append(playWindow(item));
   document.title = item || soft ? `${(item || soft).name} | The Randis Shop` : "The Randis Shop";
-  window.scrollTo(0, 0);
+  const song = kind === "music" && slug ? document.getElementById("song-" + slug) : null;
+  if (song) { song.classList.add("picked"); song.scrollIntoView(); } else window.scrollTo(0, 0);
 }
 
 document.addEventListener("keydown", e => {

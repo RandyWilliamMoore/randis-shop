@@ -379,7 +379,7 @@ window.ITEMS = [
   "slug": "randis-sound-forge",
   "name": "Randis Sound Forge",
   "by": "Randy",
-  "blurb": "Make your own royalty-free music and sound. Pick a genre and press New song, play long-form ambience, design sound effects for a pad bank, turn text into speech and add voice effects, then save songs, loops and effects as WAV files or record a music video.",
+  "blurb": "Make your own royalty-free music and sound. Pick a genre, elevator music included, and press New song; play long-form ambience, design sound effects, turn text into speech, then save songs, loops and effects as WAV files or record a music video. Randy's songs from it are in the Jukebox.",
   "status": "ok",
   "real_items": null,
   "reviews": {

@@ -110,6 +110,25 @@ h2.sect, h3 { margin: 0 0 8px; }
 .play .ask[hidden] { display: none; }
 .btn.small { padding: 1px 8px; font-size: 13px; }
 
+/* jukebox */
+.jukebox { padding: 16px; color: #fff; background: radial-gradient(ellipse at top, #7a2a12, #3b1408 70%); border: 4px ridge #c98a2e; border-radius: 60px 60px 6px 6px; }
+.juke-sign { text-align: center; margin: 4px 0 14px; }
+.juke-sign b { display: block; font: 900 30px var(--mono); letter-spacing: 6px; color: var(--coin); text-shadow: 0 0 6px #ff9a2e, 0 0 14px var(--neon); }
+.juke-sign span { font: 700 13px var(--mono); color: var(--neon-2); }
+.tracks { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 10px; }
+.track { background: #fff8e6; color: var(--ink); border: 3px solid #c98a2e; border-radius: 6px; padding: 10px 12px; }
+.track.picked { outline: 4px solid var(--neon-2); }
+.track-top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; }
+.track-tags { font: 700 13px var(--mono); color: #7a2a12; }
+.track p { margin: 4px 0; }
+.track-play { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 6px 0; }
+.track-play audio { flex: 1; min-width: min(100%, 240px); }
+.track small { font-size: 12px; }
+.juke-empty { text-align: center; font: 700 15px var(--mono); color: var(--coin); }
+.jukebox .terms { color: var(--ink); font-size: 14px; }
+.juke-made { margin: 10px 0 0; }
+.jukebox a:not(.btn) { color: var(--coin); }
+
 /* footer */
 .foot { font-size: 14px; }
 .foot .links { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 6px 0; }

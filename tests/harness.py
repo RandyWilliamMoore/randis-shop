@@ -52,7 +52,7 @@ class Results:
 
 def serve(extra=None, extra_items=()):
     """Serves the shop folder. The shop page names the live player; here it's pointed at this server's copy.
-    extra(path) can answer a path itself with (text, content type, headers); extra_items are added to items.js."""
+    extra(path) can answer a path itself with (text or bytes, content type, headers); extra_items are added to items.js."""
     class Handler(http.server.SimpleHTTPRequestHandler):
         def __init__(self, *a, **k):
             super().__init__(*a, directory=SHOP, **k)
@@ -61,7 +61,7 @@ def serve(extra=None, extra_items=()):
             pass
 
         def send_text(self, text, ctype, headers=None):
-            body = text.encode("utf-8")
+            body = text if isinstance(text, bytes) else text.encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", ctype)
             self.send_header("Cache-Control", "no-store")
@@ -96,6 +96,8 @@ addEventListener('message', e => {
   if (e.data === 'player-ready') { F = f.contentWindow; fetch('/' + location.search.slice(1) + '/item.html').then(r => r.text()).then(t => F.postMessage(t, '*')); }
   else if (e.data && e.data.uds === 'open-link') got.push({link: e.data.url});
   else if (e.data && e.data.uds === 'download') { const u = new Uint8Array(e.data.data); got.push({name: e.data.name, size: u.length, head: String.fromCharCode(...u.slice(0, 4))}); }
+  else if (e.data && e.data.uds === 'export-file') e.data.data.arrayBuffer().then(b => { const u = new Uint8Array(b);   // an app's own Save button
+    got.push({name: e.data.name, size: u.length, head: String.fromCharCode(...u.slice(0, 4)), how: 'export'}); e.source.postMessage({uds: 'exported', ok: true, note: 'Saved'}, '*'); });
 });</script>""", "text/html")
             if extra:
                 answer = extra(path)

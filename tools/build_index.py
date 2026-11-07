@@ -9,6 +9,10 @@
   software/<slug>/   a program to download and install, shown first on the Software Shelf (written to software.js); its logo is site/logos/<slug>.png,
                      and a screenshot of it, if there is one, site/screens/<slug>.png
       info.json    name, by, version, blurb, download (its release page), source, new (what changed), fine (how to install)
+
+  music/<slug>/      a royalty-free song made with Randis Sound Forge, in the Jukebox (written to music.js); add one with tools/add_music.py
+      song.mp3, song.ogg or song.wav   the song
+      info.json    name, by, blurb, genre, length (like "3:05"), added (like "2026-11-07")
 """
 import json, os, re, sys
 
@@ -95,6 +99,42 @@ def read_software(slug):
             "screenshot": shot if os.path.isfile(os.path.join(ROOT, *shot.split("/"))) else None}
 
 
+SONG_FILES = {"song.mp3", "song.ogg", "song.wav"}
+SONG_FIELDS = {"name", "by", "blurb", "genre", "length", "added"}
+SONG_MAX = 95 * 1024 * 1024     # GitHub refuses files over 100 MB
+
+
+def read_song(slug):
+    where = f"music/{slug}"
+    if not re.fullmatch(r"[a-z0-9]+(-[a-z0-9]+)*", slug):
+        problem(where, "folder name must be lowercase words with dashes")
+    folder = os.path.join(ROOT, "music", slug)
+    names = set(os.listdir(folder))
+    if names - SONG_FILES - {"info.json"}:
+        problem(where, f"files that don't belong: {sorted(names - SONG_FILES - {'info.json'})}")
+    songs = names & SONG_FILES
+    if "info.json" not in names or len(songs) != 1:
+        problem(where, "needs info.json and one song file: song.mp3, song.ogg or song.wav")
+    song = songs.pop()
+    if os.path.getsize(os.path.join(folder, song)) > SONG_MAX:
+        problem(where, "the song file is over 95 MB")
+    with open(os.path.join(folder, "info.json"), encoding="utf-8") as f:
+        info = json.load(f)
+    if set(info) != SONG_FIELDS:
+        problem(where, "info.json has the wrong fields")
+    for field, most in {"name": 60, "by": 40, "genre": 40}.items():
+        if not isinstance(info[field], str) or not info[field].strip() or len(info[field]) > most:
+            problem(where, f"{field} must be text of at most {most} characters")
+    if not isinstance(info["blurb"], str) or len(info["blurb"]) > 400:
+        problem(where, "blurb must be text of at most 400 characters (it can be empty)")
+    if info["length"] is not None and not (isinstance(info["length"], str) and re.fullmatch(r"\d{1,3}:\d\d", info["length"])):
+        problem(where, "length must look like 3:05, or be null")
+    if not (isinstance(info["added"], str) and re.fullmatch(r"\d{4}-\d\d-\d\d", info["added"])):
+        problem(where, "added must look like 2026-11-07")
+    plain = re.sub(r"[^\w .()-]+", "", info["name"]).strip() or slug
+    return {"kind": "music", "slug": slug, **info, "file": f"music/{slug}/{song}", "download": plain + os.path.splitext(song)[1]}
+
+
 def write_list(name, var, entries):
     text = json.dumps(entries, ensure_ascii=True, indent=1).replace("<", "\\u003c")
     with open(os.path.join(ROOT, name), "w", encoding="utf-8", newline="\n") as f:
@@ -110,8 +150,12 @@ def main():
             items.append(read_item(kind, slug))
     top = os.path.join(ROOT, "software")
     software = [read_software(slug) for slug in (sorted(os.listdir(top)) if os.path.isdir(top) else [])]
+    top = os.path.join(ROOT, "music")
+    music = [read_song(slug) for slug in (sorted(os.listdir(top)) if os.path.isdir(top) else [])]
+    music.sort(key=lambda t: t["added"], reverse=True)     # newest first; sort is stable, so same-day songs stay by name
     write_list("items.js", "ITEMS", items)
     write_list("software.js", "SOFTWARE", software)
+    write_list("music.js", "MUSIC", music)
 
 
 if __name__ == "__main__":
