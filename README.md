@@ -10,7 +10,7 @@ Each item is one folder under `games/` or `apps/`. Randis UDS itself, a download
 
 ## The Jukebox
 
-Songs made with Randis Sound Forge, free to play here and to download, royalty free: use them in anything, paid work included, with no payment or sign-up. The one thing you can't do is sell or hand out the songs themselves as your own music. A credit is welcome, never required.
+Songs made with Randis Sound Forge, free to play here and to download, royalty free, with credit: use them in anything, paid work included, with no payment or sign-up, but you must credit the song wherever you use it, with the credit line shown under it in the Jukebox (it's inside the MP3 too). The one thing you can't do is sell or hand out the songs themselves as your own music.
 
 Each song is one folder under `music/`: `song.mp3`, `cover.jpg` and `info.json`. Every song is the same kind of file, a 192 kbps MP3 with its title, artist, album, genre, year, description, the royalty-free note and its cover art inside it. The cover is the Raisin Band dressed for the song's genre, unless you give your own. To add one (needs [ffmpeg](https://ffmpeg.org/) and pywebview):
 
