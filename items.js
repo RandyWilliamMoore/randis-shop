@@ -373,5 +373,22 @@ window.ITEMS = [
   "file": "apps/randis-paint/item.html",
   "logo": "apps/randis-paint/logo.svg",
   "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "randis-sound-forge",
+  "name": "Randis Sound Forge",
+  "by": "Randy",
+  "blurb": "Make your own royalty-free music and sound. Pick a genre and press New song, play long-form ambience, design sound effects for a pad bank, turn text into speech and add voice effects, then save songs, loops and effects as WAV files or record a music video.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/randis-sound-forge",
+  "file": "apps/randis-sound-forge/item.html",
+  "logo": "apps/randis-sound-forge/logo.svg",
+  "video_pic": null
  }
 ];

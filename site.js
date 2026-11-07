@@ -10,6 +10,10 @@ const SHOP = {
   videoPic: "https://img.youtube.com/vi/VZeMAVmKJrY/maxresdefault.jpg",
   guestbook: "https://github.com/RandyWilliamMoore/randis-uds/discussions",
   maxSave: 30 * 1024 * 1024,
+  maxDownload: 300 * 1024 * 1024,
+  saveKinds: { wav: "audio/wav", mp3: "audio/mpeg", ogg: "audio/ogg", flac: "audio/flac", mid: "audio/midi", midi: "audio/midi",
+    webm: "video/webm", mp4: "video/mp4", png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", webp: "image/webp",
+    txt: "text/plain", json: "application/json", csv: "text/csv" },
   discord: "https://discord.gg/83RmuHcQTR",
   kofi: "https://ko-fi.com/moorescombinatoricsmatrix",
   etsy: "https://www.etsy.com/shop/UberRandis",
@@ -185,6 +189,10 @@ function playWindow(i) {
         document.body.append(a); a.click(); a.remove();
         setTimeout(() => URL.revokeObjectURL(a.href), 5000);
         e.source.postMessage({ uds: "saved", note: `Saved: ${i.slug}.html, in your downloads. Load it here, or open the file, to pick up where you left off.` }, "*");
+      } else if (e.data && e.data.uds === "open-link" && typeof e.data.url === "string") {
+        askLink(e.data.url);
+      } else if (e.data && e.data.uds === "download" && e.data.data instanceof ArrayBuffer) {
+        saveDownload(e.data.name, e.data.data);
       }
     };
     window.addEventListener("message", hear);
@@ -196,9 +204,37 @@ function playWindow(i) {
     if (f && f.size <= SHOP.maxSave) start(f.text());
   } } });
   const note = el("span", {}, "Running walled off: it can't reach your files or this site.");
+  // A link in the game opens only when the player says so, in a new tab cut off from this site.
+  const ask = el("div", { class: "ask", role: "alert" });
+  ask.hidden = true;
+  const askLink = raw => {
+    let u;
+    try { u = new URL(raw); } catch (x) { return; }
+    if (raw.length > 2000 || !/^https?:$/.test(u.protocol)) return;
+    ask.replaceChildren(
+      el("span", {}, "This game wants to open a page on ", el("b", { title: u.href }, u.hostname), ". "),
+      el("button", { class: "btn small", "data-act": "open-link", on: { click: () => { window.open(u.href, "_blank", "noopener,noreferrer"); ask.hidden = true; } } }, "Open it in a new tab"), " ",
+      el("button", { class: "btn small", "data-act": "no-link", on: { click: () => { ask.hidden = true; } } }, "No"));
+    ask.hidden = false;
+  };
+  // A file the game makes (a song, a picture, a recording) is saved by this page, so the wall stays up.
+  // Only these kinds, under a plain name, one at a time; never a page or a program.
+  let lastSave = 0;
+  const saveDownload = (name, buf) => {
+    const m = /^(.{0,80}?)\.([a-z0-9]{1,5})$/i.exec(String(name || "").replace(/[^\w .()-]+/g, "_").trim());
+    const type = m && SHOP.saveKinds[m[2].toLowerCase()];
+    if (!type || buf.byteLength > SHOP.maxDownload || Date.now() - lastSave < 1500) return;
+    lastSave = Date.now();
+    const file = `${m[1] || i.slug}.${m[2].toLowerCase()}`;
+    const a = el("a", { href: URL.createObjectURL(new Blob([buf], { type })), download: file });
+    document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    note.textContent = `Saved ${file} in your downloads.`;
+  };
   const box = el("div", { class: "play", role: "dialog", "aria-label": i.name },
     el("div", { class: "win" },
       el("div", { class: "bar" }, el("h2", {}, i.name), el("button", { class: "sq", "aria-label": "Close", "data-act": "close", on: { click: close } }, "X")),
+      ask,
       el("div", { class: "walled" }, note, " ", el("button", { class: "btn small", "data-act": "load-save", on: { click: () => pick.click() } }, "Load a saved file"), pick)));
   start(fetch(i.file).then(r => { if (!r.ok) throw new Error(r.status); return r.text(); }));
   return box;

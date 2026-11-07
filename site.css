@@ -106,6 +106,8 @@ h2.sect, h3 { margin: 0 0 8px; }
 .play iframe { flex: 1; width: 100%; border: 0; background: #fff; min-height: 0; }
 .play .sq { cursor: pointer; }
 .walled { padding: 3px 8px; font-size: 13px; background: var(--face); }
+.play .ask { padding: 6px 8px; font-size: 14px; background: #fff1a8; color: #000; border-top: 2px solid #000; }
+.play .ask[hidden] { display: none; }
 .btn.small { padding: 1px 8px; font-size: 13px; }
 
 /* footer */

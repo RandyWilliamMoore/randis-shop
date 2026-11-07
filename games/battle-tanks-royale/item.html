@@ -177,10 +177,10 @@ addEventListener('message',e=>{const m=e.data;if(e.source!==parent||!m||m.uds!==
 setInterval(()=>{if(!NET.on)return;netSend(0,{t:'p'});if(Date.now()-NET.heard>12000)netLost()},3000);
 function netReset(){if(NET.role){if(NET.on){addMsg('','You disconnected.','sys');netSend(0,{t:'leave'})}parent.postMessage({uds:'net',op:'leave'},'*')}NET={};
  ['nethost','netjoin'].forEach(i=>$(i).classList.add('hide'));['inv','inv2'].forEach(i=>$(i).value='');nst('');renderNet()}
-function netHost(){netReset();NET={role:'host',on:false};$('nethost').classList.remove('hide');nst('Making your private invite code…','#f3b33d');parent.postMessage({uds:'net',op:'host'},'*');setTimeout(()=>{if(NET.role&&!NET.got)nst('Online play needs the Randis UDS app. Defend, Story and same-keyboard Versus work here.','#e05050')},5000)}
+function netHost(){netReset();NET={role:'host',on:false};$('nethost').classList.remove('hide');nst('Making your private invite code…','#f3b33d');parent.postMessage({uds:'net',op:'host'},'*');setTimeout(()=>{if(NET.role&&!NET.got)nst('No answer: online play only works in a Randis UDS app that has it turned on for this tab. Defend, Story and same-keyboard Versus work anywhere.','#e05050')},5000)}
 function netJoinUI(){netReset();$('netjoin').classList.remove('hide');nst('Type the invite code your friend sent you.')}
 function netJoin(){const txt=$('inv2').value.trim();if(!txt)return nst('Type the invite code first.','#e05050');netReset();$('netjoin').classList.remove('hide');$('inv2').value=txt;
- NET={role:'guest',on:false};parent.postMessage({uds:'net',op:'join',code:txt},'*');setTimeout(()=>{if(NET.role&&!NET.got)nst('Online play needs the Randis UDS app. Defend, Story and same-keyboard Versus work here.','#e05050')},5000);
+ NET={role:'guest',on:false};parent.postMessage({uds:'net',op:'join',code:txt},'*');setTimeout(()=>{if(NET.role&&!NET.got)nst('No answer: online play only works in a Randis UDS app that has it turned on for this tab. Defend, Story and same-keyboard Versus work anywhere.','#e05050')},5000);
  setTimeout(()=>{if(NET.role=='guest'&&NET.link&&!NET.on)nst('No answer yet. Check the code, and that your friend is still on the Host screen.','#e05050')},10000)}
 function netLost(){if(!NET.role)return;const was=NET.on;NET.on=false;NET.link=false;
  if(G&&G.net&&!G.over)end(true,'The connection to your friend was lost.');
@@ -192,7 +192,7 @@ function netStart(){if(!NET.on||NET.role!='host')return;const code=nc($('code').
  const l2=NET.peer;startGame('vs',{code,net:'host',look2:l2});netSend(NET.c,{t:'start',code,l1:myLook(),l2})}
 function netRematch(){if(!NET.on){ov('<h2>Not connected</h2><p>Your friend is no longer linked.</p><button onclick="quit()">Back</button>');return}
  if(NET.role=='host')netStart();else{netSend(NET.c,{t:'rematch'});ov('<h2>Rematch asked</h2><p>Waiting for the host…</p><button onclick="quit()">Back</button>')}}
-function onNet(raw){let m;try{m=JSON.parse(raw)}catch(e){return}if(!m||typeof m!='object')return;
+function onNet(raw){let m;try{m=typeof raw=='string'?JSON.parse(raw):raw}catch(e){return}if(!m||typeof m!='object')return;
  if(m.t=='hello'){if(m.role==NET.role){nst(NET.role=='host'?'Someone else is hosting with this code too.':'You both pressed Join. One of you should Host.','#e05050');return}
   const first=!NET.on;NET.peer=cleanLook(m.look);NET.on=true;if(!m.ack)hello(true);if(!first)return;['nethost','netjoin'].forEach(i=>$(i).classList.add('hide'));
   nst('🔒 Connected to '+NET.peer.name+' (sealed end to end)!','#5fbf5f');addMsg('','Connected to '+NET.peer.name+'. Say hi!','sys');renderNet();toggleChat(true)}
