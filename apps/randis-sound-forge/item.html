@@ -55,7 +55,7 @@ audio{width:100%;margin-top:6px}
 <label><span>Genre</span><select id="genre"></select></label>
 <label><span>Sub-genre</span><select id="sub"></select></label>
 <label><span>Mood</span><select id="mood"></select></label>
-<label><span>Era / style</span><select id="era"></select></label>
+<label><span>Era / flavor</span><select id="era"></select></label>
 <label><span>Song form</span><select id="form"><option value="loop">Loop (4 bars)</option><option value="short">Short (~16 bars)</option><option value="full" selected>Full song</option><option value="long">Extended mix</option></select></label>
 <div class="row"><button class="b" id="applyGenre">Apply genre defaults</button><label style="margin:0"><span>Seed</span><input type="number" id="seed" value="1" style="width:80px"></label></div>
 </div>
@@ -272,7 +272,7 @@ function fillGenre(){opts($('genre'),Object.keys(G[V('cat')]));fillSub()}
 function fillSub(){opts($('sub'),G[V('cat')][V('genre')])}
 $('cat').onchange=()=>{fillGenre();applyGenre()};$('genre').onchange=()=>{fillSub();applyGenre()};$('sub').onchange=applyGenre;$('mood').onchange=applyGenre;$('era').onchange=applyGenre;
 const TR=[{id:'drums',n:'Drums'},{id:'bass',n:'Bass'},{id:'pad',n:'Chords / pad'},{id:'lead',n:'Lead melody'},{id:'arp',n:'Arpeggio'},{id:'counter',n:'Counter melody'},{id:'perc',n:'Extra percussion'},{id:'fx',n:'Risers & impacts'}];
-TR.forEach(t=>{const d=document.createElement('div');d.className='card';const tonal=!/drums|perc|fx/.test(t.id);d.innerHTML=`<h3>${t.n}<button class="tg on" id="on_${t.id}"></button></h3>`+(tonal?`<label><span>Sound</span><select id="w_${t.id}"></select></label><label><span>Register</span><input type="range" id="o_${t.id}" min="-2" max="2" step="1" value="0"></label>`:'')+`<label><span>Volume</span><input type="range" id="v_${t.id}" min="0" max="1" step="0.01" value="0.6"></label><label><span>Pan</span><input type="range" id="p_${t.id}" min="-1" max="1" step="0.05" value="0"></label>`;$('tracks').appendChild(d);if(tonal)opts($('w_'+t.id),WAVES)});
+TR.forEach(t=>{const d=document.createElement('div');d.className='card';const tonal=!/drums|perc|fx/.test(t.id);d.innerHTML=`<h3>${t.n}<button class="tg on" id="on_${t.id}"></button></h3>`+(tonal?`<label><span>Sound</span><select id="w_${t.id}"></select></label><label><span>Octave</span><input type="range" id="o_${t.id}" min="-2" max="2" step="1" value="0"></label>`:'')+`<label><span>Volume</span><input type="range" id="v_${t.id}" min="0" max="1" step="0.01" value="0.6"></label><label><span>Pan</span><input type="range" id="p_${t.id}" min="-1" max="1" step="0.05" value="0"></label>`;$('tracks').appendChild(d);if(tonal)opts($('w_'+t.id),WAVES)});
 $('on_counter').classList.remove('on');$('v_counter').value=.4;$('v_arp').value=.4;$('v_perc').value=.5;$('v_fx').value=.4;
 function applyGenre(){const s=V('cat')+'|'+V('genre')+'|'+V('sub');const p=profile(s);const r=rng(hash(s)+V('seed'));
 $('bpm').value=Math.round(p.bpm[0]+r()*(p.bpm[1]-p.bpm[0]));$('scale').value=MOODS[V('mood')]||p.scale;$('drums').value=p.drums;$('swing').value=p.swing;$('dens').value=p.dens;$('chip').value=p.chip;$('bassStyle').value=p.bassStyle;$('kit').value=p.kit;
