@@ -315,6 +315,7 @@ window.Band = (() => {
 
   // ---------- the stage ----------
   let canvas, low, theme = THEMES[0], name = "", playing = null, raf = 0, last = 0, clock = 0;
+  let bare = false, fixed = null;    // bare: just the band, no backdrop (on top of a game's own scene). fixed: one band, not taking turns
   let ctx, analyser, bins, avg = 0, pulse = 0;
   const sources = new WeakMap();
 
@@ -344,11 +345,12 @@ window.Band = (() => {
   }
 
   // one picture of the band: drawn on out (a 16:9 canvas), through the small canvas low for the pixel themes
-  function scene(out, low, th, t, beat) {
+  function scene(out, low, th, t, beat, noBack) {
     const target = th.pixel ? low : out;
     c = target.getContext("2d");
+    if (noBack) { c.clearRect(0, 0, target.width, target.height); if (th.pixel) out.getContext("2d").clearRect(0, 0, out.width, out.height); }
     c.save(); c.scale(target.width / W, target.height / H);
-    BG[th.bg](t, beat);
+    if (!noBack) BG[th.bg](t, beat);
     const xs = [150, 370, 590, 810];
     th.band.forEach((m, i) => { c.save(); c.translate(xs[i], GROUND); c.scale(1.3, 1.3); c.translate(-xs[i], -GROUND); raisin(m, xs[i], t, beat, th, i); c.restore(); });
     c.restore();
@@ -383,8 +385,9 @@ window.Band = (() => {
     if (!canvas || !canvas.isConnected) { raf = 0; return; }
     raf = requestAnimationFrame(frame);
     const dt = Math.min(.1, last ? (now - last) / 1000 : .016); last = now; clock += dt;
-    if (!playing) { const k = Math.floor(clock / 7) % THEMES.length; if (THEMES[k] !== theme) theme = THEMES[k]; }
-    scene(canvas, low, theme, clock, beatNow(dt));
+    if (!playing && fixed) theme = fixed;
+    else if (!playing) { const k = Math.floor(clock / 7) % THEMES.length; if (THEMES[k] !== theme) theme = THEMES[k]; }
+    scene(canvas, low, theme, clock, beatNow(dt), bare);
     const cap = canvas.parentNode && canvas.parentNode.querySelector(".band-cap");
     const text = playing ? `Now playing: ${name}, by ${theme.name}` : `Rehearsing: ${theme.name}. Press play on a song.`;
     if (cap && cap.textContent !== text) cap.textContent = text;
@@ -393,19 +396,23 @@ window.Band = (() => {
   return {
     themeFor, THEMES, cover,
     get theme() { return theme.id; },
-    // the stage: a canvas and its caption
-    stage() {
+    // the stage: a canvas and its caption. stage({bare: true}) is just the band, no backdrop or caption, to stand in a game's scene.
+    stage(opts) {
+      bare = !!(opts && opts.bare);
       canvas = document.createElement("canvas"); canvas.width = W; canvas.height = H; canvas.className = "band-stage";
       canvas.setAttribute("role", "img"); canvas.setAttribute("aria-label", "The Raisin Band playing along");
       low = document.createElement("canvas"); low.width = W / 6; low.height = H / 6;
       const box = document.createElement("div"); box.className = "band";
       const cap = document.createElement("div"); cap.className = "band-cap";
-      box.append(canvas, cap);
+      box.append(canvas);
+      if (!bare) box.append(cap);
       if (!raf) raf = requestAnimationFrame(frame);
       return box;
     },
     // source: an <audio> element, or an AnalyserNode the page already has on its own sound (Randis Sound Forge)
     play(source, genre, title) { if (!source.getByteFrequencyData) listenTo(source); if (playing !== source) avg = 0; playing = source; theme = themeFor(genre); name = title; },
     stop(audio) { if (playing === audio) playing = null; },
+    // one band for when nothing is playing, instead of taking turns: dress("Calypso")
+    dress(genre) { fixed = themeFor(genre); if (!playing) theme = fixed; },
   };
 })();

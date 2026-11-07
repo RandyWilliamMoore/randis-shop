@@ -151,10 +151,14 @@ def test(page, check):
           bool(pub) and pub["title"] == "My Own Title" and pub["genre"] == "Elevator Music" and pub["blurb"] == form.get("b") and pub["size"] > 100000, pub)
     check("and says to answer the app's question", "Say yes" in (page.js("F.document.getElementById('pubNote').textContent") or ""))
     # the Raisin Band, inside Sound Forge
-    forge = open(os.path.join(harness.SHOP, "apps", "randis-sound-forge", "item.html"), encoding="utf-8").read().replace("\r\n", "\n")
-    inside = forge.split('<script id="raisin-band">\n', 1)[-1].split("</script>", 1)[0]
     shop_band = open(os.path.join(harness.SHOP, "site", "band.js"), encoding="utf-8").read().replace("\r\n", "\n")
-    check("Sound Forge's Raisin Band is the same as the Jukebox's (site/band.js)", inside == shop_band, (len(inside), len(shop_band)))
+    carriers = {}
+    for it in harness.items():
+        page_text = open(os.path.join(harness.SHOP, it["kind"], it["slug"], "item.html"), encoding="utf-8").read().replace("\r\n", "\n")
+        if '<script id="raisin-band">' in page_text:
+            carriers[it["slug"]] = page_text.split('<script id="raisin-band">\n', 1)[1].split("</script>", 1)[0] == shop_band
+    check("every page carrying the Raisin Band has the same band as the Jukebox (tools/sync_band.py)",
+          {"randis-sound-forge", "hotdog-tycoon"} <= set(carriers) and all(carriers.values()), carriers)
     cap = lambda: page.js("(F.document.querySelector('#bandCard .band-cap') || {}).textContent || ''") or ""
     check("Sound Forge shows the band's stage, rehearsing before you play", page.until("(F.document.querySelector('#bandCard .band-cap') || {}).textContent.startsWith('Rehearsing')", 3), cap())
     page.js("F.document.getElementById('play').click()")

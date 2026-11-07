@@ -45,6 +45,14 @@ def hotdog_tycoon(page, check):
     check("Hotdog Tycoon: customers get served and cash comes in", text("#cash") != cash and text("#served").strip() not in ("", "0"), (cash, text("#cash")))
     bought = page.js(f"(() => {{ const b = [...{D}.querySelectorAll('#items button')].find(b => !b.disabled); if (!b) return ''; b.click(); return b.textContent; }})()")
     check("Hotdog Tycoon: an upgrade can be bought", bool(bought), page.js(f"[...{D}.querySelectorAll('#items button')].map(b => b.textContent.slice(0, 20)).join(' | ')"))
+    snap = f"(() => {{ const c = {D}.querySelector('#bandstand canvas'), d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let h = 0, n = 0; for (let i = 3; i < d.length; i += 41) {{ h = (h * 31 + d[i - 1]) | 0; n += d[i] > 0; }} return [h, n]; }})()"
+    shots = []
+    for _ in range(5):
+        shots.append(page.json(snap) or [0, 0]); time.sleep(0.15)
+    check("Hotdog Tycoon: the Raisin Band busks beside the line, dressed for the beach, and moves",
+          page.js("F.Band.theme") == "tropic" and min(n for _, n in shots) > 500 and len({h for h, _ in shots}) >= 3, [page.js("F.Band.theme"), shots[:2]])
+    check("Hotdog Tycoon: the band stands over the scene without blocking clicks",
+          page.js(f"getComputedStyle({D}.getElementById('bandstand')).pointerEvents") == "none")
     check("Hotdog Tycoon: no errors", not errs(), errs())
 
 
