@@ -15,6 +15,19 @@ window.MUSIC = [
  },
  {
   "kind": "music",
+  "slug": "rusted-cathedral",
+  "name": "Rusted Cathedral",
+  "by": "Randy",
+  "blurb": "Four-on-the-floor drums, a sawtooth bass and a square lead over sawtooth pads: a dark progressive house song at 124 BPM in A minor, 1:10 long across 7 sections.",
+  "genre": "Progressive House",
+  "length": "1:13",
+  "added": "2026-11-07",
+  "file": "music/rusted-cathedral/song.mp3",
+  "cover": "music/rusted-cathedral/cover.jpg",
+  "download": "Rusted Cathedral.mp3"
+ },
+ {
+  "kind": "music",
   "slug": "shadow-labyrinth",
   "name": "Shadow Labyrinth",
   "by": "Randy",
