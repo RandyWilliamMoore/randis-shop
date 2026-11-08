@@ -28,6 +28,19 @@ window.MUSIC = [
  },
  {
   "kind": "music",
+  "slug": "furnace-in-a",
+  "name": "Furnace in A",
+  "by": "Randy",
+  "blurb": "A dark Boom Bap song in A minor at 88 BPM: boom drums, a sawtooth bass and a square lead over sawtooth pads. 8 sections, 2:11 long.",
+  "genre": "Boom Bap",
+  "length": "2:14",
+  "added": "2026-11-07",
+  "file": "music/furnace-in-a/song.mp3",
+  "cover": "music/furnace-in-a/cover.jpg",
+  "download": "Furnace in A.mp3"
+ },
+ {
+  "kind": "music",
   "slug": "ruins-in-a",
   "name": "Ruins in A",
   "by": "Randy",
