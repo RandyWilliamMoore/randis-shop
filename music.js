@@ -15,6 +15,19 @@ window.MUSIC = [
  },
  {
   "kind": "music",
+  "slug": "furious-ruins",
+  "name": "Furious Ruins",
+  "by": "Randy",
+  "blurb": "Four-on-the-floor drums, a sawtooth bass and a sawtooth lead over sawtooth pads: a dark minimal techno song at 136 BPM in A minor, 1:25 long across 8 sections.",
+  "genre": "Minimal Techno",
+  "length": "1:28",
+  "added": "2026-11-07",
+  "file": "music/furious-ruins/song.mp3",
+  "cover": "music/furious-ruins/cover.jpg",
+  "download": "Furious Ruins.mp3"
+ },
+ {
+  "kind": "music",
   "slug": "rusted-cathedral",
   "name": "Rusted Cathedral",
   "by": "Randy",
