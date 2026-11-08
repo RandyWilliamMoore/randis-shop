@@ -38,5 +38,18 @@ window.MUSIC = [
   "file": "music/shadow-labyrinth/song.mp3",
   "cover": "music/shadow-labyrinth/cover.jpg",
   "download": "Shadow Labyrinth.mp3"
+ },
+ {
+  "kind": "music",
+  "slug": "winter-furnace-no-5",
+  "name": "Winter Furnace No. 5",
+  "by": "Randy",
+  "blurb": "Boom drums, a sawtooth bass and a sine lead over epiano pads: a dark lo-fi house song at 78 BPM in A minor, 2:28 long across 8 sections.",
+  "genre": "Lo-fi House",
+  "length": "2:31",
+  "added": "2026-11-07",
+  "file": "music/winter-furnace-no-5/song.mp3",
+  "cover": "music/winter-furnace-no-5/cover.jpg",
+  "download": "Winter Furnace No. 5.mp3"
  }
 ];
