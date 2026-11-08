@@ -140,12 +140,15 @@ def test(page, check):
     # inside Randis UDS with publishing set up: the app answers, and the button and its filled-in form appear
     page.js("""addEventListener('message', e => { if (!e.data) return;
       if (e.data.uds === 'can-publish') e.source.postMessage({uds: 'can-publish', ok: true, shop: 'Test Shop'}, '*');
-      if (e.data.uds === 'publish-song') window.__pub = {title: e.data.title, blurb: e.data.blurb, genre: e.data.genre, size: e.data.data.size, head: ''}; });""")
+      if (e.data.uds === 'publish-song') window.__pub = {title: e.data.title, blurb: e.data.blurb, genre: e.data.genre, size: e.data.data.size, head: '',
+        cover: String(e.data.cover || '').slice(0, 23), coverSize: String(e.data.cover || '').length}; });""")
     page.js("setTimeout(() => F.document.getElementById('expSong').click(), 0)")
     check("where publishing is set up, a Publish button sits beside Save", page.until("!!F.document.getElementById('pubBtn')", 90)
           and "Test Shop" in (page.js("F.document.getElementById('pubBtn').textContent") or ""))
     page.js("F.document.getElementById('pubBtn').click()")
     form = page.json("({t: F.document.getElementById('pubTitle').value, b: F.document.getElementById('pubBlurb').value, g: F.document.getElementById('pubGenre').value})") or {}
+    check("its form shows the cover it will use: the band dressed for the genre, with the title",
+          page.js("(F.document.getElementById('pubCover') || {}).src || ''").startswith("data:image/jpeg"))
     check("its form comes filled in: a made-up title, a description from the song's settings, the genre",
           len(form.get("t", "")) > 3 and "Elevator Music song at" in form.get("b", "") and "BPM" in form.get("b", "") and form.get("g") == "Elevator Music", form)
     page.js("F.document.getElementById('pubRoll').click()")
@@ -158,6 +161,10 @@ def test(page, check):
     check("Publish hands the app the song with your title, the description and the genre",
           bool(pub) and pub["title"] == "My Own Title" and pub["genre"] == "Elevator Music" and pub["blurb"] == form.get("b") and pub["size"] > 100000, pub)
     check("and says to answer the app's question", "Say yes" in (page.js("F.document.getElementById('pubNote').textContent") or ""))
+    check("the cover goes with it", bool(pub) and pub["cover"] == "data:image/jpeg;base64," and pub["coverSize"] > 20000, pub and pub.get("coverSize"))
+    check("if the app never answers, Publish doesn't stay stuck: it says so and can be pressed again",
+          page.until("F.document.getElementById('pubNote').textContent.startsWith('No answer from Randis UDS') && !F.document.getElementById('pubGo').disabled", 12),
+          page.js("F.document.getElementById('pubNote').textContent"))
     # the Raisin Band, inside Sound Forge
     shop_band = open(os.path.join(harness.SHOP, "site", "band.js"), encoding="utf-8").read().replace("\r\n", "\n")
     carriers = {}
@@ -196,6 +203,52 @@ def test(page, check):
           page.until("F.Band.theme === 'elevator' && F.document.querySelector('#bandCard .band-cap').textContent.startsWith('Now playing: Hotel Lobby')", 5), [page.js("F.Band.theme"), cap()])
     page.js("F.document.querySelector('#expOut audio').pause()")
     check("pausing it sends the band back to rehearsing", page.until("F.document.querySelector('#bandCard .band-cap').textContent.startsWith('Rehearsing')", 3), cap())
+
+    # the bug hunter's findings (Sound Forge v010)
+    sets = lambda c, g, sub: page.json((pick % json.dumps([["cat", c], ["genre", g], ["sub", sub]])).replace("} })()", "} return {bpm: +d.getElementById('bpm').value, "
+        "drums: d.getElementById('drums').value, scale: d.getElementById('scale').value, chip: +d.getElementById('chip').value}; })()")) or {}
+    got = {k: sets(*v) for k, v in {"swing": ("Jazz, Blues & Soul", "Jazz", "Swing"), "blues": ("Jazz, Blues & Soul", "Blues", "Delta Blues"),
+           "bossa": ("Jazz, Blues & Soul", "Jazz", "Bossa Nova"), "rock": ("Rock & Metal", "Rock", "Classic Rock"),
+           "breakcore": ("Electronic", "Breaks & Garage", "Breakcore"), "bigbeat": ("Electronic", "Breaks & Garage", "Big Beat"),
+           "shooter": ("Video Game & Chiptune", "Game Moods", "Space Shooter"), "dungeon": ("Video Game & Chiptune", "Game Moods", "Dungeon")}.items()}
+    check("jazz gets swing drums, not Soul & Funk's rock beat", got["swing"].get("drums") == "swing" and got["swing"].get("bpm", 0) >= 140, got["swing"])
+    check("blues gets the blues scale", got["blues"].get("scale") == "blues" and got["blues"].get("drums") == "swing", got["blues"])
+    check("Bossa Nova gets a Latin beat in a major key, not the video-game boss fight", got["bossa"].get("drums") == "latin"
+          and got["bossa"].get("scale") == "major" and got["bossa"].get("bpm", 0) <= 130, got["bossa"])
+    check("Classic Rock gets rock drums, not Metal's", got["rock"].get("drums") == "rock" and got["rock"].get("bpm", 0) <= 150, got["rock"])
+    check("Breakcore gets breakbeats at 160 to 190 BPM, not UK Garage", got["breakcore"].get("drums") == "break" and 160 <= got["breakcore"].get("bpm", 0) <= 190, got["breakcore"])
+    check("Big Beat gets breakbeats too", got["bigbeat"].get("drums") == "break", got["bigbeat"])
+    check("video-game moods keep their chip sound, and Space Shooter its drums", got["dungeon"].get("chip") == 8 and got["shooter"].get("chip") == 8
+          and got["shooter"].get("drums") != "none", [got["dungeon"], got["shooter"]])
+    page.js("F.document.getElementById('setTxt').value = JSON.stringify({song: {bpm: 100, sections: [{name: 'Verse', tracks: ['drums', 'bass'], bars: [{chord: [57, 60, 64], bass: [[0, 45, 4]], drums: {k: [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0]}}]}]}}); F.document.getElementById('loadSet').click()")
+    page.js("(() => { const e = F.document.getElementById('key'); e.value = 'D'; e.dispatchEvent(new F.Event('change')); })()")
+    check("a song loaded from text is kept when a setting changes", page.js("!!F.forge.song && F.forge.song.fromText") is True
+          and "Kept the song from the text" in (page.js("F.document.getElementById('status').textContent") or ""))
+    page.js("F.document.getElementById('gen').click()")
+    check("New song replaces it", page.js("!!F.forge.song && !F.forge.song.fromText") is True)
+    page.js("F.document.getElementById('ambOnly').click()")
+    check("Ambience only with no layers on says to turn one on, and stays quiet", page.js("F.forge.engine.playing") is False
+          and "at least one ambience layer" in (page.js("F.document.getElementById('status').textContent") or ""))
+    page.js("F.document.getElementById('a_rain').click(); F.document.getElementById('ambOnly').click()")
+    n_rain = page.js("F.forge.engine.amb.length")
+    page.js("F.document.getElementById('a_ocean').click()"); time.sleep(0.3)
+    check("turning on another layer while playing is heard right away", page.js("F.forge.engine.playing") is True and page.js("F.forge.engine.amb.length") > n_rain, [n_rain, page.js("F.forge.engine.amb.length")])
+    page.js("F.document.getElementById('a_rain').click(); F.document.getElementById('a_ocean').click()"); time.sleep(0.3)
+    check("turning the last layer off stops the ambience", page.js("F.forge.engine.playing") is False)
+    themes = []
+    page.js(pick % '[["cat", "Electronic"], ["genre", "House"], ["sub", "Deep House"], ["evolve", "3"], ["evEvery", "1"]]')
+    page.js("F.document.getElementById('lfGo').click()"); time.sleep(0.5)
+    themes.append(page.js("F.Band.theme"))
+    page.js("(() => { F.document.getElementById('cat').value = 'Jazz, Blues & Soul'; F.fillGenre(); F.forge.engine.loops = 1; F.onLoop(); })()"); time.sleep(0.5)
+    themes.append(page.js("F.Band.theme"))
+    check("Drift (new songs, new sub-genre) tells the band, which changes outfit with the genre", themes[0] == "club" and themes[1] == "jazz", themes)
+    page.js("F.document.getElementById('stop').click()")
+    page.js("(() => { const d = F.document; d.getElementById('sfxRndType').value = 'laser'; d.getElementById('sfxRnd').click(); d.getElementById('sfxBank').click(); })()")
+    check("a random sound effect's pad says Random, not the preset's name", "Random laser" in (page.js("F.document.getElementById('pads').textContent") or ""),
+          page.js("F.document.getElementById('pads').textContent"))
+    page.js("F.document.getElementById('sfxMut').click(); F.document.getElementById('sfxExp').click()")
+    check("a mutated one saves as mutated", page.until("(F.document.querySelector('#sfxOut') || {}).textContent.includes('Random_laser_mutated')", 10),
+          page.js("F.document.querySelector('#sfxOut').textContent"))
 
     # the Jukebox in the shop
     def extra(path):
