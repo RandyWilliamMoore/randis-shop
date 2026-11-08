@@ -28,6 +28,19 @@ window.MUSIC = [
  },
  {
   "kind": "music",
+  "slug": "ruins-in-a",
+  "name": "Ruins in A",
+  "by": "Randy",
+  "blurb": "A dark Cyberpunk song in A minor at 97 BPM: rock drums, a sawtooth bass and a sawtooth lead over supersaw pads. 8 sections, 1:59 long.",
+  "genre": "Cyberpunk",
+  "length": "2:02",
+  "added": "2026-11-07",
+  "file": "music/ruins-in-a/song.mp3",
+  "cover": "music/ruins-in-a/cover.jpg",
+  "download": "Ruins in A.mp3"
+ },
+ {
+  "kind": "music",
   "slug": "rusted-cathedral",
   "name": "Rusted Cathedral",
   "by": "Randy",
