@@ -5,13 +5,14 @@ window.SOFTWARE = [
   "slug": "randis-uds",
   "name": "Randis UDS",
   "by": "Randy",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "blurb": "The app everything in this shop was made with. A universal software with no fixed purpose: describe what you need, and the LLM inside it builds that into the app while you're using it.",
-  "download": "https://github.com/RandyWilliamMoore/randis-uds/releases/tag/v0.1.8",
+  "download": "https://github.com/RandyWilliamMoore/randis-uds/releases/tag/v0.1.9",
   "source": "https://github.com/RandyWilliamMoore/randis-uds",
   "new": [
-   "Standard bots: every + Add a bot form offers a bug hunter, a version checker and an idea finder to tick, or make a custom bot in your own words.",
-   "From 0.1.7: Bots, small helpers on any tab or for the whole app that read and report, run on your own Claude Code.",
+   "Permission switches on Claude Code chats: run Python, Node or Git, use the web, reach other sessions, or full access, per tab, off again when you close the app.",
+   "Every chat kept in its own log folder, a Refresh button on built tabs, and song publishing that finds your shop by itself.",
+   "From 0.1.8: standard bots to tick on every + Add a bot form: bug hunter, version checker, idea finder.",
    "Already on 0.1.3 or newer? Update from the Menu."
   ],
   "fine": "Windows: run the setup from the release page. It installs for your user only, with no admin rights. Linux runs from source; see the README. It's a pre-release, so expect rough edges.",
