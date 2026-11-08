@@ -64,5 +64,18 @@ window.MUSIC = [
   "file": "music/winter-furnace-no-5/song.mp3",
   "cover": "music/winter-furnace-no-5/cover.jpg",
   "download": "Winter Furnace No. 5.mp3"
+ },
+ {
+  "kind": "music",
+  "slug": "winter-wolves",
+  "name": "Winter Wolves",
+  "by": "Randy",
+  "blurb": "2:42 of dark Vaporwave at 71 BPM, in A minor. Boom drums, a sawtooth bass and a sawtooth lead over supersaw pads.",
+  "genre": "Vaporwave",
+  "length": "2:45",
+  "added": "2026-11-07",
+  "file": "music/winter-wolves/song.mp3",
+  "cover": "music/winter-wolves/cover.jpg",
+  "download": "Winter Wolves.mp3"
  }
 ];
