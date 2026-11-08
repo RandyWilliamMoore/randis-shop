@@ -1,7 +1,7 @@
 """The Jukebox and the music it holds: Randis Sound Forge makes elevator music and saves it, add_music.py puts a song in the
 Jukebox, and the shop plays it and hands it out royalty free. Also Sound Forge's own Save button inside the real shop.
     python tests/music_test.py"""
-import base64, io, json, math, os, shutil, struct, subprocess, sys, tempfile, time, wave
+import re, base64, io, json, math, os, shutil, struct, subprocess, sys, tempfile, time, wave
 
 import harness
 
@@ -83,7 +83,15 @@ def tools_check(check):
         from PIL import Image
         art = Image.open(os.path.join(folder, "cover.jpg")) if os.path.isfile(os.path.join(folder, "cover.jpg")) else None
         colours = len(art.resize((50, 50)).getcolors(10000) or []) if art else 0
-        check("the cover is a square picture of the band, not a blank", art and art.size == (1000, 1000) and colours > 200, (art and art.size, colours))
+        check("the cover is a square picture drawn from the song, not a blank", art and art.size == (1000, 1000) and colours > 200, (art and art.size, colours))
+        other = os.path.join(top, "Other.wav")
+        with open(other, "wb") as f:
+            f.write(SONG[:44] + bytes(SONG[44:][i ^ 1] if i % 6 < 2 else 0 for i in range(len(SONG) - 44)))
+        r2 = run(other, "--name", "Other Song", "--genre", "Elevator Music", "--blurb", "x")
+        art2 = Image.open(os.path.join(top, "music", "other-song", "cover.jpg")) if r2.returncode == 0 else None
+        diff = sum(abs(x - y) for p1, p2 in zip(art.resize((40, 40)).getdata(), art2.resize((40, 40)).getdata()) for x, y in zip(p1, p2)) if art and art2 else 0
+        check("another song, same genre, gets a different cover: it's drawn from each song's own sound", diff > 40 * 40 * 30, (diff, r2.stderr))
+        check("add_music.py has nothing of the Raisin Band in it", not re.search("band|raisin", open(os.path.join(top, "tools", "add_music.py"), encoding="utf-8").read(), re.I))
         listed = open(os.path.join(top, "music.js"), encoding="utf-8").read()
         check("music.js lists it, with its cover and a plain download name", '"download": "My Lobby Song.mp3"' in listed
               and '"cover": "music/my-lobby-song/cover.jpg"' in listed, listed[:400])
@@ -147,10 +155,24 @@ def test(page, check):
           and "Test Shop" in (page.js("F.document.getElementById('pubBtn').textContent") or ""))
     page.js("F.document.getElementById('pubBtn').click()")
     form = page.json("({t: F.document.getElementById('pubTitle').value, b: F.document.getElementById('pubBlurb').value, g: F.document.getElementById('pubGenre').value})") or {}
-    check("its form shows the cover it will use: the band dressed for the genre, with the title",
-          page.js("(F.document.getElementById('pubCover') || {}).src || ''").startswith("data:image/jpeg"))
-    check("its form comes filled in: a made-up title, a description from the song's settings, the genre",
-          len(form.get("t", "")) > 3 and "Elevator Music song at" in form.get("b", "") and "BPM" in form.get("b", "") and form.get("g") == "Elevator Music", form)
+    check("its form shows the cover it will use, drawn from this song, with the title",
+          page.js("(F.document.getElementById('pubCover') || {}).src || ''").startswith("data:image/jpeg")
+          and "drawn from this song" in (page.js("F.document.getElementById('pubNote').textContent") or ""))
+    check("its form comes filled in: a made-up title, a description from the song itself, the genre",
+          len(form.get("t", "")) > 3 and "Elevator Music" in form.get("b", "") and "BPM" in form.get("b", "") and form.get("g") == "Elevator Music", form)
+    check("nothing in the title or description is about the Raisin Band", not re.search("raisin|grape|band", form.get("t", "") + " " + form.get("b", ""), re.I), form)
+    c1 = page.js("F.document.getElementById('pubCover').src") or ""
+    page.until("F.document.getElementById('pubCover').src !== " + json.dumps(c1), 6)
+    c2 = page.js("F.document.getElementById('pubCover').src") or ""
+    check("once the song's sound is read, its loudness is drawn into the cover too", c2 != c1 and c2.startswith("data:image/jpeg"), len(c2))
+    page.js("F.document.getElementById('pubCoverRoll').click()")
+    check("🎲 Cover draws the same song another way", (page.js("F.document.getElementById('pubCover').src") or "") not in ("", c2))
+    b1 = form.get("b", "")
+    blurbs = {b1}
+    for _ in range(4):
+        page.js("F.document.getElementById('pubBlurbRoll').click()"); blurbs.add(page.js("F.document.getElementById('pubBlurb').value"))
+    check("🎲 on the description gives other wordings", len(blurbs) >= 2, blurbs)
+    page.js("F.document.getElementById('pubBlurb').value = " + json.dumps(b1))
     page.js("F.document.getElementById('pubRoll').click()")
     titles = {form.get("t")}
     for _ in range(4):
@@ -258,10 +280,35 @@ def test(page, check):
       __shelfSaves.push(e.data.text); e.source.postMessage({uds: 'saved', note: 'Saved in this tab, as version 12.'}, '*'); } });""")
     rows = lambda: page.json("[...F.document.querySelectorAll('#shelfList .shelf-row')].map(r => r.textContent)") or []
     check("the shelf starts empty and says how to keep a song", "No saved songs yet" in (page.js("F.document.getElementById('shelfList').textContent") or ""))
+    auto = lambda: page.json("({n: F.document.getElementById('shelfName').value, b: F.document.getElementById('shelfBlurb').value, c: F.document.getElementById('shelfCover').src})") or {}
+    page.until("F.document.getElementById('shelfBlurb').value.includes('Deep House')", 3)
+    a1 = auto()
+    check("Saved songs comes filled in: a name, a description and a cover, all made from this song",
+          len(a1.get("n", "")) > 3 and "Deep House" in a1.get("b", "") and "BPM" in a1.get("b", "") and a1.get("c", "").startswith("data:image/jpeg"), a1)
+    check("none of it is about the Raisin Band", not re.search("raisin|grape|band", a1.get("n", "") + " " + a1.get("b", ""), re.I), a1)
+    page.js("F.document.getElementById('shelfNameRoll').click()")
+    a2 = auto()
+    page.js("F.document.getElementById('shelfCoverRoll').click()")
+    a3 = auto()
+    page.js("F.document.getElementById('shelfBlurbRoll').click()")
+    names = {a1.get("n"), a2.get("n")}
+    for _ in range(3):
+        page.js("F.document.getElementById('shelfNameRoll').click()"); names.add(page.js("F.document.getElementById('shelfName').value"))
+    check("each has a 🎲 for another: name, cover, description", len(names) >= 3 and a3.get("c") != a2.get("c"), [names, a2.get("c") == a3.get("c")])
+    page.js("(() => { const d = F.document; d.getElementById('seed').value = 4242; d.getElementById('seed').dispatchEvent(new F.Event('change')); })()")
+    page.until("F.document.getElementById('shelfName').value !== " + json.dumps(page.js("F.document.getElementById('shelfName').value")), 3)
+    a4 = auto()
+    check("a new song gets its own new name and cover", a4.get("c") != a3.get("c") and a4.get("n") not in names, [a4.get("n"), names])
+    page.js("F.document.getElementById('shelfName').value = 'Typed By Me'")
+    page.js("(() => { const d = F.document; d.getElementById('seed').value = 4343; d.getElementById('seed').dispatchEvent(new F.Event('change')); })()")
+    time.sleep(1.2)
+    check("a name you typed yourself stays when the song changes", page.js("F.document.getElementById('shelfName').value") == "Typed By Me")
     seed_kept = page.js("F.document.getElementById('seed').value")
     page.js("F.document.getElementById('shelfName').value = 'My Keeper'; F.document.getElementById('shelfKeep').click()")
     check("Keep this song puts it on the shelf with its genre and tempo", page.until("F.document.querySelectorAll('#shelfList .shelf-row').length === 1", 3)
           and "My Keeper · Deep House" in rows()[0], rows())
+    check("and its little cover and its description go with it", (page.js("(F.document.querySelector('#shelfList .shelf-row img') || {}).src || ''") or "").startswith("data:image/jpeg")
+          and "BPM" in (page.js("(F.document.querySelector('#shelfList .shelf-row span[title]') || {}).title || ''") or ""))
     saved_page = page.js("__shelfSaves[__shelfSaves.length - 1] || ''") or ""
     check("inside an app, the shelf is saved into the page itself and the app says where",
           '"name":"My Keeper"' in saved_page and saved_page.startswith("<!doctype html>") and "const PAGE_SRC" in saved_page

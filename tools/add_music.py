@@ -2,10 +2,11 @@
     python tools/add_music.py "C:/path/My Song.wav" --name "My Song" --genre "Elevator Music" --blurb "Soft piano for a hotel lobby." [--cover art.png] [--by Randy]
 
 Every song in the Jukebox is the same kind of file: a 192 kbps MP3 with its title, artist, album, genre, year, description, the
-royalty-free note and its cover art inside it, so it carries them wherever it's downloaded to. The cover is the Raisin Band
-dressed for the song's genre, with the song's name on it, unless --cover gives a picture. It goes in music/<slug>/ as song.mp3,
-cover.jpg and info.json; nothing else changes. Needs ffmpeg, and pywebview for the band's cover. Push it to put it on the live shop."""
-import argparse, base64, datetime, json, os, re, shutil, subprocess, sys, tempfile, time
+royalty-free note and its cover art inside it, so it carries them wherever it's downloaded to. The cover is drawn from the song
+itself (its sound pictured over time, and its loudness as a wave) with the song's name on it, unless --cover gives a picture.
+It goes in music/<slug>/ as song.mp3, cover.jpg and info.json; nothing else changes. Needs ffmpeg and Pillow. Push it to put it
+on the live shop."""
+import argparse, datetime, hashlib, json, os, re, shutil, subprocess, sys, tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 KINDS = (".wav", ".mp3", ".ogg", ".flac")
@@ -36,28 +37,43 @@ def ffmpeg(name="ffmpeg"):
     return found or (link if os.path.isfile(link) else None)
 
 
-def band_cover(genre, title, by, out):
-    """The Raisin Band's cover, drawn by the shop's own site/band.js in a browser window placed off screen."""
-    import webview
-    band = open(os.path.join(ROOT, "site", "band.js"), encoding="utf-8").read()
-    w = webview.create_window("cover", html="<!doctype html><meta charset='utf-8'><body><script>" + band + "</script></body>",
-                              x=-3000, y=-3000, width=320, height=240)
-    got = {}
+PALETTES = ["intensity", "rainbow", "moreland", "nebulae", "fire", "fiery", "cool", "magma", "viridis", "plasma", "cividis", "terrain"]
 
-    def draw():
-        try:
-            for _ in range(100):
-                if w.evaluate_js("!!window.Band"):
-                    break
-                time.sleep(0.1)
-            got["jpg"] = w.evaluate_js(f"Band.cover({json.dumps(genre)}, {json.dumps(title)}, {json.dumps(by)})")
-        finally:
-            w.destroy()
-    webview.start(draw)
-    if not (got.get("jpg") or "").startswith("data:image/jpeg;base64,"):
-        stop("the band's cover couldn't be drawn")
-    with open(out, "wb") as f:
-        f.write(base64.b64decode(got["jpg"].split(",", 1)[1]))
+
+def song_cover(path, title, line, out, work):
+    """A cover made from the song itself: its spectrum over time (every note and beat shows), its loudness as a wave under it,
+    in colours picked by the song's own sound, and its name. No two songs come out the same."""
+    from PIL import Image, ImageDraw, ImageFont
+    with open(path, "rb") as f:
+        print_ = hashlib.sha256(f.read()).digest()
+    pal = PALETTES[print_[0] % len(PALETTES)]
+    spec, wave = os.path.join(work, "spec.png"), os.path.join(work, "wave.png")
+    hue = print_[1] * 360 // 256
+    r, g, b = (int(255 * max(0.0, min(1.0, abs(((hue / 60 + k) % 6) - 3) - 1))) for k in (0, 4, 2))
+    for cmd in ([ffmpeg(), "-v", "error", "-i", path, "-lavfi", f"showspectrumpic=s=1000x760:legend=0:color={pal}:scale=log:fscale=log", "-y", spec],
+                [ffmpeg(), "-v", "error", "-i", path, "-lavfi", f"showwavespic=s=1000x110:split_channels=0:colors=0x{r:02x}{g:02x}{b:02x}", "-y", wave]):
+        if subprocess.run(cmd).returncode:
+            stop("the cover couldn't be drawn from that song")
+    art = Image.new("RGB", (1000, 1000), (12, 12, 16))
+    art.paste(Image.open(spec).convert("RGB").resize((1000, 760)), (0, 0))
+    w = Image.open(wave).convert("RGBA").resize((1000, 110))
+    art.paste(w, (0, 760), w)
+    d = ImageDraw.Draw(art)
+    d.rectangle((0, 870, 1000, 1000), fill=(0, 0, 0))
+
+    def font(size, bold):
+        for name in (("arialbd.ttf", "DejaVuSans-Bold.ttf") if bold else ("arial.ttf", "DejaVuSans.ttf")):
+            try:
+                return ImageFont.truetype(name, size)
+            except OSError:
+                pass
+        return ImageFont.load_default()
+    size = 64
+    while size > 24 and d.textlength(title, font=font(size, True)) > 920:
+        size -= 4
+    d.text((500, 925), title, font=font(size, True), fill=(255, 255, 255), anchor="mm")
+    d.text((500, 975), line, font=font(28, False), fill=(205, 205, 205), anchor="mm")
+    art.save(out, "JPEG", quality=90)
 
 
 def length_of(path):
@@ -75,7 +91,7 @@ def main():
     p.add_argument("--name", required=True, help="the song's title")
     p.add_argument("--genre", required=True)
     p.add_argument("--blurb", required=True, help="a line or two about the song; it's the description in the file too")
-    p.add_argument("--cover", help="a picture for the cover instead of the band (.png or .jpg)")
+    p.add_argument("--cover", help="your own picture for the cover (.png or .jpg) instead of one drawn from the song")
     p.add_argument("--by", default="Randy")
     a = p.parse_args()
     if not a.blurb.strip() or len(a.blurb) > 400:
@@ -101,7 +117,7 @@ def main():
             if r.returncode:
                 stop("that cover picture couldn't be read")
         else:
-            band_cover(a.genre, a.name, ARTISTS.get(a.by, a.by), cover)
+            song_cover(a.file, a.name, f"{a.genre} · {info['length']}", cover, work)
         artist = ARTISTS.get(a.by, a.by)
         tags = {"title": a.name, "artist": artist, "album_artist": artist, "album": ALBUM, "genre": a.genre, "date": str(today.year),
                 "comment": a.blurb.strip(), "copyright": terms_for(a.name, artist), "publisher": "The Randis Shop",

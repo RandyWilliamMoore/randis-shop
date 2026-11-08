@@ -98,7 +98,10 @@ audio{width:100%;margin-top:6px}
 <label><span>Vocal volume</span><input type="range" id="lyVol" min="0" max="1" step="0.01" value="0.7"></label>
 </div>
 <div class="card" style="margin-top:10px"><h3>⭐ Saved songs <small>kept inside Sound Forge; favourites first</small></h3>
-<div class="row"><input type="text" id="shelfName" maxlength="60" placeholder="Name this song" style="flex:1"><button class="b p" id="shelfKeep">💾 Keep this song</button></div>
+<div class="row" style="align-items:flex-start"><img id="shelfCover" alt="Cover" style="width:72px;height:72px;border-radius:6px;flex:none">
+<div style="flex:1;display:flex;flex-direction:column;gap:6px"><div class="row"><input type="text" id="shelfName" maxlength="60" placeholder="Name this song" style="flex:1"><button class="b" id="shelfNameRoll" title="Another name">🎲</button></div>
+<div class="row"><input type="text" id="shelfBlurb" maxlength="400" placeholder="Describe this song" style="flex:1"><button class="b" id="shelfBlurbRoll" title="Another description">🎲</button></div></div></div>
+<div class="row"><button class="b" id="shelfCoverRoll" title="Another cover, drawn from this song">🎲 Another cover</button><button class="b p" id="shelfKeep">💾 Keep this song</button><span class="muted">Name, description and cover are made from the song; edit or roll them.</span></div>
 <div id="shelfList"></div>
 </div>
 <div class="card" style="margin-top:10px"><h3>Export</h3>
@@ -945,35 +948,74 @@ const cs=[...Array(ch)].map((_,i)=>buf.getChannelData(i));let o=44;for(let i=0;i
 return new Blob([ab],{type:'audio/wav'})}
 // ---------- publishing a song to your shop ----------
 // Only inside Randis UDS, and only when the app says publishing is set up there; it asks you before anything goes up.
-const TITLES={elevator:[['Going Up','Mezzanine','Please Hold','Velvet','Polite','Floor Thirteen','Concierge','Gentle','Lobby','Courtesy'],['Slowly','Serenade','Interlude','Bossa','Express','Holding Pattern','Doors Closing','Small Talk','Waltz','Carpet']],
-quest:[['Quest for the','Legend of the','Dungeon of the','Return of the','Castle of the','Song of the'],['Golden Grape','Lost Raisin','Pixel Sword','Crystal Vine','Final Level','Sleeping Dragon']],
-medieval:[['Tavern','Ballad of the','Feast of the','Banner of the','Lute for the'],['Round Table','Wandering Grape','Mead Hall','Old Knight','Dragon Hill']],
-rock:[['Raisin Hell','Loud','Broken','Electric','Wrinkled','Burning'],['Amplifier','Riot','Highway','Thunder','Encore','Distortion']],
-synth:[['Neon','Midnight','Chrome','Outrun','Laser','Sunset'],['Drive','Horizon','Grid','Cassette','Skyline','Arcade']],
-lofi:[['Rainy','Sleepy','Late Night','Window','Coffee','Paper'],['Notes','Homework','Afternoon','Daydream','Cat Nap','Static']],
-hiphop:[['Raisin the Roof','Street','Gold','Corner','Midnight','Heavy'],['Bounce','Cypher','Chain','Block Party','Flow','Anthem']],
-club:[['Sun-Dried','Strobe','Deep','Late','Laser','Afterhours'],['Groove','Pulse','Floor Filler','Selector','Bassline','Sunrise']],
-jazz:[['Smoky','Blue','Velvet','Late Set','Basement','Uptown'],['Lounge','Shuffle','Standard','Nightcap','Brushes','Swing']],
-orchestra:[['Overture for a','Symphony of the','Nocturne for a','Hymn of the','March of the'],['Small Grape','Grand Hall','Last Light','Distant Shore','Golden Hour']],
-ambient:[['Slow','Drifting','Quiet','Moonlit','Floating','Soft'],['Tide','Clouds','Starlight','Breath','Dream','Orbit']],
-tropic:[['Sunny','Island','Coconut','Beach','Palm','Golden'],['Breeze','Shuffle','Fiesta','Sunset','Steel Drums','Holiday']],
-country:[['Dusty','Grapevine','Backroad','Front Porch','Old Barn','Lonesome'],['Ramble','Two-Step','Hoedown','Sundown','Ballad','Harvest']],
-pop:[['Sugar','Bright','Bubble','Starlight','Candy','Shiny'],['Hearts','Summer','Party','Crush','Spotlight','Weekend']]};
-let titleRoll=0;
-function songTitle(again){if(again)titleRoll++;const id=window.Band?Band.themeFor(bandGenre()).id:'pop',w=TITLES[id]||TITLES.pop,r=rng(hash(V('sub')+'|'+V('seed')+'|'+titleRoll));
-return w[0][Math.floor(r()*w[0].length)]+' '+w[1][Math.floor(r()*w[1].length)]}
-function songBlurb(){const mood=V('mood'),era=V('era'),kind=(mood&&mood!=='Auto'?mood.toLowerCase()+' ':'')+V('sub');
-const band=window.Band?Band.themeFor(bandGenre()).name:'the Raisin Band';
-return (/^[aeiou]/i.test(kind)?'An ':'A ')+kind+' song at '+V('bpm')+' BPM in '+V('key')+' '+V('scale')+(era&&era!=='Auto'?', with a '+era+' sound':'')+'. Made with Randis Sound Forge; on the cover, '+band+'.'}
+const FEELS={major:'bright',lydian:'bright',mixolydian:'bright','major pentatonic':'bright',dorian:'calm','minor pentatonic':'calm',hirajoshi:'calm',blues:'calm',minor:'dark','harmonic minor':'dark',phrygian:'dark','phrygian dominant':'dark',locrian:'dark','whole tone':'dark'};
+const MOOD_FEEL={Happy:'bright',Romantic:'bright',Energetic:'bright',Heroic:'bright',Funky:'bright',Sad:'dark',Dark:'dark',Aggressive:'dark',Spooky:'dark',Mysterious:'dark',Epic:'dark',Exotic:'dark',Chill:'calm',Dreamy:'calm',Peaceful:'calm',Nostalgic:'calm',Japanese:'calm'};
+function feel(){return MOOD_FEEL[V('mood')]||FEELS[V('scale')]||'calm'}
+function pace(){const b=song?song.bpm:+V('bpm');return b<95?'slow':b>135?'fast':'mid'}
+const WORDS={bright:{slow:['Golden','Warm','Gentle','Sunlit','Easy','Open','Honey','Kind'],mid:['Bright','Silver','Lucky','Clear','Painted','Rising','Paper','Summer'],fast:['Electric','Wild','Racing','Burning','Blazing','Neon','Rocket','Daring'],
+nouns:['Horizon','Parade','Morning','Sky','Fields','Spark','Avenue','Kite','Lighthouse','Carousel','Postcard','Weekend']},
+dark:{slow:['Hollow','Fading','Lonely','Ashen','Quiet','Winter','Sunken','Pale'],mid:['Shadow','Iron','Restless','Crimson','Broken','Distant','Cold','Rusted'],fast:['Savage','Midnight','Black','Feral','Storm','Furious','Molten','Razor'],
+nouns:['Cathedral','Undertow','Eclipse','Static','Machine','Cellar','Ruins','Engine','Labyrinth','Signal','Furnace','Wolves']},
+calm:{slow:['Soft','Drifting','Velvet','Misty','Still','Slow','Moonlit','Hushed'],mid:['Blue','Wandering','Hazy','Amber','Faded','Rainy','Woven','Low'],fast:['Glass','Spinning','Flicker','Copper','Running','Skipping','Fleeting','Quick'],
+nouns:['Tide','Window','Lanterns','Rain','Harbor','Orbit','Garden','Echoes','Driftwood','Balcony','Snowfall','Riverbank']}};
+// a fingerprint of this exact song: its tempo and every bass and lead note
+function songPrint(){if(!song)return hash(V('sub')+V('seed'));let t=song.bpm+'|';for(const b of song.bars)for(const x of [...(b.lead||[]),...(b.bass||[])])t+=x.i+','+x.n+';';return hash(t)}
+const pickOf=(r,a)=>a[Math.floor(r()*a.length)];
+const titleCase=t=>t.replace(/[^\w' -]/g,'').trim().split(/\s+/).slice(0,4).map(w=>w[0].toUpperCase()+w.slice(1).toLowerCase()).join(' ');
+let titleRoll=0,blurbRoll=0;
+function songTitle(again){if(again)titleRoll++;const r=rng(songPrint()+titleRoll*7919),w=WORDS[feel()],adj=pickOf(r,w[pace()]),noun=pickOf(r,w.nouns);
+const line=(V('lyText')||'').split('\n').map(x=>x.trim()).find(x=>/\w/.test(x));if(line&&ON('lyOn')&&r()<.5)return titleCase(line);
+const k=r();return k<.4?adj+' '+noun:k<.6?'The '+adj+' '+noun:k<.75?noun+' in '+V('key'):k<.88?adj+' '+noun+' No. '+(songPrint()%9+1):noun+' at '+(song?song.bpm:V('bpm'))}
+const DRUM_WORDS={four:'four-on-the-floor drums',dnb:'breakbeat drums',swing:'swung drums',trap:'trap hats and 808s',drill:'drill drums',half:'half-time drums',onedrop:'one-drop drums',none:'no drums',metal:'pounding drums',rock:'rock drums',epic:'big booming drums'};
+function songBlurb(again){if(again)blurbRoll++;const r=rng(songPrint()+blurbRoll*104729),mood=V('mood'),era=V('era'),f=feel(),bpm=song?song.bpm:V('bpm');
+const kind=(mood&&mood!=='Auto'?mood.toLowerCase():f)+' '+V('sub'),an=(/^[aeiou]/i.test(kind)?'An ':'A ')+kind;
+const secs=song?new Set(song.bars.map(b=>b.sec).filter(Boolean)).size||1:1,len=song?fmt(song.bars.length*16*15/song.bpm):'';
+const drums=DRUM_WORDS[V('drums')]||V('drums')+' drums',parts=`${drums}, a ${V('w_bass')} bass and a ${V('w_lead')} lead over ${V('w_pad')} pads`;
+const line=(V('lyText')||'').split('\n').map(x=>x.trim()).find(x=>/\w/.test(x)),sung=line&&ON('lyOn')?` Sung: "${line.slice(0,60)}".`:'';
+const eraT=era&&era!=='Auto'?`, with a ${era} sound`:'';
+const forms=[()=>`${an} song in ${V('key')} ${V('scale')} at ${bpm} BPM${eraT}: ${parts}. ${secs} section${secs>1?'s':''}, ${len} long.`,
+()=>`${len} of ${kind} at ${bpm} BPM, in ${V('key')} ${V('scale')}${eraT}. ${parts[0].toUpperCase()+parts.slice(1)}.`,
+()=>`${parts[0].toUpperCase()+parts.slice(1)}: ${an.toLowerCase()} song at ${bpm} BPM in ${V('key')} ${V('scale')}${eraT}, ${len} long across ${secs} section${secs>1?'s':''}.`];
+return (pickOf(r,forms)()+sung).slice(0,400)}
+// the cover: drawn from this song's own notes, beats and (when there is one) its rendered sound
+function songCover(title,size=1000,style=0,buf=null){const c=document.createElement('canvas');c.width=c.height=size;const g=c.getContext('2d');g.scale(size/1000,size/1000);
+const pr=songPrint(),r=rng(pr+style*977),f=feel(),k=Math.max(0,KEYS.indexOf(V('key'))),hue=(k*30+{bright:20,calm:170,dark:250}[f]+style*53+pr%100)%360,L={bright:30,calm:22,dark:12}[f];
+const bg=g.createRadialGradient(500,430,40,500,430,720);bg.addColorStop(0,`hsl(${hue},55%,${L+14}%)`);bg.addColorStop(1,`hsl(${(hue+40)%360},60%,${Math.max(4,L-8)}%)`);g.fillStyle=bg;g.fillRect(0,0,1000,1000);
+const bars=song?song.bars:[],steps=Math.max(16,bars.length*16),lay=style%3,cx=500,cy=430,R0=80,R1=330;
+const TR=[['bass',0],['pad',60],['counter',120],['arp',190],['lead',300]];
+const place=(t,n,ti)=>{const q=Math.max(0,Math.min(1,(n-24)/72));if(lay===2)return[60+t*880,780-q*620];const a=-Math.PI/2+t*Math.PI*2+(pr%360)*Math.PI/180;
+const rad=lay===0?R0+q*(R1-R0):R0+ti*52+((n%12)/12)*44;return[cx+Math.cos(a)*rad,cy+Math.sin(a)*rad]};
+const dens=new Float32Array(360);
+TR.forEach(([id,dh],ti)=>bars.forEach((bar,bi)=>(bar[id]||[]).forEach(x=>{const t=(bi*16+(x.i||0))/steps;dens[Math.floor(t*360)%360]++;
+for(const n of x.notes||x.chord||[x.n]){if(n==null)continue;const[px,py]=place(t,n,ti),sz=2+Math.min(16,x.len||1)*(id==='pad'?.8:1.3);
+g.fillStyle=`hsla(${(hue+dh+150)%360},85%,${f==='dark'?62:72}%,${id==='pad'?.18:id==='lead'?.85:.55})`;g.beginPath();
+if(lay===2)g.fillRect(px,py-sz/3,Math.max(3,(x.len||1)/steps*880),sz/1.5);else{g.arc(px,py,sz,0,Math.PI*2);g.fill()}}})));
+if(lay!==2){g.strokeStyle=`hsla(${(hue+180)%360},90%,80%,.35)`;g.lineWidth=1.5;g.beginPath();let first=true;
+bars.forEach((bar,bi)=>(bar.lead||[]).forEach(x=>{const[px,py]=place((bi*16+x.i)/steps,x.n,4);first?g.moveTo(px,py):g.lineTo(px,py);first=false}));g.stroke()}
+// the beat: a tick for every kick, a shorter one for every snare
+bars.forEach((bar,bi)=>{const d=bar.drum||{};for(let i=0;i<16;i++){const t=(bi*16+i)/steps;if(!d.k||!(d.k[i]||(d.s&&d.s[i])))continue;const big=!!d.k[i];
+g.strokeStyle=big?`hsla(${(hue+330)%360},90%,70%,.8)`:`hsla(${(hue+90)%360},80%,75%,.6)`;g.lineWidth=big?3:2;g.beginPath();
+if(lay===2){g.moveTo(60+t*880,820);g.lineTo(60+t*880,820+(big?26:14))}else{const a=-Math.PI/2+t*Math.PI*2+(pr%360)*Math.PI/180,r1=R1+(lay===1?40:20);g.moveTo(cx+Math.cos(a)*r1,cy+Math.sin(a)*r1);g.lineTo(cx+Math.cos(a)*(r1+(big?28:14)),cy+Math.sin(a)*(r1+(big?28:14)))}g.stroke()}});
+// the sound itself: the rendered song's loudness all the way through (or, before it is rendered, how busy each moment is)
+let env=dens;if(buf){const d=buf.getChannelData(0),n=Math.floor(d.length/360);env=new Float32Array(360);for(let j=0;j<360;j++){let m=0;for(let i=j*n;i<(j+1)*n;i+=8)m+=d[i]*d[i];env[j]=Math.sqrt(m/(n/8||1))}}
+const mx=Math.max(1e-6,...env);g.strokeStyle=`hsla(${(hue+30)%360},95%,85%,.75)`;g.lineWidth=2.5;g.beginPath();
+for(let j=0;j<=360;j++){const v=env[j%360]/mx;if(lay===2){const x=60+j/360*880,y=110-v*70;j?g.lineTo(x,y):g.moveTo(x,y)}else{const a=-Math.PI/2+j/360*Math.PI*2+(pr%360)*Math.PI/180,rad=R1+(lay===1?80:60)+v*70;j?g.lineTo(cx+Math.cos(a)*rad,cy+Math.sin(a)*rad):g.moveTo(cx+Math.cos(a)*rad,cy+Math.sin(a)*rad)}}g.stroke();
+// the words: the title, then genre, tempo and key
+g.fillStyle='rgba(0,0,0,.45)';g.fillRect(0,870,1000,130);g.textAlign='center';g.fillStyle='#fff';let fs=64;g.font=`bold ${fs}px system-ui,sans-serif`;
+while(g.measureText(title||'').width>920&&fs>24){fs-=4;g.font=`bold ${fs}px system-ui,sans-serif`}g.fillText(title||'',500,size<300?960:930);
+if(size>=300){g.font='28px system-ui,sans-serif';g.fillStyle='rgba(255,255,255,.8)';g.fillText(`${V('sub')} · ${song?song.bpm:V('bpm')} BPM · ${V('key')} ${V('scale')}`,500,978)}
+return c.toDataURL('image/jpeg',size<300?.8:.9)}
 function offerPublish(blob,box){if(window.parent===window)return;const h=e=>{if(!e.data||e.data.uds!=='can-publish')return;removeEventListener('message',h);if(!e.data.ok)return;
 const row=$(box).querySelector('.row'),b=document.createElement('button');b.className='b';b.id='pubBtn';b.textContent='🌐 Publish to '+(e.data.shop||'your shop');row.insertBefore(b,row.querySelector('span'));b.onclick=()=>publishForm(blob,box)};
 addEventListener('message',h);parent.postMessage({uds:'can-publish'},'*');setTimeout(()=>removeEventListener('message',h),4000)}
 function publishForm(blob,box){let f=$(box).querySelector('.pub');if(f){f.remove();return}f=document.createElement('div');f.className='pub';f.style.marginTop='8px';
-f.innerHTML='<label><span>Title</span><input type="text" id="pubTitle" maxlength="60" style="flex:1"><button class="b" id="pubRoll" title="Another title">🎲</button></label><label style="align-items:flex-start"><span>Description</span><textarea id="pubBlurb" rows="3" maxlength="400"></textarea></label><label><span>Genre</span><input type="text" id="pubGenre" maxlength="40" style="flex:1"></label><div class="row"><button class="b p" id="pubGo">🌐 Publish</button><span class="muted" id="pubNote">The cover is made for you: the Raisin Band, dressed for the genre, with your title on it.</span></div>';
+f.innerHTML='<label><span>Title</span><input type="text" id="pubTitle" maxlength="60" style="flex:1"><button class="b" id="pubRoll" title="Another title">🎲</button></label><label style="align-items:flex-start"><span>Description</span><textarea id="pubBlurb" rows="3" maxlength="400"></textarea><button class="b" id="pubBlurbRoll" title="Another description">🎲</button></label><label><span>Genre</span><input type="text" id="pubGenre" maxlength="40" style="flex:1"></label><div class="row"><button class="b p" id="pubGo">🌐 Publish</button><button class="b" id="pubCoverRoll" title="Another cover, drawn from this song">🎲 Cover</button><span class="muted" id="pubNote">The cover is drawn from this song: its notes, its beat and its sound, with your title on it.</span></div>';
 $(box).appendChild(f);$('pubTitle').value=songTitle();$('pubBlurb').value=songBlurb();$('pubGenre').value=V('sub');
 const cov=document.createElement('img');cov.id='pubCover';cov.alt='Cover';cov.style.cssText='width:120px;height:120px;border-radius:6px;margin-top:6px';f.appendChild(cov);
-const coverOf=()=>window.Band?Band.cover(bandGenre(),$('pubTitle').value,'Randy Moore'):null;const redraw=()=>{try{cov.src=coverOf()||''}catch(e){cov.remove()}};redraw();
+let cstyle=0,cbuf=null;const redraw=()=>{try{cov.src=songCover($('pubTitle').value,1000,cstyle,cbuf)}catch(e){cov.remove()}};redraw();
+blob.arrayBuffer().then(ab=>new OfflineAudioContext(1,1,44100).decodeAudioData(ab)).then(b=>{cbuf=b;redraw()}).catch(()=>{});
 $('pubTitle').addEventListener('change',redraw);$('pubRoll').onclick=()=>{$('pubTitle').value=songTitle(true);redraw()};
+$('pubBlurbRoll').onclick=()=>{$('pubBlurb').value=songBlurb(true)};$('pubCoverRoll').onclick=()=>{cstyle++;redraw()};
 $('pubGo').onclick=()=>{const note=$('pubNote'),go=$('pubGo');go.disabled=true;note.textContent='Say yes in the Randis UDS window to publish it…';
 const t=setTimeout(()=>{removeEventListener('message',h);go.disabled=false;note.textContent='No answer from Randis UDS. Close the app and open it again (Reload is not enough), then press Publish again.'},8000);
 const h=e=>{if(!e.data)return;if(e.data.uds==='publishing'){clearTimeout(t);note.textContent=e.data.note;return}if(e.data.uds!=='published')return;clearTimeout(t);removeEventListener('message',h);note.textContent=e.data.note;go.disabled=!!e.data.ok;say(e.data.note)};
@@ -1220,19 +1262,33 @@ function drawShelf(){const box=$('shelfList');box.innerHTML='';if(!shelf.length)
 shelf.map((s,k)=>[s,k]).sort((a,b)=>(b[0].fav?1:0)-(a[0].fav?1:0)||b[0].when-a[0].when).forEach(([s,k])=>{const row=document.createElement('div');row.className='row shelf-row';row.dataset.k=k;
 const mk=(t,act,tip)=>{const b=document.createElement('button');b.className='b';b.textContent=t;b.dataset.act=act;b.title=tip;return b};
 const star=mk(s.fav?'⭐':'☆','fav',s.fav?'Favourite (press to unstar)':'Make it a favourite'),name=document.createElement('span');name.style.flex='1';
-name.textContent=`${s.name} · ${s.genre} · ${s.bpm} BPM${s.song?' · from text':''}${s.lyrics?' · with lyrics':''}`;
-row.append(star,name,mk('▶ Load','load','Load this song'),mk('✕','del','Remove it from the shelf'));box.appendChild(row)})}
+name.textContent=`${s.name} · ${s.genre} · ${s.bpm} BPM${s.song?' · from text':''}${s.lyrics?' · with lyrics':''}`;if(s.blurb)name.title=s.blurb;
+const pic=document.createElement('img');pic.alt='';pic.style.cssText='width:36px;height:36px;border-radius:4px;flex:none';if(s.cover)pic.src=s.cover;else pic.style.visibility='hidden';
+row.append(star,pic,name,mk('▶ Load','load','Load this song'),mk('✕','del','Remove it from the shelf'));box.appendChild(row)})}
 $('shelfList').addEventListener('click',e=>{const b=e.target.closest('button'),row=e.target.closest('.shelf-row');if(!b||!row)return;const k=+row.dataset.k,s=shelf[k];if(!s)return;
 if(b.dataset.act==='fav'){s.fav=!s.fav;keepShelf();drawShelf()}
 if(b.dataset.act==='del'){shelf.splice(k,1);keepShelf();drawShelf();say(`Removed "${s.name}" from the shelf.`)}
 if(b.dataset.act==='load'){const was=E.playing;setSettings(s.settings||{});$('lyText').value=s.lyrics||'';$('lyOn').classList.toggle('on',!!s.lyricsOn);
-if(s.song){song=Object.assign({},s.song,{fromText:true});drawSeq(0)}else{song=null;newSong()}$('shelfName').value=s.name;if(was)play({long:E.long});say(`Loaded "${s.name}" from the shelf.`)}});
-$('shelfKeep').onclick=()=>{if(!song)newSong();const name=(V('shelfName')||'').trim()||songTitle();
-shelf.push({name:name.slice(0,60),fav:false,when:Date.now(),genre:V('sub'),bpm:song.bpm,settings:getSettings(),song:song.fromText?JSON.parse(JSON.stringify(song,(k,v)=>k.startsWith('_')?undefined:v)):null,lyrics:V('lyText'),lyricsOn:ON('lyOn')});
-$('shelfName').value=name;keepShelf();drawShelf()};
+if(s.song){song=Object.assign({},s.song,{fromText:true});drawSeq(0)}else{song=null;newSong()}
+$('shelfName').value=s.name;$('shelfBlurb').value=s.blurb||'';shelfAuto={song,name:s.name,blurb:s.blurb||'',style:s.style||0};$('shelfCover').src=s.cover||songCover(s.name,160,shelfAuto.style);
+if(was)play({long:E.long});say(`Loaded "${s.name}" from the shelf.`)}});
+// a new song gets a new name, description and cover, unless you typed your own
+let shelfAuto={song:null,name:'',blurb:'',style:0};
+function shelfFill(force){if(!song)return;const a=shelfAuto,n=$('shelfName'),d=$('shelfBlurb');if(!force&&a.song===song)return;
+const newSongNow=a.song!==song;a.song=song;if(newSongNow)a.style=0;
+if(force||!n.value.trim()||n.value===a.name)n.value=a.name=songTitle();if(force||!d.value.trim()||d.value===a.blurb)d.value=a.blurb=songBlurb();
+$('shelfCover').src=songCover(n.value,160,a.style)}
+setInterval(()=>shelfFill(false),800);
+$('shelfNameRoll').onclick=()=>{if(!song)newSong();$('shelfName').value=shelfAuto.name=songTitle(true);$('shelfCover').src=songCover(V('shelfName'),160,shelfAuto.style)};
+$('shelfBlurbRoll').onclick=()=>{if(!song)newSong();$('shelfBlurb').value=shelfAuto.blurb=songBlurb(true)};
+$('shelfCoverRoll').onclick=()=>{if(!song)newSong();shelfAuto.style++;$('shelfCover').src=songCover(V('shelfName'),160,shelfAuto.style)};
+$('shelfName').addEventListener('change',()=>{$('shelfCover').src=songCover(V('shelfName'),160,shelfAuto.style)});
+$('shelfKeep').onclick=()=>{if(!song)newSong();const name=(V('shelfName')||'').trim()||songTitle(),blurb=(V('shelfBlurb')||'').trim()||songBlurb();
+shelf.push({name:name.slice(0,60),blurb:blurb.slice(0,400),cover:songCover(name,160,shelfAuto.style),style:shelfAuto.style,fav:false,when:Date.now(),genre:V('sub'),bpm:song.bpm,settings:getSettings(),song:song.fromText?JSON.parse(JSON.stringify(song,(k,v)=>k.startsWith('_')?undefined:v)):null,lyrics:V('lyText'),lyricsOn:ON('lyOn')});
+$('shelfName').value=name;$('shelfBlurb').value=blurb;keepShelf();drawShelf()};
 drawShelf();
 window.forge.midi=()=>midiFile(song);window.forge.zip=zipBlob;    // for tests
 
-applyGenre();newSong();
+applyGenre();newSong();shelfFill(true);
 </script>
 </body></html>
