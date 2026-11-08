@@ -12,5 +12,18 @@ window.MUSIC = [
   "file": "music/distant-cellar/song.mp3",
   "cover": "music/distant-cellar/cover.jpg",
   "download": "Distant Cellar.mp3"
+ },
+ {
+  "kind": "music",
+  "slug": "shadow-labyrinth",
+  "name": "Shadow Labyrinth",
+  "by": "Randy",
+  "blurb": "A dark Tech House song in A minor at 127 BPM: four-on-the-floor drums, a sawtooth bass and a square lead over sawtooth pads. 7 sections, 1:08 long.",
+  "genre": "Tech House",
+  "length": "1:11",
+  "added": "2026-11-07",
+  "file": "music/shadow-labyrinth/song.mp3",
+  "cover": "music/shadow-labyrinth/cover.jpg",
+  "download": "Shadow Labyrinth.mp3"
  }
 ];
