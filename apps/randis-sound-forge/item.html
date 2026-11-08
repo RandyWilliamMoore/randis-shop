@@ -89,11 +89,25 @@ audio{width:100%;margin-top:6px}
 </div>
 <div class="card" style="margin-top:10px"><h3>Tracks (polyphonic) <small>on/off · sound · volume · octave · pan, all change live</small></h3><div class="grid" id="tracks"></div></div>
 <div class="card" style="margin-top:10px"><h3>Pattern view <small id="secInfo"></small></h3><div class="seq" id="seq"></div></div>
+<div class="card" style="margin-top:10px"><h3>🎤 Lyrics <small>one line per bar of the verses and choruses; the band's singer sings along</small></h3>
+<label><span>Sing lyrics</span><button class="tg" id="lyOn"></button></label>
+<textarea id="lyText" rows="4" placeholder="Type lyrics here, one line per bar.&#10;Sing them on the melody, and the band's singer mouths along."></textarea>
+<label><span>Voice</span><select id="lyMode"><option value="sing">Synth singer (heard in renders and stems too)</option><option value="speak">This computer's voice, spoken (live only)</option></select></label>
+<label><span>Voice effect</span><select id="lyFx"><option>none</option><option>robot</option><option>8-bit voice</option><option>chipmunk</option><option>deep / monster</option></select></label>
+<label><span>Octave</span><select id="lyOct"><option value="-1">Low</option><option value="0" selected>Middle</option><option value="1">High</option></select></label>
+<label><span>Vocal volume</span><input type="range" id="lyVol" min="0" max="1" step="0.01" value="0.7"></label>
+</div>
+<div class="card" style="margin-top:10px"><h3>⭐ Saved songs <small>kept inside Sound Forge; favourites first</small></h3>
+<div class="row"><input type="text" id="shelfName" maxlength="60" placeholder="Name this song" style="flex:1"><button class="b p" id="shelfKeep">💾 Keep this song</button></div>
+<div id="shelfList"></div>
+</div>
 <div class="card" style="margin-top:10px"><h3>Export</h3>
 <div class="row"><label style="margin:0"><span>Bit depth</span><select id="bits"><option value="16">16-bit WAV</option><option value="8">8-bit WAV</option></select></label>
 <button class="b p" id="expSong">Render whole song</button><button class="b" id="expLoop">Render seamless loop</button>
 <button class="b" id="saveSet">Settings → text</button><button class="b" id="loadSet">Text → settings</button></div>
+<div class="row"><button class="b" id="expMidi">🎼 MIDI file</button><button class="b" id="expStems">🎚 Stems: a WAV per track, plus MIDI</button><span class="muted">For finishing the song in another music app.</span></div>
 <div id="expOut" class="muted">Rendered audio shows up here with a player.</div>
+<div id="stemOut"></div>
 <textarea id="setTxt" rows="3" placeholder="Settings text appears here. Paste settings (or a song Claude wrote) here and press Text → settings."></textarea>
 </div>
 </section>
@@ -374,7 +388,7 @@ window.Band = (() => {
       circle("#111", -13 + look, -20, 4.5); circle("#111", 15 + look, -20, 4.5);
       if (m.act === "sway" && theme.id === "ambient") { rect("#5a2848", -24, -34, 48, 13); line("#111", 2, -22, -22, -6, -22); line("#111", 2, 6, -22, 22, -22); }
     }
-    if (m.act === "sing" || m.act === "mic") ellipse("#1a0510", 0, 8, 8, 6 + beat * 8);
+    if (m.act === "sing" || m.act === "mic") ellipse("#1a0510", 0, 8, 8, 6 + (voice == null ? beat * 8 : voice * 14));
     else stroke("#1a0510", 3, () => c.arc(0, 2, 13, .25, Math.PI - .25));
     face(m.acc, t, beat);
     hats(m.acc, t, beat);
@@ -593,6 +607,8 @@ window.Band = (() => {
     return art.toDataURL("image/jpeg", .9);
   }
 
+  let voice = null;            // how open the singer's mouth is, when a page sings (sing()); null: it follows the beat
+
   function frame(now) {
     if (!canvas || !canvas.isConnected) { raf = 0; return; }
     raf = requestAnimationFrame(frame);
@@ -630,12 +646,18 @@ window.Band = (() => {
     stop(audio) { if (playing === audio) playing = null; },
     // one band for when nothing is playing, instead of taking turns: dress("Calypso")
     dress(genre) { fixed = themeFor(genre); if (!playing) theme = fixed; },
+    // a page with its own singer (lyrics) moves the singer's mouth: sing(0..1) opens it that far, sing(null) gives it back to the beat
+    sing(level) { voice = level == null ? null : Math.max(0, Math.min(1, +level || 0)); },
+    get voice() { return voice; },
     // when the band heard the last beats (seconds on its own clock), for tests
     get beats() { return beats.slice(); },
   };
 })();
 </script>
+<script type="application/json" id="forge-shelf">[]</script>
 <script>
+// this page as it was opened, before anything ran: the shelf is saved into a copy of it (inside Randis UDS, the tab's next version)
+const PAGE_SRC='<!doctype html>\n'+document.documentElement.outerHTML;
 const $=id=>document.getElementById(id);
 const V=id=>{const e=$(id);return e.type==='range'||e.type==='number'?+e.value:e.value};
 const ON=id=>$(id).classList.contains('on');
@@ -831,17 +853,18 @@ function impulse(ctx,sec){const len=Math.floor(ctx.sampleRate*sec),b=ctx.createB
 function buildChain(ctx,dest){const I=ctx.createGain(),music=ctx.createGain(),hp=ctx.createBiquadFilter(),lp=ctx.createBiquadFilter(),dr=ctx.createWaveShaper(),cr=ctx.createWaveShaper(),dl=ctx.createDelay(2),fb=ctx.createGain(),dw=ctx.createGain(),cv=ctx.createConvolver(),rw=ctx.createGain(),comp=ctx.createDynamicsCompressor(),M=ctx.createGain();
 music.connect(I);I.connect(hp);hp.connect(lp);lp.connect(dr);dr.connect(cr);cr.connect(comp);cr.connect(dl);dl.connect(fb);fb.connect(dl);dl.connect(dw);dw.connect(comp);cr.connect(cv);cv.connect(rw);rw.connect(comp);const mk=ctx.createGain(),lim=ctx.createDynamicsCompressor();mk.gain.value=2.4;comp.connect(mk);mk.connect(lim);lim.connect(M);M.connect(dest);lim.threshold.value=-2;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=.002;lim.release.value=.12;
 hp.type='highpass';lp.type='lowpass';comp.threshold.value=-14;comp.ratio.value=4;dr.oversample='2x';
-const ch={I,music,M,ctx,tracks:{}};
+const ch={I,music,M,ctx,tracks:{},vox:ctx.createGain(),live:!(window.OfflineAudioContext&&ctx instanceof OfflineAudioContext)};ch.vox.connect(music);
 TR.forEach(t=>{const g=ctx.createGain(),p=ctx.createStereoPanner();g.connect(p);p.connect(t.id==='drums'||t.id==='perc'?I:music);ch.tracks[t.id]={g,p}});
 ch.update=()=>{const now=ctx.currentTime;lp.frequency.setTargetAtTime(V('cut'),now,.05);lp.Q.value=V('res');hp.frequency.value=ON('lofi')?150:20;
 const d=V('drive');if(ch.d!==d){ch.d=d;dr.curve=d>0?driveCurve(d):null}const chip=+V('chip');if(ch.chip!==chip){ch.chip=chip;cr.curve=chip?crushCurve(chip===16?10:chip===8?5:3):null}
 if(ON('lofi')&&V('cut')>7000)lp.frequency.setTargetAtTime(7000,now,.05);
 const bpm=song?song.bpm:V('bpm');dl.delayTime.setTargetAtTime(Math.min(1.9,60/bpm*.75),now,.05);fb.gain.value=V('dly')*.7;dw.gain.value=V('dly');
 rw.gain.value=V('rev')*1.2;if(ch.revSize!==V('revSize')){ch.revSize=V('revSize');cv.buffer=impulse(ctx,ch.revSize)}if(!ch.fading)M.gain.setTargetAtTime(V('vol'),now,.05);
-TR.forEach(t=>{ch.tracks[t.id].g.gain.setTargetAtTime(ON('on_'+t.id)?V('v_'+t.id):0,now,.03);ch.tracks[t.id].p.pan.value=V('p_'+t.id)})};
+TR.forEach(t=>{ch.tracks[t.id].g.gain.setTargetAtTime(ON('on_'+t.id)?V('v_'+t.id):0,now,.03);ch.tracks[t.id].p.pan.value=V('p_'+t.id)});ch.vox.gain.setTargetAtTime(ON('lyOn')?V('lyVol'):0,now,.03)};
 ch.update();return ch}
 let prevBass=null;
-function playStep(ch,S,gs,t){const ctx=ch.ctx;const bar=S.bars[Math.floor(gs/16)%S.bars.length],i=gs%16,spb=60/S.bpm/4;
+function playStep(ch,S,gs,t){playStep0(ch,S,gs,t);voxStep(ch,S,gs,t)}
+function playStep0(ch,S,gs,t){const ctx=ch.ctx;const bar=S.bars[Math.floor(gs/16)%S.bars.length],i=gs%16,spb=60/S.bpm/4;
 if(i%2===1)t+=V('swing')*spb;const H=V('human');const hv=()=>1-H*.3*Math.random();t+=H*.008*Math.random();
 const on=id=>bar.tracks.includes(id);const T=ch.tracks;const kit=V('kit');const W=id=>V('w_'+id),O=id=>V('o_'+id)*12;
 if(on('drums')){const d=bar.drum;const fill=bar.last&&i>=12&&Math.random()<V('cplx')*.7;
@@ -899,7 +922,7 @@ $('seed').value=V('seed')+1;if(ev===3){const gs=Object.keys(G[V('cat')]);$('genr
 if(ev>=2)$('key').value=KEYS[(KEYS.indexOf(V('key'))+(Math.random()<.5?7:5))%12];
 const old=song;song=compose();if(ev===1)song.bpm=old.bpm;E.step=0;if(ev===3)bandOn();say('Evolved → seed '+V('seed')+(ev>=2?', key '+V('key'):'')+(ev===3?', '+V('sub'):''))}
 function stop(quiet){if(E.timer)clearInterval(E.timer);E.timer=null;E.amb.forEach(n=>{try{n.stop()}catch(e){}});E.amb=[];
-if(E.ch){const c=E.ch;c.fading=true;c.M.gain.setTargetAtTime(0,E.ctx.currentTime,.05);setTimeout(()=>{try{c.M.disconnect()}catch(e){}},400)}E.ch=null;E.playing=false;if(window.Band)Band.stop(E.an);$('play').textContent='▶ Play';if(E.vRec&&!quiet)stopRec()}
+if(E.ch){const c=E.ch;c.fading=true;c.M.gain.setTargetAtTime(0,E.ctx.currentTime,.05);setTimeout(()=>{try{c.M.disconnect()}catch(e){}},400)}E.ch=null;E.playing=false;if(window.Band){Band.stop(E.an);if(Band.sing)Band.sing(null)}try{if(E.spoke)speechSynthesis.cancel();E.spoke=false}catch(e){}$('play').textContent='▶ Play';if(E.vRec&&!quiet)stopRec()}
 function bandGenre(){const era=V('era');return /Medieval|Elevator|1980s|Space station/.test(era)?era:V('sub')+' '+V('genre')}
 function bandOn(){if(window.Band&&E.an)Band.play(E.an,bandGenre(),'your '+V('sub')+' song')}
 if(window.Band)$('bandCard').appendChild(Band.stage());
@@ -1098,6 +1121,118 @@ Make it original with a strong hook and real structure (intro, verse, chorus, br
 // ---------- tools ----------
 const TOOLS=[['Audacity','Record, edit and clean up audio','https://www.audacityteam.org'],['LMMS','Free music studio (DAW)','https://lmms.io'],['Ardour','Multitrack recording DAW','https://ardour.org'],['Surge XT','Huge free synthesizer','https://surge-synthesizer.github.io'],['Vital (free tier)','Wavetable synth','https://vital.audio'],['Furnace Tracker','Chiptune tracker: NES, Genesis, SNES, C64 and more','https://github.com/tildearrow/furnace'],['FamiStudio','NES music editor','https://famistudio.org'],['OpenMPT','Module tracker','https://openmpt.org'],['MilkyTracker','FastTracker-style tracker','https://milkytracker.org'],['Hydrogen','Drum machine','http://hydrogen-music.org'],['MuseScore','Sheet music','https://musescore.org'],['jsfxr','Retro sound effects','https://sfxr.me'],['ffmpeg','Loop audio to 10 hours, turn images into video','https://ffmpeg.org'],['OBS Studio','Record and stream; capture any sound','https://obsproject.com'],['Kdenlive','Video editor','https://kdenlive.org'],['Shotcut','Video editor','https://shotcut.org'],['Blender','3D, animation and video editing','https://www.blender.org'],['Freesound','Creative Commons sounds (check each license)','https://freesound.org']];
 $('toolList').innerHTML=TOOLS.map(([n,d,u])=>`<label><span><b>${n}</b> · ${d}</span><span class="mono">${u}</span></label>`).join('');
+// ---------- lyrics: a synth singer on the melody (heard live, in renders and in stems), or this computer's voice (live only) ----------
+const VOWELS={a:[800,1150,2900],e:[400,1700,2600],i:[300,2250,3000],o:[480,850,2800],u:[340,750,2450],y:[300,2250,3000]};
+function syllables(line){const out=[];String(line).toLowerCase().replace(/[^a-z'\s-]/g,' ').split(/[\s-]+/).filter(Boolean).forEach(w=>{w=w.replace(/'/g,'');if(!w)return;out.push(...(w.match(/[^aeiouy]*[aeiouy]+(?:[^aeiouy]+$|[^aeiouy](?=[^aeiouy]))?/g)||[w]))});return out.slice(0,16)}
+const lyricLines=()=>V('lyText').split('\n').map(s=>s.trim()).filter(Boolean);
+// which syllable is sung when: one line per bar of the verses, choruses and bridges (else the bars with the melody, else every bar), lines taking turns
+function voxPlan(S){const key=V('lyText')+'|'+V('lyOct');if(S._voxKey===key)return S._vox;S._voxKey=key;const lines=lyricLines();if(!lines.length)return S._vox=null;
+const pick=f=>S.bars.map((b,k)=>f(b)?k:-1).filter(k=>k>=0);let sung=pick(b=>/Verse|Chorus|Bridge|Loop/.test(b.sec||''));
+if(!sung.length)sung=pick(b=>(b.tracks||[]).includes('lead'));if(!sung.length)sung=S.bars.map((_,k)=>k);
+const plan=S.bars.map(()=>null);
+sung.forEach((k,j)=>{const bar=S.bars[k],line=lines[j%lines.length],syl=syllables(line);if(!syl.length)return;const step=Math.max(1,Math.floor(16/syl.length));
+const tones=(bar.pad&&bar.pad[0]&&bar.pad[0].notes&&bar.pad[0].notes.length)?bar.pad[0].notes:[60],lead=(bar.lead||[]).slice().sort((a,b)=>a.i-b.i);
+plan[k]=syl.map((s,q)=>{const i=q*step,ln=lead.filter(n=>n.i<=i).pop();let n=ln?ln.n:tones[q%tones.length]+12;while(n>74)n-=12;while(n<52)n+=12;
+return{i,n:n+12*(+V('lyOct')),len:step>1?step-.5:1,syl:s}});plan[k].line=line});
+return S._vox=plan}
+function singNote(ctx,out,n,t,d,syl){const fx=V('lyFx'),shift=fx==='chipmunk'?12:fx==='deep / monster'?-12:0,f=mtof(n+shift);
+const F=VOWELS[(syl.match(/[aeiouy]/)||['a'])[0]].map(x=>x*(fx==='deep / monster'?.85:fx==='chipmunk'?1.15:1));
+const g=ctx.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.55,t+.03);g.gain.setValueAtTime(.55,t+Math.max(.04,d-.06));g.gain.linearRampToValueAtTime(0,t+d);let o=g;
+if(fx==='robot'){const rm=ctx.createGain();rm.gain.value=0;const l=ctx.createOscillator();l.frequency.value=60;l.connect(rm.gain);l.start(t);l.stop(t+d+.05);g.connect(rm);o=rm}
+if(fx==='8-bit voice'){const w=ctx.createWaveShaper();w.curve=crushCurve(4);g.connect(w);o=w}
+o.connect(out);
+const src=ctx.createOscillator();src.type='sawtooth';src.frequency.setValueAtTime(f,t);const vib=ctx.createOscillator(),vg=ctx.createGain();vib.frequency.value=5.5;vg.gain.value=f*.012;vib.connect(vg);vg.connect(src.frequency);
+F.forEach((fq,k)=>{const bp=ctx.createBiquadFilter();bp.type='bandpass';bp.frequency.value=fq;bp.Q.value=[8,12,14][k];const fg=ctx.createGain();fg.gain.value=[3,1.8,1][k];src.connect(bp);bp.connect(fg);fg.connect(g)});
+if(/^[^aeiouy]/.test(syl)){const ns=noiseSrc(ctx,'white',t,false),nf=ctx.createBiquadFilter(),ng=ctx.createGain();nf.type='highpass';nf.frequency.value=/^(s|z|sh|ch)/.test(syl)?4000:1500;ng.gain.setValueAtTime(.3,t);ng.gain.linearRampToValueAtTime(0,t+.06);ns.connect(nf);nf.connect(ng);ng.connect(g);ns.start(t);ns.stop(t+.07)}
+src.start(t);src.stop(t+d+.05);vib.start(t);vib.stop(t+d+.05)}
+function voxStep(ch,S,gs,t){if(!ON('lyOn'))return;const plan=voxPlan(S);if(!plan)return;const k=Math.floor(gs/16)%S.bars.length,i=gs%16,spb=60/S.bpm/4,bar=plan[k];if(!bar)return;
+if(i%2===1)t+=V('swing')*spb;const ms=x=>Math.max(0,(x-ch.ctx.currentTime)*1000);
+if(V('lyMode')==='speak'){if(!ch.live||i!==0)return;setTimeout(()=>{try{const u=new SpeechSynthesisUtterance(bar.line),v=speechSynthesis.getVoices().find(v=>v.name===V('ttsVoice'));if(v)u.voice=v;
+u.rate=Math.min(2,Math.max(.7,bar.line.length/12/(spb*16)));u.onboundary=()=>{if(window.Band&&Band.sing){Band.sing(.9);setTimeout(()=>Band.sing(.15),150)}};u.onend=()=>{if(window.Band&&Band.sing)Band.sing(null)};E.spoke=true;speechSynthesis.speak(u)}catch(e){}},ms(t));return}
+bar.filter(x=>x.i===i).forEach(x=>{const d=x.len*spb;singNote(ch.ctx,ch.vox,x.n,t,d,x.syl);
+if(ch.live&&window.Band&&Band.sing){setTimeout(()=>Band.sing(.9),ms(t));setTimeout(()=>Band.sing(.15),ms(t)+d*700)}})}
+
+// ---------- MIDI: every note of the song, a track per part, the lyrics as lyric events ----------
+function midiFile(S){const TPQ=96,st=TPQ/4,O=id=>V('o_'+id)*12,plan=ON('lyOn')?voxPlan(S):null;
+const vlq=n=>{n=Math.max(0,Math.round(n));const b=[n&127];while(n>>=7)b.unshift((n&127)|128);return b};
+const P={drums:{ch:9,name:'Drums',ev:[]},perc:{ch:9,name:'Extra percussion',ev:[]},bass:{ch:0,name:'Bass',prog:38,ev:[]},pad:{ch:1,name:'Chords',prog:89,ev:[]},
+lead:{ch:2,name:'Lead melody',prog:80,ev:[]},arp:{ch:3,name:'Arpeggio',prog:81,ev:[]},counter:{ch:4,name:'Counter melody',prog:73,ev:[]},vocals:{ch:5,name:'Vocals',prog:54,ev:[]}};
+const add=(p,at,n,len,vel)=>{n=Math.max(0,Math.min(127,Math.round(n)));p.ev.push([at,0x90|p.ch,n,vel],[at+Math.max(1,Math.round(len*st)-1),0x80|p.ch,n,0])};
+const DR={k:36,s:38,h:42,o:46,c:49};
+S.bars.forEach((bar,b)=>{const at0=b*16*st,on=id=>(bar.tracks||[]).includes(id)&&ON('on_'+id),d=bar.drum||{};
+if(on('drums'))Object.entries(DR).forEach(([x,m])=>(d[x]||[]).forEach((v,i)=>{if(v)add(P.drums,at0+i*st,m,1,Math.min(127,Math.round(60+40*Math.min(1,v))))}));
+if(on('perc'))(d.p||[]).forEach((v,i)=>{if(v)add(P.perc,at0+i*st,39,1,80)});
+if(on('bass'))(bar.bass||[]).forEach(n=>add(P.bass,at0+n.i*st,n.n+O('bass'),n.len||1,100));
+if(on('pad'))(bar.pad||[]).forEach(n=>(n.notes||[]).forEach(m=>add(P.pad,at0+n.i*st,m+O('pad'),n.len||16,70)));
+if(on('lead'))(bar.lead||[]).forEach(n=>add(P.lead,at0+n.i*st,n.n+O('lead'),n.len||1,100));
+if(on('arp'))(bar.arp||[]).forEach(n=>(n.chord?n.chord.map(m=>m+12):[n.n]).forEach(m=>add(P.arp,at0+n.i*st,m+O('arp'),1,80)));
+if(on('counter'))(bar.counter||[]).forEach(n=>add(P.counter,at0+n.i*st,n.n+O('counter'),n.len||1,80));
+if(plan&&plan[b])plan[b].forEach(x=>{P.vocals.ev.push([at0+x.i*st,'lyric',x.syl]);add(P.vocals,at0+x.i*st,x.n,x.len,100)})});
+const order=e=>e[1]==='lyric'?1:(e[1]&0xF0)===0x80?0:2;
+const chunk=(name,ev,head)=>{ev.sort((a,b)=>a[0]-b[0]||order(a)-order(b));let last=0;const txt=s=>[...s].map(c=>c.charCodeAt(0)&127);
+const d=[0,0xFF,0x03,...vlq(name.length),...txt(name),...(head||[])];
+ev.forEach(e=>{d.push(...vlq(e[0]-last));last=e[0];if(e[1]==='lyric'){const t=txt(e[2]);d.push(0xFF,0x05,...vlq(t.length),...t)}else d.push(e[1],e[2],e[3])});
+d.push(0,0xFF,0x2F,0);return[0x4D,0x54,0x72,0x6B,(d.length>>>24)&255,(d.length>>>16)&255,(d.length>>>8)&255,d.length&255,...d]};
+const us=Math.round(6e7/S.bpm),used=Object.values(P).filter(p=>p.ev.length);
+const tracks=[chunk('Randis Sound Forge: '+V('sub'),[],[0,0xFF,0x51,3,(us>>16)&255,(us>>8)&255,us&255,0,0xFF,0x58,4,4,2,24,8])].concat(used.map(p=>chunk(p.name,p.ev,p.prog!=null?[0,0xC0|p.ch,p.prog]:[])));
+const n=tracks.length,bytes=[0x4D,0x54,0x68,0x64,0,0,0,6,0,1,(n>>8)&255,n&255,0,TPQ];tracks.forEach(t=>{for(const x of t)bytes.push(x)});
+return new Blob([new Uint8Array(bytes)],{type:'audio/midi'})}
+
+// ---------- stems: each part rendered on its own, the same length as the song, so they line up in another app ----------
+async function renderPart(S,only){const spb=60/S.bpm/4,len=S.bars.length*16*spb,tail=Math.min(4,V('revSize')+1),sr=44100;
+const ctx=new OfflineAudioContext(2,Math.ceil((len+tail)*sr),sr),ch=buildChain(ctx,ctx.destination),mute=p=>{p.cancelScheduledValues(0);p.setValueAtTime(0,0)};
+TR.forEach(t=>{if(t.id!==only)mute(ch.tracks[t.id].g.gain)});if(only!=='vocals')mute(ch.vox.gain);prevBass=null;
+for(let s=0;s<S.bars.length*16;s++)playStep(ch,S,s,s*spb+.001);
+const out=await ctx.startRendering(),fadeN=Math.floor(sr*Math.min(tail,2));for(let c=0;c<2;c++){const d=out.getChannelData(c);for(let i=0;i<fadeN;i++)d[d.length-1-i]*=i/fadeN}return out}
+const stemParts=()=>{const ids=TR.map(t=>t.id).filter(id=>ON('on_'+id)&&song.bars.some(b=>(b.tracks||[]).includes(id)));if(ON('lyOn')&&V('lyMode')==='sing'&&voxPlan(song))ids.push('vocals');return ids};
+const songBase=()=>`${V('sub').replace(/\W+/g,'_')}_${V('seed')}`;
+const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+const crc32=u=>{let c=~0;for(let i=0;i<u.length;i++)c=CRC[(c^u[i])&255]^(c>>>8);return(~c)>>>0};
+// a plain zip (stored, not squeezed: WAVs barely shrink), so the stems and the MIDI file go out as one file where that's allowed
+async function zipBlob(files){const parts=[],central=[],enc=new TextEncoder();let off=0;
+for(const f of files){const data=new Uint8Array(await f.blob.arrayBuffer()),name=enc.encode(f.name),crc=crc32(data);
+const h=new DataView(new ArrayBuffer(30));h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(12,0x21,true);h.setUint32(14,crc,true);h.setUint32(18,data.length,true);h.setUint32(22,data.length,true);h.setUint16(26,name.length,true);
+parts.push(h,name,data);
+const c=new DataView(new ArrayBuffer(46));c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(14,0x21,true);c.setUint32(16,crc,true);c.setUint32(20,data.length,true);c.setUint32(24,data.length,true);c.setUint16(28,name.length,true);c.setUint32(42,off,true);
+central.push(c,name);off+=30+name.length+data.length}
+const size=central.reduce((a,x)=>a+x.byteLength,0),e=new DataView(new ArrayBuffer(22));e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,size,true);e.setUint32(16,off,true);
+return new Blob([...parts,...central,e],{type:'application/zip'})}
+function fileRows(files,box){box.innerHTML='';files.forEach(f=>{const row=document.createElement('div');row.className='row';const b=document.createElement('button');b.className='b';b.textContent='💾 Save';
+const lab=document.createElement('span');lab.textContent=`${f.name} · ${(f.blob.size/1048576).toFixed(1)} MB`;const note=document.createElement('span');note.className='muted';b.onclick=()=>saveFile(f.blob,f.name,note);row.append(b,lab,note);box.appendChild(row)})}
+$('expMidi').onclick=()=>{if(!song)newSong();const f={name:songBase()+'.mid',blob:midiFile(song)};fileRows([f],$('stemOut'));say('MIDI file ready: '+f.name+'.')};
+$('expStems').onclick=async()=>{if(!song)newSong();const ids=stemParts(),files=[{name:songBase()+'.mid',blob:midiFile(song)}];
+if(song.bars.length*16*15/song.bpm>900)return say('Over 15 minutes is too long for stems here.');
+try{for(const [k,id] of ids.entries()){say(`Rendering stems… ${k+1} of ${ids.length}: ${id}`);files.push({name:`${songBase()}_${id}.wav`,blob:wav(await renderPart(song,id),+V('bits'))})}}catch(e){return say('Stems failed: '+e.message)}
+fileRows(files,$('stemOut'));const row=document.createElement('div');row.className='row';const b=document.createElement('button');b.className='b p';b.id='stemZip';b.textContent='💾 Save all as one .zip';const note=document.createElement('span');note.className='muted';
+b.onclick=async()=>saveFile(await zipBlob(files),songBase()+'_stems.zip',note);row.append(b,note);$('stemOut').prepend(row);
+say(`Stems ready: ${ids.length} tracks (${ids.join(', ')}) and a MIDI file.`)};
+
+// ---------- the shelf: songs kept inside Sound Forge, favourites first ----------
+const SHELF_KEY='randis-sound-forge-shelf';
+let shelf=(()=>{for(const get of [()=>JSON.parse($('forge-shelf').textContent||'[]'),()=>JSON.parse(localStorage.getItem(SHELF_KEY)||'[]')]){try{const a=get();if(Array.isArray(a)&&a.length)return a}catch(e){}}return[]})();
+function keepShelf(){const json=JSON.stringify(shelf,(k,v)=>k.startsWith('_')?undefined:v);try{localStorage.setItem(SHELF_KEY,json)}catch(e){}$('forge-shelf').textContent=json;
+if(window.parent===window)return say('Saved songs are kept in this browser.');
+const tag='<script type="application/json" id="forge-'+'shelf">',page=PAGE_SRC.replace(new RegExp(tag.replace(/[.*+?^${}()|[\]\\\/]/g,'\\$&')+'[\\s\\S]*?<\\/script>'),()=>tag+json.replace(/</g,'\\u003c')+'<\/script>');
+let done=false;const ack=e=>{if(e.source===parent&&e.data&&e.data.uds==='saved'){done=true;removeEventListener('message',ack);say('Saved songs kept. '+(e.data.note||''))}};
+addEventListener('message',ack);parent.postMessage({uds:'save-file',text:page},'*');
+setTimeout(()=>{if(!done){removeEventListener('message',ack);say('Kept for now. Open Sound Forge in Randis UDS (or on its own) to keep saved songs for good.')}},2500)}
+function drawShelf(){const box=$('shelfList');box.innerHTML='';if(!shelf.length){box.innerHTML='<p class="muted">No saved songs yet. Name the song and press 💾 Keep this song.</p>';return}
+shelf.map((s,k)=>[s,k]).sort((a,b)=>(b[0].fav?1:0)-(a[0].fav?1:0)||b[0].when-a[0].when).forEach(([s,k])=>{const row=document.createElement('div');row.className='row shelf-row';row.dataset.k=k;
+const mk=(t,act,tip)=>{const b=document.createElement('button');b.className='b';b.textContent=t;b.dataset.act=act;b.title=tip;return b};
+const star=mk(s.fav?'⭐':'☆','fav',s.fav?'Favourite (press to unstar)':'Make it a favourite'),name=document.createElement('span');name.style.flex='1';
+name.textContent=`${s.name} · ${s.genre} · ${s.bpm} BPM${s.song?' · from text':''}${s.lyrics?' · with lyrics':''}`;
+row.append(star,name,mk('▶ Load','load','Load this song'),mk('✕','del','Remove it from the shelf'));box.appendChild(row)})}
+$('shelfList').addEventListener('click',e=>{const b=e.target.closest('button'),row=e.target.closest('.shelf-row');if(!b||!row)return;const k=+row.dataset.k,s=shelf[k];if(!s)return;
+if(b.dataset.act==='fav'){s.fav=!s.fav;keepShelf();drawShelf()}
+if(b.dataset.act==='del'){shelf.splice(k,1);keepShelf();drawShelf();say(`Removed "${s.name}" from the shelf.`)}
+if(b.dataset.act==='load'){const was=E.playing;setSettings(s.settings||{});$('lyText').value=s.lyrics||'';$('lyOn').classList.toggle('on',!!s.lyricsOn);
+if(s.song){song=Object.assign({},s.song,{fromText:true});drawSeq(0)}else{song=null;newSong()}$('shelfName').value=s.name;if(was)play({long:E.long});say(`Loaded "${s.name}" from the shelf.`)}});
+$('shelfKeep').onclick=()=>{if(!song)newSong();const name=(V('shelfName')||'').trim()||songTitle();
+shelf.push({name:name.slice(0,60),fav:false,when:Date.now(),genre:V('sub'),bpm:song.bpm,settings:getSettings(),song:song.fromText?JSON.parse(JSON.stringify(song,(k,v)=>k.startsWith('_')?undefined:v)):null,lyrics:V('lyText'),lyricsOn:ON('lyOn')});
+$('shelfName').value=name;keepShelf();drawShelf()};
+drawShelf();
+window.forge.midi=()=>midiFile(song);window.forge.zip=zipBlob;    // for tests
+
 applyGenre();newSong();
 </script>
 </body></html>

@@ -250,6 +250,97 @@ def test(page, check):
     check("a mutated one saves as mutated", page.until("(F.document.querySelector('#sfxOut') || {}).textContent.includes('Random_laser_mutated')", 10),
           page.js("F.document.querySelector('#sfxOut').textContent"))
 
+    # the idea finder's three (Sound Forge v011): a saved-songs shelf, MIDI and stems, lyrics sung over the song
+    page.js(pick % '[["cat", "Electronic"], ["genre", "House"], ["sub", "Deep House"], ["form", "short"], ["evolve", "1"]]')
+    page.js("F.document.getElementById('gen').click()")
+    # the shelf: kept inside the page itself (inside Randis UDS, the tab saves that page as its next version)
+    page.js("""window.__shelfSaves = []; addEventListener('message', e => { if (e.data && e.data.uds === 'save-file') {
+      __shelfSaves.push(e.data.text); e.source.postMessage({uds: 'saved', note: 'Saved in this tab, as version 12.'}, '*'); } });""")
+    rows = lambda: page.json("[...F.document.querySelectorAll('#shelfList .shelf-row')].map(r => r.textContent)") or []
+    check("the shelf starts empty and says how to keep a song", "No saved songs yet" in (page.js("F.document.getElementById('shelfList').textContent") or ""))
+    seed_kept = page.js("F.document.getElementById('seed').value")
+    page.js("F.document.getElementById('shelfName').value = 'My Keeper'; F.document.getElementById('shelfKeep').click()")
+    check("Keep this song puts it on the shelf with its genre and tempo", page.until("F.document.querySelectorAll('#shelfList .shelf-row').length === 1", 3)
+          and "My Keeper · Deep House" in rows()[0], rows())
+    saved_page = page.js("__shelfSaves[__shelfSaves.length - 1] || ''") or ""
+    check("inside an app, the shelf is saved into the page itself and the app says where",
+          '"name":"My Keeper"' in saved_page and saved_page.startswith("<!doctype html>") and "const PAGE_SRC" in saved_page
+          and saved_page.count('id="forge-shelf"') == 1 and "Saved songs kept" in (page.js("F.document.getElementById('status').textContent") or ""), saved_page[:200])
+    page.js("(() => { const d = F.document; d.getElementById('seed').value = 77; d.getElementById('seed').dispatchEvent(new F.Event('change')); "
+            "d.getElementById('shelfName').value = 'Second Song'; d.getElementById('shelfKeep').click(); })()")
+    page.until("F.document.querySelectorAll('#shelfList .shelf-row').length === 2", 3)
+    check("the newest kept song comes first", rows()[0].startswith("☆Second Song"), rows())
+    page.js("[...F.document.querySelectorAll('#shelfList .shelf-row')].find(r => r.textContent.includes('My Keeper')).querySelector('[data-act=fav]').click()")
+    check("a ⭐ favourite moves to the top", page.until("F.document.querySelector('#shelfList .shelf-row').textContent.startsWith('⭐My Keeper')", 3), rows())
+    page.js("[...F.document.querySelectorAll('#shelfList .shelf-row')].find(r => r.textContent.includes('My Keeper')).querySelector('[data-act=load]').click()")
+    check("▶ Load brings the song back exactly: its settings and seed", page.js("F.document.getElementById('seed').value") == seed_kept
+          and "Loaded \"My Keeper\"" in (page.js("F.document.getElementById('status').textContent") or ""), page.js("F.document.getElementById('seed').value"))
+    page.js("[...F.document.querySelectorAll('#shelfList .shelf-row')].find(r => r.textContent.includes('Second Song')).querySelector('[data-act=del]').click()")
+    check("✕ takes a song off the shelf", rows() and len(rows()) == 1 and "My Keeper" in rows()[0], rows())
+    shelf_page = page.js("__shelfSaves[__shelfSaves.length - 1] || ''") or ""
+    base_saved = harness.serve(lambda pth: (shelf_page, "text/html; charset=utf-8") if pth == "/kept.html" else None)
+    page.go(base_saved + "frame.html?/kept.html", ready="!!window.F && !!F.document && !!F.document.getElementById('shelfList') && F.document.readyState === 'complete'")
+    time.sleep(1)
+    check("the saved page opens with its shelf in it, favourite and all",
+          "⭐My Keeper" in (page.js("F.document.getElementById('shelfList').textContent") or "")
+          and "Second Song" not in (page.js("F.document.getElementById('shelfList').textContent") or ""), page.js("F.document.getElementById('shelfList').textContent"))
+    page.go(base + "rig.html?apps/randis-sound-forge", ready="!!window.F && !!F.document.getElementById('expSong')")
+    time.sleep(1.5)
+    page.js(pick % '[["cat", "Electronic"], ["genre", "House"], ["sub", "Deep House"], ["form", "short"]]')
+    page.js("F.document.getElementById('gen').click()")
+    # lyrics: a synth singer on the melody; the band's singer mouths along, and gives the mouth back on Stop
+    page.js("(() => { const d = F.document; d.getElementById('lyText').value = 'hello there my friend\\nsing along with me'; d.getElementById('lyOn').click(); })()")
+    plan = page.json("F.voxPlan(F.forge.song).map(b => b ? b.map(x => x.syl).join('-') : null)") or []
+    check("lyrics are split into syllables and laid on the verses and choruses, lines taking turns",
+          "hel-lo-the-re-my-friend" in plan and "sing-a-long-with-me" in plan, [x for x in plan if x][:4])
+    page.js("F.document.getElementById('play').click()")
+    opened = page.until("F.Band.voice !== null", 15)
+    check("while it plays, the band's singer opens their mouth on each sung syllable", opened, page.js("F.Band.voice"))
+    page.js("F.document.getElementById('stop').click()")
+    check("Stop gives the singer's mouth back to the beat", page.until("F.Band.voice === null", 3))
+    # MIDI: a real Standard MIDI File, with the lyrics in it
+    page.js("window.__b64 = null; F.forge.midi().arrayBuffer().then(b => { let s = ''; new Uint8Array(b).forEach(x => s += String.fromCharCode(x)); window.__b64 = btoa(s); })")
+    page.until("!!window.__b64", 5)
+    mid = base64.b64decode(page.js("window.__b64") or "")
+    tracks = mid.count(b"MTrk")
+    check("the MIDI file is a real one: a header, a tempo, a track per part", mid[:4] == b"MThd" and mid[8:10] == b"\x00\x01"
+          and int.from_bytes(mid[10:12], "big") == tracks and tracks >= 5 and b"\xff\x51\x03" in mid
+          and all(n.encode() in mid for n in ("Drums", "Bass", "Lead melody", "Vocals")), [mid[:14], tracks])
+    check("the sung words are in it as lyric events", b"\xff\x05\x03hel" in mid and b"\xff\x05\x02me" in mid, mid.count(b"\xff\x05"))
+    page.js("F.document.getElementById('expMidi').click()")
+    check("🎼 MIDI file offers it to save", page.until("F.document.getElementById('stemOut').textContent.includes('.mid')", 3))
+    # stems: one WAV per part, the same length, the vocals among them, and all of it as one zip
+    page.js("setTimeout(() => F.document.getElementById('expStems').click(), 0)")
+    ready = page.until("!!F.document.getElementById('stemZip')", 180)
+    names = page.json("[...F.document.querySelectorAll('#stemOut .row span:not(.muted)')].map(s => s.textContent.split(' · ')[0])") or []
+    check("🎚 Stems renders a WAV per part playing, plus the vocals and the MIDI file",
+          ready and any(n.endswith(".mid") for n in names) and any(n.endswith("_drums.wav") for n in names)
+          and any(n.endswith("_bass.wav") for n in names) and any(n.endswith("_vocals.wav") for n in names), names)
+    page.js("""window.__stems = null; (async () => { const out = [], c = new F.OfflineAudioContext(2, 44100, 44100);
+      for (const b of [...F.document.querySelectorAll('#stemOut .row')]) { const n = (b.querySelector('span:not(.muted)') || {}).textContent || ''; if (!n.includes('.wav')) continue;
+        b.querySelector('button').click(); await new Promise(r => setTimeout(r, 300)); }
+      window.__stems = out; })()""")
+    page.until("got.filter(g => g.name && g.name.endsWith('.wav')).length >= 3", 20)
+    wavs = page.json("got.filter(g => g.name && g.name.endsWith('.wav'))") or []
+    check("every stem saves as a real WAV, all the same length, so they line up in another app",
+          len(wavs) >= 3 and all(w["head"] == "RIFF" for w in wavs) and len({w["size"] for w in wavs}) == 1, wavs)
+    page.js("F.document.getElementById('stemZip').click()")
+    page.until("got.some(g => g.name && g.name.endsWith('_stems.zip'))", 20)
+    z = (page.json("got.filter(g => g.name && g.name.endsWith('_stems.zip'))") or [{}])[0]
+    check("Save all as one .zip hands over a zip", z.get("head") == "PK\x03\x04" and z.get("size", 0) > sum(w["size"] for w in wavs), z)
+    page.js("window.__z = null; F.forge.zip([{name: 'song.mid', blob: F.forge.midi()}, {name: 'note.txt', blob: new Blob(['hi'])}]).then(b => b.arrayBuffer()).then(b => { let s = ''; new Uint8Array(b).forEach(x => s += String.fromCharCode(x)); window.__z = btoa(s); })")
+    page.until("!!window.__z", 5)
+    import zipfile
+    zf = zipfile.ZipFile(io.BytesIO(base64.b64decode(page.js("window.__z") or "")))
+    check("the zip opens in any zip tool, every file whole", zf.testzip() is None and zf.namelist() == ["song.mid", "note.txt"]
+          and zf.read("note.txt") == b"hi" and zf.read("song.mid") == mid, zf.namelist())
+    vocal_peak = page.js("""(() => { window.__peak = null; const row = [...F.document.querySelectorAll('#stemOut .row')].find(r => r.textContent.includes('_vocals.wav'));
+      return 1; })()""")
+    page.js("""window.__peak = null; F.forge.vocals && 0; (async () => { const ctx = new F.OfflineAudioContext(2, 44100, 44100);
+      const buf = await F.renderPart(F.forge.song, 'vocals'); let m = 0; const d = buf.getChannelData(0); for (let i = 0; i < d.length; i += 7) m = Math.max(m, Math.abs(d[i])); window.__peak = m; })()""")
+    page.until("window.__peak !== null", 60)
+    check("the vocals stem really has singing in it", (page.js("window.__peak") or 0) > 0.02, page.js("window.__peak"))
+
     # the Jukebox in the shop
     def extra(path):
         if path == "/music.js":

@@ -179,7 +179,7 @@ window.Band = (() => {
       circle("#111", -13 + look, -20, 4.5); circle("#111", 15 + look, -20, 4.5);
       if (m.act === "sway" && theme.id === "ambient") { rect("#5a2848", -24, -34, 48, 13); line("#111", 2, -22, -22, -6, -22); line("#111", 2, 6, -22, 22, -22); }
     }
-    if (m.act === "sing" || m.act === "mic") ellipse("#1a0510", 0, 8, 8, 6 + beat * 8);
+    if (m.act === "sing" || m.act === "mic") ellipse("#1a0510", 0, 8, 8, 6 + (voice == null ? beat * 8 : voice * 14));
     else stroke("#1a0510", 3, () => c.arc(0, 2, 13, .25, Math.PI - .25));
     face(m.acc, t, beat);
     hats(m.acc, t, beat);
@@ -398,6 +398,8 @@ window.Band = (() => {
     return art.toDataURL("image/jpeg", .9);
   }
 
+  let voice = null;            // how open the singer's mouth is, when a page sings (sing()); null: it follows the beat
+
   function frame(now) {
     if (!canvas || !canvas.isConnected) { raf = 0; return; }
     raf = requestAnimationFrame(frame);
@@ -435,6 +437,9 @@ window.Band = (() => {
     stop(audio) { if (playing === audio) playing = null; },
     // one band for when nothing is playing, instead of taking turns: dress("Calypso")
     dress(genre) { fixed = themeFor(genre); if (!playing) theme = fixed; },
+    // a page with its own singer (lyrics) moves the singer's mouth: sing(0..1) opens it that far, sing(null) gives it back to the beat
+    sing(level) { voice = level == null ? null : Math.max(0, Math.min(1, +level || 0)); },
+    get voice() { return voice; },
     // when the band heard the last beats (seconds on its own clock), for tests
     get beats() { return beats.slice(); },
   };
