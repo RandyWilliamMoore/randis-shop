@@ -1,0 +1,11 @@
+{
+ "name": "Randis Office",
+ "by": "Randy",
+ "blurb": "An office suite in one page: Randis Writer, Sheets, Slides, Notes, Draw, Database and Planner, each with many documents open as their own tabs. Opens and saves Word (.docx), Excel (.xlsx), CSV and calendar (.ics) files, and prints to PDF.",
+ "status": "ok",
+ "real_items": null,
+ "reviews": {
+  "randy": null,
+  "maker": null
+ }
+}

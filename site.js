@@ -14,7 +14,9 @@ const SHOP = {
   maxDownload: 300 * 1024 * 1024,
   saveKinds: { wav: "audio/wav", mp3: "audio/mpeg", ogg: "audio/ogg", flac: "audio/flac", mid: "audio/midi", midi: "audio/midi",
     webm: "video/webm", mp4: "video/mp4", png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", webp: "image/webp",
-    txt: "text/plain", json: "application/json", csv: "text/csv" },
+    txt: "text/plain", json: "application/json", csv: "text/csv", md: "text/markdown", ics: "text/calendar",
+    docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" },
   discord: "https://discord.gg/83RmuHcQTR",
   kofi: "https://ko-fi.com/moorescombinatoricsmatrix",
   etsy: "https://www.etsy.com/shop/UberRandis",
@@ -239,6 +241,9 @@ function playWindow(i) {
         askLink(e.data.url);
       } else if (e.data && e.data.uds === "download" && e.data.data instanceof ArrayBuffer) {
         saveDownload(e.data.name, e.data.data);
+      } else if (e.data && e.data.uds === "store-get") {
+        // an app asking for Randis UDS storage: the shop keeps nothing, and says so at once
+        e.source.postMessage({ uds: "store-none" }, "*");
       } else if (e.data && e.data.uds === "export-file" && e.data.data instanceof Blob) {
         // an app's own Save button (the way it saves inside Randis UDS) hands over the file it made; it hears back either way
         const src = e.source, d = e.data;

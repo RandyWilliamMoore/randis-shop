@@ -359,6 +359,23 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "randis-office",
+  "name": "Randis Office",
+  "by": "Randy",
+  "blurb": "An office suite in one page: Randis Writer, Sheets, Slides, Notes, Draw, Database and Planner, each with many documents open as their own tabs. Opens and saves Word (.docx), Excel (.xlsx), CSV and calendar (.ics) files, and prints to PDF.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/randis-office",
+  "file": "apps/randis-office/item.html",
+  "logo": "apps/randis-office/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "randis-paint",
   "name": "Randis Paint",
   "by": "Randy",

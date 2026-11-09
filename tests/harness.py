@@ -88,7 +88,8 @@ def serve(extra=None, extra_items=()):
                 return self.send_text(page, "text/html; charset=utf-8", {"Content-Security-Policy": player_rules()})
             if path == "/frame.html":           # holds one page in a frame the test can reach: frame.html?<address>
                 return self.send_text('<!doctype html><body style="margin:0"><iframe id=f style="width:1180px;height:780px;border:0">'
-                                      '</iframe><script>var F;f.onload=()=>{F=f.contentWindow};f.src=location.search.slice(1)</script>', "text/html")
+                                      '</iframe><script>var F;f.onload=()=>{F=f.contentWindow};f.src=location.search.slice(1);'
+                                      'addEventListener("message",e=>{if(e.data&&e.data.uds==="store-get")e.source.postMessage({uds:"store-none"},"*")})</script>', "text/html")
             if path == "/rig.html":             # the real player script, without the sandbox, holding one item: rig.html?<kind>/<slug>
                 return self.send_text("""<!doctype html><body><iframe id=f src="/site/player.html" style="width:1100px;height:700px"></iframe><script>
 window.got = []; var F;
@@ -98,6 +99,7 @@ addEventListener('message', e => {
   else if (e.data && e.data.uds === 'download') { const u = new Uint8Array(e.data.data); got.push({name: e.data.name, size: u.length, head: String.fromCharCode(...u.slice(0, 4))}); }
   else if (e.data && e.data.uds === 'export-file') e.data.data.arrayBuffer().then(b => { const u = new Uint8Array(b);   // an app's own Save button
     got.push({name: e.data.name, size: u.length, head: String.fromCharCode(...u.slice(0, 4)), how: 'export'}); e.source.postMessage({uds: 'exported', ok: true, note: 'Saved'}, '*'); });
+  else if (e.data && e.data.uds === 'store-get') e.source.postMessage({uds: 'store-none'}, '*');   // the shop keeps nothing
 });</script>""", "text/html")
             if extra:
                 answer = extra(path)
