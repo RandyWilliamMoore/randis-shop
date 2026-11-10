@@ -1018,7 +1018,8 @@ $('pubTitle').addEventListener('change',redraw);$('pubRoll').onclick=()=>{$('pub
 $('pubBlurbRoll').onclick=()=>{$('pubBlurb').value=songBlurb(true)};$('pubCoverRoll').onclick=()=>{cstyle++;redraw()};
 $('pubGo').onclick=()=>{const note=$('pubNote'),go=$('pubGo');go.disabled=true;note.textContent='Say yes in the Randis UDS window to publish it…';
 const t=setTimeout(()=>{removeEventListener('message',h);go.disabled=false;note.textContent='No answer from Randis UDS. Close the app and open it again (Reload is not enough), then press Publish again.'},8000);
-const h=e=>{if(!e.data)return;if(e.data.uds==='publishing'){clearTimeout(t);note.textContent=e.data.note;return}if(e.data.uds!=='published')return;clearTimeout(t);removeEventListener('message',h);note.textContent=e.data.note;go.disabled=!!e.data.ok;say(e.data.note)};
+const h=e=>{if(!e.data)return;if(e.data.uds==='publishing'){clearTimeout(t);note.textContent=e.data.note;return}if(e.data.uds!=='published')return;clearTimeout(t);removeEventListener('message',h);note.textContent=e.data.note;go.disabled=!!e.data.ok;say(e.data.note);
+if(e.data.ok&&e.data.url&&!$('pubSee')){const see=document.createElement('button');see.className='b p';see.id='pubSee';see.textContent=e.data.live?'🌐 See it in the shop':'🌐 Open its shop page';see.onclick=()=>parent.postMessage({uds:'open-published'},'*');go.after(see)}};
 let cover=null;try{cover=$('pubCover')?$('pubCover').src:null}catch(e){}
 addEventListener('message',h);parent.postMessage({uds:'publish-song',title:$('pubTitle').value,blurb:$('pubBlurb').value,genre:$('pubGenre').value,cover:cover&&/^data:image\/jpeg/.test(cover)?cover:null,data:blob},'*')}}
 function deliver(blob,name,box){const u=URL.createObjectURL(blob);const isV=/video/.test(blob.type),isI=/image/.test(blob.type);

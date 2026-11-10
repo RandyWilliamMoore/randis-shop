@@ -187,6 +187,17 @@ def test(page, check):
     check("if the app never answers, Publish doesn't stay stuck: it says so and can be pressed again",
           page.until("F.document.getElementById('pubNote').textContent.startsWith('No answer from Randis UDS') && !F.document.getElementById('pubGo').disabled", 12),
           page.js("F.document.getElementById('pubNote').textContent"))
+    # once it's live, a button opens it in the shop (the app opens only that song's page)
+    page.js("""window.__opens = 0; addEventListener('message', e => { if (!e.data) return;
+      if (e.data.uds === 'publish-song') e.source.postMessage({uds: 'published', ok: true, live: true, url: 'https://shop.example/#/music/my-own-title',
+        note: 'Live on Test Shop now: My Own Title (it took 38 s after the push).'}, '*');
+      if (e.data.uds === 'open-published') window.__opens++; });""")
+    page.js("F.document.getElementById('pubGo').click()")
+    check("when the app says it's live, the note says so and a 🌐 See it in the shop button appears",
+          page.until("!!F.document.getElementById('pubSee')", 5) and "Live on Test Shop now" in (page.js("F.document.getElementById('pubNote').textContent") or "")
+          and "See it in the shop" in (page.js("F.document.getElementById('pubSee').textContent") or ""), page.js("F.document.getElementById('pubNote').textContent"))
+    page.js("F.document.getElementById('pubSee').click()")
+    check("pressing it asks the app to open the song's shop page", page.until("window.__opens === 1", 3), page.js("window.__opens"))
     # the Raisin Band, inside Sound Forge
     shop_band = open(os.path.join(harness.SHOP, "site", "band.js"), encoding="utf-8").read().replace("\r\n", "\n")
     carriers = {}
@@ -451,6 +462,20 @@ def test(page, check):
     page.go(base + "index.html#/music")
     page.until("!!document.querySelector('.jukebox')")
     check("an empty Jukebox says songs are coming", "on their way" in (page.js("document.querySelector('.jukebox').textContent") or ""))
+    # a browser may hold on to an old music.js for minutes: the shop asks for a fresh one and shows a song published since
+    asked = []
+    fresh_song = {"kind": "music", "slug": "just-published", "name": "Just Published", "by": "Randy", "blurb": "x", "genre": "Lo-fi", "length": "0:03",
+                  "added": "2026-11-07", "file": "music/just-published/song.mp3", "cover": "music/just-published/cover.jpg", "download": "Just Published.mp3"}
+    def stale_then_fresh(pth):
+        if pth != "/music.js":
+            return None
+        asked.append(pth)
+        return ("window.MUSIC = [];" if len(asked) == 1 else "// fresh\nwindow.MUSIC = " + json.dumps([fresh_song], indent=1) + ";\n", "application/javascript")
+    base = harness.serve(stale_then_fresh)
+    page.go(base + "index.html#/music/just-published")
+    check("a song published after the browser cached the list still shows, and its own link finds it",
+          page.until("!!document.getElementById('song-just-published') && document.getElementById('song-just-published').classList.contains('picked')", 5)
+          and len(asked) == 2, [len(asked), page.js("document.querySelector('.page').textContent.slice(0, 200)")])
     check("and the band still rehearses on its stage", page.until("(document.querySelector('.band-cap') || {}).textContent.startsWith('Rehearsing')", 3))
 
     # Sound Forge's own Save button, in the real shop and the real walled player

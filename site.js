@@ -328,3 +328,11 @@ document.addEventListener("keydown", e => {
 });
 window.addEventListener("hashchange", render);
 render();
+// The host lets browsers keep music.js for up to 10 minutes, so a song published a moment ago could stay hidden.
+// Ask for a fresh copy once the page is up; if it lists songs this one doesn't, show them (never cutting off a song that's playing).
+fetch("music.js?t=" + Date.now(), { cache: "no-store" }).then(r => r.ok ? r.text() : "").then(t => {
+  const fresh = JSON.parse(t.slice(t.indexOf("["), t.lastIndexOf("]") + 1));
+  if (!Array.isArray(fresh) || fresh.map(s => s.slug).join() === MUSIC.map(s => s.slug).join()) return;
+  MUSIC.splice(0, MUSIC.length, ...fresh);
+  if (![...document.querySelectorAll("audio")].some(a => !a.paused)) render();
+}).catch(() => {});
