@@ -1,0 +1,11 @@
+{
+ "name": "Gilded Hands",
+ "by": "Randy",
+ "blurb": "An original poker-hand roguelike. Play hands for Chips x Mult, beat Bronze, Silver and Gold tables over 8 tiers (Gold tables have boss rules), and shop for 32 Charms, Star Charts and Tinctures. Saves your run, with an endless mode after.",
+ "status": "ok",
+ "real_items": null,
+ "reviews": {
+  "randy": null,
+  "maker": null
+ }
+}

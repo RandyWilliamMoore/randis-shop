@@ -1,0 +1,11 @@
+{
+ "name": "Discord Bot Design Suite",
+ "by": "Randy",
+ "blurb": "Design Discord bots: a wizard to help decide what to build, slash commands and embeds, a large samples section with simple bots to try right away, and export to discord.js or discord.py.",
+ "status": "ok",
+ "real_items": null,
+ "reviews": {
+  "randy": null,
+  "maker": null
+ }
+}

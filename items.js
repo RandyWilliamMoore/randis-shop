@@ -172,6 +172,23 @@ window.ITEMS = [
  },
  {
   "kind": "games",
+  "slug": "gilded-hands",
+  "name": "Gilded Hands",
+  "by": "Randy",
+  "blurb": "An original poker-hand roguelike. Play hands for Chips x Mult, beat Bronze, Silver and Gold tables over 8 tiers (Gold tables have boss rules), and shop for 32 Charms, Star Charts and Tinctures. Saves your run, with an endless mode after.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=games/gilded-hands",
+  "file": "games/gilded-hands/item.html",
+  "logo": "games/gilded-hands/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "games",
   "slug": "hotdog-tycoon",
   "name": "Hotdog Tycoon",
   "by": "Randy",
@@ -287,6 +304,23 @@ window.ITEMS = [
   "open_with": "randisuds://open?item=games/milk-cap-champ",
   "file": "games/milk-cap-champ/item.html",
   "logo": "games/milk-cap-champ/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "games",
+  "slug": "mintworks-exchange",
+  "name": "Mintworks Exchange",
+  "by": "Randy",
+  "blurb": "A play-money exchange simulation: about 45 markets (coins, bullion, gems, tokens, your own coins) with an order book, file NFTs that hold the real file, a DAO market, a creation suite and a trading-card exchange with packs, singles and a binder. No real money.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=games/mintworks-exchange",
+  "file": "games/mintworks-exchange/item.html",
+  "logo": "games/mintworks-exchange/logo.svg",
   "video_pic": null
  },
  {
@@ -410,6 +444,23 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "discord-bot-design-suite",
+  "name": "Discord Bot Design Suite",
+  "by": "Randy",
+  "blurb": "Design Discord bots: a wizard to help decide what to build, slash commands and embeds, a large samples section with simple bots to try right away, and export to discord.js or discord.py.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/discord-bot-design-suite",
+  "file": "apps/discord-bot-design-suite/item.html",
+  "logo": "apps/discord-bot-design-suite/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "heirloom-boxes",
   "name": "Heirloom Boxes",
   "by": "Randy",
@@ -491,6 +542,23 @@ window.ITEMS = [
   "open_with": "randisuds://open?item=apps/randis-sound-forge",
   "file": "apps/randis-sound-forge/item.html",
   "logo": "apps/randis-sound-forge/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "sing-in-my-voice",
+  "name": "Sing in My Voice",
+  "by": "Randy",
+  "blurb": "A step-by-step guide to making Randis Sound Forge songs sung in your own voice (RVC): checks, a built-in recorder with reading and singing scripts, training, and the messages to send Claude in a Randis UDS chat.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/sing-in-my-voice",
+  "file": "apps/sing-in-my-voice/item.html",
+  "logo": "apps/sing-in-my-voice/logo.svg",
   "video_pic": null
  },
  {

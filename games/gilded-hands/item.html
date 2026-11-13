@@ -1,0 +1,435 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Gilded Hands</title>
+<!-- Randis UDS™ by Randy Moore. Original: https://github.com/RandyWilliamMoore/randis-uds · Support: https://ko-fi.com/moorescombinatoricsmatrix -->
+<style>
+:root{--bg:#141631;--bg2:#1d2045;--bg3:#272b5c;--line:#3a3f7a;--tx:#f3eedf;--mut:#a9a6c9;--gold:#e8c063;--gold2:#b8902f;--chip:#4fa3e8;--mult:#e8584f;--ok:#5cc28a;--card:#fbf6e9}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font-family:Georgia,'Times New Roman',serif;user-select:none;overflow:hidden}
+body{background:radial-gradient(circle at 50% 40%,#23275a 0,#141631 70%),var(--bg)}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.07;background:repeating-linear-gradient(45deg,var(--gold) 0 1px,transparent 1px 28px),repeating-linear-gradient(-45deg,var(--gold) 0 1px,transparent 1px 28px)}
+button{font-family:inherit;cursor:pointer;border:1px solid var(--gold2);background:linear-gradient(#2d3270,#1f2352);color:var(--tx);padding:9px 18px;border-radius:8px;font-size:15px;letter-spacing:.5px}
+button:hover:not(:disabled){border-color:var(--gold);color:#fff;box-shadow:0 0 10px #e8c06355}
+button:disabled{opacity:.4;cursor:default}
+button.gold{background:linear-gradient(#f0cf7a,#b8902f);color:#1a1530;font-weight:bold;border-color:#f6dd98}
+button.red{background:linear-gradient(#e8665c,#a33a33);border-color:#f19a92}
+button.blue{background:linear-gradient(#5aaef0,#2e6fae);border-color:#9bd0f7}
+button.sm{padding:5px 10px;font-size:13px}
+#app{position:relative;height:100%;display:flex}
+.center{margin:auto;text-align:center}
+h1{font-size:64px;margin:0;color:var(--gold);letter-spacing:4px;text-shadow:0 3px 0 #6b4f12,0 0 30px #e8c06366;font-variant:small-caps}
+.sub{color:var(--mut);font-style:italic;margin:6px 0 30px}
+.muted{color:var(--mut)}
+.money{color:var(--gold);font-weight:bold}
+/* layout */
+#side{width:250px;flex:none;background:#0f1128cc;border-right:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:10px;overflow:auto}
+#main{flex:1;display:flex;flex-direction:column;padding:12px 18px;min-width:0}
+.box{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:10px}
+.blindname{font-size:20px;color:var(--gold);font-variant:small-caps;letter-spacing:1px}
+.target{font-size:26px;font-weight:bold}
+.lbl{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--mut)}
+.cm{display:flex;align-items:center;gap:6px;margin-top:6px}
+.cm div{flex:1;text-align:center;font-size:24px;font-weight:bold;border-radius:8px;padding:6px 0}
+#chips{background:var(--chip);color:#08223b}
+#mult{background:var(--mult);color:#3b0b08}
+.cm span{font-size:22px;color:var(--gold)}
+#hname{text-align:center;font-size:17px;min-height:22px;color:var(--gold)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{text-align:center}
+.stat b{display:block;font-size:24px}
+.stat.p b{color:var(--chip)}.stat.d b{color:var(--mult)}
+.bossrule{font-size:13px;color:#f3a6a0;margin-top:4px}
+/* charms */
+#charmbar{display:flex;gap:10px;min-height:118px;align-items:flex-start}
+.charm{width:96px;height:112px;border-radius:10px;background:linear-gradient(160deg,#3a2f6e,#211a48);border:2px solid var(--gold2);padding:6px;text-align:center;position:relative;cursor:pointer;transition:transform .12s}
+.charm .ic{font-size:34px;line-height:44px}
+.charm .nm{font-size:12px;color:var(--gold);line-height:1.1}
+.charm.off{filter:grayscale(1) brightness(.6)}
+.charm.empty{border:2px dashed var(--line);background:none;cursor:default}
+.charm:hover .tip,.card:hover .tip,.item:hover .tip{display:block}
+.tip{display:none;position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);width:190px;background:#0b0c1f;border:1px solid var(--gold2);border-radius:8px;padding:8px;font-size:13px;color:var(--tx);z-index:50;text-align:left;pointer-events:none}
+.tip b{color:var(--gold)}
+.slots{font-size:12px;color:var(--mut);align-self:center}
+/* table */
+#table{flex:1;display:flex;align-items:center;justify-content:center;min-height:140px;position:relative}
+#play{display:flex;gap:10px}
+#play .card.scoring{transform:translateY(-14px)}
+#tablemsg{color:var(--mut);font-style:italic}
+/* cards */
+#hand{display:flex;justify-content:center;min-height:150px;padding-top:24px}
+.card{width:78px;height:110px;background:var(--card);border-radius:8px;border:1px solid #c8bd9f;box-shadow:0 3px 8px #0008;position:relative;color:#1d1d2b;flex:none;transition:transform .12s,margin .12s;cursor:pointer}
+#hand .card{margin:0 -4px}
+#hand .card:hover{transform:translateY(-6px)}
+#hand .card.sel{transform:translateY(-24px);box-shadow:0 0 0 3px var(--gold),0 6px 12px #000a}
+.card.red{color:#c0302a}
+.card .r{position:absolute;top:4px;left:7px;font-size:20px;font-weight:bold;line-height:1}
+.card .s1{position:absolute;top:25px;left:8px;font-size:15px}
+.card .big{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:40px}
+.card .rb{position:absolute;bottom:4px;right:7px;font-size:20px;font-weight:bold;transform:rotate(180deg)}
+.card.bonus{background:linear-gradient(160deg,#e3f1ff,#b9dcfa)}
+.card.ember{background:linear-gradient(160deg,#ffe9e2,#f7b9ab)}
+.card.glass{background:linear-gradient(160deg,#f2fbff99,#cfeefb88);border-color:#9ee0f7;box-shadow:0 0 12px #9ee0f7aa}
+.card.gilt{background:linear-gradient(160deg,#fff4cc,#e8c063)}
+.card .tag{position:absolute;bottom:4px;left:6px;font-size:9px;text-transform:uppercase;letter-spacing:1px;font-weight:bold;color:#555}
+.card.dim{filter:grayscale(1) brightness(.55)}
+.card.mini{width:52px;height:72px}
+.card.mini .r{font-size:15px}.card.mini .s1{top:20px;font-size:12px}.card.mini .big{font-size:26px}.card.mini .rb{display:none}
+.bump{animation:bump .2s}
+@keyframes bump{50%{transform:scale(1.15) translateY(-14px)}}
+#controls{display:flex;justify-content:center;gap:12px;padding:12px 0 4px;align-items:center}
+#preview{min-width:170px;text-align:center;color:var(--gold);font-size:15px}
+/* popups */
+.pop{position:fixed;transform:translate(-50%,-100%);font-weight:bold;font-size:20px;padding:2px 8px;border-radius:6px;z-index:100;pointer-events:none;animation:rise .9s forwards;white-space:nowrap}
+.pop.c{background:var(--chip);color:#08223b}.pop.m{background:var(--mult);color:#3b0b08}.pop.x{background:#c03b7a;color:#fff}.pop.g{background:var(--gold);color:#2a1d00}.pop.dim{background:#555;color:#ddd}
+@keyframes rise{0%{opacity:0;margin-top:6px}15%{opacity:1}100%{opacity:0;margin-top:-34px}}
+#total{position:absolute;top:8px;font-size:34px;font-weight:bold;color:var(--gold);text-shadow:0 2px 0 #000}
+/* screens */
+.panel{background:#0f1128ee;border:1px solid var(--gold2);border-radius:14px;padding:22px 26px}
+.blinds{display:flex;gap:18px;justify-content:center;margin:18px 0}
+.blind{width:220px;padding:18px;border-radius:12px;background:var(--bg2);border:1px solid var(--line);text-align:center;opacity:.55}
+.blind.now{opacity:1;border-color:var(--gold);box-shadow:0 0 20px #e8c06333}
+.blind.done{opacity:.35}
+.blind .medal{font-size:46px}
+.shoprow{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin:12px 0}
+.item{width:140px;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center;position:relative}
+.item .ic{font-size:36px}
+.item .nm{color:var(--gold);font-size:14px;min-height:34px}
+.item .ds{font-size:12px;color:var(--mut);min-height:48px}
+.item.sold{opacity:.3}
+.cashline{display:flex;justify-content:space-between;gap:40px;font-size:17px;padding:4px 0;border-bottom:1px dashed var(--line)}
+.modal{position:fixed;inset:0;background:#05061299;display:flex;z-index:80}
+.modal .panel{margin:auto;max-width:900px;max-height:88vh;overflow:auto}
+.deckgrid{display:flex;flex-wrap:wrap;gap:5px;max-width:840px}
+.deckgrid .card{cursor:pointer}
+table.lv{border-collapse:collapse;width:100%}
+table.lv td{padding:5px 10px;border-bottom:1px solid var(--line)}
+table.lv td.c{color:var(--chip);font-weight:bold}table.lv td.m{color:var(--mult);font-weight:bold}
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#0b0c1f;border:1px solid var(--gold2);padding:8px 16px;border-radius:8px;z-index:120}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const store=(()=>{try{const t='__gh';localStorage.setItem(t,t);localStorage.removeItem(t);return localStorage}catch(e){const m={};return{getItem:k=>k in m?m[k]:null,setItem:(k,v)=>{m[k]=String(v)},removeItem:k=>{delete m[k]}}}})();
+
+/* Gilded Hands — a poker-hand roguelike. Original game for Randis UDS. */
+const $=s=>document.querySelector(s);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const rnd=n=>Math.floor(Math.random()*n);
+const pick=a=>a[rnd(a.length)];
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
+const SUITS=['♠','♥','♣','♦'];const SUITN=['Spades','Hearts','Clubs','Diamonds'];
+const RL={11:'J',12:'Q',13:'K',14:'A'};
+const rl=r=>RL[r]||String(r);
+const chipVal=c=>c.r===14?11:c.r>10?10:c.r;
+const SAVE='gildedhands_save_v1';
+let S=null,R=null,busy=false,speed=1,uid=1;
+
+const HANDS=[
+ {k:'high',n:'High Card',c:5,m:1,dc:10,dm:1},
+ {k:'pair',n:'Pair',c:10,m:2,dc:15,dm:1},
+ {k:'two',n:'Two Pair',c:20,m:2,dc:20,dm:1},
+ {k:'three',n:'Three of a Kind',c:30,m:3,dc:20,dm:2},
+ {k:'straight',n:'Straight',c:30,m:4,dc:30,dm:3},
+ {k:'flush',n:'Flush',c:35,m:4,dc:15,dm:2},
+ {k:'full',n:'Full House',c:40,m:4,dc:25,dm:2},
+ {k:'four',n:'Four of a Kind',c:60,m:7,dc:30,dm:3},
+ {k:'sflush',n:'Straight Flush',c:100,m:8,dc:40,dm:4},
+ {k:'five',n:'Five of a Kind',c:120,m:12,dc:35,dm:3}];
+const HK=Object.fromEntries(HANDS.map(h=>[h.k,h]));
+const hval=k=>{const h=HK[k],l=S.lv[k];return{c:h.c+h.dc*(l-1),m:h.m+h.dm*(l-1),n:h.n,l}};
+
+const ENH={bonus:{n:'Bonus',d:'+40 Chips when scored'},ember:{n:'Ember',d:'+5 Mult when scored'},glass:{n:'Glass',d:'×1.5 Mult when scored; 1 in 4 chance to shatter'},gilt:{n:'Gilt',d:'Earn $2 when scored'}};
+
+const maxCount=sel=>{const m={};let b=0;sel.forEach(c=>{m[c.r]=(m[c.r]||0)+1;b=Math.max(b,m[c.r])});return b};
+const isFace=c=>c.r>=11&&c.r<=13;
+const CH={
+ lantern:{n:'Lantern',ic:'🏮',cost:3,d:'+4 Mult',hand:()=>({m:4})},
+ piggy:{n:'Piggy Bank',ic:'🐖',cost:5,d:'Earn $4 at end of round',end:()=>4},
+ onyx:{n:'Onyx Ring',ic:'⚫',cost:5,d:'Scored ♠ cards give +3 Mult',card:x=>x.c.s===0&&{m:3}},
+ ruby:{n:'Ruby Ring',ic:'🔴',cost:5,d:'Scored ♥ cards give +3 Mult',card:x=>x.c.s===1&&{m:3}},
+ jade:{n:'Jade Ring',ic:'🟢',cost:5,d:'Scored ♣ cards give +3 Mult',card:x=>x.c.s===2&&{m:3}},
+ topaz:{n:'Topaz Ring',ic:'🟠',cost:5,d:'Scored ♦ cards give +3 Mult',card:x=>x.c.s===3&&{m:3}},
+ bells:{n:'Twin Bells',ic:'🔔',cost:4,d:'+7 Mult if played cards contain a Pair',hand:x=>maxCount(x.sel)>=2&&{m:7}},
+ crown:{n:'Triple Crown',ic:'👑',cost:5,d:'+11 Mult if played cards contain Three of a Kind',hand:x=>maxCount(x.sel)>=3&&{m:11}},
+ ladder:{n:'Ladder',ic:'🪜',cost:5,d:'+11 Mult if hand is a Straight',hand:x=>(x.ev.type==='straight'||x.ev.type==='sflush')&&{m:11}},
+ tide:{n:'High Tide',ic:'🌊',cost:5,d:'+9 Mult if hand is a Flush',hand:x=>(x.ev.type==='flush'||x.ev.type==='sflush')&&{m:9}},
+ wall:{n:'Stone Wall',ic:'🧱',cost:4,d:'+60 Chips',hand:()=>({c:60})},
+ abacus:{n:'Abacus',ic:'🧮',cost:5,d:'+2 Chips per card left in the draw pile',hand:()=>({c:2*R.draw.length})},
+ even:{n:'Even Keel',ic:'⚖️',cost:5,d:'Scored 2, 4, 6, 8, 10 give +4 Mult',card:x=>x.c.r<=10&&x.c.r%2===0&&{m:4}},
+ odd:{n:'Odd Duck',ic:'🦆',cost:5,d:'Scored A, 3, 5, 7, 9 give +30 Chips',card:x=>(x.c.r===14||(x.c.r<10&&x.c.r%2===1))&&{c:30}},
+ royal:{n:'Royal Seal',ic:'📜',cost:5,d:'Scored J, Q, K give +30 Chips',card:x=>isFace(x.c)&&{c:30}},
+ aces:{n:'Aces Wild',ic:'🂡',cost:5,d:'Scored Aces give +20 Chips and +4 Mult',card:x=>x.c.r===14&&{c:20,m:4}},
+ seven:{n:'Lucky Seven',ic:'🍀',cost:5,d:'Scored 7s give +7 Mult and $1',card:x=>x.c.r===7&&{m:7,$:1}},
+ last:{n:'Last Stand',ic:'🛡️',cost:7,d:'×3 Mult on the last play of a round',hand:()=>R.plays===0&&{x:3}},
+ light:{n:'Light Touch',ic:'🪶',cost:6,d:'×1.75 Mult if 3 or fewer cards are played',hand:x=>x.sel.length<=3&&{x:1.75}},
+ hoard:{n:'Dragon Hoard',ic:'🐉',cost:6,d:'+1 Mult for every $5 you have',hand:()=>({m:Math.floor(S.money/5)})},
+ snow:{n:'Snowball',ic:'❄️',cost:6,d:st=>`Gains +1 Mult every hand played (now +${st.m||0})`,onPlay:st=>{st.m=(st.m||0)+1},hand:x=>x.st.m&&{m:x.st.m}},
+ recyc:{n:'Recycler',ic:'♻️',cost:5,d:st=>`Gains +2 Chips per card discarded (now +${st.c||0})`,onDiscard:(st,n)=>{st.c=(st.c||0)+2*n},hand:x=>x.st.c&&{c:x.st.c}},
+ prism:{n:'Prism',ic:'🔷',cost:7,d:'×3 Mult if played cards include all four suits',hand:x=>new Set(x.sel.map(c=>c.s)).size===4&&{x:3}},
+ die:{n:'Loaded Die',ic:'🎲',cost:4,d:'1 in 3 chance for +20 Mult',hand:()=>rnd(3)===0&&{m:20}},
+ gossip:{n:'Court Gossip',ic:'💬',cost:6,d:'Each Queen held in hand gives +8 Mult',held:x=>x.c.r===12&&{m:8}},
+ echo:{n:'Echo',ic:'🔁',cost:6,d:'The first scored card triggers twice'},
+ table:{n:'Wide Table',ic:'🪑',cost:6,d:'+1 hand size'},
+ spare:{n:'Spare Change',ic:'🪙',cost:5,d:'+1 discard each round'},
+ purse:{n:"Gambler's Purse",ic:'👛',cost:5,d:'Earn $2 per unused discard at end of round',end:()=>2*R.disc},
+ moon:{n:'Moonlight',ic:'🌙',cost:7,d:'×2 Mult if no discards used this round',hand:()=>R.used===0&&{x:2}},
+ pennant:{n:'Pennant',ic:'🚩',cost:5,d:'+40 Chips per discard left',hand:()=>R.disc&&{c:40*R.disc}},
+ collector:{n:'Collector',ic:'🏺',cost:8,d:'×0.25 more Mult for each charm you own',hand:()=>({x:1+0.25*S.charms.length})},
+ pendulum:{n:'Pendulum',ic:'🕰️',cost:5,d:st=>`×2 Mult every other hand (${st.t?'ready':'next one'})`,onPlay:st=>{st.t=!st.t},hand:x=>x.st.t&&{x:2}}
+};
+const cdesc=ch=>{const d=CH[ch.k].d;return typeof d==='function'?d(ch.st):d};
+
+const BOSSES={
+ ironclad:{n:'The Ironclad',d:'Only 3 plays this round'},
+ drought:{n:'The Drought',d:'No discards this round'},
+ eclipse:{n:'The Eclipse',d:'Face cards score nothing'},
+ redtide:{n:'The Red Tide',d:'♥ and ♦ cards score nothing'},
+ tax:{n:'The Tax Collector',d:'Lose $1 for every card played'},
+ shrink:{n:'The Closet',d:'Hand size −2'},
+ mirror:{n:'The Mirror',d:'Your first hand scores only half'},
+ gate:{n:'The Narrow Gate',d:'Hands of fewer than 4 cards score nothing'},
+ gag:{n:'The Gag',d:'Your leftmost charm does nothing'},
+ heavy:{n:'The Colossus',d:'Target is ×3 instead of ×2'}};
+const BASE=[250,700,1800,4500,10000,19000,33000,52000];
+const BLINDS=[{n:'Bronze Table',ic:'🥉',x:1,$:3},{n:'Silver Table',ic:'🥈',x:1.5,$:4},{n:'Gold Table',ic:'🥇',x:2,$:5}];
+
+function target(blind){let b=S.tier<=8?BASE[S.tier-1]:Math.round(BASE[7]*Math.pow(1.7,S.tier-8)/100)*100;let x=BLINDS[blind].x;if(blind===2&&S.boss==='heavy')x=3;return Math.round(b*x)}
+const has=k=>S.charms.some(c=>c.k===k);
+function handSize(){return 8+(has('table')?1:0)-(R&&R.boss==='shrink'?2:0)}
+function newDeck(){const d=[];for(let s=0;s<4;s++)for(let r=2;r<=14;r++)d.push({id:uid++,r,s,enh:null});return d}
+function pickBoss(prev){const ks=Object.keys(BOSSES).filter(k=>k!==prev);return pick(ks)}
+
+function newRun(){S={tier:1,blind:0,money:4,deck:newDeck(),charms:[],lv:Object.fromEntries(HANDS.map(h=>[h.k,1])),boss:pickBoss(),screen:'select',best:0,won:false,maxCharms:5};save();render()}
+function save(){try{store.setItem(SAVE,JSON.stringify(S))}catch(e){}}
+function load(){try{const s=JSON.parse(store.getItem(SAVE));if(s&&s.deck){S=s;uid=Math.max(...S.deck.map(c=>c.id))+1;if(S.screen==='round'||S.screen==='cash')S.screen='select';return true}}catch(e){}return false}
+
+function evalHand(cs){
+ const n=cs.length,by={};cs.forEach(c=>(by[c.r]=by[c.r]||[]).push(c));
+ const groups=Object.values(by).sort((a,b)=>b.length-a.length||b[0].r-a[0].r);
+ const cnt=groups.map(g=>g.length);
+ const flush=n===5&&cs.every(c=>c.s===cs[0].s);
+ let straight=false;
+ if(n===5&&groups.length===5){const rs=cs.map(c=>c.r).sort((a,b)=>a-b);straight=rs[4]-rs[0]===4||rs.join()==='2,3,4,5,14'}
+ const all=cs;
+ if(cnt[0]===5)return{type:'five',scoring:all};
+ if(straight&&flush)return{type:'sflush',scoring:all};
+ if(cnt[0]===4)return{type:'four',scoring:groups[0]};
+ if(cnt[0]===3&&cnt[1]>=2)return{type:'full',scoring:all};
+ if(flush)return{type:'flush',scoring:all};
+ if(straight)return{type:'straight',scoring:all};
+ if(cnt[0]===3)return{type:'three',scoring:groups[0]};
+ if(cnt[0]===2&&cnt[1]===2)return{type:'two',scoring:groups[0].concat(groups[1])};
+ if(cnt[0]===2)return{type:'pair',scoring:groups[0]};
+ return{type:'high',scoring:[cs.slice().sort((a,b)=>b.r-a.r)[0]]};
+}
+
+/* ---------- rendering helpers ---------- */
+function cardHTML(c,cls=''){const red=c.s===1||c.s===3;return `<div class="card ${red?'red':''} ${c.enh||''} ${cls}" data-id="${c.id}"><div class="r">${rl(c.r)}</div><div class="s1">${SUITS[c.s]}</div><div class="big">${isFace(c)?['','','','','','','','','','','','♞','♛','♚','✦'][c.r]:SUITS[c.s]}</div><div class="rb">${rl(c.r)}</div>${c.enh?`<div class="tag">${ENH[c.enh].n}</div><div class="tip"><b>${ENH[c.enh].n}</b>: ${ENH[c.enh].d}</div>`:''}</div>`}
+function charmHTML(ch,i,opts={}){const d=CH[ch.k];const off=R&&R.boss==='gag'&&i===0&&S.screen==='round';return `<div class="charm ${off?'off':''}" data-i="${i}"><div class="ic">${d.ic}</div><div class="nm">${d.n}</div><div class="tip"><b>${d.n}</b><br>${cdesc(ch)}${off?'<br><i>Silenced by The Gag</i>':''}${opts.sell?`<br><br><span class="money">Click to sell for $${Math.floor(d.cost/2)}</span>`:''}</div></div>`}
+function toast(t){const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),1800)}
+function pop(el,text,cls){if(!el)return;const r=el.getBoundingClientRect();const p=document.createElement('div');p.className='pop '+cls;p.textContent=text;p.style.left=(r.left+r.width/2)+'px';p.style.top=r.top+'px';document.body.appendChild(p);setTimeout(()=>p.remove(),900);el.classList.remove('bump');void el.offsetWidth;el.classList.add('bump')}
+const fmt=n=>Math.round(n).toLocaleString();
+
+function sideHTML(){
+ const inRound=S.screen==='round';const b=BLINDS[S.blind];
+ return `<div id="side">
+ <div class="box" style="text-align:center"><div class="blindname">${b.ic} ${b.n}</div>${S.blind===2?`<div class="bossrule">${BOSSES[S.boss].n}: ${BOSSES[S.boss].d}</div>`:''}
+ <div class="lbl" style="margin-top:6px">Target</div><div class="target">${fmt(target(S.blind))}</div><div class="muted" style="font-size:13px">Reward $${b.$}</div></div>
+ <div class="box" style="text-align:center"><div class="lbl">Round score</div><div class="target" id="rscore">${inRound?fmt(R.score):0}</div></div>
+ <div class="box"><div id="hname">&nbsp;</div><div class="cm"><div id="chips">0</div><span>×</span><div id="mult">0</div></div></div>
+ <div class="stats"><div class="box stat p"><div class="lbl">Plays</div><b id="plays">${inRound?R.plays:'-'}</b></div><div class="box stat d"><div class="lbl">Discards</div><b>${inRound?R.disc:'-'}</b></div></div>
+ <div class="stats"><div class="box stat"><div class="lbl">Money</div><b class="money" id="money">$${S.money}</b></div><div class="box stat"><div class="lbl">Tier</div><b>${S.tier}<span class="muted" style="font-size:14px">/8</span></b></div></div>
+ <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="sm" onclick="showHands()">Hands</button><button class="sm" onclick="showDeck()">Deck (${S.deck.length})</button><button class="sm" onclick="toggleSpeed()" id="spd">Speed ${speed}×</button><button class="sm" onclick="showHelp()">How to play</button></div>
+ <div style="flex:1"></div><button class="sm" onclick="quitRun()">Give up run</button>
+ </div>`}
+function charmBar(sell){return `<div id="charmbar">${S.charms.map((c,i)=>charmHTML(c,i,{sell})).join('')}${Array(Math.max(0,S.maxCharms-S.charms.length)).fill('<div class="charm empty"></div>').join('')}<div class="slots">${S.charms.length}/${S.maxCharms} charms</div></div>`}
+
+/* ---------- screens ---------- */
+function render(){
+ const a=$('#app');
+ if(S==null||S.screen==='title'){a.innerHTML=`<div class="center"><h1>Gilded Hands</h1><div class="sub">a poker-hand roguelike · beat eight tiers of tables</div>
+ <div style="display:flex;gap:12px;justify-content:center">${load()?'<button class="gold" onclick="render()">Continue run</button>':''}<button class="${store.getItem(SAVE)?'':'gold'}" onclick="newRun()">New run</button><button onclick="showHelp()">How to play</button></div>
+ <div class="muted" style="margin-top:30px;font-size:13px">Best score ever: ${fmt(+store.getItem('gildedhands_best')||0)}</div></div>`;if(S&&S.screen==='title')S=null;return}
+ if(S.screen==='select')return renderSelect();
+ if(S.screen==='round')return renderRound();
+ if(S.screen==='cash')return renderCash();
+ if(S.screen==='shop')return renderShop();
+ if(S.screen==='win')return renderWin();
+ if(S.screen==='over')return renderOver();
+}
+function renderSelect(){
+ $('#app').innerHTML=sideHTML()+`<div id="main">${charmBar(false)}<div class="center"><div class="blinds">${BLINDS.map((b,i)=>`<div class="blind ${i===S.blind?'now':i<S.blind?'done':''}"><div class="medal">${b.ic}</div><div class="blindname">${b.n}</div>${i===2?`<div class="bossrule">${BOSSES[S.boss].n}<br>${BOSSES[S.boss].d}</div>`:'<div class="bossrule">&nbsp;<br>&nbsp;</div>'}<div class="lbl" style="margin-top:8px">Score at least</div><div class="target">${fmt(target(i))}</div><div class="money">Reward $${b.$}</div><div style="margin-top:12px">${i===S.blind?'<button class="gold" onclick="startRound()">Play</button>':i<S.blind?'<span class="muted">Beaten</span>':'<span class="muted">Upcoming</span>'}</div></div>`).join('')}</div></div></div>`}
+
+function startRound(){
+ if(!S)return;
+ R={boss:S.blind===2?S.boss:null,score:0,hand:[],sel:new Set(),draw:shuffle(S.deck),played:null,used:0,first:true,sort:R?R.sort:'rank'};
+ R.plays=R.boss==='ironclad'?3:4;
+ R.disc=R.boss==='drought'?0:3+(has('spare')?1:0);
+ S.screen='round';drawUp();render();
+}
+function drawUp(){while(R.hand.length<handSize()&&R.draw.length)R.hand.push(R.draw.pop());sortHand()}
+function sortHand(){R.hand.sort(R.sort==='rank'?(a,b)=>b.r-a.r||a.s-b.s:(a,b)=>a.s-b.s||b.r-a.r)}
+function renderRound(){
+ const sel=R.hand.filter(c=>R.sel.has(c.id));
+ let prev='&nbsp;';if(sel.length){const e=evalHand(sel),h=hval(e.type);prev=`${h.n} <span class="muted">lvl ${h.l}</span>`}
+ $('#app').innerHTML=sideHTML()+`<div id="main">${charmBar(false)}
+ <div id="table">${R.played?`<div id="play">${R.played.map(c=>cardHTML(c,R.ev.scoring.includes(c)?'scoring':'')).join('')}</div>`:`<div id="tablemsg">Pick up to 5 cards, then Play or Discard</div>`}</div>
+ <div id="hand">${R.hand.map(c=>cardHTML(c,R.sel.has(c.id)?'sel':'')).join('')}</div>
+ <div id="controls"><button class="blue" onclick="playHand()" ${!sel.length||busy?'disabled':''}>Play hand</button>
+ <div id="preview">${prev}</div>
+ <button class="red" onclick="discard()" ${!sel.length||!R.disc||busy?'disabled':''}>Discard</button>
+ <button class="sm" onclick="R.sort=R.sort==='rank'?'suit':'rank';sortHand();render()">Sort by ${R.sort==='rank'?'suit':'rank'}</button>
+ <span class="muted" style="font-size:13px">Draw pile ${R.draw.length}</span></div></div>`;
+ document.querySelectorAll('#hand .card').forEach(el=>el.onclick=()=>{if(busy)return;const id=+el.dataset.id;if(R.sel.has(id))R.sel.delete(id);else if(R.sel.size<5)R.sel.add(id);render()});
+}
+function setCM(c,m,name){$('#chips').textContent=fmt(c);$('#mult').textContent=Number.isInteger(m)?m:m.toFixed(2).replace(/0$/,'');if(name!=null)$('#hname').innerHTML=name}
+async function step(ms=320){await sleep(ms/speed)}
+
+async function playHand(){
+ if(busy)return;const sel=R.hand.filter(c=>R.sel.has(c.id));if(!sel.length)return;
+ busy=true;R.hand=R.hand.filter(c=>!R.sel.has(c.id));R.sel.clear();R.plays--;
+ // keep the order the player sees
+ const ev=evalHand(sel);R.played=sel;R.ev=ev;
+ if(R.boss==='tax'){S.money=Math.max(0,S.money-sel.length)}
+ S.charms.forEach((ch,i)=>{if(gagged(i))return;const f=CH[ch.k].onPlay;if(f)f(ch.st)});
+ render();
+ const h=hval(ev.type);let chips=h.c,mult=h.m;
+ setCM(chips,mult,`${h.n} <span class="muted">lvl ${h.l}</span>`);
+ if(R.boss==='tax')pop($('#money'),`-$${sel.length}`,'g');
+ await step(450);
+ const playEls=[...document.querySelectorAll('#play .card')];
+ const charmEls=[...document.querySelectorAll('#charmbar .charm:not(.empty)')];
+ const apply=async(e,el)=>{if(!e)return;
+  if(e.c){chips+=e.c;setCM(chips,mult);pop(el,'+'+fmt(e.c),'c');await step()}
+  if(e.m){mult+=e.m;setCM(chips,mult);pop(el,'+'+e.m+' Mult','m');await step()}
+  if(e.x){mult*=e.x;setCM(chips,mult);pop(el,'×'+e.x+' Mult','x');await step()}
+  if(e.$){S.money+=e.$;$('#money').textContent='$'+S.money;pop(el,'+$'+e.$,'g');await step()}};
+ let firstScored=true;
+ for(const c of sel){
+  if(!ev.scoring.includes(c))continue;
+  const el=playEls[sel.indexOf(c)];
+  const times=firstScored&&hasActive('echo')?2:1;firstScored=false;
+  for(let t=0;t<times;t++){
+   if(t)pop(el,'Again!','g'),await step();
+   if((R.boss==='eclipse'&&isFace(c))||(R.boss==='redtide'&&(c.s===1||c.s===3))){el.classList.add('dim');pop(el,'Blocked','dim');await step();continue}
+   await apply({c:chipVal(c)},el);
+   if(c.enh==='bonus')await apply({c:40},el);
+   if(c.enh==='ember')await apply({m:5},el);
+   if(c.enh==='glass')await apply({x:1.5},el);
+   if(c.enh==='gilt')await apply({$:2},el);
+   for(let i=0;i<S.charms.length;i++){const ch=S.charms[i],f=CH[ch.k].card;if(f&&!gagged(i))await apply(f({c,ev,sel,st:ch.st}),charmEls[i])}
+  }
+ }
+ const handEls=[...document.querySelectorAll('#hand .card')];
+ for(let j=0;j<R.hand.length;j++){const c=R.hand[j];for(let i=0;i<S.charms.length;i++){const ch=S.charms[i],f=CH[ch.k].held;if(f&&!gagged(i)){const e=f({c,st:ch.st});if(e){await apply(e,handEls[j]);pop(charmEls[i],CH[ch.k].ic,'g')}}}}
+ for(let i=0;i<S.charms.length;i++){const ch=S.charms[i],f=CH[ch.k].hand;if(f&&!gagged(i))await apply(f({ev,sel,st:ch.st}),charmEls[i])}
+ let total=Math.floor(chips*mult);
+ if(R.boss==='gate'&&sel.length<4){total=0;toast('The Narrow Gate: fewer than 4 cards score nothing')}
+ if(R.boss==='mirror'&&R.first){total=Math.floor(total/2);toast('The Mirror halves your first hand')}
+ R.first=false;
+ const t=document.createElement('div');t.id='total';t.textContent=fmt(total);$('#table').appendChild(t);
+ await step(500);
+ const start=R.score,end=R.score+total,steps=20;
+ for(let i=1;i<=steps;i++){$('#rscore').textContent=fmt(start+(end-start)*i/steps);await sleep(25/speed)}
+ R.score=end;
+ if(total>S.best)S.best=total;
+ if(total>(+store.getItem('gildedhands_best')||0))store.setItem('gildedhands_best',total);
+ // glass may shatter
+ for(const c of ev.scoring){if(c.enh==='glass'&&rnd(4)===0){const el=playEls[sel.indexOf(c)];pop(el,'Shattered!','dim');S.deck=S.deck.filter(d=>d.id!==c.id);await step()}}
+ await step(450);
+ R.played=null;busy=false;
+ if(R.score>=target(S.blind)){S.screen='cash';render();return}
+ if(R.plays<=0){S.screen='over';store.removeItem(SAVE);render();return}
+ drawUp();
+ if(!R.hand.length){S.screen='over';store.removeItem(SAVE)}
+ render();
+}
+function gagged(i){return R&&R.boss==='gag'&&i===0}
+function hasActive(k){return S.charms.some((c,i)=>c.k===k&&!gagged(i))}
+function discard(){
+ if(busy||!R.disc)return;const n=R.sel.size;if(!n)return;
+ R.hand=R.hand.filter(c=>!R.sel.has(c.id));R.sel.clear();R.disc--;R.used++;
+ S.charms.forEach((ch,i)=>{const f=CH[ch.k].onDiscard;if(f&&!gagged(i))f(ch.st,n)});
+ drawUp();render();
+}
+
+function cashLines(){
+ const b=BLINDS[S.blind],L=[[`${b.n} beaten`,b.$],[`Unused plays (${R.plays} × $1)`,R.plays],[`Interest ($1 per $5, up to $5)`,Math.min(5,Math.floor(S.money/5))]];
+ S.charms.forEach((ch,i)=>{const f=CH[ch.k].end;if(f&&!gagged(i)){const v=f({st:ch.st});if(v)L.push([CH[ch.k].n,v])}});
+ return L.filter(l=>l[1]>0)}
+function renderCash(){
+ const L=cashLines(),tot=L.reduce((s,l)=>s+l[1],0);
+ $('#app').innerHTML=sideHTML()+`<div id="main">${charmBar(false)}<div class="center panel"><div class="blindname" style="font-size:28px">Table cleared!</div><div class="muted">Scored ${fmt(R.score)} of ${fmt(target(S.blind))}</div><div style="margin:16px 0">${L.map(l=>`<div class="cashline"><span>${l[0]}</span><span class="money">$${l[1]}</span></div>`).join('')}</div><button class="gold" onclick="collect(${tot})">Collect $${tot}</button></div></div>`}
+function collect(tot){
+ S.money+=tot;
+ const wasFinal=S.blind===2&&S.tier===8&&!S.won;
+ if(S.blind===2){S.blind=0;S.tier++;S.boss=pickBoss(S.boss)}else S.blind++;
+ R=null;
+ if(wasFinal){S.won=true;S.screen='win';save();render();return}
+ openShop();
+}
+
+/* ---------- shop ---------- */
+function goodRandom(){
+ const t=rnd(10);
+ if(t<5){const h=pick(HANDS.slice(0,9));return{kind:'chart',h:h.k,cost:3}}
+ if(t<8){const e=pick(Object.keys(ENH));return{kind:'tinct',e,cost:3}}
+ if(t<9)return{kind:'clone',cost:4};
+ return{kind:'purge',cost:2};
+}
+function charmRandom(ex){const own=new Set(S.charms.map(c=>c.k).concat(ex));const ks=Object.keys(CH).filter(k=>!own.has(k));return ks.length?{kind:'charm',k:pick(ks),cost:0}:goodRandom()}
+function stockShop(){const a=charmRandom([]);const b=charmRandom(a.k?[a.k]:[]);const c=charmRandom([a.k,b.k].filter(Boolean));S.shop=[a,b,c,goodRandom(),goodRandom()];S.shop.forEach(it=>{if(it.kind==='charm')it.cost=CH[it.k].cost})}
+function openShop(){S.screen='shop';S.reroll=4;stockShop();save();render()}
+function itemInfo(it){
+ if(it.kind==='charm'){const d=CH[it.k];return{ic:d.ic,n:d.n,d:typeof d.d==='function'?d.d({}):d.d,t:'Charm'}}
+ if(it.kind==='chart'){const h=HK[it.h];return{ic:'🌟',n:'Star Chart: '+h.n,d:`Level up ${h.n} (+${h.dc} Chips, +${h.dm} Mult). Now level ${S.lv[it.h]}.`,t:'Star Chart'}}
+ if(it.kind==='tinct')return{ic:{bonus:'🧪',ember:'🔥',glass:'🔮',gilt:'✨'}[it.e],n:ENH[it.e].n+' Tincture',d:'Make one deck card '+ENH[it.e].n+': '+ENH[it.e].d,t:'Tincture'};
+ if(it.kind==='clone')return{ic:'🪞',n:'Looking Glass',d:'Add a copy of one card to your deck',t:'Deck'};
+ if(it.kind==='purge')return{ic:'🗑️',n:'Bonfire',d:'Remove one card from your deck',t:'Deck'};
+}
+function renderShop(){
+ $('#app').innerHTML=sideHTML()+`<div id="main">${charmBar(true)}<div class="center panel" style="min-width:760px"><div class="blindname" style="font-size:28px">The Gilded Shop</div><div class="muted">Next: ${BLINDS[S.blind].n}, tier ${S.tier} · target ${fmt(target(S.blind))}</div>
+ <div class="shoprow">${S.shop.map((it,i)=>{const f=itemInfo(it);return `<div class="item ${it.sold?'sold':''}"><div class="lbl">${f.t}</div><div class="ic">${f.ic}</div><div class="nm">${f.n}</div><div class="ds">${f.d}</div>${it.sold?'<div class="muted">Sold</div>':`<button class="sm ${S.money>=it.cost?'gold':''}" onclick="buy(${i})" ${S.money<it.cost?'disabled':''}>Buy $${it.cost}</button>`}</div>`}).join('')}</div>
+ <div style="display:flex;gap:12px;justify-content:center"><button onclick="reroll()" ${S.money<S.reroll?'disabled':''}>Reroll $${S.reroll}</button><button class="gold" onclick="leaveShop()">Next table →</button></div>
+ <div class="muted" style="font-size:12px;margin-top:10px">Tip: click a charm at the top to sell it. Charms trigger left to right.</div></div></div>`;
+ document.querySelectorAll('#charmbar .charm:not(.empty)').forEach(el=>el.onclick=()=>sellCharm(+el.dataset.i));
+}
+function buy(i){
+ const it=S.shop[i];if(it.sold||S.money<it.cost)return;
+ if(it.kind==='charm'){if(S.charms.length>=S.maxCharms)return toast('No room: sell a charm first');S.charms.push({k:it.k,st:{}});done()}
+ else if(it.kind==='chart'){S.lv[it.h]++;toast(HK[it.h].n+' is now level '+S.lv[it.h]);done()}
+ else if(it.kind==='tinct')pickCard('Choose a card to make '+ENH[it.e].n,c=>{c.enh=it.e;done()});
+ else if(it.kind==='clone')pickCard('Choose a card to copy',c=>{S.deck.push({...c,id:uid++});done()});
+ else if(it.kind==='purge'){if(S.deck.length<=20)return toast('Your deck is already small');pickCard('Choose a card to burn',c=>{S.deck=S.deck.filter(d=>d!==c);done()})}
+ function done(){S.money-=it.cost;it.sold=true;save();render()}
+}
+function sellCharm(i){const ch=S.charms[i];const v=Math.floor(CH[ch.k].cost/2);if(!confirm(`Sell ${CH[ch.k].n} for $${v}?`))return;S.charms.splice(i,1);S.money+=v;save();render()}
+function reroll(){if(S.money<S.reroll)return;S.money-=S.reroll;S.reroll++;stockShop();save();render()}
+function leaveShop(){S.screen='select';S.shop=null;save();render()}
+
+/* ---------- end screens ---------- */
+function renderWin(){$('#app').innerHTML=`<div class="center panel"><h1>Victory</h1><div class="sub">You beat all eight tiers.</div><div>Best single hand: <span class="money">${fmt(S.best)}</span></div><div style="margin-top:20px;display:flex;gap:12px;justify-content:center"><button class="gold" onclick="openShop()">Keep going (endless)</button><button onclick="store.removeItem(SAVE);S=null;render()">Back to title</button></div></div>`}
+function renderOver(){$('#app').innerHTML=`<div class="center panel"><h1 style="color:var(--mult)">Busted</h1><div class="sub">Out of plays at tier ${S.tier}, ${BLINDS[S.blind].n}.</div><div>Scored ${fmt(R.score)} of ${fmt(target(S.blind))} · best hand ${fmt(S.best)}</div><div style="margin-top:20px;display:flex;gap:12px;justify-content:center"><button class="gold" onclick="newRun()">New run</button><button onclick="S=null;R=null;render()">Title</button></div></div>`}
+function quitRun(){if(!confirm('Give up this run?'))return;store.removeItem(SAVE);S=null;R=null;render()}
+
+/* ---------- modals ---------- */
+function modal(html){const m=document.createElement('div');m.className='modal';m.innerHTML=`<div class="panel">${html}<div style="text-align:center;margin-top:14px"><button onclick="this.closest('.modal').remove()">Close</button></div></div>`;m.onclick=e=>{if(e.target===m)m.remove()};document.body.appendChild(m);return m}
+const deckSorted=()=>S.deck.slice().sort((a,b)=>a.s-b.s||b.r-a.r);
+function showDeck(){const inDraw=R&&S.screen==='round'?new Set(R.draw.map(c=>c.id)):null;modal(`<div class="blindname">Your deck (${S.deck.length})${inDraw?` · ${inDraw.size} left to draw`:''}</div><div class="deckgrid" style="margin-top:10px">${deckSorted().map(c=>cardHTML(c,'mini '+(inDraw&&!inDraw.has(c.id)?'dim':''))).join('')}</div>`)}
+function pickCard(title,fn){const m=modal(`<div class="blindname">${title}</div><div class="deckgrid" style="margin-top:10px">${deckSorted().map(c=>cardHTML(c,'mini')).join('')}</div>`);m.querySelectorAll('.deckgrid .card').forEach(el=>el.onclick=()=>{const c=S.deck.find(d=>d.id===+el.dataset.id);m.remove();fn(c)})}
+function showHands(){modal(`<div class="blindname">Hand levels</div><table class="lv" style="margin-top:10px">${HANDS.slice().reverse().map(h=>{const v=hval(h.k);return `<tr><td>${h.n}</td><td class="muted">lvl ${v.l}</td><td class="c">${v.c}</td><td>×</td><td class="m">${v.m}</td></tr>`}).join('')}</table>`)}
+function showHelp(){modal(`<div class="blindname">How to play</div><div style="max-width:560px;line-height:1.5;margin-top:8px">
+Each tier has three tables: Bronze, Silver and a Gold table with a special rule. Reach the target score at each one to move on. Beat the Gold table of tier 8 to win.<br><br>
+Pick up to 5 cards from your hand and <b>Play</b> them as a poker hand. The hand gives base <span style="color:var(--chip)">Chips</span> and <span style="color:var(--mult)">Mult</span>; each scoring card adds its value in chips (A=11, faces=10). Your score is <b>Chips × Mult</b>. <b>Discard</b> swaps cards for new ones.<br><br>
+After each table you earn money, plus $1 per unused play and $1 interest for every $5 you hold (up to $5). Spend it in the shop on <b>Charms</b> (up to 5, they trigger left to right), <b>Star Charts</b> (level up a hand), <b>Tinctures</b> (enchant a card), and tools to copy or burn cards.<br><br>
+Keys: <b>Enter</b> plays, <b>Delete</b> discards.</div>`)}
+function toggleSpeed(){speed=speed===1?2:speed===2?4:1;const b=$('#spd');if(b)b.textContent='Speed '+speed+'×'}
+document.addEventListener('keydown',e=>{if(!S||S.screen!=='round'||document.querySelector('.modal'))return;if(e.key==='Enter')playHand();if(e.key==='Delete'||e.key==='Backspace')discard()});
+
+S=null;render();
+</script>
+</body>
+</html>

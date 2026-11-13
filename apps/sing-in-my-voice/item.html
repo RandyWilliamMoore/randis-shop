@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Sing in My Voice: walkthrough</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#1e1f22;color:#e6e6e6;font:14px/1.5 "Segoe UI",system-ui,sans-serif}
+header{padding:14px 18px;background:#17181a;border-bottom:1px solid #333;position:sticky;top:0;z-index:5}
+header h1{font-size:18px;margin:0 0 6px}
+.bar{height:8px;background:#2a2b30;border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:#3aa76d;width:0;transition:width .3s}
+main{padding:14px 18px;max-width:900px;margin:auto}
+.step{background:#26272b;border:1px solid #34353a;border-radius:10px;margin:0 0 12px;overflow:hidden}
+.step>.hd{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;user-select:none}
+.step>.hd .n{width:28px;height:28px;border-radius:50%;background:#33353b;display:grid;place-items:center;font-weight:600;flex:none}
+.step.done>.hd .n{background:#3aa76d}
+.step>.hd h2{font-size:15px;margin:0;flex:1}
+.step>.hd .who{font-size:11px;color:#999;border:1px solid #444;border-radius:10px;padding:1px 8px}
+.step>.bd{display:none;padding:2px 16px 14px 52px}
+.step.open>.bd{display:block}
+.b{background:#33353b;color:#e6e6e6;border:1px solid #45474e;border-radius:6px;padding:6px 12px;cursor:pointer;font:inherit}
+.b:hover{background:#3d4048}.b.p{background:#2d6cdf;border-color:#2d6cdf}.b.g{background:#2f7d55;border-color:#2f7d55}.b:disabled{opacity:.45;cursor:default}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}
+.msg{background:#15161a;border:1px solid #3a3b40;border-radius:6px;padding:8px 10px;font:12.5px/1.45 Consolas,monospace;white-space:pre-wrap;margin:6px 0}
+.note{background:#2b2a22;border-left:3px solid #d8b24a;padding:6px 10px;border-radius:4px;margin:8px 0}
+.warn{background:#2e2224;border-left:3px solid #e0606a;padding:6px 10px;border-radius:4px;margin:8px 0}
+.muted{color:#999}
+table{border-collapse:collapse;margin:6px 0;width:100%}td,th{border:1px solid #3a3b40;padding:4px 8px;text-align:left;vertical-align:top}th{background:#2c2d32}
+input[type=text],textarea{background:#1a1b1e;color:#e6e6e6;border:1px solid #3a3b40;border-radius:5px;padding:5px 7px;font:inherit;width:100%}
+textarea{min-height:46px}
+.meter{height:10px;width:220px;background:#15161a;border-radius:5px;overflow:hidden}.meter i{display:block;height:100%;width:0;background:#3aa76d}
+.takes div{display:flex;gap:8px;align-items:center;margin:4px 0}
+.script{background:#202126;border:1px solid #34353a;border-radius:6px;padding:8px 12px;margin:6px 0}
+kbd{background:#33353b;border:1px solid #45474e;border-radius:4px;padding:0 5px;font-size:12px}
+footer{color:#777;font-size:12px;text-align:center;padding:10px}
+</style></head><body>
+<header><h1>🎤 Sing in My Voice: the walkthrough</h1>
+<div class="row" style="margin:0"><div class="bar" style="flex:1"><i id="prog"></i></div><span id="progT" class="muted">0 of 9 done</span><button class="b" id="reset" title="Untick every step">Start over</button></div></header>
+<main>
+<p>This guide takes you from nothing to <b>Sound Forge songs sung in your own voice</b>. It works the same for anyone using Randis UDS. Tick each step when it's done; your ticks and notes stay here. Steps marked <span class="who" style="border:1px solid #444;border-radius:10px;padding:1px 8px;font-size:11px">you</span> are yours to do; steps marked <span style="border:1px solid #444;border-radius:10px;padding:1px 8px;font-size:11px">Claude</span> you start by sending the message shown to Claude in a Randis UDS chat.</p>
+<div id="steps"></div>
+<footer>Made in Randis UDS™ by Randy Moore</footer>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const STEPS=[
+{t:'What this is, and what you need',who:'read',h:`
+<p>Your computer will learn your voice from recordings, then re-sing Sound Forge's vocals as you. It happens in three stages:</p>
+<ol><li><b>Clear words:</b> a voice reads each lyric line, timed to its bar.</li><li><b>Pitched to the tune:</b> that reading is moved onto the song's melody, so it sings.</li><li><b>Your voice:</b> RVC (a free voice-conversion tool) turns it into you.</li></ol>
+<table><tr><th>You need</th><th>Why</th></tr>
+<tr><td>An NVIDIA graphics card, 6 GB or more (an RTX 2060 is fine)</td><td>Training and converting run on it. Less memory or no NVIDIA card works only very slowly.</td></tr>
+<tr><td>About 15 GB free disk space</td><td>The tools and their models are big downloads.</td></tr>
+<tr><td>A microphone and a quiet room</td><td>10 to 20 minutes of your voice.</td></tr>
+<tr><td>About 2 to 3 hours in all</td><td>Most of it is downloads and training running on their own.</td></tr></table>
+<div class="note"><b>Only clone your own voice</b>, or the voice of someone who has said yes. RVC's license (MIT) allows songs you sell; voice tools marked "non-commercial" (XTTS-v2 is one) are not used here for that reason.</div>`},
+{t:'Check your graphics card',who:'you or Claude',h:`
+<p><b>Yourself:</b> press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Esc</kbd> to open Task Manager → <b>Performance</b> → <b>GPU</b>. The name is top right; "Dedicated GPU memory" is its memory.</p>
+<p><b>Or ask Claude</b> (it only looks, it changes nothing):</p>
+<div class="msg">Check my PC for the Sing in My Voice setup: graphics card and its memory, NVIDIA driver version, free disk space, and which Python versions are installed. Don't install anything yet.</div>
+<p>Write what you found:</p><input type="text" data-k="gpu" placeholder="e.g. RTX 2060, 6 GB, driver 511.79, 243 GB free">
+<table><tr><th>Card</th><th>What to expect</th></tr><tr><td>NVIDIA, 6 GB or more</td><td>Good: training about an hour, a song's vocal in a minute or two.</td></tr><tr><td>NVIDIA, 4 GB</td><td>Works, slower; training needs smaller settings.</td></tr><tr><td>AMD, Intel or none</td><td>Runs on the processor only: training takes many hours. Possible, but think twice.</td></tr></table>`},
+{t:'Update the NVIDIA driver',who:'you',h:`
+<p>The AI tools need a recent driver (version <b>528 or newer</b>). Older drivers make them ignore the graphics card.</p>
+<ol><li>Open the <b>NVIDIA app</b> (or GeForce Experience) → Drivers → download the newest. No app? Go to <b>nvidia.com → Drivers</b>, pick your card, download the <b>Game Ready</b> or <b>Studio</b> driver.</li>
+<li>Run the installer; "Express" is fine.</li><li><b>Restart the PC.</b></li></ol>
+<p class="muted">Check: Task Manager → Performance → GPU shows "Driver version" at the bottom (Windows shows it as e.g. 32.0.15.6094; the last five digits 56094 mean 560.94).</p>`},
+{t:'Turn on Claude\'s switches',who:'you',h:`
+<p>Above the message box in a Randis UDS chat, turn on:</p>
+<ul><li><b>Run Python</b>: so Claude can set up and run the voice tools.</li><li><b>Web</b>: so it can download them.</li></ul>
+<p>They only last for the chat turns you leave them on. You can turn them off again when setup is done. Claude will still ask before anything big.</p>
+<div class="note">The tools go in their <b>own folder outside Randis UDS</b> (for example <code>%USERPROFILE%\\randis_voice</code>). Undo in Randis UDS doesn't cover that folder, but deleting it removes everything (see the last step).</div>`},
+{t:'Record your voice',who:'you',rec:true,h:`
+<p>Aim for <b>10 to 20 minutes</b> in total, in a few takes of 2 to 5 minutes. The cleaner the recordings, the better you'll sound.</p>
+<ul><li>Quiet room; no music, TV or fan. Soft furnishings help with echo.</li><li>Same mic, same distance (a hand's width) the whole time.</li><li>Mix <b>singing</b> (most of it) with some <b>talking</b>. Sing the way you'd want songs to sound.</li><li>Don't shout or whisper; avoid clipping (the meter staying red).</li></ul>
+<div class="script"><b>Sing:</b> slow scales up and down ("ah", "oh", "ee") · a few long held notes, low, middle and high · two or three songs you know well, all the way through · the same lines softly, then strongly.</div>
+<div class="script"><b>Read aloud</b> (covers every speech sound): "The quick brown fox jumps over the lazy dog. She sells sea shells by the seashore. A big black bug bit a big black bear. Five wise kings judged the zebra's quiet voyage. Thin things, wet wheels, measure the pleasure of jazz."</div>
+<p><b>Record right here</b> (if your mic is allowed in Randis UDS), or use Windows' <b>Sound Recorder</b> app and save the files somewhere easy to find.</p>
+<div class="row"><button class="b p" id="recGo">● Record</button><button class="b" id="recStop" disabled>■ Stop</button><div class="meter"><i id="meter"></i></div><span id="recT" class="muted">0:00</span></div>
+<div id="recNote" class="muted"></div><div class="takes" id="takes"></div>
+<p id="recTotal" class="muted"></p>
+<p>Where are your recordings? <input type="text" data-k="recs" placeholder="e.g. %USERPROFILE%\\Music\\voice takes"></p>`},
+{t:'Install the voice tools',who:'Claude',h:`
+<p>Send this to Claude (with Run Python and Web on). It takes a while: about 8 to 10 GB of downloads.</p>
+<div class="msg">Set up the Sing in My Voice tools in their own folder outside Randis UDS (%USERPROFILE%\\randis_voice): a private Python 3.10 there (leave my other Pythons alone), PyTorch with CUDA for my card, and RVC with its base models. Check the GPU is used. Tell me before each big download, and write a README in that folder saying what's there and how to remove it.</div>
+<p><b>What gets installed:</b> a private Python, PyTorch (the AI engine), RVC and its starting models, and a small speech voice with a license that allows selling songs. Nothing else on your PC changes.</p>
+<p>Notes: <input type="text" data-k="install" placeholder="anything that went wrong or to remember"></p>`},
+{t:'Train your voice model',who:'Claude',h:`
+<div class="msg">Train my RVC voice model from my recordings in [where your recordings are]. Clean them up first (cut silences, check for clipping), pick settings that suit my graphics card, and tell me how long it will take. Save the model in randis_voice\\models\\my_voice.</div>
+<p>Expect <b>about an hour</b> on a 6 GB card. The PC can be used lightly meanwhile, but no games. Claude will play you a short test sample when it's done; if it sounds off, more or cleaner recordings fix most problems.</p>
+<p>Notes: <input type="text" data-k="train" placeholder="how the test sample sounded"></p>`},
+{t:'Connect it to Sound Forge',who:'Claude',h:`
+<div class="msg">Connect my trained voice to Sound Forge: add a "Sing in my voice" option to the Lyrics section that sends the lyrics, melody and timing to the voice tools through the app, and brings the finished vocal back into the song, renders and stems.</div>
+<p>This changes Randis UDS itself, so the app needs a restart afterwards (close it and open it again; Reload isn't enough).</p>`},
+{t:'Make a song in your voice',who:'you',h:`
+<ol><li>Open Sound Forge, make a song (🎲 New song).</li><li>Write lyrics: ✍️ Write lyrics or 🤖 Lyrics bot, or your own.</li><li>Lyrics → Voice → <b>Sing in my voice</b>, then wait while it makes the vocal (a minute or two).</li><li>Play it; render or export stems as usual.</li></ol>
+<p><b>Something wrong?</b> Tell Claude what you hear: "words unclear", "robotic", "off-key", "too quiet". Each has a setting it can change.</p>
+<h3 style="font-size:14px">Removing it all later</h3>
+<p>Delete the <code>randis_voice</code> folder. That removes the tools, the models and your voice model. Your recordings stay wherever you saved them.</p>`}];
+let S={};try{S=JSON.parse(localStorage.getItem('voiceWalk')||'{}')}catch(e){}
+const save=()=>{try{localStorage.setItem('voiceWalk',JSON.stringify(S))}catch(e){}};
+S.done=S.done||{};S.notes=S.notes||{};
+STEPS.forEach((s,i)=>{const d=document.createElement('div');d.className='step';d.innerHTML=`<div class="hd"><div class="n">${i+1}</div><h2>${s.t}</h2><span class="who">${s.who}</span></div><div class="bd">${s.h}<div class="row"><button class="b g" data-done="${i}"></button></div></div>`;$('steps').appendChild(d);
+d.querySelector('.hd').onclick=()=>d.classList.toggle('open')});
+document.querySelectorAll('.msg').forEach(m=>{const b=document.createElement('button');b.className='b';b.textContent='Copy this message';b.style.marginBottom='6px';
+b.onclick=()=>{const done=()=>{b.textContent='Copied ✓';setTimeout(()=>b.textContent='Copy this message',1500)};
+try{navigator.clipboard.writeText(m.textContent).then(done,()=>sel(m))}catch(e){sel(m)}};m.after(b)});
+function sel(m){const r=document.createRange();r.selectNodeContents(m);const s=getSelection();s.removeAllRanges();s.addRange(r);try{document.execCommand('copy')}catch(e){}}
+document.querySelectorAll('[data-k]').forEach(x=>{x.value=S.notes[x.dataset.k]||'';x.oninput=()=>{S.notes[x.dataset.k]=x.value;save()}});
+function paint(){const steps=document.querySelectorAll('.step');let n=0;steps.forEach((d,i)=>{const on=!!S.done[i];if(on)n++;d.classList.toggle('done',on);d.querySelector('[data-done]').textContent=on?'✓ Done (click to undo)':'Mark this step done'});
+$('prog').style.width=(100*n/steps.length)+'%';$('progT').textContent=`${n} of ${steps.length} done`;
+const next=[...steps].findIndex((d,i)=>!S.done[i]);return next}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-done]');if(!b)return;const i=+b.dataset.done;S.done[i]=!S.done[i];save();const nx=paint();
+if(S.done[i]){document.querySelectorAll('.step')[i].classList.remove('open');if(nx>=0){const d=document.querySelectorAll('.step')[nx];d.classList.add('open');d.scrollIntoView({behavior:'smooth',block:'start'})}}});
+$('reset').onclick=()=>{if(!confirm('Untick every step? Your notes stay.'))return;S.done={};save();paint()};
+{const nx=paint();document.querySelectorAll('.step')[nx>=0?nx:0].classList.add('open')}
+
+// ---------- the recorder: mono 44.1 kHz WAV, saved through Randis UDS ----------
+let rec=null,takes=[],totalSec=0;
+function wav(chunks,rate){const len=chunks.reduce((a,c)=>a+c.length,0),buf=new ArrayBuffer(44+len*2),v=new DataView(buf),w=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i))};
+w(0,'RIFF');v.setUint32(4,36+len*2,true);w(8,'WAVE');w(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,rate,true);v.setUint32(28,rate*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,'data');v.setUint32(40,len*2,true);
+let o=44;chunks.forEach(c=>{for(let i=0;i<c.length;i++){const s=Math.max(-1,Math.min(1,c[i]));v.setInt16(o,s<0?s*32768:s*32767,true);o+=2}});return new Blob([buf],{type:'audio/wav'})}
+const fmt=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
+$('recGo').onclick=async()=>{let stream;try{stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}})}
+catch(e){$('recNote').textContent='The microphone isn\'t available here ('+(e.name||'blocked')+'). Use Windows\' Sound Recorder app instead, and note where you saved the files below.';return}
+const ctx=new AudioContext(),src=ctx.createMediaStreamSource(stream),pr=ctx.createScriptProcessor(4096,1,1),chunks=[],t0=Date.now();let peak=0;
+pr.onaudioprocess=e=>{const d=e.inputBuffer.getChannelData(0);chunks.push(new Float32Array(d));let m=0;for(let i=0;i<d.length;i++)m=Math.max(m,Math.abs(d[i]));peak=m};
+src.connect(pr);pr.connect(ctx.destination);
+const tick=setInterval(()=>{$('recT').textContent=fmt((Date.now()-t0)/1000);$('meter').style.width=Math.min(100,peak*100)+'%';$('meter').style.background=peak>.97?'#e0606a':peak>.7?'#d8b24a':'#3aa76d'},80);
+rec={stream,ctx,pr,src,chunks,tick,t0};$('recGo').disabled=true;$('recStop').disabled=false;$('recNote').textContent='Recording… sing or read from the boxes above. The bar should mostly sit in the green, now and then yellow.'};
+$('recStop').onclick=()=>{if(!rec)return;const r=rec;rec=null;clearInterval(r.tick);r.src.disconnect();r.pr.disconnect();r.stream.getTracks().forEach(t=>t.stop());const rate=r.ctx.sampleRate;r.ctx.close();
+const secs=r.chunks.length*4096/rate,blob=wav(r.chunks,rate),n=takes.length+1,name=`my_voice_take${String(n).padStart(2,'0')}.wav`;takes.push({blob,name,secs});totalSec+=secs;
+const row=document.createElement('div'),u=URL.createObjectURL(blob);row.innerHTML=`<span>${name} · ${fmt(secs)}</span><audio controls src="${u}"></audio><button class="b">💾 Save</button><span class="muted"></span>`;
+const [,,btn,note]=row.children;btn.onclick=()=>saveTake(blob,name,note);$('takes').appendChild(row);
+$('recGo').disabled=false;$('recStop').disabled=true;$('meter').style.width='0';$('recNote').textContent='Listen back, then 💾 Save each good take (keep them all in one folder).';
+$('recTotal').textContent=`Recorded so far: ${fmt(totalSec)} of the 10 to 20 minutes.`};
+function saveTake(blob,name,note){if(window.parent===window){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();return}
+note.textContent='Asking Randis UDS…';const t=setTimeout(()=>note.textContent='Randis UDS didn\'t answer; it may need a restart.',6000);
+const h=e=>{if(!e.data||e.source!==parent)return;if(e.data.uds==='exporting'){clearTimeout(t);note.textContent=e.data.note;return}if(e.data.uds!=='exported')return;clearTimeout(t);removeEventListener('message',h);note.textContent=e.data.note};
+addEventListener('message',h);parent.postMessage({uds:'export-file',name,data:blob},'*')}
+</script></body></html>
