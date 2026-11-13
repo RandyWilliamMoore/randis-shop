@@ -1,0 +1,840 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Heirloom Boxes</title>
+<!-- Randis UDS™ by Randy Moore. Original: https://github.com/RandyWilliamMoore/randis-uds · Support: https://ko-fi.com/moorescombinatoricsmatrix -->
+<style>
+:root{--bg:#15110c;--bg2:#1d1811;--bg3:#2a2218;--line:#41352a;--tx:#f0e6d4;--mut:#a7977d;--acc:#d9a441;--acc2:#7fb39b;--ok:#5fb37a;--warn:#e0a63a;--bad:#e06a5a;--card:#211b13;--wood1:#c98d4f;--wood2:#a86f39;--wood3:#7d4f26;--in:#3a2a1a}
+body[data-theme=light]{--bg:#f3eadb;--bg2:#fbf5ea;--bg3:#eadfc9;--line:#d2c2a3;--tx:#2a2117;--mut:#75644b;--acc:#97650c;--acc2:#2f7a5e;--card:#fffaf1;--in:#6b4a2a}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font:14px/1.45 "Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--tx);display:flex;flex-direction:column;overflow:hidden}
+h2,h3,.serif{font-family:Georgia,"Times New Roman",serif;font-weight:600}
+h2{font-size:21px;margin:0 0 10px}
+h3{font-size:15px;margin:4px 0 8px;color:var(--acc)}
+h4{margin:12px 0 6px;font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
+button,input,select,textarea{font:inherit;color:inherit}
+input,select,textarea{background:var(--bg3);border:1px solid var(--line);border-radius:6px;padding:4px 7px;outline:none;min-width:0}
+input:focus,select:focus,textarea:focus{border-color:var(--acc)}
+input[type=checkbox]{accent-color:var(--acc)}
+textarea{width:100%;resize:vertical;min-height:64px}
+button{cursor:pointer;background:var(--bg3);border:1px solid var(--line);border-radius:6px;padding:5px 11px}
+button:hover{border-color:var(--acc)}
+button.pri{background:var(--acc);color:#1b1408;border-color:var(--acc);font-weight:600}
+button.sm{padding:2px 8px;font-size:12px}
+#top{display:flex;align-items:center;gap:10px;padding:8px 14px;background:var(--bg2);border-bottom:1px solid var(--line)}
+#top .brand{font-family:Georgia,serif;font-size:18px;color:var(--acc)}
+#top .credit{font-size:11px;color:var(--mut);margin-left:auto}
+#top .credit a{color:var(--mut)}
+#wrap{flex:1;display:flex;min-height:0}
+#side{width:186px;background:var(--bg2);border-right:1px solid var(--line);padding:8px;overflow:auto;flex:none}
+#side button{display:flex;gap:8px;width:100%;text-align:left;background:none;border:1px solid transparent;margin-bottom:2px}
+#side button.on{background:var(--bg3);border-color:var(--line);color:var(--acc)}
+#view{flex:1;overflow:auto;padding:16px 20px 40px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:12px}
+.grid2{display:grid;grid-template-columns:minmax(300px,380px) 1fr;gap:14px;align-items:start}
+.grid3{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.form label{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:4px 0;font-size:13px}
+.form label>span{color:var(--mut)}
+.form input[type=number]{width:84px}
+.form select{max-width:200px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin:8px 0}
+.tile{background:var(--bg3);border-radius:8px;padding:7px 10px}
+.tile b{display:block;font-size:17px;color:var(--acc)}
+.tile span{font-size:11px;color:var(--mut)}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:left;padding:4px 7px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--mut);font-weight:600;font-size:12px}
+.chk{display:flex;gap:8px;padding:5px 0;border-bottom:1px dashed var(--line);font-size:13px}
+.chk .d{flex:none;width:20px;text-align:center}
+.ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}.mut{color:var(--mut)}
+.pill{display:inline-block;font-size:11px;padding:1px 7px;border-radius:9px;background:var(--bg3);border:1px solid var(--line);margin:1px 2px}
+.pill.g{color:var(--ok);border-color:var(--ok)}.pill.y{color:var(--warn);border-color:var(--warn)}.pill.r{color:var(--bad);border-color:var(--bad)}
+svg.iso{width:100%;height:330px;background:var(--bg3);border-radius:10px}
+.typecards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:12px}
+.typecards button{text-align:left;padding:8px 10px}
+.typecards button.on{border-color:var(--acc);background:var(--card)}
+.typecards b{display:block}
+.typecards small{color:var(--mut)}
+ol.steps li{margin:3px 0}
+.lst .it{padding:7px 9px;border:1px solid var(--line);border-radius:8px;margin-bottom:6px;cursor:pointer;background:var(--bg3)}
+.lst .it.on{border-color:var(--acc)}
+.note{font-size:12px;color:var(--mut)}
+.score input{width:52px}
+.toast{position:fixed;bottom:16px;right:16px;background:var(--acc);color:#1b1408;padding:8px 14px;border-radius:8px;font-weight:600;opacity:0;transition:.3s;pointer-events:none}
+.toast.on{opacity:1}
+.mark{background:#fff;border-radius:10px;display:flex;justify-content:center;padding:8px}
+details{margin:6px 0}
+summary{cursor:pointer;color:var(--acc)}
+@media (max-width:900px){.grid2{grid-template-columns:1fr}}
+@media print{#top,#side,.noprint{display:none!important}#view{overflow:visible}body{background:#fff;color:#000;display:block}.card{border-color:#999;background:#fff}}
+</style>
+</head>
+<body>
+<div id="top"><span class="brand">🧰 Heirloom Boxes</span><span class="mut" style="font-size:12px">R&amp;D for curio boxes, toy boxes and kids' toolboxes made to be handed down</span>
+<button class="sm" id="themeBtn" title="Light / dark">◐</button>
+<span class="credit">Randis UDS™ by Randy Moore · <a href="https://github.com/RandyWilliamMoore/randis-uds" target="_blank">original</a> · <a href="https://ko-fi.com/moorescombinatoricsmatrix" target="_blank">support</a></span></div>
+<div id="wrap"><nav id="side"></nav><main id="view"></main></div>
+<div class="toast" id="toast"></div>
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const uid = () => Math.random().toString(36).slice(2, 10);
+const inApp = window.parent !== window;
+const tell = m => { try { window.parent.postMessage(m, "*"); } catch (e) {} };
+function toast(t) { const e = $("#toast"); e.textContent = t; e.classList.add("on"); clearTimeout(toast.h); toast.h = setTimeout(() => e.classList.remove("on"), 2600); }
+window.addEventListener("message", e => { if (e.data && e.data.uds === "exported") toast(e.data.note || (e.data.ok ? "Saved." : "Not saved.")); });
+function exportFile(name, text, mime) {
+  const blob = new Blob([text], { type: mime || "text/plain" });
+  if (inApp) { tell({ uds: "export-file", name, data: blob }); return; }
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+const stamp = () => new Date().toISOString().slice(0, 10);
+
+// ============================================================ reference data
+// Densities lb/ft³ at ~12% moisture, Janka hardness lbf, rough US retail $/board foot (edit in Woods page).
+const WOODS = {
+  maple: { n: "Hard maple", dens: 44, janka: 1450, price: 7, kid: 1, acid: "low", note: "The classic toy wood: hard, closed grain, light colour, no smell. Dents least." },
+  cherry: { n: "Cherry", dens: 35, janka: 950, price: 9, kid: 1, acid: "medium", note: "Darkens to deep red over the years, so the box ages with the family. Easy to work." },
+  walnut: { n: "Black walnut", dens: 38, janka: 1010, price: 12, kid: 1, acid: "medium", note: "Rich brown heirloom look. Dust can irritate skin and airways while cutting; fine once finished." },
+  beech: { n: "European beech", dens: 45, janka: 1300, price: 8, kid: 1, acid: "medium", note: "Traditional European toy wood. Hard, smooth, takes wear. Moves a lot with humidity." },
+  ash: { n: "White ash", dens: 42, janka: 1320, price: 6, kid: 1, acid: "medium", note: "Tough and springy (tool handles). Open grain; fill or accept texture." },
+  woak: { n: "White oak", dens: 47, janka: 1360, price: 8, kid: 1, acid: "high", note: "Strong and classic, but oak gives off acetic/formic acid vapour: keep it out of closed curio boxes holding metals, coins, silver, shells or paper." },
+  roak: { n: "Red oak", dens: 44, janka: 1220, price: 5, kid: 1, acid: "high", note: "Cheap and strong. Same acid-vapour problem as white oak, and very open grain." },
+  poplar: { n: "Poplar", dens: 29, janka: 540, price: 4, kid: 1, acid: "low", note: "Budget, light, paint-grade. Lower acid than most: decent for curio interiors when sealed." },
+  bass: { n: "Basswood (lime)", dens: 26, janka: 410, price: 5, kid: 1, acid: "low", note: "Very light, carves beautifully, low acid. Soft: dents easily on a toy chest." },
+  pine: { n: "Eastern white pine", dens: 25, janka: 380, price: 3, kid: 1, acid: "medium", note: "Light and cheap; good for kids' first totes. Knots can weep resin; soft." },
+  mahog: { n: "Genuine mahogany", dens: 37, janka: 800, price: 12, kid: 1, acid: "low", note: "Stable, low-acid, traditional cabinet wood. Buy from a legal/certified source (FSC)." },
+  cedar: { n: "Aromatic red cedar", dens: 33, janka: 900, price: 6, kid: 0, acid: "high", note: "Hope-chest lining for textiles (moths). Strong oils and acids: bad for metals, photos and paper. Dust is a known sensitizer." },
+  birchply: { n: "Baltic birch plywood", dens: 42, janka: 1260, price: 0, kid: 1, acid: "medium", ply: 1, note: "Void-free, stable, strong. Great for bottoms, trays and kids' totes. Check the label says TSCA Title VI / CARB2 (low formaldehyde)." },
+  padauk: { n: "Padauk / rosewoods (exotic)", dens: 47, janka: 1970, price: 14, kid: 0, acid: "medium", note: "Striking colour, but many exotics (padauk, cocobolo, rosewoods, wenge) are skin and lung sensitizers. Not for things kids handle daily." }
+};
+const FINISHES = {
+  wbpoly: { n: "Water-based polyurethane / acrylic", kid: 1, curio: 1, cure: "2–3 weeks", note: "Low smell, clear, good barrier. Best choice inside curio boxes. Let it cure fully before closing anything in." },
+  shellac: { n: "Dewaxed shellac", kid: 1, curio: 1, cure: "about 1 week", note: "Food-safe once dry (used on candy). Quick, repairable, warm look. Softens with alcohol and heat." },
+  hardwax: { n: "Hardwax oil (EN 71-3 labelled)", kid: 1, curio: 0, cure: "2–3 weeks", note: "Natural feel, easy spot repair. Pick one labelled toy-safe (EN 71-3). Oils keep giving off vapour a long time: not inside curio boxes." },
+  tung: { n: "Pure tung oil", kid: 1, curio: 0, cure: "3–4 weeks", note: "Safe when cured; slow. Oily rags can catch fire on their own: lay flat to dry or soak in water." },
+  mineral: { n: "Mineral oil + beeswax", kid: 1, curio: 0, cure: "none", note: "Toddler-safe and easy, but little protection. Re-apply yearly. Fine for toy totes and blocks." },
+  milk: { n: "Milk paint + clear coat", kid: 1, curio: 0, cure: "1–2 weeks", note: "Low-VOC colour with an old-fashioned look. Seal it with water-based poly or wax." },
+  toypaint: { n: "Toy-safe acrylic paint", kid: 1, curio: 0, cure: "1–2 weeks", note: "Look for a label saying it meets ASTM F963 or EN 71-3 (heavy-metal limits). Paint on children's products in the US must be under 90 ppm lead." },
+  oilpoly: { n: "Oil-based polyurethane", kid: 1, curio: 0, cure: "about 30 days", note: "Very tough. Safe once fully cured, but off-gasses for weeks: never inside a closed curio box." },
+  blo: { n: "Boiled linseed oil", kid: 0, curio: 0, cure: "weeks to months", note: "Has metal driers; slow and stays soft. Rag fire risk. Choose something else for kids' things." },
+  none: { n: "No finish", kid: 1, curio: 0, cure: "–", note: "Bare wood gets grimy and isn't sealed; curio woods must be sealed." }
+};
+const JOINTS = {
+  butt: { n: "Butt joints, glue + screws", lvl: 1, note: "Fastest. Plug the screw holes with wood plugs for a finished look." },
+  rabbet: { n: "Rabbets, glue + pins", lvl: 2, note: "Strong and simple on a table saw or router." },
+  box: { n: "Box (finger) joints", lvl: 3, note: "Strong, decorative; a jig on the table saw or router table." },
+  miter: { n: "Mitres with splines", lvl: 3, note: "Grain wraps around the corners; splines add strength and a contrast accent." },
+  dovetail: { n: "Dovetails", lvl: 4, note: "The heirloom joint. Hand-cut dovetails are a maker's signature." }
+};
+const LIDS = { none: "No lid (open)", hinged: "Hinged lid", liftoff: "Lift-off lid", sliding: "Sliding lid", glassdoor: "Glazed door" };
+const STAYS = { torsion: "Torsion hinges (hold at any angle)", support: "Soft-down lid supports", chain: "Lid stay / chain (stops at full open only)", none: "None" };
+const AGES = { u3: "Under 3", a3: "3–5", a6: "6–8", a9: "9–12", teen: "13+", adult: "Adult keepsake" };
+const GLAZE = { uvacrylic: "UV-filtering acrylic", acrylic: "Plain acrylic", glass: "Glass", uvglass: "UV-filtering glass" };
+
+const TYPES = {
+  toychest: { n: "Toy chest", ic: "🧸", blurb: "Lidded chest a child can open. Lid support, vents, no latch.",
+    d: { W: 34, D: 17, H: 20, t: 0.75, bt: 0.5, wood: "maple", joint: "rabbet", lid: "hinged", stay: "torsion", feet: 1, handholes: 1, vent: 1, dividers: 0, tray: 0, trayH: 4, casters: 0, lock: 0, plate: 1, secret: 0, finish: "wbpoly", kids: 1, age: "a3" } },
+  toybin: { n: "Open toy box / crate", ic: "📦", blurb: "No lid at all: the safest toy storage for toddlers.",
+    d: { W: 24, D: 14, H: 12, t: 0.75, bt: 0.5, wood: "maple", joint: "box", lid: "none", stay: "none", feet: 0, handholes: 1, vent: 0, dividers: 0, tray: 0, casters: 0, lock: 0, plate: 1, secret: 0, finish: "hardwax", kids: 1, age: "u3" } },
+  rollbox: { n: "Rolling under-bed box", ic: "🛏️", blurb: "Low open box on locking casters; slides under a bed.",
+    d: { W: 30, D: 20, H: 7, t: 0.75, bt: 0.5, wood: "birchply", joint: "rabbet", lid: "none", stay: "none", feet: 0, handholes: 1, vent: 0, dividers: 1, tray: 0, casters: 1, lock: 0, plate: 0, secret: 0, finish: "wbpoly", kids: 1, age: "a3" } },
+  curio: { n: "Curio / shadow box", ic: "🏺", blurb: "Wall cabinet with shelves and a glazed door for treasures.",
+    d: { W: 16, D: 5, H: 24, t: 0.75, bt: 0.25, wood: "cherry", joint: "dovetail", lid: "glassdoor", stay: "none", shelves: 3, glaze: "uvacrylic", feet: 0, handholes: 0, vent: 0, dividers: 0, casters: 0, lock: 0, plate: 1, secret: 0, finish: "wbpoly", kids: 0, age: "adult" } },
+  keepsake: { n: "Keepsake / specimen box", ic: "💎", blurb: "Lidded box with a grid of compartments for small treasures.",
+    d: { W: 12, D: 9, H: 4.5, t: 0.5, bt: 0.25, wood: "walnut", joint: "miter", lid: "hinged", stay: "chain", rows: 2, cols: 3, feet: 0, handholes: 0, vent: 0, dividers: 0, tray: 0, casters: 0, lock: 0, plate: 1, secret: 1, finish: "shellac", kids: 0, age: "adult" } },
+  tote: { n: "Kids' tool tote", ic: "🧰", blurb: "Open carry box with a dowel handle: the first toolbox.",
+    d: { W: 16, D: 7, H: 5, t: 0.5, bt: 0.25, wood: "pine", joint: "butt", lid: "none", stay: "none", endH: 10, dowel: 0.875, feet: 0, handholes: 0, vent: 0, dividers: 0, casters: 0, lock: 0, plate: 1, secret: 0, finish: "mineral", kids: 1, age: "a6" } },
+  kidchest: { n: "Kids' tool chest", ic: "🛠", blurb: "Small lidded chest with a lift-out tray that grows with them.",
+    d: { W: 18, D: 8, H: 9, t: 0.5, bt: 0.25, wood: "ash", joint: "box", lid: "hinged", stay: "torsion", feet: 0, handholes: 1, vent: 1, dividers: 0, tray: 1, trayH: 2.5, casters: 0, lock: 0, plate: 1, secret: 0, finish: "hardwax", kids: 1, age: "a9" } }
+};
+
+// Rough US hardware prices; good enough for an estimate.
+const HW = {
+  torsion: ["Torsion lid hinges, pair (match the rating to the lid)", 45], support: ["Soft-down lid support", 15], chain: ["Brass lid stay", 9],
+  piano: ["Continuous (piano) hinge", 16], butt: ["Brass butt hinges, pair", 14], knife: ["Knife hinges, pair (for the door)", 18],
+  caster: ["Low-profile caster", 6], plate: ["Engraved brass name plate", 18], hasp: ["Hasp / lock", 12], catch: ["Magnetic catch", 4], knob: ["Small knob", 6],
+  bumper: ["Lid bumpers (hold a vent gap)", 4], screws: ["Screws, pins, glue, sandpaper", 14], cleat: ["Wall anchors / screws for cleat", 6], felt: ["Polyester felt or Volara foam liner", 12]
+};
+
+// ============================================================ state
+const LKEY = "udsHeirBoxes1";
+const blankDesign = type => Object.assign({ id: uid(), type, title: TYPES[type].n, shelves: 0, rows: 1, cols: 1, endH: 10, dowel: 0.875, trayH: 2.5, glaze: "uvacrylic", priceBf: "" }, JSON.parse(JSON.stringify(TYPES[type].d)));
+let S = { theme: "dark", units: "in", cur: blankDesign("toychest"), designs: [], items: [], ideas: null, prices: {}, kitsHave: {} };
+try { const v = JSON.parse(localStorage.getItem(LKEY) || "null"); if (v) S = Object.assign(S, v); } catch (e) {}
+const save = () => { try { localStorage.setItem(LKEY, JSON.stringify(S)); } catch (e) { toast("Couldn't save (storage full? remove some photos)."); } };
+const woodPrice = k => (S.prices[k] != null && S.prices[k] !== "" ? +S.prices[k] : WOODS[k].price);
+
+// ============================================================ measuring helpers
+function frac(x) {
+  if (S.units === "mm") return Math.round(x * 25.4) + " mm";
+  const neg = x < 0; x = Math.abs(x);
+  let w = Math.floor(x), n = Math.round((x - w) * 16);
+  if (n === 16) { w++; n = 0; }
+  let d = 16; while (n && n % 2 === 0) { n /= 2; d /= 2; }
+  return (neg ? "-" : "") + (n ? (w ? w + " " : "") + n + "/" + d : w) + '"';
+}
+const r2 = x => Math.round(x * 100) / 100;
+
+// ============================================================ the design engine
+function calc(d) {
+  const P = [], H = [], notes = [];
+  const t = +d.t, bt = +d.bt, W = +d.W, D = +d.D, Ht = +d.H;
+  const solid = WOODS[d.wood] && WOODS[d.wood].ply ? "ply" : "solid";
+  const add = (name, qty, L, Wd, T, mat, note) => { if (qty > 0 && L > 0 && Wd > 0) P.push({ name, qty, L, W: Wd, T, mat: mat || solid, note: note || "" }); };
+  const hw = (k, qty, label) => { if (qty > 0) H.push({ k, n: label || HW[k][0], qty, cost: HW[k][1] * qty }); };
+  let Hc = Ht, lidT = 0, lidW = 0, lidD = 0, baseH = 0, inside = { w: 0, d: 0, h: 0 };
+
+  if (d.type === "curio") {
+    add("Sides", 2, Ht, D, t);
+    add("Top & bottom (in ¼\" dados)", 2, W - 2 * t + 0.5, D, t);
+    const n = +d.shelves || 0;
+    const shD = D - 0.375 - (d.lid === "glassdoor" ? 0.875 : 0.125);
+    add("Shelves (in stopped dados)", n, W - 2 * t + 0.5, shD, 0.5);
+    add("Back panel (in ⅜\" rabbet)", 1, H_back(Ht, t), W - 2 * t + 0.75, 0.25, "ply");
+    if (d.lid === "glassdoor") {
+      const Wo = W - 2 * t, Ho = Ht - 2 * t;
+      add("Door stiles", 2, Ho - 0.0625, 1.5, 0.75);
+      add("Door rails (incl. ½\" tenons)", 2, Wo - 0.0625 - 3 + 1, 1.5, 0.75);
+      add("Glazing", 1, Ho - 3 + 0.75 - 0.0625, Wo - 3 + 0.75 - 0.0625, 0.125, "glaze", GLAZE[d.glaze]);
+      add("Glazing strips", 4, Ho - 3, 0.375, 0.25, solid, "two long, two cut to fit");
+      hw("knife", 1); hw("catch", 1); hw("knob", 1);
+      if (d.lock) hw("hasp", 1, "Small cabinet lock");
+    }
+    add("French cleat (bevel 45° lengthwise, one on box one on wall)", 2, W - 2 * t, 2.5, 0.75);
+    hw("cleat", 1);
+    inside = { w: W - 2 * t, d: D - 0.375, h: Ht - 2 * t };
+    if (d.plate) hw("plate", 1);
+    hw("screws", 1); hw("felt", 1, "Archival liner: Volara foam / polyester felt for shelf tops");
+  } else if (d.type === "tote") {
+    const eH = Math.max(+d.endH || Ht, Ht);
+    add("Sides (full length)", 2, W, Ht, t);
+    add("Ends (taper the top, bore for handle)", 2, eH, D - 2 * t, t);
+    add("Bottom (between ends & sides)", 1, W - 2 * t, D - 2 * t, bt, "ply");
+    add("Handle dowel", 1, W, +d.dowel, +d.dowel, "dowel", "through both ends, pinned");
+    add("Cross dividers", +d.dividers || 0, D - 2 * t, Ht - bt - 0.75, 0.375);
+    inside = { w: W - 2 * t, d: D - 2 * t, h: Ht - bt };
+    if (d.plate) hw("plate", 1, "Name plate or branded initials on one end");
+    hw("screws", 1);
+  } else {
+    // generic box carcass: toychest, toybin, rollbox, keepsake, kidchest
+    if (d.lid === "hinged" || d.lid === "liftoff") lidT = d.type === "keepsake" ? Math.max(0.375, t) : t;
+    if (d.feet) baseH = d.type === "toychest" ? 3 : 1.5;
+    const casterH = d.casters ? 2 : 0;
+    Hc = Ht - lidT - baseH - casterH;
+    const sideL = d.joint === "butt" ? D - 2 * t : d.joint === "rabbet" ? D - t : D;
+    add("Front & back", 2, W, Hc, t);
+    add("Sides / ends" + (d.handholes ? " (1×4\" hand holes)" : ""), 2, sideL, Hc, t);
+    add("Bottom (in ¼\" groove, ¼\" up)", 1, W - 2 * t + 0.5 - 0.0625, D - 2 * t + 0.5 - 0.0625, bt, bt <= 0.5 ? "ply" : solid);
+    inside = { w: W - 2 * t, d: D - 2 * t, h: Hc - bt - 0.25 };
+    if (d.lid === "hinged") {
+      lidW = W + 0.5; lidD = D + 0.25;
+      add("Lid panel (¼\" overhang front & sides)", 1, lidW, lidD, lidT);
+      if (lidW > 24 && solid === "solid") add("Lid battens (slotted screw holes for wood movement)", 2, lidD - 2.5, 2, t);
+    } else if (d.lid === "liftoff") {
+      lidW = W; lidD = D;
+      add("Lid panel", 1, W, D, lidT);
+      add("Lid locating rim, long", 2, W - 2 * t - 0.125, 0.75, 0.25);
+      add("Lid locating rim, short", 2, D - 2 * t - 0.625, 0.75, 0.25);
+    } else if (d.lid === "sliding") {
+      add("Sliding lid (runs in ¼\" grooves; front end cut down)", 1, W - t + 0.25, D - 2 * t + 0.5 - 0.0625, 0.375);
+      inside.h -= 0.5;
+    }
+    if (d.feet) {
+      add("Plinth front & back (mitred)", 2, W + 0.5, baseH, t);
+      add("Plinth sides (mitred)", 2, D + 0.5, baseH, t);
+    }
+    const nDiv = +d.dividers || 0;
+    const trayH = d.tray ? +d.trayH || 2.5 : 0;
+    if (d.tray) {
+      const tt = t >= 0.75 ? 0.5 : 0.375;
+      const tL = (d.type === "toychest" ? inside.w / 2 : inside.w) - 0.125, tD = inside.d - 0.125;
+      add("Tray front & back", 2, tL, trayH, tt);
+      add("Tray ends" + (d.type === "kidchest" ? " (+1½\" taller, finger holes)" : ""), 2, tD - 2 * tt, trayH + (d.type === "kidchest" ? 1.5 : 0), tt);
+      add("Tray bottom (glued in groove)", 1, tL - 2 * tt + 0.375, tD - 2 * tt + 0.375, 0.25, "ply");
+      add("Tray runners (glued to front & back inside)", 2, inside.w, 0.75, 0.5);
+      if (d.type === "kidchest") add("Tray handle dowel", 1, tL, 0.5, 0.5, "dowel");
+    }
+    if (nDiv) add("Dividers (in ⅛\" deep dados)", nDiv, inside.d + 0.25, Math.max(1, inside.h - trayH - 0.75), Math.min(t, 0.5));
+    if (d.type === "keepsake" && (+d.rows > 1 || +d.cols > 1)) {
+      const gh = Math.max(0.75, inside.h - 0.375);
+      add("Grid dividers, long (egg-crate half laps)", (+d.rows || 1) - 1, inside.w, gh, 0.125);
+      add("Grid dividers, short (egg-crate half laps)", (+d.cols || 1) - 1, inside.d, gh, 0.125);
+      hw("felt", 1, "Compartment lining: Ultrasuede / Volara / acid-free card");
+    }
+    if (d.secret) {
+      add("False bottom panel (finger notch at one end)", 1, inside.w - 0.0625, inside.d - 0.0625, 0.125, "ply");
+      add("False bottom support cleats", 2, inside.w, 0.375, 0.25);
+    }
+    if (d.lid === "hinged") {
+      if (d.stay === "torsion") hw("torsion", 1); else { hw(d.type === "keepsake" ? "butt" : "piano", 1); if (d.stay === "support") hw("support", W > 24 ? 2 : 1); if (d.stay === "chain") hw("chain", 1); }
+    }
+    if (d.vent && d.lid !== "none") hw("bumper", 1);
+    if (d.casters) hw("caster", 4, "Low-profile casters (two with brakes)");
+    if (d.lock) hw("hasp", 1);
+    if (d.plate) hw("plate", 1);
+    hw("screws", 1);
+  }
+
+  // totals
+  const rough = T => T <= 0.8 ? 1 : T <= 1.05 ? 1.25 : T <= 1.3 ? 1.5 : 2;
+  let bf = 0, plyFt = { }, glazeFt = 0, vol = 0, volPly = 0, volGlaze = 0, dowelLen = 0;
+  for (const p of P) {
+    const v = p.qty * p.L * p.W * p.T;
+    if (p.mat === "solid") { bf += p.qty * p.L * p.W * rough(p.T) / 144; vol += v; }
+    else if (p.mat === "ply") { plyFt[p.T] = (plyFt[p.T] || 0) + p.qty * p.L * p.W / 144; volPly += v; }
+    else if (p.mat === "glaze") { glazeFt += p.qty * p.L * p.W / 144; volGlaze += v; }
+    else if (p.mat === "dowel") { dowelLen += p.qty * p.L; vol += p.qty * p.L * Math.PI * (p.W / 2) ** 2; }
+  }
+  bf *= 1.3;
+  const wd = WOODS[d.wood];
+  const bfPrice = d.priceBf !== "" && d.priceBf != null ? +d.priceBf : woodPrice(d.wood);
+  const plyPrice = T => T <= 0.25 ? 45 : T <= 0.5 ? 75 : 95; // per 4×8 equivalent, Baltic birch-ish
+  let plyCost = 0; for (const T in plyFt) plyCost += plyPrice(+T) * Math.min(1, Math.ceil(plyFt[T] * 1.25 / 8) / 4);
+  const glazeCost = glazeFt * (d.glaze === "glass" ? 9 : d.glaze === "uvglass" ? 30 : d.glaze === "uvacrylic" ? 26 : 12);
+  const finCost = 20, dowelCost = dowelLen ? 5 : 0;
+  const woodCost = bf * bfPrice;
+  const hwCost = H.reduce((a, h) => a + h.cost, 0);
+  const dens = solid === "ply" ? 42 : wd.dens;
+  const weight = (vol * dens + volPly * 42 + volGlaze * (d.glaze && d.glaze.includes("glass") ? 156 : 74)) / 1728 + H.length * 0.15;
+  const lidWeight = lidW ? lidW * lidD * lidT * dens / 1728 + (lidW > 24 && solid === "solid" ? 2 * (lidD - 2.5) * 2 * t * dens / 1728 : 0) : 0;
+  const torque = lidWeight * lidD / 2;
+  return { P, H, Hc, lidT, lidWeight, torque, baseH, inside, bf, plyFt, glazeFt, cost: { wood: woodCost, ply: plyCost, glaze: glazeCost, hw: hwCost, fin: finCost + dowelCost, total: woodCost + plyCost + glazeCost + hwCost + finCost + dowelCost }, weight, bfPrice, notes };
+}
+function H_back(Ht, t) { return Ht - 2 * t + 0.75; }
+
+// ============================================================ safety checker
+function safety(d, c) {
+  const L = [], ok = t => L.push(["ok", t]), warn = t => L.push(["warn", t]), bad = t => L.push(["bad", t]), info = t => L.push(["info", t]);
+  const kids = !!+d.kids, wd = WOODS[d.wood], fin = FINISHES[d.finish];
+  const iv = c.inside, climbIn = iv.w >= 10 && iv.d >= 9 && iv.h >= 8 && iv.w * iv.d * iv.h >= 1500;
+  if (c.Hc < 1.5 && d.type !== "curio" && d.type !== "tote") bad("The box walls come out under 1½\" tall: make the overall height bigger, or drop the feet/casters/lid.");
+  if (d.type !== "curio" && d.type !== "tote" && (iv.w < 1 || iv.d < 1)) bad("Inside space is gone: the walls are too thick for this size.");
+  if (d.lid === "hinged") {
+    if (kids && (d.stay === "none" || d.stay === "chain")) bad("A hinged lid a child can open needs a support that holds it open at any angle (torsion hinges or soft-down supports). Falling lids cause head and neck injuries; US toy-chest rules (in ASTM F963) require this.");
+    else if (d.stay === "torsion" || d.stay === "support") ok(`Lid support holds the lid where it's left. Lid ≈ ${r2(c.lidWeight)} lb → needs about ${Math.round(c.torque)} in-lb of support in total${d.stay === "support" && +d.W > 24 ? " (two supports, ~" + Math.round(c.torque / 2) + " in-lb each)" : ""}. Weigh the finished lid on a bathroom scale and pick the rating to match.`);
+    else if (!kids && d.stay === "none") warn("No lid stay: the lid can flop back and strain the hinges. Add a brass stay or chain.");
+    if (kids) warn("Pinch points: check the hinge side. Keep the gap between lid and box under ⅕\" (5 mm) or over ½\" so small fingers can't be trapped, and round the lid's front edge.");
+    if (c.lidWeight > 15) warn(`Lid is heavy (${r2(c.lidWeight)} lb). Consider thinner stock, frame-and-panel, or a lighter wood.`);
+  }
+  if (d.lid === "liftoff" && kids && c.lidWeight > 4) warn(`Lift-off lid weighs ${r2(c.lidWeight)} lb: heavy for small hands to lift and drop. Hinge it with supports or make it lighter.`);
+  if (d.lid === "sliding") ok("Sliding lid: nothing to fall or pinch. Wax the grooves so it slides easily.");
+  if (d.lid === "none" && d.type !== "curio") ok("No lid: no falling-lid or trapping risk. The safest choice for under-3s.");
+  if (kids && climbIn && d.lid !== "none") {
+    if (d.vent) ok("Ventilation: holes in the ends plus bumpers that hold a gap under the lid, so a child inside can breathe.");
+    else bad("A child could climb inside. Add ventilation (two or more ¾\" holes in each end, or bumpers that hold the closed lid open a ½\" gap).");
+  }
+  if (+d.lock && kids && d.lid !== "none" && d.lid !== "glassdoor") (climbIn ? bad : warn)("No latch or lock on a box a child can open" + (climbIn ? " and climb into: it must open easily from inside." : ": keep the lock for an adult keepsake."));
+  if (kids) info("Round over every edge and corner (at least ⅛\" radius), sand to 180–220 grit, and check for splinters, protruding screws and nails.");
+  if (kids && (d.age === "u3")) warn("Under 3s: nothing that can come off (knobs, plates, bumpers, hinge pins) may fit inside a small-parts tester (a 1¼\" wide cylinder). Screw, don't glue, every fitting. An open bin is best.");
+  if (kids && !fin.kid) bad(`${fin.n} isn't a good pick for a child's piece. Try water-based poly, shellac, or a hardwax oil labelled EN 71-3.`);
+  else if (kids) ok(`${fin.n}: fine for kids once cured (${fin.cure}). Let it cure before handing it over.`);
+  if (kids && !wd.kid) warn(`${wd.n}: ${wd.note}`);
+  if (d.type === "curio" || d.type === "keepsake") {
+    if (wd.acid === "high") bad(`${wd.n} gives off acid vapour inside a closed case: it will tarnish and corrode metals, shells, coins and yellow paper. Use poplar, basswood, mahogany or maple, or seal every inside surface and line it.`);
+    if (!fin.curio) warn(`${fin.n} keeps off-gassing inside a closed case. Inside surfaces: water-based acrylic/poly or shellac, cured 3–4 weeks before treasures go in.`);
+    else ok("Interior finish suits a closed case. Cure it 3–4 weeks with the door open before anything goes in.");
+    if (d.wood === "birchply") warn("Plywood glues can off-gas; use TSCA Title VI / CARB2 ply and seal it, or line it with archival board.");
+  }
+  if (d.type === "curio") {
+    if (d.glaze === "glass" && kids) warn("Glass in a child's room: use acrylic or tempered/safety glass.");
+    if (d.glaze === "uvacrylic" || d.glaze === "uvglass") ok("UV-filtering glazing slows fading of photos, textiles and labels.");
+    else warn("Plain glazing lets UV through: photos, fabric, paper and feathers will fade. UV-filtering acrylic is the archival pick.");
+    ok("Hang on a French cleat screwed into studs (or proper wall anchors). In earthquake areas, add museum putty under items.");
+    if (+d.H > 30) warn("Over 30\" tall: also fix the top to the wall so it can't tip.");
+  }
+  if (d.type === "tote") {
+    const clear = (+d.endH || 0) - +d.H;
+    if (clear < 2.5) warn(`Only ${frac(clear)} between the side tops and the handle: a child's hand needs about 2½–3".`);
+    else ok("Handle clearance is good for small hands.");
+    if (+d.dowel < 0.75) warn("Dowel under ¾\" may flex or snap with tools in the box. Use ¾–1\" hardwood dowel.");
+    else if (+d.dowel > 1.125) warn("Dowel over 1⅛\" is hard for small hands to grip. ¾–1\" suits kids.");
+    else ok("Dowel size suits a child's grip.");
+    if ((d.age === "a3" || d.age === "a6" || d.age === "u3") && c.weight > 4) warn(`Empty tote weighs about ${r2(c.weight)} lb, heavy for a young child once tools go in. Try ½" pine or poplar.`);
+  }
+  if (d.casters) ok("Casters: use two with brakes so the box can't roll while a child climbs on it.");
+  if (d.type === "rollbox" && +d.H > 8) warn("Over 8\" tall: measure the space under the bed (most are 6–10\").");
+  if (d.type === "toychest" && c.lidWeight && c.lidWeight > 0 && +d.t < 0.75) warn("Kids will sit on the lid: use ¾\" stock or battens.");
+  if (d.handholes) info("Hand holes: 1\" × 4\", centred, 2\" below the top edge, fully rounded inside.");
+  return L;
+}
+
+// ============================================================ build steps
+function steps(d, c) {
+  const s = [];
+  const wd = WOODS[d.wood], j = JOINTS[d.joint];
+  s.push(`Buy ${Math.ceil(c.bf)} board feet of ${wd.ply ? "" : "4/4 "}${wd.n.toLowerCase()} (includes ~30% waste) and the plywood/hardware listed. Let wood sit in the room it will live in for a week.`);
+  s.push("Mill to thickness, then cut parts to the cut list, longest parts first. Mark each part (F, B, L, R, top edge) with chalk triangles.");
+  if (d.type === "curio") {
+    s.push(`Cut ${j.n.toLowerCase()} at the corners (top & bottom to sides), the ⅜" × ¼" rabbet at the back for the back panel, and stopped dados for ${d.shelves || 0} shelves.`);
+    s.push("Dry-fit everything. Finish the inside surfaces now (easier before glue-up), masking the glue joints.");
+    s.push("Glue up the case, check the diagonals are equal (square), let it cure. Fit the back with screws, not glue, so it can come off.");
+    if (d.lid === "glassdoor") s.push("Make the door: mortise & tenon or bridle joints, then a ⅜\" rabbet inside for the glazing. Fit it inset with an even ~1/16\" gap; hang on knife hinges; add a magnetic catch.");
+    s.push("Fit the French cleat: rip a 45° bevel lengthwise; screw one half to the case back (bevel pointing down and in), the other to the wall into studs, bevel up.");
+  } else if (d.type === "tote") {
+    s.push(`Lay out the ends: ${frac(+d.endH)} tall, tapering to about 2½" wide at the top. Bore a ${frac(+d.dowel)} hole for the handle about 1¼" below the top before cutting the taper.`);
+    s.push("Cut the taper with a band saw or coping saw; round all edges with a rasp and sandpaper. Kids can do the sanding.");
+    s.push(`Join sides to ends with ${j.n.toLowerCase()}. Glue and fit the bottom between them.`);
+    s.push("Push the dowel through both ends, glue, and pin each end with a small screw or wooden peg from underneath.");
+  } else {
+    s.push(`Cut the ${j.n.toLowerCase()} on all four corners. ${j.note}`);
+    s.push("Cut a ¼\" groove ¼\" up from the bottom inside all four walls for the bottom panel" + (d.lid === "sliding" ? ", and a ¼\" groove near the top on three walls for the sliding lid (cut the front end down to the groove)." : "."));
+    if (+d.dividers) s.push(`Cut ⅛" deep dados for ${d.dividers} divider(s).`);
+    if (d.handholes) s.push("Drill and saw out the hand holes in the ends; rout or rasp every edge round.");
+    s.push("Dry-fit, then glue up around the bottom panel (don't glue a solid-wood bottom: let it float). Check square with equal diagonals.");
+    if (d.feet) s.push("Mitre the plinth, glue and screw it to the bottom from inside. Leave the plinth slightly proud (¼\") of the box sides for a shadow line.");
+    if (d.casters) s.push("Screw the casters into blocks or the bottom near the corners; brakes on the front pair.");
+    if (d.type === "keepsake" && (+d.rows > 1 || +d.cols > 1)) s.push(`Make the grid: cut ${(+d.rows - 1)} long and ${(+d.cols - 1)} short dividers from ⅛" stock, then half-lap slots (half the height) where they cross. It drops in, no glue, so it can be swapped later.`);
+    if (d.tray) s.push("Make the tray as a small box, glue its runners to the inside of the front & back so the tray sits flush under the lid and slides side to side.");
+    if (d.secret) s.push("False bottom: glue two thin cleats a little above the real bottom; the loose panel rests on them. Cut a small finger notch (or a hidden magnet pull) to lift it. Put a sealed letter underneath.");
+    if (d.lid === "hinged") {
+      s.push(d.stay === "torsion" ? `Fit torsion hinges: total rating about ${Math.round(c.torque)} in-lb. Set them so the lid stays put at every angle, and leave no pinch gap between 5 mm and 12 mm at the back.`
+        : d.stay === "support" ? "Fit a piano hinge, then soft-down lid supports. Adjust so the lid stays open at any angle and lowers slowly." : "Fit the hinges and a lid stay.");
+      if (d.vent) s.push("Fit bumpers under the front of the lid so it rests ½\" open, and drill two ¾\" vent holes in each end.");
+    }
+    if (d.lid === "liftoff") s.push("Glue the locating rim under the lid so it drops in with a light friction fit.");
+  }
+  s.push(`Sand to 180–220, ${d.kids ? "round every edge (⅛\" min.), " : ""}raise the grain with a damp cloth, sand again lightly, and apply ${FINISHES[d.finish].n.toLowerCase()}. Cure: ${FINISHES[d.finish].cure}.`);
+  s.push("Sign and date it: pencil (graphite lasts for centuries) under the lid or base, a branded maker's mark, or the name plate. Fill in a provenance card in the Register.");
+  return s;
+}
+
+// ============================================================ isometric drawing
+function isoSVG(d, c) {
+  const polys = [], lines = [], labels = [];
+  const P3 = (x, y, z) => [(x - z) * 0.866, (x + z) * 0.5 - y];
+  const poly = (pts, fill, op) => polys.push({ pts: pts.map(p => P3(...p)), fill, op: op || 1 });
+  const box = (x0, y0, z0, x1, y1, z1, f) => { // visible faces: +z front, +x right, +y top
+    poly([[x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1]], f[0]);
+    poly([[x1, y0, z0], [x1, y0, z1], [x1, y1, z1], [x1, y1, z0]], f[1]);
+    poly([[x0, y1, z0], [x1, y1, z0], [x1, y1, z1], [x0, y1, z1]], f[2]);
+  };
+  const W = +d.W, D = +d.D, H = +d.H, t = +d.t;
+  const WF = ["var(--wood2)", "var(--wood3)", "var(--wood1)"], IN = "var(--in)";
+  const ply = WOODS[d.wood].ply;
+  if (d.type === "curio") {
+    box(0, 0, 0, W, H, D, WF);
+    poly([[t, t, D], [W - t, t, D], [W - t, H - t, D], [t, H - t, D]], IN);
+    const n = +d.shelves || 0;
+    for (let i = 1; i <= n; i++) { const y = t + (H - 2 * t) * i / (n + 1); poly([[t, y, D], [W - t, y, D], [W - t, y + 0.5, D], [t, y + 0.5, D]], "var(--wood1)"); }
+    if (d.lid === "glassdoor") {
+      const f = 1.5;
+      poly([[t + f, t + f, D + 0.01], [W - t - f, t + f, D + 0.01], [W - t - f, H - t - f, D + 0.01], [t + f, H - t - f, D + 0.01]], "#9fd3e8", 0.18);
+      for (const r of [[t, t, W - t, t + f], [t, H - t - f, W - t, H - t], [t, t, t + f, H - t], [W - t - f, t, W - t, H - t]]) poly([[r[0], r[1], D + 0.02], [r[2], r[1], D + 0.02], [r[2], r[3], D + 0.02], [r[0], r[3], D + 0.02]], "var(--wood2)");
+    }
+  } else {
+    const eH = d.type === "tote" ? Math.max(+d.endH, H) : 0;
+    let y0 = 0;
+    if (d.casters) { for (const [x, z] of [[2, 2], [W - 2, 2], [2, D - 2], [W - 2, D - 2]]) box(x - 0.8, 0, z - 0.8, x + 0.8, 2, z + 0.8, ["#555", "#444", "#666"]); y0 = 2; }
+    if (d.feet) { box(-0.25, y0, -0.25, W + 0.25, y0 + c.baseH, D + 0.25, ["var(--wood3)", "var(--wood3)", "var(--wood2)"]); y0 += c.baseH; }
+    const top = d.type === "tote" ? y0 + H : y0 + c.Hc;
+    // hinged lid standing open at the back
+    if (d.lid === "hinged") { const lt = c.lidT; poly([[-0.25, top, -lt], [W + 0.25, top, -lt], [W + 0.25, top + D + 0.25, -lt], [-0.25, top + D + 0.25, -lt]], WF[0]); box(-0.25, top, -lt, W + 0.25, top + D + 0.25, 0, WF); }
+    if (d.type === "tote") { // left end (we see its inner face) behind
+      poly([[t, y0, t], [t, y0, D - t], [t, y0 + eH * 0.75, D - t], [t, y0 + eH, D / 2 + 1.25], [t, y0 + eH, D / 2 - 1.25], [t, y0 + eH * 0.75, t]], WF[1]);
+    }
+    // interior: back inner wall, left inner wall, floor
+    poly([[t, y0 + 0.5, t], [W - t, y0 + 0.5, t], [W - t, top, t], [t, top, t]], IN);
+    poly([[t, y0 + 0.5, t], [t, y0 + 0.5, D - t], [t, top, D - t], [t, top, t]], "var(--wood3)", 0.85);
+    poly([[t, y0 + 0.5, t], [W - t, y0 + 0.5, t], [W - t, y0 + 0.5, D - t], [t, y0 + 0.5, D - t]], "var(--wood3)");
+    if (d.type === "keepsake") {
+      for (let i = 1; i < (+d.cols || 1); i++) { const x = t + (W - 2 * t) * i / +d.cols; poly([[x, y0 + 0.5, t], [x, y0 + 0.5, D - t], [x, top - 0.4, D - t], [x, top - 0.4, t]], "var(--wood1)", 0.9); }
+      for (let i = 1; i < (+d.rows || 1); i++) { const z = t + (D - 2 * t) * i / +d.rows; poly([[t, y0 + 0.5, z], [W - t, y0 + 0.5, z], [W - t, top - 0.4, z], [t, top - 0.4, z]], "var(--wood2)", 0.9); }
+    }
+    const nd = +d.dividers || 0;
+    for (let i = 1; i <= nd; i++) { const x = t + (W - 2 * t) * i / (nd + 1); poly([[x, y0 + 0.5, t], [x, y0 + 0.5, D - t], [x, top - 1, D - t], [x, top - 1, t]], "var(--wood1)", 0.95); }
+    if (d.tray) { const tw = d.type === "toychest" ? (W - 2 * t) / 2 : W - 2 * t; box(t + 0.1, top - +d.trayH, t + 0.1, t + tw, top - 0.2, D - t - 0.1, ["var(--wood1)", "var(--wood2)", "var(--wood3)"]); }
+    // outer front & right walls and rim
+    poly([[0, y0, D], [W, y0, D], [W, top, D], [0, top, D]], WF[0]);
+    poly([[W, y0, 0], [W, y0, D], [W, top, D], [W, top, 0]], WF[1]);
+    for (const r of [[0, 0, W, t], [0, D - t, W, D], [0, 0, t, D], [W - t, 0, W, D]]) poly([[r[0], top, r[1]], [r[2], top, r[1]], [r[2], top, r[3]], [r[0], top, r[3]]], WF[2]);
+    if (d.handholes) { const hz = D / 2, hy = top - 2.5; poly([[W + 0.01, hy - 0.5, hz - 2], [W + 0.01, hy - 0.5, hz + 2], [W + 0.01, hy + 0.5, hz + 2], [W + 0.01, hy + 0.5, hz - 2]], "#000", 0.55); }
+    if (d.handholes && d.type !== "tote") { const hx = W / 2, hy = top - 2.5; if (d.type === "rollbox") poly([[hx - 2, hy - 0.5, D + 0.01], [hx + 2, hy - 0.5, D + 0.01], [hx + 2, hy + 0.5, D + 0.01], [hx - 2, hy + 0.5, D + 0.01]], "#000", 0.55); }
+    if (d.plate) { const px = W / 2, py = top - Math.min(3, (top - y0) / 2); poly([[px - 1.5, py - 0.5, D + 0.02], [px + 1.5, py - 0.5, D + 0.02], [px + 1.5, py + 0.5, D + 0.02], [px - 1.5, py + 0.5, D + 0.02]], "#d8b45a"); }
+    if (d.vent && d.lid !== "none") for (const zz of [D / 2 - 1.5, D / 2 + 1.5]) { const [cx, cy] = P3(W + 0.02, top - 2, zz); lines.push(`<circle cx="${cx}" cy="${cy}" r="0.4" fill="#000" opacity=".6"/>`); }
+    if (d.type === "tote") {
+      poly([[W - t, y0, D - t], [W, y0, D - t], [W, y0 + eH * 0.75, D - t], [W - t, y0 + eH * 0.75, D - t]], WF[0]);
+      poly([[W, y0, t], [W, y0, D - t], [W, y0 + eH * 0.75, D - t], [W, y0 + eH, D / 2 + 1.25], [W, y0 + eH, D / 2 - 1.25], [W, y0 + eH * 0.75, t]], WF[1]);
+      const a = P3(t, y0 + eH - 1.25, D / 2), b = P3(W, y0 + eH - 1.25, D / 2);
+      lines.push(`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="var(--wood1)" stroke-width="${+d.dowel * 0.9}" stroke-linecap="round"/>`);
+      lines.push(`<circle cx="${b[0]}" cy="${b[1]}" r="${+d.dowel / 2}" fill="var(--wood3)"/>`);
+    }
+  }
+  // dimension labels
+  const fs = Math.max(W, D, H) / 13;
+  const lab = (x, y, z, txt, anchor) => { const [a, b] = P3(x, y, z); labels.push(`<text x="${a}" y="${b}" font-size="${fs}" fill="var(--acc)" text-anchor="${anchor || "middle"}" font-family="Segoe UI">${esc(txt)}</text>`); };
+  lab(W / 2, -fs * 1.8, D + fs * 0.5, "W " + frac(W));
+  lab(W + fs * 0.6, -fs * 1.4, D / 2, "D " + frac(D), "start");
+  lab(-fs * 1.6, H / 2, D, "H " + frac(H), "end");
+  const all = polys.flatMap(p => p.pts);
+  let x0 = Math.min(...all.map(p => p[0])), x1 = Math.max(...all.map(p => p[0])), y0 = Math.min(...all.map(p => p[1])), y1 = Math.max(...all.map(p => p[1]));
+  const m = Math.max(x1 - x0, y1 - y0) * 0.16;
+  x0 -= m * 1.4; x1 += m * 1.2; y0 -= m * 0.6; y1 += m;
+  return `<svg class="iso" viewBox="${x0} ${y0} ${x1 - x0} ${y1 - y0}" preserveAspectRatio="xMidYMid meet">${polys.map(p => `<polygon points="${p.pts.map(q => q[0].toFixed(2) + "," + q[1].toFixed(2)).join(" ")}" fill="${p.fill}" fill-opacity="${p.op}" stroke="#1a1209" stroke-opacity=".55" stroke-width="${Math.max(W, D, H) / 320}" stroke-linejoin="round"/>`).join("")}${lines.join("")}${labels.join("")}</svg>`;
+}
+
+// ============================================================ views
+const VIEWS = [["design", "📐", "Designer"], ["types", "🧸", "Box types & R&D"], ["safety", "⚠️", "Safety & selling"], ["woods", "🌳", "Woods & finishes"], ["kits", "🧰", "Kids' tool kits"], ["curio", "🏺", "Curio care"], ["touches", "✒️", "Heirloom touches"], ["register", "📜", "Register"], ["ideas", "💡", "Ideas lab"], ["data", "💾", "Backup"]];
+let view = "design", regSel = null;
+function nav() { $("#side").innerHTML = VIEWS.map(([k, i, l]) => `<button data-go="${k}" class="${k === view ? "on" : ""}"><span>${i}</span>${l}</button>`).join("") + `<div class="note" style="margin-top:14px;padding:4px">Units: <button class="sm" data-act="units">${S.units === "in" ? "inches" : "mm"}</button><br><br>Everything saves in this tab by itself.</div>`; }
+function go(v) { view = v; $("#view").scrollTop = 0; render(); }
+function render() { nav(); document.body.dataset.theme = S.theme; $("#view").innerHTML = (V[view] || V.design)(); after[view] && after[view](); }
+const after = {};
+const V = {};
+
+// ---------------------------------------------------------------- Designer
+const num = (k, label, step, only) => ({ k, label, type: "num", step: step || 0.125, only });
+const FIELDS = [
+  ["title", "Name", "text"],
+  ["W", "Width (outside)", "num"], ["D", "Depth (outside)", "num"], ["H", "Height (overall)", "num"],
+  ["t", "Wall stock thickness", "num"], ["bt", "Bottom / back thickness", "num"],
+  ["endH", "End height (handle)", "num", ["tote"]], ["dowel", "Handle dowel diameter", "num", ["tote"]],
+  ["wood", "Wood", "sel", null, () => Object.entries(WOODS).map(([k, w]) => [k, w.n])],
+  ["joint", "Corner joints", "sel", null, () => Object.entries(JOINTS).map(([k, j]) => [k, j.n])],
+  ["lid", "Lid / door", "sel", null, d => Object.entries(LIDS).filter(([k]) => d.type === "curio" ? (k === "none" || k === "glassdoor") : k !== "glassdoor" && (d.type !== "tote" || k === "none"))],
+  ["stay", "Lid support", "sel", ["toychest", "toybin", "rollbox", "keepsake", "kidchest"], () => Object.entries(STAYS), d => d.lid === "hinged"],
+  ["glaze", "Glazing", "sel", ["curio"], () => Object.entries(GLAZE), d => d.lid === "glassdoor"],
+  ["shelves", "Shelves", "int", ["curio"]],
+  ["rows", "Compartment rows", "int", ["keepsake"]], ["cols", "Compartment columns", "int", ["keepsake"]],
+  ["dividers", "Dividers", "int", ["toychest", "toybin", "rollbox", "kidchest", "tote"]],
+  ["tray", "Lift-out tray", "chk", ["toychest", "kidchest", "keepsake"]], ["trayH", "Tray height", "num", ["toychest", "kidchest", "keepsake"], null, d => d.tray],
+  ["feet", "Plinth / feet", "chk", ["toychest", "toybin", "keepsake", "kidchest"]],
+  ["casters", "Casters", "chk", ["toybin", "rollbox", "toychest"]],
+  ["handholes", "Hand holes", "chk", ["toychest", "toybin", "rollbox", "kidchest"]],
+  ["vent", "Vent holes + lid gap", "chk", ["toychest", "kidchest", "keepsake"]],
+  ["lock", "Lock / hasp", "chk", ["toychest", "keepsake", "kidchest", "curio"]],
+  ["secret", "Hidden false bottom", "chk", ["toychest", "keepsake", "kidchest"]],
+  ["plate", "Name plate", "chk"],
+  ["finish", "Finish", "sel", null, () => Object.entries(FINISHES).map(([k, f]) => [k, f.n])],
+  ["kids", "A child will open / use it", "chk"],
+  ["age", "Age it's for", "sel", null, () => Object.entries(AGES)],
+  ["priceBf", "Wood price $/bf (blank = default)", "text"]
+];
+V.design = () => {
+  const d = S.cur, c = calc(d), sf = safety(d, c);
+  const nb = sf.filter(x => x[0] === "bad").length, nw = sf.filter(x => x[0] === "warn").length;
+  const typeCards = Object.entries(TYPES).map(([k, ty]) => `<button data-act="type" data-k="${k}" class="${d.type === k ? "on" : ""}"><b>${ty.ic} ${ty.n}</b><small>${ty.blurb}</small></button>`).join("");
+  const field = f => {
+    const [k, label, kind, only, opts, show] = f;
+    if (only && !only.includes(d.type)) return "";
+    if (show && !show(d)) return "";
+    const v = d[k];
+    if (kind === "text") return `<label><span>${label}</span><input data-f="${k}" value="${esc(v)}" style="width:170px"></label>`;
+    if (kind === "num") return `<label><span>${label}${S.units === "mm" ? " (in)" : ""}</span><input type="number" step="0.125" min="0" data-f="${k}" value="${v}"></label>`;
+    if (kind === "int") return `<label><span>${label}</span><input type="number" step="1" min="0" max="12" data-f="${k}" value="${v || 0}"></label>`;
+    if (kind === "chk") return `<label><span>${label}</span><input type="checkbox" data-f="${k}" ${+v ? "checked" : ""}></label>`;
+    return `<label><span>${label}</span><select data-f="${k}">${opts(d).map(([ok, on]) => `<option value="${ok}" ${ok === v ? "selected" : ""}>${esc(on)}</option>`).join("")}</select></label>`;
+  };
+  const mat = m => m === "ply" ? "plywood" : m === "glaze" ? "glazing" : m === "dowel" ? "dowel" : "solid";
+  const plyTxt = Object.entries(c.plyFt).map(([T, ft]) => `${frac(+T)} ply: ${r2(ft)} sq ft`).join(", ");
+  return `<h2>📐 Designer</h2><div class="typecards">${typeCards}</div>
+  <div class="grid2"><div>
+    <div class="card form"><h3>${TYPES[d.type].ic} ${esc(d.title)}</h3>${FIELDS.map(field).join("")}
+      <div class="row" style="margin-top:10px"><button class="pri" data-act="saveDesign">💾 Save design</button><button data-act="toRegister">📜 Add to register</button><button data-act="plan">🖨 Printable plan</button><button data-act="reset">↺ Reset type</button></div>
+    </div>
+    <div class="card"><h3>Saved designs</h3>${S.designs.length ? S.designs.map(x => `<div class="row" style="justify-content:space-between;border-bottom:1px dashed var(--line);padding:3px 0"><span>${TYPES[x.type].ic} ${esc(x.title)} <span class="mut">${frac(+x.W)}×${frac(+x.D)}×${frac(+x.H)}</span></span><span><button class="sm" data-act="load" data-id="${x.id}">Open</button> <button class="sm" data-act="delDesign" data-id="${x.id}">✕</button></span></div>`).join("") : `<div class="note">Nothing saved yet.</div>`}</div>
+  </div><div>
+    <div class="card">${isoSVG(d, c)}
+      <div class="tiles"><div class="tile"><b>$${Math.round(c.cost.total)}</b><span>materials estimate</span></div>${WOODS[d.wood].ply ? `<div class="tile"><b>${r2(Object.values(c.plyFt).reduce((a, b) => a + b, 0))} sq ft</b><span>${esc(WOODS[d.wood].n)}</span></div>` : `<div class="tile"><b>${Math.ceil(c.bf)} bf</b><span>${esc(WOODS[d.wood].n)} @ $${c.bfPrice}</span></div>`}<div class="tile"><b>${r2(c.weight)} lb</b><span>empty weight</span></div>
+      <div class="tile"><b>${d.type === "curio" || d.type === "tote" ? frac(c.inside.w) : frac(c.inside.w) + "×" + frac(c.inside.d)}</b><span>inside ${d.type === "curio" ? "width" : "floor"}; ${frac(c.inside.h)} deep</span></div>
+      ${c.lidWeight ? `<div class="tile"><b>${Math.round(c.torque)} in-lb</b><span>lid torque (${r2(c.lidWeight)} lb lid)</span></div>` : ""}
+      <div class="tile"><b class="${nb ? "bad" : nw ? "warn" : "ok"}">${nb ? nb + " to fix" : nw ? nw + " to check" : "Passes"}</b><span>safety check</span></div></div>
+      <div class="note">Cost: wood $${Math.round(c.cost.wood)} · plywood $${Math.round(c.cost.ply)}${c.cost.glaze ? " · glazing $" + Math.round(c.cost.glaze) : ""} · hardware $${Math.round(c.cost.hw)} · finish & dowel $${Math.round(c.cost.fin)}. Rough US prices; ${plyTxt || "no plywood"}.</div>
+    </div>
+    <div class="card"><h3>Safety check</h3>${sf.map(([l, txt]) => `<div class="chk"><span class="d ${l === "info" ? "mut" : l}">${l === "ok" ? "✔" : l === "warn" ? "⚠" : l === "bad" ? "✖" : "ℹ"}</span><span>${txt}</span></div>`).join("")}</div>
+  </div></div>
+  <div class="card"><h3>Cut list</h3><table><tr><th>Part</th><th>Qty</th><th>Length</th><th>Width</th><th>Thick</th><th>Material</th></tr>${c.P.map(p => `<tr><td>${esc(p.name)}${p.note ? ` <span class="mut">(${esc(p.note)})</span>` : ""}</td><td>${p.qty}</td><td>${frac(p.L)}</td><td>${p.mat === "dowel" ? "⌀ " + frac(p.W) : frac(p.W)}</td><td>${p.mat === "dowel" ? "" : frac(p.T)}</td><td>${mat(p.mat)}</td></tr>`).join("")}</table>
+  <div class="note" style="margin-top:6px">Lengths run with the grain. Sizes are finished sizes; cut long and trim to fit your actual joints.</div></div>
+  <div class="card"><h3>Hardware</h3><table><tr><th>Item</th><th>Qty</th><th>Est.</th></tr>${c.H.map(h => `<tr><td>${esc(h.n)}</td><td>${h.qty}</td><td>$${h.cost}</td></tr>`).join("")}</table></div>
+  <div class="card"><h3>Build steps</h3><ol class="steps">${steps(d, c).map(s => `<li>${s}</li>`).join("")}</ol></div>`;
+};
+
+// ---------------------------------------------------------------- Types & R&D
+const TYPE_RD = {
+  toychest: ["Sizes that work: 30–36\" W × 16–18\" D × 18–20\" H (bench height, so it doubles as a seat).", "Heirloom angle: the chest outlives the toys. Design for its second life: blanket chest, hope chest, then a grandchild's toy chest again.", "Lid: frame-and-panel lids are lighter and don't cup. Solid lids need battens with slotted holes.", "Interior: sliding half-width tray for small things; dividers make big toys hard to fit, so keep them few."],
+  toybin: ["Best for under-3s: no lid means no lid hazards at all.", "Size so a toddler can reach the bottom: 10–12\" high.", "Box joints on maple look great and take abuse.", "Stackable version: rabbet the top edge so one bin nests on another."],
+  rollbox: ["Measure the under-bed gap first; casters eat ~2\".", "A handle cut-out on the front long side makes it easy to pull out.", "Plywood with a solid-wood edge band is lighter and stays flat.", "Add a lid only if it slides off sideways; no hinges."],
+  curio: ["Shallow is better: 4–6\" deep shows objects without stacking.", "The door is the hard part: make it last, so it fits the case as built.", "Lining: shelves topped with Volara foam or polyester felt; never wool felt near silver (sulfur tarnishes).", "Label strip along each shelf front: who found it, where, when."],
+  keepsake: ["Grids by layout: baby teeth/coins 1–2\" cells; shells/rocks 2–3\"; letters need a full-width bay.", "Drop-in grid (no glue) so each generation can reconfigure it.", "False bottom for a sealed letter to the next keeper.", "Mitres with contrasting splines read as 'hand-made' at a glance."],
+  tote: ["The first toolbox: kids 5+ can sand, nail and glue most of it with an adult.", "Taper the ends to the handle; it looks right and saves weight.", "Pine or poplar keeps it light; a maple dowel keeps the handle strong.", "Brand the child's initials and year into one end."],
+  kidchest: ["A real tool chest at small scale: lid, lift-out tray for small tools, big tools below.", "Grows with them: tray inserts and tool holders are screwed in, so they change as the tools do.", "Torsion hinges or a lid support even here: lids fall on fingers.", "Inside the lid: a 'keepers' ledger panel for each owner to sign."]
+};
+V.types = () => `<h2>🧸 Box types & R&D notes</h2><p class="mut">Each type with the design notes that matter. Open one in the Designer to get dimensions, a cut list, costs and a safety check.</p>
+  <div class="grid3">${Object.entries(TYPES).map(([k, ty]) => `<div class="card"><h3>${ty.ic} ${ty.n}</h3><div class="note">${ty.blurb}</div><ul>${TYPE_RD[k].map(x => `<li>${x}</li>`).join("")}</ul><button data-act="type" data-k="${k}" data-thengo="design">Open in Designer</button></div>`).join("")}</div>
+  <div class="card"><h3>Compare at default sizes</h3><table><tr><th>Type</th><th>Size</th><th>Wood</th><th>Board ft</th><th>Est. cost</th><th>Weight</th><th>Safety</th></tr>${Object.entries(TYPES).map(([k]) => { const d = blankDesign(k), c = calc(d), sf = safety(d, c), nb = sf.filter(x => x[0] === "bad").length, nw = sf.filter(x => x[0] === "warn").length; return `<tr><td>${TYPES[k].ic} ${TYPES[k].n}</td><td>${frac(d.W)}×${frac(d.D)}×${frac(d.H)}</td><td>${WOODS[d.wood].n}</td><td>${Math.ceil(c.bf)}</td><td>$${Math.round(c.cost.total)}</td><td>${r2(c.weight)} lb</td><td><span class="pill ${nb ? "r" : nw ? "y" : "g"}">${nb ? nb + " fix" : nw ? nw + " check" : "pass"}</span></td></tr>`; }).join("")}</table></div>`;
+
+// ---------------------------------------------------------------- Safety & selling
+V.safety = () => `<h2>⚠️ Safety & selling</h2>
+<div class="grid3">
+ <div class="card"><h3>Lidded chests (the big one)</h3><ul>
+  <li>Toy-chest lids falling on children's heads and necks have caused deaths and brain injuries. A lid must stay open at <b>any</b> position and not slam.</li>
+  <li>Use torsion hinges or spring/gas lid supports rated for the lid: <b>torque (in-lb) = lid weight (lb) × front-to-back depth (in) ÷ 2</b>. The Designer does this sum.</li>
+  <li>Ventilation in case a child climbs in: vent holes and/or bumpers keeping a gap under the closed lid.</li>
+  <li>No latches or locks that can trap a child; the lid must open easily from inside.</li>
+  <li>Old chests (including heirlooms you're passing down) often lack these: retrofit a lid support before a child uses one, or remove the lid.</li></ul></div>
+ <div class="card"><h3>Everything for kids</h3><ul>
+  <li>Round every edge; no splinters, sharp points, protruding screws or nails.</li>
+  <li>Finger traps: avoid holes and gaps that can trap a finger (roughly 5–12 mm / ⅕–½") at hinges and moving parts.</li>
+  <li>Under 3: nothing that comes off may fit in a small-parts tester (1¼" wide cylinder). Screw on knobs, plates and bumpers.</li>
+  <li>Finishes and paints: fully cured; paint under 90 ppm lead (US rule for children's products). Look for ASTM F963 / EN 71-3 on labels.</li>
+  <li>Casters with brakes; tall cabinets fixed to the wall.</li></ul></div>
+ <div class="card"><h3>Kids' toolboxes</h3><ul>
+  <li>Real tools, kid-sized, with adult supervision. Safety glasses marked <b>Z87+</b> (ANSI Z87.1) in a child size, every time.</li>
+  <li>Teach "two hands on the tool, or one hand on the tool and the work clamped".</li>
+  <li>Store chisels and saws guarded (blade covers, a saw till slot) so a hand reaching into the box can't hit an edge.</li>
+  <li>Keep the loaded tote light enough to carry with one hand: under ~10% of the child's weight.</li></ul></div>
+</div>
+<div class="card"><h3>If you sell them (R&D for a small business)</h3>
+ <p class="mut">Not legal advice; check cpsc.gov (US) or your country's regulator before selling. These are the usual starting points:</p><ul>
+  <li><b>US, children's products (for 12 and under):</b> the CPSIA applies. Toy chests fall under the US toy safety standard (ASTM F963, made mandatory by the CPSC), which includes toy-chest lid and ventilation rules. You need a Children's Product Certificate based on third-party testing at a CPSC-accepted lab, permanent tracking labels (maker, date, batch) on the product and packaging, and lead/paint limits met.</li>
+  <li><b>Small batch makers</b> can register with the CPSC for relief from some third-party testing, but not all (lead in paint still needs a lab test). Uncoated, untreated wood is exempt from lead-content testing.</li>
+  <li><b>Curio boxes and keepsake boxes</b> sold as general/adult products (not designed mainly for kids) avoid most of this; describe and photograph them that way honestly.</li>
+  <li><b>EU/UK:</b> toy chests and toy storage meant for children fall under toy/general product safety rules (EN 71, CE/UKCA marking).</li>
+  <li><b>Wood sourcing:</b> FSC-certified or reclaimed wood is a selling point; imported exotics need Lacey Act paperwork.</li>
+  <li><b>Plywood/MDF:</b> must meet TSCA Title VI (formaldehyde) and be labelled so.</li></ul></div>`;
+
+// ---------------------------------------------------------------- Woods & finishes
+V.woods = () => `<h2>🌳 Woods & finishes</h2>
+<div class="card"><h3>Woods</h3><table><tr><th>Wood</th><th>Hardness (Janka)</th><th>Weight lb/ft³</th><th>$/bf (edit)</th><th>Kids</th><th>Curio acid</th><th>Notes</th></tr>
+${Object.entries(WOODS).map(([k, w]) => `<tr><td><b>${w.n}</b></td><td>${w.janka}</td><td>${w.dens}</td><td>${w.ply ? "sheet" : `<input type="number" style="width:60px" data-price="${k}" value="${woodPrice(k)}">`}</td><td>${w.kid ? '<span class="pill g">yes</span>' : '<span class="pill y">careful</span>'}</td><td><span class="pill ${w.acid === "low" ? "g" : w.acid === "high" ? "r" : "y"}">${w.acid}</span></td><td class="note">${w.note}</td></tr>`).join("")}</table>
+<div class="note" style="margin-top:6px">Prices are rough US retail for 4/4 lumber; type your local price and every design updates. "Curio acid" is how much acid vapour the wood gives off inside a closed case (conservation guidance: oaks, chestnut, cedars and Douglas fir are the worst).</div></div>
+<div class="card"><h3>Finishes</h3><table><tr><th>Finish</th><th>Kids</th><th>Inside curio</th><th>Cure</th><th>Notes</th></tr>
+${Object.entries(FINISHES).map(([k, f]) => `<tr><td><b>${f.n}</b></td><td>${f.kid ? '<span class="pill g">yes</span>' : '<span class="pill r">no</span>'}</td><td>${f.curio ? '<span class="pill g">yes</span>' : '<span class="pill y">avoid</span>'}</td><td>${f.cure}</td><td class="note">${f.note}</td></tr>`).join("")}</table></div>
+<div class="card"><h3>Wood with a story</h3><ul><li>Wood from a family tree, the old barn, Grandpa's workbench or a house you grew up in turns a box into an heirloom before it's finished. Even one panel or the lid is enough.</li><li>Reclaimed wood: check for nails with a metal detector, and assume old paint has lead: don't sand it indoors; plane or cut it away outdoors with a respirator, or use it only where it won't be touched by kids.</li><li>Dry it: fresh-cut wood needs about a year per inch of thickness air-drying, or a kiln. Write down where it came from in the Register.</li></ul></div>`;
+
+// ---------------------------------------------------------------- Kids' tool kits
+const KITS = [
+  { age: "3–5", sub: "Hands-on with an adult", tools: ["Stubby 7 oz hammer", "Golf tees + foam block, then roofing nails into a soft stump", "Chunky screwdrivers (Phillips & flat) + a screw board", "Sanding block with 120 grit", "Wooden spring clamps", "Soft measuring tape", "Carpenter's pencil", "Kid safety glasses (Z87+)", "Small canvas apron"], projects: ["Hammer board", "Sanding blocks", "Paint a ready-made tote"] },
+  { age: "6–8", sub: "First real woodworking", tools: ["8–10 oz claw hammer", "Small pull saw (Japanese style) or 10\" panel saw", "Bench hook & mitre box", "Hand drill (eggbeater) + bits", "2–4 quick clamps", "6\" combination square", "10' tape measure", "Coping saw", "Nail set & awl", "Wood glue", "Safety glasses"], projects: ["Tool tote (this tab's design)", "Birdhouse", "Pencil box"] },
+  { age: "9–12", sub: "Precision and planes", tools: ["Block plane", "½\" chisel with guard", "Marking gauge", "Brace & auger bits", "Rasp & cabinet file", "Dovetail or gent's saw", "Try square", "Small bench vise or holdfast", "Sharpening stone (with an adult)", "Hearing protection for loud work"], projects: ["Kids' tool chest", "Step stool", "Keepsake box with rabbets"] },
+  { age: "13+", sub: "Supervised power tools", tools: ["Cordless drill/driver", "Random-orbit sander with dust extraction", "Jigsaw (with training)", "Full chisel set", "Smoothing plane", "Combination square 12\"", "Respirator / dust mask", "First-aid kit in the shop"], projects: ["Curio box with a door", "Toy chest for a younger sibling", "Their own heirloom box"] }
+];
+V.kits = () => `<h2>🧰 Kids' tool kits</h2><p class="mut">Kits that grow with a child, so the toolbox and its tools become the heirloom. Tick what you already have.</p>
+<div class="grid3">${KITS.map((k, i) => `<div class="card"><h3>Ages ${k.age}</h3><div class="note">${k.sub}</div>${k.tools.map((t, j) => `<label style="display:flex;gap:6px;margin:3px 0"><input type="checkbox" data-kit="${i}_${j}" ${S.kitsHave[i + "_" + j] ? "checked" : ""}>${esc(t)}</label>`).join("")}<h4>First projects</h4><div>${k.projects.map(p => `<span class="pill">${esc(p)}</span>`).join("")}</div></div>`).join("")}</div>
+<div class="card"><h3>Making the kit heritable</h3><ul>
+ <li><b>Buy once, buy good:</b> restored vintage hand tools (old planes, braces, hammers) are often better and cheaper than new toy-grade ones, and already have a history.</li>
+ <li><b>Mark every owner:</b> stamp initials and the year on handles with a letter-punch set, or add a brass ring to each handle and engrave the next keeper on it.</li>
+ <li><b>A tool roll</b> of waxed canvas with the child's name keeps chisels guarded and becomes part of the set.</li>
+ <li><b>A keepers' ledger</b> inside the lid: each owner signs with the date they received it.</li>
+ <li><b>Handle sizing:</b> shorten or re-handle tools for small hands, keep the original handle in the box for when they grow.</li>
+ <li><b>Record the first project</b> with a photo in the Register; the tote they built at 7 belongs in the story.</li></ul></div>`;
+
+// ---------------------------------------------------------------- Curio care
+V.curio = () => `<h2>🏺 Curio care (keeping treasures safe for generations)</h2>
+<div class="grid3">
+ <div class="card"><h3>Environment</h3><ul><li>Steady 40–55% relative humidity and room temperature; swings do more harm than the exact number.</li><li>Not on an outside wall, over a radiator, in an attic or basement, or in sun.</li><li>Light: low for photos, textiles, paper, feathers, natural specimens. UV-filtering glazing; LED lights (no UV, little heat) on a timer.</li><li>A small silica-gel canister or humidity card inside a closed case shows trouble early.</li></ul></div>
+ <div class="card"><h3>Safe inside the case</h3><ul><li>Polyethylene foam (Volara, Ethafoam) for pads and cut-outs</li><li>Polyester felt and batting; washed unbleached cotton muslin</li><li>Acid-free, lignin-free board and tissue (unbuffered for photos and silk/wool)</li><li>Polyester film (Mylar) sleeves for paper and photos</li><li>Acrylic stands and mounts</li><li>Museum putty/wax to steady items on shelves</li></ul></div>
+ <div class="card"><h3>Keep out</h3><ul><li>Unsealed oak, cedar, chestnut, Douglas fir, MDF, particleboard</li><li>Wool felt and rubber near silver (sulfur tarnishes)</li><li>PVC plastics, rubber bands, self-adhesive tapes and labels</li><li>Oil-based paints/varnishes that haven't cured for weeks</li><li>Hot glue or any glue on the objects themselves</li><li>Cotton wool on fragile, snaggable things</li></ul></div>
+</div>
+<div class="card"><h3>Build a case that won't hurt what's in it</h3><ol><li>Pick a low-acid wood (poplar, basswood, mahogany, maple) or seal everything inside.</li><li>Seal inside surfaces with water-based acrylic or poly (or line with archival board / barrier film).</li><li>Let it cure 3–4 weeks with the door open. If it still smells, it's still off-gassing.</li><li>Pads: Volara foam on shelves; cut-out foam nests for fragile things.</li><li>Label with pencil on acid-free card, never on the object. Number objects and match them to the Register.</li><li>Specimens (insects, eggs, nests, shells with tissue): freeze new arrivals for a week in a sealed bag to kill pests, and check yearly for dust or frass.</li><li>Silver: add an anti-tarnish strip or Pacific Silvercloth pad; never wool or rubber.</li></ol></div>
+<div class="card"><h3>What goes in which box</h3><table><tr><th>Treasure</th><th>Best home</th><th>Notes</th></tr>
+<tr><td>Baby shoes, christening gown</td><td>Shadow box with UV glazing</td><td>Padded form; unbuffered tissue; low light.</td></tr>
+<tr><td>Medals, coins, badges</td><td>Keepsake grid or shallow curio</td><td>No oak, no wool felt; handle with gloves.</td></tr>
+<tr><td>Letters, cards, certificates</td><td>Keepsake box, full-width bay</td><td>Flat in polyester sleeves; copies on display, originals in the dark.</td></tr>
+<tr><td>Rocks, shells, fossils</td><td>Specimen grid</td><td>Shells can suffer from acid vapour (white crust): sealed low-acid wood only.</td></tr>
+<tr><td>First tools, toy cars</td><td>Curio shelf</td><td>Light coat of wax on bare metal; putty to stop them sliding.</td></tr>
+<tr><td>Photos</td><td>Keepsake box, dark</td><td>Display a copy; keep the original boxed.</td></tr></table></div>`;
+
+// ---------------------------------------------------------------- Heirloom touches (maker's mark + card + letter)
+const mk = Object.assign({ ini: "RM", year: String(new Date().getFullYear()), ring: "HANDMADE FOR THE FAMILY", motif: "tree", shape: "circle", mirror: false }, {});
+function markSVG(m) {
+  const motifs = {
+    tree: `<path d="M100 66 l-14 20 h8 l-12 16 h10 l-12 16 h40 l-12-16 h10 l-12-16 h8z" fill="#2a1d10"/><rect x="96" y="118" width="8" height="10" fill="#2a1d10"/>`,
+    hammer: `<rect x="96" y="80" width="8" height="48" rx="2" fill="#2a1d10"/><path d="M80 72 h40 v12 h-40z M80 72 q-8 6 0 12" fill="#2a1d10"/>`,
+    heart: `<path d="M100 124 C70 104 74 78 90 78 c6 0 10 4 10 10 c0-6 4-10 10-10 c16 0 20 26 -10 46z" fill="#2a1d10"/>`,
+    star: `<path d="M100 70 l9 19 21 3 -15 15 4 21 -19-10 -19 10 4-21 -15-15 21-3z" fill="#2a1d10"/>`,
+    acorn: `<path d="M84 90 q16-16 32 0 z" fill="#2a1d10"/><path d="M86 92 h28 q0 30 -14 36 q-14-6 -14-36z" fill="#2a1d10"/><rect x="98" y="76" width="4" height="8" fill="#2a1d10"/>`,
+    none: ""
+  };
+  const sh = m.shape === "shield" ? `<path d="M30 30 h140 v70 q0 60 -70 80 q-70 -20 -70 -80z" fill="none" stroke="#2a1d10" stroke-width="5"/>` : m.shape === "rect" ? `<rect x="14" y="40" width="172" height="120" rx="12" fill="none" stroke="#2a1d10" stroke-width="5"/>` : `<circle cx="100" cy="100" r="88" fill="none" stroke="#2a1d10" stroke-width="5"/><circle cx="100" cy="100" r="66" fill="none" stroke="#2a1d10" stroke-width="2"/>`;
+  const ring = m.shape === "circle" ? `<defs><path id="rp" d="M100 100 m-77 0 a77 77 0 1 1 154 0 a77 77 0 1 1 -154 0"/></defs><text font-family="Georgia" font-size="13" letter-spacing="2" fill="#2a1d10"><textPath href="#rp" startOffset="50%" text-anchor="middle">${esc(m.ring.toUpperCase())}</textPath></text>` : `<text x="100" y="${m.shape === "rect" ? 60 : 52}" text-anchor="middle" font-family="Georgia" font-size="11" letter-spacing="1.5" fill="#2a1d10">${esc(m.ring.toUpperCase())}</text>`;
+  const hasMotif = m.motif !== "none";
+  const body = `${sh}${ring}${hasMotif ? motifs[m.motif].replace(/(\d+(\.\d+)?)/g, n => n) : ""}<text x="100" y="${hasMotif ? 150 : 112}" text-anchor="middle" font-family="Georgia" font-weight="700" font-size="${hasMotif ? 24 : 40}" fill="#2a1d10">${esc(m.ini)}</text><text x="100" y="${hasMotif ? 166 : 136}" text-anchor="middle" font-family="Georgia" font-size="12" fill="#2a1d10">${esc(m.year)}</text>`;
+  const g = hasMotif ? `<g transform="translate(0,-8)">${body}</g>` : body;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">${m.mirror ? `<g transform="translate(200,0) scale(-1,1)">${g}</g>` : g}</svg>`;
+}
+V.touches = () => `<h2>✒️ Heirloom touches</h2>
+<div class="grid2"><div class="card form"><h3>Maker's mark</h3>
+ <label><span>Initials</span><input data-mk="ini" value="${esc(mk.ini)}" maxlength="4"></label>
+ <label><span>Year</span><input data-mk="year" value="${esc(mk.year)}" maxlength="10"></label>
+ <label><span>Ring / banner text</span><input data-mk="ring" value="${esc(mk.ring)}" maxlength="34" style="width:200px"></label>
+ <label><span>Motif</span><select data-mk="motif">${["tree", "hammer", "heart", "star", "acorn", "none"].map(x => `<option ${mk.motif === x ? "selected" : ""}>${x}</option>`).join("")}</select></label>
+ <label><span>Shape</span><select data-mk="shape">${["circle", "shield", "rect"].map(x => `<option ${mk.shape === x ? "selected" : ""}>${x}</option>`).join("")}</select></label>
+ <label><span>Mirror (for a branding iron or stamp)</span><input type="checkbox" data-mk="mirror" ${mk.mirror ? "checked" : ""}></label>
+ <div class="row" style="margin-top:8px"><button class="pri" data-act="mkSave">⬇ Save SVG</button></div>
+ <div class="note" style="margin-top:6px">SVG works for laser engraving, ordering a custom branding iron, or a rubber stamp. Keep lines bold: thin strokes don't brand well.</div></div>
+ <div class="card"><div class="mark" id="mkOut">${markSVG(mk)}</div></div></div>
+<div class="grid3">
+ <div class="card"><h3>Ways to mark it</h3><ul><li>Pencil signature and date under the lid or base (graphite outlasts ink).</li><li>Branded or stamped maker's mark.</li><li>Engraved brass plate: name, "made for", year.</li><li>Inlaid initial or date in a contrasting wood.</li><li>Child's handprint traced and carved or burned inside the lid.</li><li>A hidden compartment with a sealed letter: "open when you hand this on".</li></ul></div>
+ <div class="card"><h3>The keepers' ledger</h3><p>A thin panel inside the lid (protected by a removable acrylic sheet) where each keeper signs: name, date received, and one line about it. Rule some lines in pencil now; leave room for 6–8 generations.</p><p class="note">The Register in this tab keeps the same chain digitally and can export it for the Heritage tab.</p></div>
+ <div class="card"><h3>Letter to the next keeper</h3><textarea id="letter" style="min-height:160px">To whoever holds this box next,
+
+I made this in ${new Date().getFullYear()} for ___________, from ___________ wood.
+What I hope it holds: ___________
+Please look after it by ___________
+When it's your turn to pass it on, add your name inside the lid and write a letter like this one.
+
+With love,
+___________</textarea><button data-act="letterSave">⬇ Save letter</button></div>
+</div>`;
+
+// ---------------------------------------------------------------- Register
+const STAT = { idea: "Idea", planned: "Planned", building: "Building", finished: "Finished", gifted: "Handed down" };
+V.register = () => {
+  const it = S.items.find(x => x.id === regSel) || S.items[0];
+  if (it) regSel = it.id;
+  const list = S.items.map(x => `<div class="it ${x.id === regSel ? "on" : ""}" data-act="regSel" data-id="${x.id}"><b>${TYPES[x.type] ? TYPES[x.type].ic : "📦"} ${esc(x.name || "Untitled")}</b><br><span class="note">${esc(x.forWho ? "for " + x.forWho : "")} · ${STAT[x.status] || ""}</span></div>`).join("");
+  const f = (k, label, ph) => `<label style="display:block;margin:4px 0"><span class="note">${label}</span><input data-r="${k}" value="${esc(it[k] || "")}" placeholder="${esc(ph || "")}" style="width:100%"></label>`;
+  return `<h2>📜 Register</h2><p class="mut">Every box you make or inherit: who made it, from what, for whom, and every keeper since. This is its provenance.</p>
+  <div class="grid2"><div class="lst"><button class="pri" data-act="regNew" style="margin-bottom:8px">+ New piece</button>${list || '<div class="note">Nothing yet. Add one here or press "Add to register" in the Designer.</div>'}</div>
+  <div>${it ? `<div class="card">
+    <div class="row" style="justify-content:space-between"><h3>${esc(it.name || "Untitled")}</h3><span><button class="sm" data-act="regCert">🖨 Provenance card</button> <button class="sm" data-act="regDel">Delete</button></span></div>
+    ${f("name", "Name", "Ellie's toy chest")}
+    <label style="display:block;margin:4px 0"><span class="note">Type</span><select data-r="type" style="width:100%">${Object.entries(TYPES).map(([k, t]) => `<option value="${k}" ${it.type === k ? "selected" : ""}>${t.n}</option>`).join("")}<option value="other" ${it.type === "other" ? "selected" : ""}>Other</option></select></label>
+    <label style="display:block;margin:4px 0"><span class="note">Status</span><select data-r="status" style="width:100%">${Object.entries(STAT).map(([k, s]) => `<option value="${k}" ${it.status === k ? "selected" : ""}>${s}</option>`).join("")}</select></label>
+    ${f("maker", "Made by", "Grandpa Rob")}${f("forWho", "Made for", "Eleanor")}${f("date", "When made", "Spring 2026")}${f("place", "Where made", "Garage workshop, Tulsa")}
+    ${f("wood", "Wood", "Cherry")}${f("woodSource", "Where the wood came from", "The cherry tree at the old farm, cut 2019")}${f("finish", "Finish", "Shellac")}${f("size", "Size", "")}
+    <label style="display:block;margin:4px 0"><span class="note">Story</span><textarea data-r="story">${esc(it.story || "")}</textarea></label>
+    <label style="display:block;margin:4px 0"><span class="note">Wish for its future</span><textarea data-r="wish" style="min-height:44px">${esc(it.wish || "")}</textarea></label>
+    <label style="display:block;margin:4px 0"><span class="note">Care notes</span><textarea data-r="care" style="min-height:44px">${esc(it.care || "")}</textarea></label>
+    <h4>Chain of keepers</h4>
+    <table><tr><th>Keeper</th><th>From</th><th>To</th><th>Note</th><th></th></tr>${(it.keepers || []).map((k, i) => `<tr><td><input data-k="${i}.name" value="${esc(k.name)}" style="width:100%"></td><td><input data-k="${i}.from" value="${esc(k.from)}" style="width:70px"></td><td><input data-k="${i}.to" value="${esc(k.to)}" style="width:70px"></td><td><input data-k="${i}.note" value="${esc(k.note)}" style="width:100%"></td><td><button class="sm" data-act="keepDel" data-i="${i}">✕</button></td></tr>`).join("")}</table>
+    <button class="sm" data-act="keepAdd" style="margin-top:6px">+ Keeper</button>
+    <h4>Photos</h4><div class="row">${(it.photos || []).map((p, i) => `<span style="position:relative"><img src="${p}" style="height:90px;border-radius:6px"><button class="sm" data-act="photoDel" data-i="${i}" style="position:absolute;top:2px;right:2px">✕</button></span>`).join("")}<label class="sm" style="cursor:pointer"><input type="file" accept="image/*" id="photoIn" style="display:none"><span class="pill">+ Add photo</span></label></div>
+    ${it.design ? `<h4>Design</h4><div class="note">${frac(+it.design.W)} × ${frac(+it.design.D)} × ${frac(+it.design.H)}, ${esc(WOODS[it.design.wood] ? WOODS[it.design.wood].n : "")}, ${esc(JOINTS[it.design.joint] ? JOINTS[it.design.joint].n : "")}</div><button class="sm" data-act="regOpenDesign">Open in Designer</button>` : ""}
+  </div>` : ""}</div></div>
+  <div class="card row"><button data-act="regExportHeritage">⬇ Export for the Heritage tab (heirlooms JSON)</button><button data-act="regExportCsv">⬇ Export CSV</button></div>`;
+};
+function newItem(extra) { const it = Object.assign({ id: uid(), name: "", type: "toychest", status: "planned", maker: "", forWho: "", date: "", place: "", wood: "", woodSource: "", finish: "", size: "", story: "", wish: "", care: "", keepers: [], photos: [], created: Date.now() }, extra || {}); S.items.unshift(it); regSel = it.id; save(); return it; }
+function careText(it) {
+  const d = it.design, fin = d && FINISHES[d.finish];
+  return `Keep out of direct sun and away from heaters; dust with a soft dry cloth.${fin ? " Finish: " + fin.n + ". " : " "}${d && (d.type === "toychest" || d.type === "kidchest") ? "Check the lid support every year: the lid must stay open at any angle." : ""}`;
+}
+function certHTML(it) {
+  return `<!doctype html><html><head><meta charset="utf-8"><title>${esc(it.name)} provenance</title><!-- Randis UDS™ by Randy Moore. Original: https://github.com/RandyWilliamMoore/randis-uds · Support: https://ko-fi.com/moorescombinatoricsmatrix --><style>body{font-family:Georgia,serif;max-width:680px;margin:30px auto;color:#2a1d10;padding:30px;border:6px double #8a6a3a}h1{text-align:center;margin:0}h2{text-align:center;font-weight:normal;font-style:italic;margin:4px 0 20px}td{padding:4px 8px;vertical-align:top}td:first-child{color:#7a5d33;width:170px}table{width:100%;border-collapse:collapse}.k td{border-bottom:1px solid #bfa77f}.lines div{border-bottom:1px solid #bfa77f;height:28px}img{max-height:180px;display:block;margin:10px auto}small{display:block;text-align:center;color:#8a6a3a;margin-top:20px}</style></head><body>
+<h1>${esc(it.name || "Heirloom")}</h1><h2>Certificate of provenance</h2>${(it.photos || [])[0] ? `<img src="${it.photos[0]}">` : ""}
+<table><tr><td>Made by</td><td>${esc(it.maker)}</td></tr><tr><td>Made for</td><td>${esc(it.forWho)}</td></tr><tr><td>When</td><td>${esc(it.date)}</td></tr><tr><td>Where</td><td>${esc(it.place)}</td></tr><tr><td>Wood</td><td>${esc(it.wood)}${it.woodSource ? " — " + esc(it.woodSource) : ""}</td></tr><tr><td>Finish</td><td>${esc(it.finish)}</td></tr><tr><td>Size</td><td>${esc(it.size)}</td></tr></table>
+${it.story ? `<p>${esc(it.story).replace(/\n/g, "<br>")}</p>` : ""}${it.wish ? `<p><i>${esc(it.wish)}</i></p>` : ""}
+<h3>Keepers</h3><table class="k">${(it.keepers || []).map(k => `<tr><td>${esc(k.from)}${k.to ? "–" + esc(k.to) : ""}</td><td>${esc(k.name)}${k.note ? " · " + esc(k.note) : ""}</td></tr>`).join("")}</table>
+<div class="lines">${"<div></div>".repeat(Math.max(3, 6 - (it.keepers || []).length))}</div>
+<h3>Care</h3><p>${esc(it.care || careText(it))}</p><small>Made with Heirloom Boxes in Randis UDS™ by Randy Moore</small></body></html>`;
+}
+
+// ---------------------------------------------------------------- Ideas lab
+const SEED_IDEAS = [
+  ["Grow-with-me chest", "Toy chest at 2 → blanket/hope chest at 12 → tool or memory chest as an adult. Swappable inserts screw into the same cleats; the lid support stays for life.", 5, 5, 4, 5, 3],
+  ["Generations curio stack", "Each generation adds a drawer or shelf module that stacks on the last with sliding dovetail keys. The cabinet literally grows with the family.", 5, 4, 2, 5, 2],
+  ["Tote that becomes a step stool", "Kids' tool tote with a reinforced closed top on the flip side so they can stand on it at the workbench. Needs load testing and a wide, non-tip base.", 4, 3, 4, 3, 4],
+  ["Nesting keepsake boxes", "One box per child, sized to nest inside the parent's box. A set that fits back together when the family gathers.", 4, 5, 3, 5, 3],
+  ["Time-capsule false bottom", "A false bottom sealed with a dated wax seal and a 'do not open until' plate. Letters from each keeper accumulate below.", 5, 5, 4, 5, 5],
+  ["Nature specimen curio", "Glass-lid grid box with label slots, a magnifier pocket and a 'found on' card per cell, made for a child's collecting.", 4, 4, 4, 4, 4],
+  ["Keepers' ledger lid", "Inside-lid veneer panel for signatures, behind removable acrylic. Ruled for eight generations.", 4, 5, 5, 5, 5],
+  ["Rolling bench toy box", "Low rolling box with a padded seat lid on soft-close supports; lives at the foot of the bed.", 4, 4, 3, 3, 3],
+  ["Knock-down heirloom", "Tusk-tenon toy chest that ships flat and the family assembles together; wedges can be re-driven for decades.", 3, 4, 3, 4, 3],
+  ["Family-wood program", "Mill a family tree or old barn boards into a matched set: a toy box for each grandchild from the same tree.", 5, 5, 3, 5, 3],
+  ["First-tools roll + tote", "Waxed canvas tool roll sized to the tote, with each tool stamped with the child's initials and a ring for the next keeper.", 4, 4, 5, 4, 4],
+  ["Memory shadow box frame", "Shallow box for baby shoes, hospital band and first photo, with UV acrylic and a pad you can swap as treasures are added.", 4, 5, 4, 4, 5]
+].map(([n, d, a, h, b, v, c]) => ({ id: uid(), name: n, desc: d, s: { appeal: a, heirloom: h, build: b, value: v, cost: c }, status: "idea", notes: "" }));
+if (!S.ideas) S.ideas = SEED_IDEAS;
+const CRIT = [["appeal", "Appeal"], ["heirloom", "Heirloom value"], ["build", "Ease to build"], ["value", "Sell / gift value"], ["cost", "Low cost"]];
+const ideaScore = i => CRIT.reduce((a, [k]) => a + (+i.s[k] || 0), 0);
+V.ideas = () => `<h2>💡 Ideas lab</h2><p class="mut">Concepts to research and prototype. Score each 1–5; the list sorts by total. Add your own.</p>
+<div class="row" style="margin-bottom:10px"><button class="pri" data-act="ideaNew">+ New idea</button><button data-act="ideaReset">Restore starter ideas</button></div>
+${[...S.ideas].sort((a, b) => ideaScore(b) - ideaScore(a)).map(i => `<div class="card"><div class="row" style="justify-content:space-between"><input data-idea="${i.id}.name" value="${esc(i.name)}" style="font-weight:600;flex:1;min-width:200px"><span class="pill g">${ideaScore(i)}/25</span><select data-idea="${i.id}.status">${["idea", "researching", "prototype", "tested", "shelved"].map(s => `<option ${i.status === s ? "selected" : ""}>${s}</option>`).join("")}</select><button class="sm" data-act="ideaDel" data-id="${i.id}">✕</button></div>
+<textarea data-idea="${i.id}.desc" style="min-height:44px;margin-top:6px">${esc(i.desc)}</textarea>
+<div class="row score" style="margin-top:4px">${CRIT.map(([k, l]) => `<label class="note">${l} <input type="number" min="1" max="5" data-idea="${i.id}.s.${k}" value="${i.s[k]}"></label>`).join("")}</div>
+<textarea data-idea="${i.id}.notes" placeholder="Research notes, prototype results, costs…" style="min-height:40px;margin-top:6px">${esc(i.notes)}</textarea></div>`).join("")}`;
+
+// ---------------------------------------------------------------- Backup
+V.data = () => `<h2>💾 Backup</h2><div class="card"><p>Everything (designs, register, ideas, prices) lives inside this tab. Save a backup file now and then, especially after adding photos.</p>
+<div class="row"><button class="pri" data-act="backup">⬇ Save backup</button><label><input type="file" accept=".json" id="restoreIn" style="display:none"><span class="pill" style="cursor:pointer;padding:5px 11px">⬆ Restore from backup</span></label></div>
+<p class="note">Restoring replaces what's here now.</p></div>`;
+
+// ============================================================ events
+document.addEventListener("click", e => {
+  const g = e.target.closest("[data-go]"); if (g) return go(g.dataset.go);
+  const b = e.target.closest("[data-act]"); if (!b) return;
+  const a = b.dataset.act, d = S.cur;
+  if (a === "units") { S.units = S.units === "in" ? "mm" : "in"; save(); render(); }
+  else if (a === "type") { S.cur = blankDesign(b.dataset.k); save(); if (b.dataset.thengo) go(b.dataset.thengo); else render(); }
+  else if (a === "reset") { S.cur = blankDesign(d.type); save(); render(); }
+  else if (a === "saveDesign") { const i = S.designs.findIndex(x => x.id === d.id); const copy = JSON.parse(JSON.stringify(d)); if (i >= 0) S.designs[i] = copy; else S.designs.unshift(copy); save(); render(); toast("Design saved."); }
+  else if (a === "load") { const x = S.designs.find(x => x.id === b.dataset.id); if (x) { S.cur = JSON.parse(JSON.stringify(x)); save(); render(); } }
+  else if (a === "delDesign") { if (confirm("Delete this saved design?")) { S.designs = S.designs.filter(x => x.id !== b.dataset.id); save(); render(); } }
+  else if (a === "toRegister") { const c = calc(d); newItem({ name: d.title, type: d.type, wood: WOODS[d.wood].n, finish: FINISHES[d.finish].n, size: `${frac(+d.W)} × ${frac(+d.D)} × ${frac(+d.H)}`, design: JSON.parse(JSON.stringify(d)), care: careText({ design: d }) }); go("register"); toast("Added to the register."); }
+  else if (a === "plan") planOut();
+  else if (a === "mkSave") exportFile(`makers-mark-${mk.ini || "mark"}.svg`, markSVG(mk), "image/svg+xml");
+  else if (a === "letterSave") exportFile("letter-to-the-next-keeper.txt", $("#letter").value, "text/plain");
+  else if (a === "regSel") { regSel = b.dataset.id; render(); }
+  else if (a === "regNew") { newItem(); render(); }
+  else if (a === "regDel") { const it = S.items.find(x => x.id === regSel); if (it && confirm(`Delete "${it.name || "Untitled"}" from the register?`)) { S.items = S.items.filter(x => x !== it); regSel = null; save(); render(); } }
+  else if (a === "keepAdd") { const it = S.items.find(x => x.id === regSel); it.keepers = it.keepers || []; it.keepers.push({ name: "", from: "", to: "", note: "" }); save(); render(); }
+  else if (a === "keepDel") { const it = S.items.find(x => x.id === regSel); it.keepers.splice(+b.dataset.i, 1); save(); render(); }
+  else if (a === "photoDel") { const it = S.items.find(x => x.id === regSel); it.photos.splice(+b.dataset.i, 1); save(); render(); }
+  else if (a === "regCert") { const it = S.items.find(x => x.id === regSel); exportFile(`${(it.name || "heirloom").replace(/[^\w\- ]+/g, "")} - provenance.html`, certHTML(it), "text/html"); toast("Open the saved card in a browser and print it."); }
+  else if (a === "regOpenDesign") { const it = S.items.find(x => x.id === regSel); S.cur = JSON.parse(JSON.stringify(it.design)); save(); go("design"); }
+  else if (a === "regExportHeritage") {
+    const out = S.items.map(it => ({ id: "hb_" + it.id, name: it.name, origin: [it.date, it.place, it.maker ? "made by " + it.maker : "", it.wood ? it.wood + (it.woodSource ? " (" + it.woodSource + ")" : "") : ""].filter(Boolean).join(", "), keeper: (it.keepers || []).length ? it.keepers[it.keepers.length - 1].name : it.forWho, chain: [it.maker, ...(it.keepers || []).map(k => k.name)].filter(Boolean).join(" → "), wish: it.wish, text: it.story, photo: (it.photos || [])[0] || "", people: [] }));
+    exportFile(`heirlooms-${stamp()}.json`, JSON.stringify({ source: "Heirloom Boxes (Randis UDS)", heirlooms: out }, null, 1), "application/json");
+  }
+  else if (a === "regExportCsv") {
+    const cols = ["name", "type", "status", "maker", "forWho", "date", "place", "wood", "woodSource", "finish", "size", "story", "wish"];
+    const q = v => `"${String(v == null ? "" : v).replace(/"/g, '""')}"`;
+    exportFile(`heirloom-register-${stamp()}.csv`, [cols.concat("keepers").join(","), ...S.items.map(it => cols.map(c => q(it[c])).concat(q((it.keepers || []).map(k => `${k.name} ${k.from}-${k.to}`).join("; "))).join(","))].join("\r\n"), "text/csv");
+  }
+  else if (a === "ideaNew") { S.ideas.unshift({ id: uid(), name: "New idea", desc: "", s: { appeal: 3, heirloom: 3, build: 3, value: 3, cost: 3 }, status: "idea", notes: "" }); save(); render(); }
+  else if (a === "ideaDel") { if (confirm("Delete this idea?")) { S.ideas = S.ideas.filter(x => x.id !== b.dataset.id); save(); render(); } }
+  else if (a === "ideaReset") { const have = new Set(S.ideas.map(i => i.name)); SEED_IDEAS.forEach(i => { if (!have.has(i.name)) S.ideas.push(i); }); save(); render(); }
+  else if (a === "backup") exportFile(`heirloom-boxes-backup-${stamp()}.json`, JSON.stringify(S), "application/json");
+});
+document.addEventListener("input", e => {
+  const el = e.target, d = S.cur;
+  if (el.dataset.f) {
+    const k = el.dataset.f;
+    d[k] = el.type === "checkbox" ? (el.checked ? 1 : 0) : el.type === "number" ? (el.value === "" ? 0 : +el.value) : el.value;
+    if (k === "lid" && d.type === "curio" && d.lid === "glassdoor" && !d.glaze) d.glaze = "uvacrylic";
+    save();
+    if (el.type === "text" || el.tagName === "INPUT" && el.type !== "checkbox") { clearTimeout(render.h); render.h = setTimeout(() => { const id = el.dataset.f; render(); const n = document.querySelector(`[data-f="${id}"]`); if (n) { n.focus(); try { const L = n.value.length; n.setSelectionRange && n.type === "text" && n.setSelectionRange(L, L); } catch (_) {} } }, 450); }
+    else render();
+  } else if (el.dataset.price) { S.prices[el.dataset.price] = el.value; save(); }
+  else if (el.dataset.kit) { S.kitsHave[el.dataset.kit] = el.checked; save(); }
+  else if (el.dataset.mk) { mk[el.dataset.mk] = el.type === "checkbox" ? el.checked : el.value; $("#mkOut").innerHTML = markSVG(mk); }
+  else if (el.dataset.r) { const it = S.items.find(x => x.id === regSel); if (it) { it[el.dataset.r] = el.value; save(); if (el.tagName === "SELECT") render(); } }
+  else if (el.dataset.k) { const it = S.items.find(x => x.id === regSel); const [i, f] = el.dataset.k.split("."); it.keepers[+i][f] = el.value; save(); }
+  else if (el.dataset.idea) { const [id, ...path] = el.dataset.idea.split("."); const i = S.ideas.find(x => x.id === id); if (!i) return; if (path[0] === "s") i.s[path[1]] = Math.max(1, Math.min(5, +el.value || 1)); else i[path[0]] = el.value; save(); if (path[0] === "s" || path[0] === "status") { clearTimeout(render.i); render.i = setTimeout(render, 900); } }
+});
+document.addEventListener("change", e => {
+  const el = e.target;
+  if (el.id === "photoIn" && el.files[0]) {
+    const it = S.items.find(x => x.id === regSel), fr = new FileReader();
+    fr.onload = () => { const img = new Image(); img.onload = () => { const s = Math.min(1, 900 / Math.max(img.width, img.height)), cv = document.createElement("canvas"); cv.width = img.width * s; cv.height = img.height * s; cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height); it.photos = it.photos || []; it.photos.push(cv.toDataURL("image/jpeg", 0.8)); save(); render(); }; img.src = fr.result; };
+    fr.readAsDataURL(el.files[0]);
+  }
+  if (el.id === "restoreIn" && el.files[0]) {
+    const fr = new FileReader();
+    fr.onload = () => { try { const v = JSON.parse(fr.result); if (!v || !Array.isArray(v.items)) throw 0; if (!confirm("Replace everything here with this backup?")) return; S = Object.assign(S, v); save(); render(); toast("Restored."); } catch (_) { toast("That isn't a Heirloom Boxes backup."); } };
+    fr.readAsText(el.files[0]);
+  }
+});
+$("#themeBtn").onclick = () => { S.theme = S.theme === "dark" ? "light" : "dark"; save(); render(); };
+
+function planOut() {
+  const d = S.cur, c = calc(d), sf = safety(d, c);
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(d.title)} plan</title><!-- Randis UDS™ by Randy Moore. Original: https://github.com/RandyWilliamMoore/randis-uds · Support: https://ko-fi.com/moorescombinatoricsmatrix --><style>:root{--bg3:#f4efe6;--wood1:#d9a36a;--wood2:#b57a42;--wood3:#8a5a2c;--in:#6b4a2a;--acc:#7a5212}body{font:13px/1.45 "Segoe UI",sans-serif;max-width:900px;margin:20px auto;color:#222}h1,h2{font-family:Georgia,serif}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:3px 6px;text-align:left}svg{width:100%;max-height:360px;background:#f4efe6}.bad{color:#b33}.warn{color:#a66b00}.ok{color:#2a7a3a}</style></head><body>
+<h1>${esc(d.title)}</h1><p>${TYPES[d.type].n} · ${frac(+d.W)} W × ${frac(+d.D)} D × ${frac(+d.H)} H · ${WOODS[d.wood].n} · ${JOINTS[d.joint].n} · ${FINISHES[d.finish].n} · est. $${Math.round(c.cost.total)}, ${Math.ceil(c.bf)} bf, ${r2(c.weight)} lb</p>${isoSVG(d, c)}
+<h2>Cut list</h2><table><tr><th>Part</th><th>Qty</th><th>L</th><th>W</th><th>T</th></tr>${c.P.map(p => `<tr><td>${esc(p.name)}</td><td>${p.qty}</td><td>${frac(p.L)}</td><td>${frac(p.W)}</td><td>${p.mat === "dowel" ? "dowel" : frac(p.T)}</td></tr>`).join("")}</table>
+<h2>Hardware</h2><ul>${c.H.map(h => `<li>${h.qty} × ${esc(h.n)}</li>`).join("")}</ul>
+<h2>Safety</h2><ul>${sf.map(([l, t]) => `<li class="${l}">${t}</li>`).join("")}</ul>
+<h2>Steps</h2><ol>${steps(d, c).map(s => `<li>${s}</li>`).join("")}</ol><p style="color:#888;font-size:11px">Heirloom Boxes · Randis UDS™ by Randy Moore</p></body></html>`;
+  exportFile(`${d.title.replace(/[^\w\- ]+/g, "") || "plan"} - plan.html`, html, "text/html");
+  toast("Open the saved plan in a browser to print it.");
+}
+
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,1026 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Voice Forge</title>
+<!-- Randis UDS™ by Randy Moore. Original: https://github.com/RandyWilliamMoore/randis-uds · Support: https://ko-fi.com/moorescombinatoricsmatrix -->
+<style>
+:root{--bg:#0f1117;--bg2:#161a23;--bg3:#1f2430;--line:#2c3342;--tx:#e8ecf4;--mut:#8f9ab0;--acc:#7c9cff;--acc2:#4fd1c5;--hot:#ff7ab6;--ok:#5fd38d;--warn:#f5b84a;--bad:#ff6b6b}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font:13px/1.45 "Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--tx);display:flex;flex-direction:column;overflow:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+input,select,textarea{background:var(--bg3);border:1px solid var(--line);border-radius:6px;padding:4px 7px;outline:none;min-width:0}
+input:focus,select:focus,textarea:focus{border-color:var(--acc)}
+textarea{width:100%;resize:vertical;line-height:1.5}
+button{cursor:pointer;background:var(--bg3);border:1px solid var(--line);border-radius:7px;padding:5px 11px;white-space:nowrap}
+button:hover{border-color:var(--acc)}
+button.pri{background:linear-gradient(135deg,#5b7cff,#8a5cff);border-color:transparent;color:#fff;font-weight:600}
+button.go{background:linear-gradient(135deg,#16b38a,#4fd1c5);border-color:transparent;color:#04201a;font-weight:700}
+button.sm{padding:2px 8px;font-size:12px}
+button.bad{color:var(--bad)}
+input[type=range]{padding:0;border:0;background:none;accent-color:var(--acc);width:100%}
+input[type=checkbox]{accent-color:var(--acc)}
+header{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--line);flex-wrap:wrap}
+header .logo{font-weight:800;font-size:16px;background:linear-gradient(90deg,#7c9cff,#ff7ab6,#4fd1c5);-webkit-background-clip:text;background-clip:text;color:transparent;margin-right:6px}
+header #vname{width:200px;font-weight:600}
+#status{color:var(--mut);margin-left:auto;font-size:12px}
+#main{flex:1;display:flex;min-height:0}
+nav{width:178px;background:var(--bg2);border-right:1px solid var(--line);overflow:auto;padding:6px}
+nav button{display:block;width:100%;text-align:left;border:0;background:none;padding:6px 9px;margin:1px 0;border-radius:6px;color:var(--mut)}
+nav button.on{background:var(--bg3);color:var(--tx);box-shadow:inset 3px 0 0 var(--acc)}
+nav .sec{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#5d6780;margin:10px 9px 2px}
+#page{flex:1;overflow:auto;padding:14px 16px 40px}
+h2{margin:0 0 4px;font-size:19px}
+.sub{color:var(--mut);margin:0 0 12px}
+h3{margin:0 0 8px;font-size:13px;color:var(--acc2);text-transform:uppercase;letter-spacing:.06em}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:11px 12px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.grid .card{margin:0}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.prm{display:grid;grid-template-columns:128px 1fr 56px 18px;gap:6px;align-items:center;margin:3px 0}
+.prm label{color:var(--mut);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:help}
+.prm .val{font-variant-numeric:tabular-nums;text-align:right;font-size:12px}
+.prm .rst{border:0;background:none;padding:0;color:#5d6780;font-size:12px}
+.prm .rst:hover{color:var(--hot)}
+.prm.changed label{color:var(--tx)}
+.chips{display:flex;gap:5px;flex-wrap:wrap;margin:6px 0}
+.chip{font-size:11px;padding:2px 8px;border-radius:20px;background:var(--bg3);border:1px solid var(--line);cursor:pointer}
+.chip:hover{border-color:var(--hot)}
+.mut{color:var(--mut)}
+.small{font-size:11px}
+#viz{width:100%;height:230px;display:block;border-radius:8px;background:#090b10;border:1px solid var(--line)}
+.vizwrap{position:relative}
+#playhead{position:absolute;top:0;bottom:0;width:2px;background:var(--hot);display:none;pointer-events:none}
+.preset{display:flex;flex-direction:column;gap:6px}
+.preset .nm{font-weight:700}
+.preset .ds{color:var(--mut);font-size:12px;flex:1}
+.fx{border-left:3px solid var(--acc)}
+.fx.off{opacity:.55;border-left-color:#444}
+.fxhead{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.fxhead b{flex:1}
+table{border-collapse:collapse;width:100%}
+td,th{padding:4px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--mut);font-weight:600;font-size:12px}
+code,.mono{font-family:Consolas,"Cascadia Mono",monospace;font-size:12px}
+pre{background:#090b10;border:1px solid var(--line);border-radius:8px;padding:10px;overflow:auto;white-space:pre-wrap;font-family:Consolas,monospace;font-size:12px;margin:6px 0}
+.phw{display:inline-block;margin:3px 4px 3px 0;padding:3px 6px;background:var(--bg3);border-radius:6px}
+.phw b{display:block;font-size:12px}
+.phw span{font-family:Consolas,monospace;font-size:11px;color:var(--acc2)}
+.idea{display:flex;gap:8px;padding:4px 0;border-bottom:1px dashed var(--line)}
+.idea .st{width:62px;flex:none;font-size:11px;font-weight:700}
+.st.done{color:var(--ok)}.st.next{color:var(--warn)}
+#toast{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:#232a3a;border:1px solid var(--acc);padding:7px 14px;border-radius:8px;display:none;z-index:9;max-width:80%}
+.tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:10px;background:#283048;color:var(--acc);margin-right:3px}
+.libitem{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line)}
+.libitem .nm{flex:1}
+.fav{color:var(--warn)}
+.meter{height:8px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.meter i{display:block;height:100%;background:linear-gradient(90deg,var(--acc2),var(--acc))}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:900px){.two{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <span class="logo">🎙️ Voice Forge</span>
+  <input id="vname" title="This voice's name">
+  <button class="go" id="bSpeak" title="Speak the text (Ctrl+Enter)">▶ Speak</button>
+  <button id="bStop" title="Stop (Esc)">■</button>
+  <button id="bUndo" title="Undo (Ctrl+Z)">↶</button>
+  <button id="bRedo" title="Redo (Ctrl+Y)">↷</button>
+  <button class="pri" id="bSave" title="Save this voice to your library">💾 Save voice</button>
+  <button id="bNew" title="Start a new voice from scratch">＋ New</button>
+  <span id="status"></span>
+</header>
+<div id="main"><nav id="nav"></nav><section id="page"></section></div>
+<div id="toast"></div>
+
+<script id="rv-engine">
+/* Randis Voice Engine: a small, self-contained talking-voice synthesizer (formant synthesis, letter-to-sound rules,
+   prosody, ensemble and an effects rack). No downloads, no internet, no recordings of anyone: every voice is made from numbers.
+   Runs in any browser and in Node.js. Voice format: "randis-voice/1".
+   Randis UDS™ by Randy Moore. Original: https://github.com/RandyWilliamMoore/randis-uds · Support: https://ko-fi.com/moorescombinatoricsmatrix */
+(function(G){'use strict';
+var RV={version:'1.0.0',format:'randis-voice/1',
+  credit:'Randis UDS\u2122 by Randy Moore. Original: https://github.com/RandyWilliamMoore/randis-uds \u00b7 Support: https://ko-fi.com/moorescombinatoricsmatrix'};
+
+/* ---------- Voice controls ---------- */
+var P=RV.PARAMS={
+  pitch:{d:120,min:40,max:600,step:1,g:'Source',l:'Base pitch',u:'Hz',h:'How high or low the voice sits. Men ~85-155, women ~165-255, kids 250+.'},
+  wave:{d:'glottal',opts:['glottal','soft','saw','square','sine','buzz','pulse','noise'],g:'Source',l:'Sound source',h:'glottal and soft are a human throat. saw, square, sine, buzz, pulse and noise are synth and robot sources.'},
+  tension:{d:.5,min:0,max:1,step:.01,g:'Source',l:'Vocal tension',h:'Low = soft, relaxed, dark. High = pressed, bright, edgy.'},
+  breath:{d:.08,min:0,max:1,step:.01,g:'Source',l:'Breathiness',h:'Air mixed into the voice.'},
+  whisper:{d:0,min:0,max:1,step:.01,g:'Source',l:'Whisper',h:'1 = all whisper, no voice.'},
+  jitter:{d:.01,min:0,max:.2,step:.001,g:'Source',l:'Jitter',h:'Tiny random pitch wobble per vocal cycle. Higher = rough, old, nervous.'},
+  shimmer:{d:.04,min:0,max:.6,step:.01,g:'Source',l:'Shimmer',h:'Tiny random loudness wobble per cycle. Higher = raspy.'},
+  creak:{d:0,min:0,max:1,step:.01,g:'Source',l:'Vocal fry / creak',h:'Creaky, gravelly low end.'},
+  vibRate:{d:5.5,min:0,max:12,step:.1,g:'Source',l:'Vibrato speed',u:'Hz',h:'How fast the vibrato wobbles.'},
+  vibDepth:{d:0,min:0,max:2,step:.01,g:'Source',l:'Vibrato depth',u:'st',h:'How wide the vibrato is, in semitones.'},
+  tract:{d:1,min:.6,max:1.6,step:.01,g:'Throat & mouth',l:'Head size',h:'Moves all formants. Above 1 = smaller head (child, cartoon). Below 1 = bigger (giant).'},
+  f1:{d:0,min:-300,max:300,step:1,g:'Throat & mouth',l:'Formant 1 shift',u:'Hz',h:'Jaw openness color.'},
+  f2:{d:0,min:-600,max:600,step:1,g:'Throat & mouth',l:'Formant 2 shift',u:'Hz',h:'Tongue front/back color. Up = brighter, down = darker.'},
+  f3:{d:0,min:-800,max:800,step:1,g:'Throat & mouth',l:'Formant 3 shift',u:'Hz',h:'Lip and r-color.'},
+  bw:{d:1,min:.3,max:3,step:.01,g:'Throat & mouth',l:'Formant width',h:'Low = ringing, hollow, metallic. High = muffled, soft.'},
+  nasal:{d:0,min:0,max:1,step:.01,g:'Throat & mouth',l:'Nasality',h:'Talking through the nose.'},
+  precision:{d:.5,min:0,max:1,step:.01,g:'Throat & mouth',l:'Articulation',h:'How crisply it moves between sounds. Low = mumbly, high = crisp.'},
+  fric:{d:1,min:0,max:2,step:.01,g:'Throat & mouth',l:'Consonant strength',h:'Loudness of s, sh, f, t, k and friends.'},
+  sib:{d:1,min:.5,max:1.6,step:.01,g:'Throat & mouth',l:'Sibilance pitch',h:'How high the hiss of s and sh sits.'},
+  rate:{d:1,min:.3,max:3,step:.01,g:'Delivery',l:'Speed',h:'Speaking speed.'},
+  range:{d:.35,min:0,max:1.5,step:.01,g:'Delivery',l:'Expressiveness',h:'How much the pitch moves. 0 = monotone.'},
+  declin:{d:.25,min:0,max:1,step:.01,g:'Delivery',l:'Downdrift',h:'How much pitch falls across a sentence.'},
+  question:{d:.6,min:0,max:1.5,step:.01,g:'Delivery',l:'Question rise',h:'How much the pitch rises at a ?'},
+  stress:{d:.6,min:0,max:1.5,step:.01,g:'Delivery',l:'Word stress',h:'How much important words pop.'},
+  energy:{d:.5,min:0,max:1,step:.01,g:'Delivery',l:'Loud/soft contrast',h:'How much quieter unstressed sounds are.'},
+  pitchRand:{d:.15,min:0,max:1.5,step:.01,g:'Delivery',l:'Melody wander',h:'Random pitch per syllable. High = sing-song or wild.'},
+  quant:{d:0,min:0,max:1,step:.01,g:'Delivery',l:'Robo-tune',h:'Snaps pitch to musical notes. 1 = hard auto-tune.'},
+  commaPause:{d:170,min:0,max:1000,step:5,g:'Delivery',l:'Comma pause',u:'ms',h:'Pause at , ; and dashes.'},
+  stopPause:{d:380,min:0,max:2000,step:5,g:'Delivery',l:'Sentence pause',u:'ms',h:'Pause at . ! and ?'},
+  wordGap:{d:0,min:0,max:400,step:5,g:'Delivery',l:'Word gap',u:'ms',h:'Extra silence between words (robotic, spelled-out feel).'},
+  voices:{d:1,min:1,max:8,step:1,g:'Ensemble',l:'Unison voices',h:'Stack copies of the voice for a choir or crowd.'},
+  detune:{d:12,min:0,max:100,step:1,g:'Ensemble',l:'Unison detune',u:'cents',h:'How far apart the stacked voices are.'},
+  harm1:{d:-12,min:-24,max:24,step:1,g:'Ensemble',l:'Harmony 1 interval',u:'st',h:'A second voice this many semitones away (-12 = octave down).'},
+  harm1Mix:{d:0,min:0,max:1,step:.01,g:'Ensemble',l:'Harmony 1 level'},
+  harm2:{d:7,min:-24,max:24,step:1,g:'Ensemble',l:'Harmony 2 interval',u:'st',h:'7 = a fifth up, 12 = an octave up.'},
+  harm2Mix:{d:0,min:0,max:1,step:.01,g:'Ensemble',l:'Harmony 2 level'},
+  gain:{d:0,min:-24,max:12,step:.5,g:'Output',l:'Loudness',u:'dB',h:'Final volume. Above 0 pushes into a soft limiter.'},
+  sr:{d:24000,opts:[16000,22050,24000,32000,44100,48000],g:'Output',l:'Sample rate',u:'Hz',h:'Higher = brighter and bigger files. 16000 is lo-fi.'}
+};
+RV.GROUPS=['Source','Throat & mouth','Delivery','Ensemble','Output'];
+
+/* ---------- Effects rack ---------- */
+RV.FX={
+  eq:{l:'Equalizer',p:{low:[0,-18,18,.5,'Low (250 Hz)','dB'],mid:[0,-18,18,.5,'Mid','dB'],midF:[1500,300,6000,10,'Mid frequency','Hz'],high:[0,-18,18,.5,'High (5 kHz)','dB']}},
+  filter:{l:'Filter',p:{mode:[['lowpass','highpass','bandpass','notch'],'Type'],freq:[3000,50,12000,10,'Frequency','Hz'],q:[.7,.1,20,.1,'Resonance']}},
+  pitch:{l:'Pitch shifter',p:{semi:[0,-24,24,.1,'Shift','st'],mix:[1,0,1,.01,'Mix']}},
+  ring:{l:'Robot (ring mod)',p:{freq:[60,1,2000,1,'Frequency','Hz'],mix:[.6,0,1,.01,'Mix']}},
+  crush:{l:'Bit crusher',p:{bits:[8,1,16,1,'Bits'],down:[2,1,32,1,'Downsample'],mix:[1,0,1,.01,'Mix']}},
+  drive:{l:'Distortion',p:{amount:[.3,0,1,.01,'Drive'],mix:[1,0,1,.01,'Mix']}},
+  chorus:{l:'Chorus',p:{rate:[.8,.05,8,.01,'Rate','Hz'],depth:[6,.5,25,.1,'Depth','ms'],mix:[.5,0,1,.01,'Mix']}},
+  flanger:{l:'Flanger',p:{rate:[.3,.05,5,.01,'Rate','Hz'],depth:[3,.2,10,.1,'Depth','ms'],fb:[.6,0,.95,.01,'Feedback'],mix:[.5,0,1,.01,'Mix']}},
+  tremolo:{l:'Tremolo',p:{rate:[6,.1,30,.1,'Rate','Hz'],depth:[.5,0,1,.01,'Depth']}},
+  echo:{l:'Echo',p:{time:[250,10,1500,1,'Time','ms'],fb:[.35,0,.95,.01,'Repeats'],mix:[.3,0,1,.01,'Level']}},
+  reverb:{l:'Reverb',p:{size:[.6,0,1,.01,'Room size'],damp:[.4,0,1,.01,'Damping'],mix:[.25,0,1,.01,'Mix']}},
+  radio:{l:'Radio / phone',p:{low:[300,50,2000,10,'Low cut','Hz'],high:[3400,800,8000,10,'High cut','Hz'],grit:[.3,0,1,.01,'Grit'],noise:[.02,0,.2,.001,'Static']}},
+  comp:{l:'Compressor',p:{thresh:[-18,-60,0,.5,'Threshold','dB'],ratio:[4,1,20,.1,'Ratio'],makeup:[6,0,24,.5,'Makeup','dB']}},
+  gain:{l:'Gain',p:{db:[0,-24,24,.5,'Gain','dB']}}
+};
+RV.fxDefaults=function(type){var d={type:type,on:true},p=(RV.FX[type]||{p:{}}).p;for(var k in p){var v=p[k][0];d[k]=Array.isArray(v)?v[0]:v}return d};
+
+/* ---------- Helpers ---------- */
+function rng(seed){var a=seed>>>0||1;return function(){a=(a+0x6D2B79F5)>>>0;var t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296}}
+function hash(s){s=String(s||'');var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+function clamp(v,a,b){return v<a?a:v>b?b:v}
+RV.defaults=function(){var o={};for(var k in P)o[k]=P[k].d;return o};
+RV.newVoice=function(name){return{format:RV.format,name:name||'New voice',version:'1.0',author:'',license:'CC0-1.0',description:'',tags:[],synthetic:true,
+  engine:'forge',params:RV.defaults(),fx:[],dict:{},system:{voice:'',rate:1,pitch:1,volume:1},created:Date.now()}};
+RV.clean=function(v){v=v||{};var o=RV.newVoice(v.name);for(var k in v)if(k!=='params')o[k]=v[k];o.format=RV.format;
+  var src=v.params||{};for(var q in P){var d=P[q],x=src[q];if(d.opts){o.params[q]=d.opts.indexOf(x)>=0?x:(d.opts.indexOf(+x)>=0?+x:d.d)}else{x=+x;o.params[q]=isFinite(x)?clamp(x,d.min,d.max):d.d}}
+  o.fx=(Array.isArray(v.fx)?v.fx:[]).filter(function(f){return f&&RV.FX[f.type]}).map(function(f){return Object.assign(RV.fxDefaults(f.type),f)});
+  o.dict=(v.dict&&typeof v.dict==='object')?v.dict:{};o.system=Object.assign({voice:'',rate:1,pitch:1,volume:1},v.system||{});
+  o.tags=Array.isArray(v.tags)?v.tags:[];return o};
+
+/* ---------- Phonemes (ARPAbet) ---------- */
+var PH={};
+function def(n,t,F,dur,o){PH[n]=Object.assign({t:t,F:F,dur:dur},o||{})}
+def('IY','v',[270,2290,3010],110);def('IH','v',[390,1990,2550],80);def('EH','v',[530,1840,2480],90);def('AE','v',[660,1720,2410],120);
+def('AA','v',[730,1090,2440],120);def('AO','v',[570,840,2410],120);def('UH','v',[440,1020,2240],80);def('UW','v',[300,870,2240],110);
+def('AH','v',[640,1190,2390],85);def('AX','v',[500,1450,2450],55);def('ER','v',[490,1350,1690],110);
+def('EY','d',[480,1720,2520],140,{E:[330,2200,2600]});def('AY','d',[660,1200,2550],160,{E:[400,1900,2600]});
+def('OW','d',[540,1100,2300],140,{E:[450,900,2300]});def('AW','d',[700,1220,2600],160,{E:[450,1000,2300]});
+def('OY','d',[550,960,2400],170,{E:[360,1820,2450]});
+def('L','l',[360,1300,2700],65);def('R','l',[330,1060,1380],70);def('W','l',[290,610,2150],60);def('Y','l',[260,2070,3020],55);
+def('M','n',[480,1270,2130],70);def('N','n',[480,1340,2470],65);def('NG','n',[480,2000,2600],75);
+def('F','f',[340,1100,2080],100,{af:.35,ff:5500,fb:4000});def('TH','f',[320,1290,2540],90,{af:.22,ff:4500,fb:4000});
+def('S','f',[320,1390,2530],110,{af:.9,ff:6200,fb:1600});def('SH','f',[300,1840,2750],110,{af:.85,ff:3000,fb:1400});
+def('HH','h',[500,1500,2500],60);
+def('V','z',[220,1100,2080],65,{av:.55,af:.2,ff:5000,fb:4000});def('DH','z',[270,1290,2540],50,{av:.55,af:.15,ff:4500,fb:4000});
+def('Z','z',[240,1390,2530],80,{av:.45,af:.55,ff:6000,fb:1600});def('ZH','z',[300,1840,2750],75,{av:.45,af:.5,ff:3000,fb:1400});
+def('P','s',[400,1100,2150],80,{burst:.5,ff:1200,fb:2500});def('T','s',[400,1600,2600],75,{burst:.6,ff:4200,fb:3000});
+def('K','s',[300,1990,2850],80,{burst:.6,ff:2300,fb:1600});def('B','b',[200,1100,2150],65,{burst:.3,ff:1200,fb:2500});
+def('D','b',[200,1600,2600],60,{burst:.35,ff:4000,fb:3000});def('G','b',[200,1990,2850],65,{burst:.35,ff:2300,fb:1600});
+def('CH','a',null,0,{parts:['T','SH'],scale:[.55,.6]});def('JH','a',null,0,{parts:['D','ZH'],scale:[.55,.65]});
+RV.PHONEMES=PH;
+RV.PH_EXAMPLES={IY:'see',IH:'sit',EH:'bed',AE:'cat',AA:'father',AO:'law',UH:'book',UW:'blue',AH:'cup',AX:'about',ER:'bird',EY:'day',AY:'my',OW:'go',AW:'now',OY:'boy',
+  L:'let',R:'red',W:'we',Y:'yes',M:'me',N:'no',NG:'sing',F:'fan',TH:'thin',S:'see',SH:'she',HH:'hat',V:'van',DH:'this',Z:'zoo',ZH:'measure',
+  P:'pen',T:'top',K:'cat',B:'bat',D:'dog',G:'go',CH:'chin',JH:'jam'};
+var VIS={AA:'A',AE:'A',AH:'A',AY:'A',AW:'A',AX:'A',EH:'E',EY:'E',IH:'E',IY:'E',Y:'E',AO:'O',OW:'O',OY:'O',UW:'U',UH:'U',W:'U',ER:'R',R:'R',
+  M:'MBP',B:'MBP',P:'MBP',F:'FV',V:'FV',L:'L',TH:'TH',DH:'TH',_:'rest'};
+RV.viseme=function(ph){return VIS[ph]||'etc'};
+
+/* ---------- Letter-to-sound rules (after the US Naval Research Lab rules, 1976) ---------- */
+var RULES_TXT=
+'_|ARE|_|AA R\n_|AR|O|AX R\n|AR|#|EH R\n^|AS|#|EY S\n|A|WA|AX\n|AW||AO\n_:|ANY||EH N IY\n|A|^+#|EY\n#:|ALLY||AX L IY\n_|AL|#|AX L\n_|AGAIN||AX G EH N\n#:|AG|E|IH JH\n|A|^+:#|AE\n_:|A|^+_|EY\n|A|^%|EY\n_|ARR||AX R\n|ARR||AE R\n_:|AR|_|AA R\n|AR|_|ER\n|AR||AA R\n|AIR||EH R\n|AI||EY\n|AY||EY\n|AU||AO\n#:|AL|_|AX L\n#:|ALS|_|AX L Z\n|ALK||AO K\n|AL|^|AO L\n_:|ABLE||EY B AX L\n|ABLE||AX B AX L\n|ANG|+|EY N JH\n|A||AE\n'+
+'_|BE|^#|B IH\n|BEING||B IY IH NG\n_|BOTH|_|B OW TH\n_|BUS|#|B IH Z\n|BUIL||B IH L\n|B||B\n'+
+'_|CH|^|K\n^E|CH||K\n|CH||CH\n_S|CI|#|S AY\n|CI|A|SH\n|CI|O|SH\n|CI|EN|SH\n|C|+|S\n|CK||K\n|COM|%|K AH M\n|C||K\n'+
+'#:|DED|_|D IH D\n.E|D|_|D\n#^:E|D|_|T\n_|DE|^#|D IH\n_|DO|_|D UW\n_|DOES||D AH Z\n_|DOING||D UW IH NG\n_|DOW||D AW\n|DU|A|JH UW\n|D||D\n'+
+'#:|E|_|\n\'^:|E|_|\n_:|E|_|IY\n#|ED|_|D\n#:|E|D_|\n|EV|ER|EH V\n|E|^%|IY\n|ERI|#|IY R IY\n|ERI||EH R IH\n#:|ER|#|ER\n|ER|#|EH R\n|ER||ER\n_|EVEN||IY V EH N\n#:|E|W|\n@|EW||UW\n|EW||Y UW\n|E|O|IY\n#:&|ES|_|IH Z\n#:|E|S_|\n#:|ELY|_|L IY\n#:|EMENT||M EH N T\n|EFUL||F UH L\n|EE||IY\n|EARN||ER N\n_|EAR|^|ER\n|EAD||EH D\n#:|EA|_|IY AX\n|EA|SU|EH\n|EA||IY\n|EIGH||EY\n|EI||IY\n_|EYE||AY\n|EY||IY\n|EU||Y UW\n|E||EH\n'+
+'|FUL||F UH L\n|F||F\n'+
+'|GIV||G IH V\n_|G|I^|G\n|GE|T|G EH\nSU|GGES||G JH EH S\n|GG||G\n_B#|G||G\n|G|+|JH\n|GREAT||G R EY T\n#|GH||\n|G||G\n'+
+'_|HAV||HH AE V\n_|HERE||HH IY R\n_|HOUR||AW ER\n|HOW||HH AW\n|H|#|HH\n|H||\n'+
+'_|IN||IH N\n_|I|_|AY\n|IN|D|AY N\n|IER||IY ER\n#:R|IED||IY D\n|IED|_|AY D\n|IEN||IY EH N\n|IE|T|AY EH\n_:|I|%|AY\n|I|%|IY\n|IE||IY\n|I|^+:#|IH\n|IR|#|AY R\n|IZ|%|AY Z\n|IS|%|AY Z\n|I|D%|AY\n+^|I|^+|IH\n|I|T%|AY\n#^:|I|^+|IH\n|I|^+|AY\n|IR||ER\n|IGH||AY\n|ILD||AY L D\n|IGN|_|AY N\n|IGN|^|AY N\n|IGN|%|AY N\n|IQUE||IY K\n|I||IH\n'+
+'|J||JH\n|BB||B\n|DD||D\n|FF||F\n|MM||M\n|NN||N\n|TT||T\n|ZZ||Z\n|RR||R\n'+
+'_|K|N|\n|K||K\n'+
+'|LO|C#|L OW\nL|L||\n#^:|L|%|AX L\n|LEAD||L IY D\n|L||L\n'+
+'|MOV||M UW V\n|M||M\n'+
+'E|NG|+|N JH\n|NG|R|NG G\n|NG|#|NG G\n|NGL|%|NG G AX L\n|NG||NG\n|NK||NG K\n_|NOW|_|N AW\n|N||N\n'+
+'|OF|_|AX V\n|OROUGH||ER OW\n#:|OR|_|ER\n#:|ORS|_|ER Z\n|OR||AO R\n_|ONE||W AH N\n|OW||OW\n_|OVER||OW V ER\n|OV||AH V\n|O|^%|OW\n|O|^EN|OW\n|O|^I#|OW\n|OL|D|OW L\n|OUGHT||AO T\n|OUGH||AH F\n_|OU||AW\nH|OU|S#|AW\n|OUS||AX S\n|OUR||AO R\n|OULD||UH D\n^|OU|^L|AH\n|OUP||UW P\n|OU||AW\n|OY||OY\n|OING||OW IH NG\n|OI||OY\n|OOR||AO R\n|OOK||UH K\n|OOD||UH D\n|OO||UW\n|O|E|OW\n|O|_|OW\n|OA||OW\n_|ONLY||OW N L IY\n_|ONCE||W AH N S\n|ON\'T||OW N T\nC|O|N|AA\n|O|NG|AO\n_:^|O|N|AH\nI|ON||AX N\n#:|ON|_|AX N\n#^|ON||AX N\n|O|ST_|OW\n|OF|^|AO F\n|OTHER||AH DH ER\n|OSS|_|AO S\n#^:|OM||AH M\n|O||AA\n'+
+'|PH||F\n|PP||P\n|PEOP||P IY P\n|POW||P AW\n|PUT|_|P UH T\n|P||P\n'+
+'|QUAR||K W AO R\n|QU||K W\n|Q||K\n'+
+'_|RE|^#|R IY\n|R||R\n'+
+'|SH||SH\n#|SION||ZH AX N\n|SOME||S AH M\n#|SUR|#|ZH ER\n|SUR|#|SH ER\n#|SU|#|ZH UW\n#|SSU|#|SH UW\n#|SED|_|Z D\n#|S|#|Z\n|SAID||S EH D\n^|SION||SH AX N\n|S|S|\n.|S|_|Z\n#:.E|S|_|Z\n#^:##|S|_|Z\n#^:#|S|_|S\nU|S|_|S\n_:#|S|_|Z\n_|SCH||S K\n|S|C+|\n#|SM||Z M\n#|SN|\'|Z AX N\n|S||S\n'+
+'_|THE|_|DH AX\n|TO|_|T UW\n|THAT|_|DH AE T\n_|THIS|_|DH IH S\n_|THEY||DH EY\n_|THERE||DH EH R\n|THER||DH ER\n|THEIR||DH EH R\n_|THAN|_|DH AE N\n_|THEM|_|DH EH M\n|THESE|_|DH IY Z\n_|THEN||DH EH N\n|THROUGH||TH R UW\n|THOSE||DH OW Z\n|THOUGH|_|DH OW\n_|THUS||DH AH S\n|TH||TH\n#:|TED|_|T IH D\nS|TI|#N|CH\n|TI|O|SH\n|TI|A|SH\n|TIEN||SH AX N\n|TUR|#|CH ER\n|TU|A|CH UW\n_|TWO||T UW\n|T||T\n'+
+'_|UN|I|Y UW N\n_|UN||AH N\n_|UPON||AX P AO N\n@|UR|#|UH R\n|UR|#|Y UH R\n|UR||ER\n|U|^_|AH\n|U|^^|AH\n|UY||AY\n_G|U|#|\nG|U|%|\nG|U|#|W\n#N|U||Y UW\n@|U||UW\n|U||Y UW\n'+
+'|VIEW||V Y UW\n|V||V\n'+
+'_|WERE||W ER\n|WA|S|W AA\n|WA|T|W AA\n|WHERE||W EH R\n|WHAT||W AA T\n|WHOL||HH OW L\n|WHO||HH UW\n|WH||W\n|WAR||W AO R\n|WOR|^|W ER\n|WR||R\n|W||W\n'+
+'|X||K S\n'+
+'|YOUNG||Y AH NG\n_|YOU||Y UW\n_|YES||Y EH S\n_|Y||Y\n#^:|Y|_|IY\n#^:|Y|I|IY\n_:|Y|_|AY\n_:|Y|#|AY\n_:|Y|^+:#|IH\n_:|Y|^#|AY\n|Y||IH\n'+
+'|Z||Z';
+var RULES={};
+RULES_TXT.split('\n').forEach(function(line){if(!line)return;var a=line.split('|');var m=a[1];(RULES[m[0]]=RULES[m[0]]||[]).push({l:a[0],m:m,r:a[2],o:a[3]?a[3].split(' '):[]})});
+var VOW='AEIOUY',CONS='BCDFGHJKLMNPQRSTVWXZ',VOICED='BDVGJLMNRWZ',FRONT='EIY';
+function isLet(c){return !!c&&((c>='A'&&c<='Z')||c==="'")}
+function leftOk(pat,w,i){
+  for(var k=pat.length-1;k>=0;k--){var p=pat[k],c=w[i]||'';
+    if(p==='#'){if(!c||VOW.indexOf(c)<0)return false;while(w[i]&&VOW.indexOf(w[i])>=0)i--}
+    else if(p===':'){while(w[i]&&CONS.indexOf(w[i])>=0)i--}
+    else if(p==='^'){if(!c||CONS.indexOf(c)<0)return false;i--}
+    else if(p==='.'){if(!c||VOICED.indexOf(c)<0)return false;i--}
+    else if(p==='+'){if(!c||FRONT.indexOf(c)<0)return false;i--}
+    else if(p==='&'){if(c&&'SCGZXJ'.indexOf(c)>=0){i--}else if(c==='H'&&w[i-1]&&'CS'.indexOf(w[i-1])>=0){i-=2}else return false}
+    else if(p==='@'){if(c&&'TSRDLZNJ'.indexOf(c)>=0){i--}else if(c==='H'&&w[i-1]&&'TCS'.indexOf(w[i-1])>=0){i-=2}else return false}
+    else if(p==='_'){if(isLet(c))return false;i--}
+    else{if(c!==p)return false;i--}}
+  return true}
+function rightOk(pat,w,i){
+  for(var k=0;k<pat.length;k++){var p=pat[k],c=w[i]||'';
+    if(p==='#'){if(!c||VOW.indexOf(c)<0)return false;while(w[i]&&VOW.indexOf(w[i])>=0)i++}
+    else if(p===':'){while(w[i]&&CONS.indexOf(w[i])>=0)i++}
+    else if(p==='^'){if(!c||CONS.indexOf(c)<0)return false;i++}
+    else if(p==='.'){if(!c||VOICED.indexOf(c)<0)return false;i++}
+    else if(p==='+'){if(!c||FRONT.indexOf(c)<0)return false;i++}
+    else if(p==='%'){var s=w.substr(i,3);if(s==='ING'||s==='ELY'){i+=3}else{s=w.substr(i,2);if(s==='ER'||s==='ES'||s==='ED'){i+=2}else if(c==='E'){i++}else return false}}
+    else if(p==='_'){if(isLet(c))return false;i++}
+    else{if(c!==p)return false;i++}}
+  return true}
+RV.lts=function(word){var w=' '+String(word).toUpperCase().replace(/[^A-Z']/g,'')+' ',i=1,out=[];
+  while(i<w.length-1){var c=w[i],rs=RULES[c],hit=false;
+    if(rs)for(var j=0;j<rs.length;j++){var r=rs[j];if(w.substr(i,r.m.length)===r.m&&leftOk(r.l,w,i-1)&&rightOk(r.r,w,i+r.m.length)){out.push.apply(out,r.o);i+=r.m.length;hit=true;break}}
+    if(!hit)i++}
+  return out};
+
+var DICT_TXT='a:AX|the:DH AX|of:AH V|to:T UW|do:D UW|does:D AH Z|done:D AH N|you:Y UW|your:Y AO R|are:AA R|was:W AA Z|were:W ER|is:IH Z|his:HH IH Z|has:HH AE Z|as:AE Z|'+
+'one:W AH N|two:T UW|once:W AH N S|said:S EH D|says:S EH Z|been:B IH N|have:HH AE V|give:G IH V|live:L IH V|love:L AH V|some:S AH M|come:K AH M|gone:G AO N|move:M UW V|'+
+'who:HH UW|whose:HH UW Z|what:W AH T|where:W EH R|there:DH EH R|their:DH EH R|they:DH EY|eye:AY|i:AY|my:M AY|by:B AY|buy:B AY|why:W AY|hello:HH AH L OW|voice:V OY S|voices:V OY S IH Z|'+
+'randis:R AE N D IH S|uds:Y UW D IY EH S|forge:F AO R JH|ai:EY AY|okay:OW K EY|ok:OW K EY|any:EH N IY|many:M EH N IY|again:AX G EH N|because:B IH K AH Z|door:D AO R|floor:F L AO R|'+
+'four:F AO R|our:AW ER|hour:AW ER|could:K UH D|would:W UH D|should:SH UH D|friend:F R EH N D|friends:F R EH N D Z|people:P IY P AX L|women:W IH M IH N|woman:W UH M AX N|world:W ER L D|'+
+'work:W ER K|word:W ER D|words:W ER D Z|water:W AO T ER|only:OW N L IY|other:AH DH ER|mother:M AH DH ER|brother:B R AH DH ER|today:T AX D EY|tomorrow:T AX M AA R OW|welcome:W EH L K AH M|'+
+'from:F R AH M|want:W AA N T|very:V EH R IY|every:EH V R IY|sure:SH UH R|laugh:L AE F|enough:IH N AH F|through:TH R UW|though:DH OW|thought:TH AO T|great:G R EY T|break:B R EY K|'+
+'heart:HH AA R T|learn:L ER N|machine:M AX SH IY N|robot:R OW B AA T|robots:R OW B AA T S|data:D EY T AX|hi:HH AY|yes:Y EH S|no:N OW|go:G OW|so:S OW|be:B IY|he:HH IY|she:SH IY|we:W IY|me:M IY|'+
+'and:AE N D|for:F AO R|or:AO R|not:N AA T|with:W IH DH|this:DH IH S|that:DH AE T|it:IH T|in:IH N|on:AA N|at:AE T|an:AE N|can:K AE N|will:W IH L|app:AE P|apps:AE P S|'+
+'computer:K AH M P Y UW T ER|music:M Y UW Z IH K|design:D IH Z AY N|studio:S T UW D IY OW|suite:S W IY T|create:K R IY EY T|sound:S AW N D|sounds:S AW N D Z|speech:S P IY CH|speak:S P IY K|'+
+'human:HH Y UW M AX N|future:F Y UW CH ER|beautiful:B Y UW T IH F UH L|quick:K W IH K|brown:B R AW N|fox:F AA K S|jumps:JH AH M P S|over:OW V ER|lazy:L EY Z IY|dog:D AO G|good:G UH D|'+
+'morning:M AO R N IH NG|night:N AY T|thank:TH AE NG K|thanks:TH AE NG K S|please:P L IY Z|know:N OW|new:N UW|news:N UW Z|here:HH IY R|see:S IY|like:L AY K|make:M EY K|time:T AY M|'+
+'take:T EY K|use:Y UW Z|about:AX B AW T|into:IH N T UW|more:M AO R|all:AO L|out:AW T|now:N AW|how:HH AW|day:D EY|way:W EY|these:DH IY Z|those:DH OW Z|think:TH IH NG K|little:L IH T AX L|'+
+'after:AE F T ER|first:F ER S T|also:AO L S OW|well:W EH L|just:JH AH S T|level:L EH V AX L|system:S IH S T AX M|hey:HH EY|duck:D AH K|rubber:R AH B ER|sing:S IH NG|song:S AO NG|'+
+'don\'t:D OW N T|can\'t:K AE N T|won\'t:W OW N T|isn\'t:IH Z AX N T|didn\'t:D IH D AX N T|doesn\'t:D AH Z AX N T|i\'m:AY M|it\'s:IH T S|that\'s:DH AE T S|let\'s:L EH T S|you\'re:Y UH R|'+
+'we\'re:W IY R|they\'re:DH EH R|i\'ll:AY L|you\'ll:Y UW L|i\'ve:AY V|aren\'t:AA R N T|couldn\'t:K UH D AX N T|wouldn\'t:W UH D AX N T|shouldn\'t:SH UH D AX N T|wasn\'t:W AA Z AX N T|'+
+'portable:P AO R T AX B AX L|everyone:EH V R IY W AH N|everything:EH V R IY TH IH NG|universal:Y UW N IH V ER S AX L|wizard:W IH Z ER D|captain:K AE P T AX N|station:S T EY SH AX N|'+
+'listen:L IH S AX N|ready:R EH D IY|hear:HH IY R|year:Y IH R|years:Y IH R Z|player:P L EY ER|game:G EY M|games:G EY M Z|warning:W AO R N IH NG|danger:D EY N JH ER|space:S P EY S|'+
+'magic:M AE JH IH K|dragon:D R AE G AX N|princess:P R IH N S EH S|kingdom:K IH NG D AX M|ancient:EY N SH AX N T|monster:M AA N S T ER|alien:EY L IY AX N|ghost:G OW S T|'+
+'adventure:AE D V EH N CH ER|treasure:T R EH ZH ER|pleasure:P L EH ZH ER|nature:N EY CH ER|picture:P IH K CH ER|engine:EH N JH IH N|online:AA N L AY N|offline:AO F L AY N|happen:HH AE P AX N|happened:HH AE P AX N D|pirate:P AY R AX T|singing:S IH NG IH NG';
+var DICT={};DICT_TXT.split('|').forEach(function(e){var i=e.indexOf(':');DICT[e.slice(0,i)]=e.slice(i+1)});
+RV.DICT=DICT;
+var LETTERS={A:'EY',B:'B IY',C:'S IY',D:'D IY',E:'IY',F:'EH F',G:'JH IY',H:'EY CH',I:'AY',J:'JH EY',K:'K EY',L:'EH L',M:'EH M',N:'EH N',O:'OW',P:'P IY',
+  Q:'K Y UW',R:'AA R',S:'EH S',T:'T IY',U:'Y UW',V:'V IY',W:'D AH B AX L Y UW',X:'EH K S',Y:'W AY',Z:'Z IY'};
+function spell(w){var o=[];w.toUpperCase().replace(/[^A-Z]/g,'').split('').forEach(function(c){o.push.apply(o,LETTERS[c].split(' '))});return o}
+function phList(s){return String(s).toUpperCase().split(/[\s,]+/).filter(function(x){return PH[x]})}
+function wordPh(w,dict){var lw=w.toLowerCase(),u=(dict&&dict[lw])||DICT[lw];if(u)return phList(u);
+  var m=/^(.*)'s$/.exec(lw);if(m&&m[1]){var b=wordPh(m[1],dict),last=b[b.length-1];return b.concat(/^(S|Z|SH|ZH|CH|JH)$/.test(last)?['IH','Z']:/^(P|T|K|F|TH)$/.test(last)?['S']:['Z'])}
+  if(w.length>1&&w.length<=5&&w===w.toUpperCase()&&/[A-Z]/.test(w))return spell(w);
+  if(lw.length>1&&!/[aeiouy]/.test(lw))return spell(w);
+  return RV.lts(lw.replace(/'/g,''))}
+RV.wordPhonemes=function(w,dict){return wordPh(w,dict)};
+
+/* ---------- Text clean-up: numbers, symbols, abbreviations ---------- */
+var ONES='zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen'.split(' ');
+var TENS=',,twenty,thirty,forty,fifty,sixty,seventy,eighty,ninety'.split(',');
+function num(n){if(n<20)return ONES[n];if(n<100)return TENS[Math.floor(n/10)]+(n%10?' '+ONES[n%10]:'');if(n<1000)return ONES[Math.floor(n/100)]+' hundred'+(n%100?' '+num(n%100):'');
+  var big=[[1e9,'billion'],[1e6,'million'],[1e3,'thousand']];for(var i=0;i<3;i++)if(n>=big[i][0])return num(Math.floor(n/big[i][0]))+' '+big[i][1]+(n%big[i][0]?' '+num(n%big[i][0]):'');return ''}
+function numWords(s){var n=parseInt(s,10);if(s.length>12)return s.split('').map(function(d){return ONES[+d]}).join(' ');
+  if(s.length===4&&n>=1100&&n<2100&&!(n>=2000&&n<2010)&&n%100!==0)return num(Math.floor(n/100))+' '+(n%100<10?'oh '+ONES[n%100]:num(n%100));
+  return num(n)}
+function ordinal(w){var m={one:'first',two:'second',three:'third',five:'fifth',eight:'eighth',nine:'ninth',twelve:'twelfth'};var p=w.split(' '),l=p.pop();
+  l=m[l]||(/y$/.test(l)?l.slice(0,-1)+'ieth':l+'th');p.push(l);return p.join(' ')}
+var ABBR={'mr.':'mister','mrs.':'missus','ms.':'miz','dr.':'doctor','st.':'saint','vs.':'versus','etc.':'et cetera','e.g.':'for example','i.e.':'that is','jr.':'junior','sr.':'senior','no.':'number','approx.':'approximately'};
+RV.normalize=function(t){t=String(t);
+  t=t.replace(/\b(mr|mrs|ms|dr|st|vs|etc|jr|sr|no|approx)\.(?=\s)/gi,function(a){return ABBR[a.toLowerCase()]||a}).replace(/\be\.g\./gi,'for example').replace(/\bi\.e\./gi,'that is');
+  t=t.replace(/(\d),(?=\d{3})/g,'$1');
+  t=t.replace(/\$(\d+)(?:\.(\d\d))?/g,function(a,d,c){return d+' dollars'+(c&&+c?' and '+c+' cents':'')});
+  t=t.replace(/(\d+)%/g,'$1 percent').replace(/(\d+)(st|nd|rd|th)\b/gi,function(a,d){return ordinal(numWords(d))});
+  t=t.replace(/(\d+)\.(\d+)/g,function(a,x,y){return numWords(x)+' point '+y.split('').map(function(d){return ONES[+d]}).join(' ')});
+  t=t.replace(/\d+/g,function(d){return ' '+numWords(d)+' '});
+  t=t.replace(/&/g,' and ').replace(/@/g,' at ').replace(/\+/g,' plus ').replace(/=/g,' equals ').replace(/#/g,' number ').replace(/\//g,' slash ');
+  return t};
+
+/* ---------- Markup ---------- */
+var NV={laugh:{ph:['HH','AE','HH','AE','HH','AE'],wh:.45,rate:1.4,semi:3},sigh:{ph:['HH','HH','AA','AA'],wh:.9,rate:.5,semi:-2},hmm:{ph:['M','M','M','M'],wh:0,rate:.6,semi:0},
+  breath:{ph:['HH','HH','HH'],wh:1,rate:.6,semi:0},gasp:{ph:['HH','AA'],wh:1,rate:1.5,semi:4},ahem:{ph:['AX','HH','EH','M'],wh:.2,rate:1,semi:0}};
+function noteHz(s){var m=/^([A-Ga-g])([#b]?)(-?\d)$/.exec(String(s).trim());if(!m){var f=parseFloat(s);return f>20?f:0}
+  var n={C:0,D:2,E:4,F:5,G:7,A:9,B:11}[m[1].toUpperCase()]+(m[2]==='#'?1:m[2]==='b'?-1:0);return 440*Math.pow(2,(n+(+m[3]+1)*12-69)/12)}
+RV.noteHz=noteHz;
+function parse(text){
+  var out=[],st={rate:1,semi:0,note:0,notes:null,wh:0},re=/\[\s*(\/?[a-zA-Z]+)\s*[=:]?\s*([^\]]*)\]|\{([^}]*)\}|\*([^*]+)\*|([^\[\{\*]+)/g,m;
+  function words(chunk,emph){var t=RV.normalize(chunk),tk=t.match(/[A-Za-z]+(?:'[A-Za-z]+)*|[.!?]+|[,;:]|\u2014|--|\s-\s/g)||[];
+    tk.forEach(function(x){if(/^[A-Za-z]/.test(x))out.push({k:'w',text:x,emph:emph,rate:st.rate,semi:st.semi,note:st.note,notes:st.notes,wh:st.wh});
+      else{var kind=/^[,;:]/.test(x)?x:/[?]/.test(x)?'?':/!/.test(x)?'!':/\./.test(x)?'.':',';var last=out[out.length-1];
+        if(last&&last.k==='p'){if(kind!==','&&last.kind===',')last.kind=kind}else out.push({k:'p',kind:kind})}})}
+  while((m=re.exec(text))){
+    if(m[1]){var n=m[1].toLowerCase(),a=(m[2]||'').trim();
+      if(n==='pause'||n==='break'||n==='wait')out.push({k:'gap',ms:clamp(parseFloat(a)||400,0,10000)});
+      else if(n==='pitch'||n==='p')st.semi=clamp(parseFloat(a)||0,-36,36);
+      else if(n==='rate'||n==='speed'||n==='r')st.rate=clamp(parseFloat(a)||1,.2,4);
+      else if(n==='note')st.note=/off|none/i.test(a)?0:noteHz(a);
+      else if(n==='sing')st.notes=a.split(/[\s,]+/).map(noteHz).filter(Boolean);
+      else if(n==='/sing'){st.notes=null}
+      else if(n==='whisper')st.wh=1;else if(n==='/whisper')st.wh=0;
+      else if(n==='reset')st={rate:1,semi:0,note:0,notes:null,wh:0};
+      else if(n==='spell')out.push({k:'w',text:a,ph:spell(a),rate:st.rate,semi:st.semi,note:st.note,notes:st.notes,wh:st.wh});
+      else if(NV[n]){var v=NV[n];out.push({k:'w',text:'['+n+']',ph:v.ph.slice(),nv:true,rate:st.rate*v.rate,semi:st.semi+v.semi,note:0,notes:null,wh:Math.max(st.wh,v.wh)})}}
+    else if(m[3]!==undefined)out.push({k:'w',text:'{'+m[3]+'}',ph:phList(m[3]),rate:st.rate,semi:st.semi,note:st.note,notes:st.notes,wh:st.wh});
+    else if(m[4]!==undefined)words(m[4],true);
+    else if(m[5])words(m[5],false)}
+  return out}
+RV.parse=parse;
+var FUNC={};('a an the of to in on at by for with and or but nor is are was were be been am i you he she it we they me him her us them my your his its our their this that these those '+
+  'do does did have has had will would can could shall should may might must not so as if than then there here from into up out over under about just very').split(' ').forEach(function(w){FUNC[w]=1});
+
+/* ---------- Text to timed segments ---------- */
+function phSeg(ph,ctx,scale){var d=PH[ph];if(!d)return[];var R=ctx.rate,out=[];scale=scale||1;
+  function S(o){return Object.assign({ph:ph,dur:30,F:d.F,av:0,ah:0,af:0,ff:4000,fb:2000,an:0,st:ctx.semi,st2:ctx.semi,amp:1,wh:ctx.wh,vowel:false,stress:0},o)}
+  switch(d.t){
+    case 'v':case 'd':out.push(S({dur:d.dur*scale/R,av:1,E:d.E,vowel:true}));break;
+    case 'l':out.push(S({dur:d.dur*scale/R,av:.75}));break;
+    case 'n':out.push(S({dur:d.dur*scale/R,av:.6,an:1,B:[160,200,250]}));break;
+    case 'f':out.push(S({dur:d.dur*scale/R,af:d.af,ff:d.ff,fb:d.fb,ah:.04}));break;
+    case 'z':out.push(S({dur:d.dur*scale/R,av:d.av,af:d.af,ff:d.ff,fb:d.fb}));break;
+    case 'h':out.push(S({dur:d.dur*scale/R,ah:.6,nextF:true}));break;
+    case 's':case 'b':{var v=d.t==='b';out.push(S({dur:d.dur*.65*scale/R,av:v?.12:0}));out.push(S({dur:9,af:d.burst,ff:d.ff,fb:d.fb,av:v?.3:0}));
+      if(!v)out.push(S({dur:28/Math.sqrt(R),ah:.45,nextF:true}));break}
+    case 'a':d.parts.forEach(function(p,i){out.push.apply(out,phSeg(p,ctx,d.scale[i]))});out.forEach(function(s){s.ph=ph});
+      if(d.parts[0]==='T'||d.parts[0]==='D'){for(var i=out.length-1;i>=0;i--)if(out[i].nextF)out.splice(i,1)}break}
+  return out}
+function pauseSeg(ms){return{ph:'_',dur:ms,F:null,av:0,ah:0,af:0,an:0,st:0,st2:0,amp:1,wh:0,pause:true,pi:-1}}
+function shape(segs,from,to,kind,p,rnd){
+  if(to<=from)return;var R=p.range*12,tot=0,i,s,lastV=-1;
+  for(i=from;i<to;i++)if(segs[i].vowel&&!segs[i].note)lastV=i;
+  if(lastV>=0){segs[lastV].dur*=1.3;for(i=lastV+1;i<to;i++)segs[i].dur*=1.15}
+  for(i=from;i<to;i++)tot+=segs[i].dur;
+  var t=0,lift=kind==='!'?R*.15+1:0;
+  for(i=from;i<to;i++){s=segs[i];var mid=(t+s.dur/2)/tot,base=R*p.declin*(.5-mid)*1.2+lift;t+=s.dur;if(s.note)continue;
+    if(s.vowel){var acc=s.stress?R*.45*p.stress*s.stress:0,rn=(rnd()-.5)*p.pitchRand*R;s.st+=base+acc+rn}else s.st+=base;s.st2=s.st;
+    if(kind==='!')s.amp*=1.1}
+  if(lastV>=0&&!segs[lastV].note){s=segs[lastV];
+    if(kind==='?')s.st2=s.st+R*p.question*1.2+2*p.question;else if(kind===','||kind===';'||kind===':')s.st2=s.st+R*.15;else s.st2=s.st-R*.35;
+    for(i=lastV+1;i<to;i++)segs[i].st=segs[i].st2=s.st2}}
+RV.segments=function(text,V){V=V&&V.params&&V.format?V:RV.clean(V);var p=V.params,dict=V.dict||{},items=parse(text),segs=[],rnd=rng(hash(text)+7),start,pi=0;
+  segs.push(pauseSeg(70));start=segs.length;
+  items.forEach(function(it){
+    if(it.k==='p'){shape(segs,start,segs.length,it.kind,p,rnd);var ms=it.kind==='.'||it.kind==='?'||it.kind==='!'?p.stopPause:(it.kind===';'||it.kind===':')?(p.commaPause+p.stopPause)/2:p.commaPause;
+      if(ms>0)segs.push(pauseSeg(ms/p.rate));start=segs.length;return}
+    if(it.k==='gap'){if(it.ms>0)segs.push(pauseSeg(it.ms));return}
+    var phs=it.ph||wordPh(it.text,dict),content=it.emph||it.nv||!FUNC[it.text.toLowerCase()],stressed=false,ctx={rate:p.rate*it.rate,semi:it.semi,wh:it.wh};
+    phs.forEach(function(ph){var ss=phSeg(ph,ctx);if(!ss.length)return;
+      if(ss[0].vowel){var s=ss[0];
+        if(!stressed&&content&&ph!=='AX'){stressed=true;s.stress=it.emph?2:1;s.dur*=it.emph?1.35:1.15;s.amp=it.emph?1.15:1}else{s.dur*=.85;s.amp=1-p.energy*.4}
+        if(it.notes&&it.notes.length)s.note=it.notes.length>1?it.notes.shift():it.notes[0];else if(it.note)s.note=it.note}
+      ss.forEach(function(s){s.pi=pi;s.word=it.text});pi++;segs.push.apply(segs,ss)});
+    if(p.wordGap>0)segs.push(pauseSeg(p.wordGap/p.rate))});
+  shape(segs,start,segs.length,'.',p,rnd);segs.push(pauseSeg(90));
+  var i,j,prevF=PH.AX.F;
+  for(i=0;i<segs.length;i++){var s=segs[i];
+    if(s.nextF){for(j=i+1;j<segs.length;j++)if(segs[j].F&&(segs[j].av>.3)){s.F=segs[j].F;break}}
+    if(!s.F)s.F=prevF;prevF=s.E||s.F;
+    if(s.note){s.st=s.st2=12*Math.log(s.note/p.pitch)/Math.LN2+s.st}}
+  return segs};
+
+/* ---------- Segments to control tracks (one frame per millisecond) ---------- */
+function smooth(a,tau){if(tau<=.5)return;var k=Math.exp(-1/tau),i,y=a[0];for(i=0;i<a.length;i++){y=k*y+(1-k)*a[i];a[i]=y}y=a[a.length-1];for(i=a.length-1;i>=0;i--){y=k*y+(1-k)*a[i];a[i]=y}}
+function tracks(segs,p){var n=0;segs.forEach(function(s){n+=Math.max(1,Math.round(s.dur))});
+  var T={n:n},K=['f1','f2','f3','b1','b2','b3','av','ah','af','ff','fb','an','st','wh','vw'];K.forEach(function(k){T[k]=new Float32Array(n)});
+  var m=0;segs.forEach(function(s){var d=Math.max(1,Math.round(s.dur)),F=s.F,E=s.E||s.F,B=s.B||[70,100,150];s.t0=m;
+    for(var i=0;i<d;i++,m++){var fr=d>1?i/(d-1):0;
+      T.f1[m]=Math.max(90,(F[0]+(E[0]-F[0])*fr)*p.tract+p.f1);T.f2[m]=Math.max(T.f1[m]+150,(F[1]+(E[1]-F[1])*fr)*p.tract+p.f2);T.f3[m]=Math.max(T.f2[m]+200,(F[2]+(E[2]-F[2])*fr)*p.tract+p.f3);
+      T.b1[m]=B[0];T.b2[m]=B[1];T.b3[m]=B[2];T.av[m]=s.av*s.amp;T.ah[m]=s.ah;T.af[m]=s.af;T.ff[m]=s.ff||4000;T.fb[m]=s.fb||2000;T.an[m]=s.an||0;
+      T.st[m]=s.st+(s.st2-s.st)*fr;T.wh[m]=s.wh||0;T.vw[m]=s.vowel?1:0}s.t1=m});
+  var ft=6+40*(1-p.precision);['f1','f2','f3','b1','b2','b3'].forEach(function(k){smooth(T[k],ft)});
+  ['av','ah','an','wh','vw'].forEach(function(k){smooth(T[k],4)});smooth(T.af,2);smooth(T.ff,6);smooth(T.fb,6);smooth(T.st,28);
+  if(p.quant>0){for(var i=0;i<n;i++){var hz=p.pitch*Math.pow(2,T.st[i]/12),mi=69+12*Math.log(hz/440)/Math.LN2,mi2=mi+(Math.round(mi)-mi)*p.quant;T.st[i]=12*Math.log(440*Math.pow(2,(mi2-69)/12)/p.pitch)/Math.LN2}smooth(T.st,3+10*(1-p.quant))}
+  return T}
+
+/* ---------- The synthesizer ---------- */
+function synthCore(T,p,sr,pmul,seed){
+  var N=T.n,spm=sr/1000,len=Math.ceil(N*spm),out=new Float32Array(len),rnd=rng(seed),nyq=sr*.46,TP=2*Math.PI,dt=1/sr;
+  var ca=new Float64Array(5),cb=new Float64Array(5),cc=new Float64Array(5),y1=new Float64Array(5),y2=new Float64Array(5);
+  var na,nb,nc,ny1=0,ny2=0,fb0,fb2,fa1,fa2,fx1=0,fx2=0,fy1=0,fy2=0;
+  var phase=rnd(),jit=0,shim=1,per=0,uPrev=0,tilt=0,cAmp=1,wave=p.wave;
+  var oq=wave==='soft'?.92:.75-.4*p.tension,tiltK=wave==='soft'?.82:.12+.62*(1-p.tension),vibD=p.vibDepth/12,vibW=TP*p.vibRate,base=p.pitch*pmul;
+  var fr=new Float64Array(5),bw=new Float64Array(5),idx=0;
+  {var r0=Math.exp(-Math.PI*100*dt);nc=-r0*r0;nb=2*r0*Math.cos(TP*Math.min(270*p.tract,nyq)*dt);na=1-nb-nc}
+  for(var m=0;m<N;m++){
+    fr[0]=T.f1[m];fr[1]=T.f2[m];fr[2]=T.f3[m];fr[3]=3550*p.tract;fr[4]=4600*p.tract;bw[0]=T.b1[m];bw[1]=T.b2[m];bw[2]=T.b3[m];bw[3]=250;bw[4]=320;
+    for(var k=0;k<5;k++){if(fr[k]>=nyq){ca[k]=1;cb[k]=0;cc[k]=0;continue}var r=Math.exp(-Math.PI*bw[k]*p.bw*dt);cc[k]=-r*r;cb[k]=2*r*Math.cos(TP*fr[k]*dt);ca[k]=1-cb[k]-cc[k]}
+    {var f=Math.min(T.ff[m]*p.sib,nyq),Q=Math.max(.4,f/Math.max(200,T.fb[m])),w=TP*f/sr,al=Math.sin(w)/(2*Q),a0=1+al;fb0=al/a0;fb2=-al/a0;fa1=-2*Math.cos(w)/a0;fa2=(1-al)/a0}
+    var wh=Math.min(1,p.whisper+T.wh[m]),av=T.av[m]*(1-wh),ah=T.ah[m]+T.av[m]*wh*.9,af=T.af[m]*p.fric,an=T.an[m]+p.nasal*.6*T.vw[m]*T.av[m],stM=Math.pow(2,T.st[m]/12),end=Math.min(len,Math.round((m+1)*spm));
+    for(;idx<end;idx++){
+      var f0=base*stM*(1+jit);if(vibD)f0*=Math.pow(2,vibD*Math.sin(vibW*idx*dt));
+      phase+=f0*dt*(cAmp<1?1-p.creak*.3:1);
+      if(phase>=1){phase-=1;per++;jit=(rnd()*2-1)*p.jitter;shim=1-rnd()*p.shimmer;cAmp=(p.creak>0&&per%2)?1-.75*p.creak:1}
+      var src;
+      switch(wave){case 'saw':src=(1-2*phase)*.5;break;case 'square':src=phase<.5?.35:-.35;break;case 'sine':src=Math.sin(TP*phase)*.6;break;
+        case 'buzz':src=(phase<.06?1:-.064)*.8;break;case 'pulse':src=phase<.25?.5:-.17;break;case 'noise':src=(rnd()*2-1)*.5;break;
+        default:{var tp=oq*.62,tn=oq-tp,u=phase<tp?.5*(1-Math.cos(Math.PI*phase/tp)):phase<oq?Math.cos(.5*Math.PI*(phase-tp)/tn):0;src=(u-uPrev)*(sr/f0)*.18;uPrev=u}}
+      tilt+=(src-tilt)*(1-tiltK);src=tilt;
+      var nz=rnd()*2-1,open=phase<oq?1:.25,x=src*av*shim*cAmp+nz*(ah*.25+p.breath*av*open*.12);
+      for(k=0;k<5;k++){var y=ca[k]*x+cb[k]*y1[k]+cc[k]*y2[k];y2[k]=y1[k];y1[k]=y;x=y}
+      var ns=na*(src*av)+nb*ny1+nc*ny2;ny2=ny1;ny1=ns;
+      var fy=fb0*nz+fb2*fx2-fa1*fy1-fa2*fy2;fx2=fx1;fx1=nz;fy2=fy1;fy1=fy;
+      out[idx]=x+ns*an*.6+fy*af*1.1}}
+  return out}
+
+/* ---------- Effects processing ---------- */
+function biq(type,f,q,g,sr){var A=Math.pow(10,g/40),w=2*Math.PI*Math.min(Math.max(f,10),sr*.49)/sr,cs=Math.cos(w),sn=Math.sin(w),al=sn/(2*q),b0,b1,b2,a0,a1,a2,s;
+  switch(type){case 'lowpass':b0=(1-cs)/2;b1=1-cs;b2=b0;a0=1+al;a1=-2*cs;a2=1-al;break;case 'highpass':b0=(1+cs)/2;b1=-(1+cs);b2=b0;a0=1+al;a1=-2*cs;a2=1-al;break;
+    case 'bandpass':b0=al;b1=0;b2=-al;a0=1+al;a1=-2*cs;a2=1-al;break;case 'notch':b0=1;b1=-2*cs;b2=1;a0=1+al;a1=-2*cs;a2=1-al;break;
+    case 'peak':b0=1+al*A;b1=-2*cs;b2=1-al*A;a0=1+al/A;a1=-2*cs;a2=1-al/A;break;
+    case 'lowshelf':s=2*Math.sqrt(A)*al;b0=A*((A+1)-(A-1)*cs+s);b1=2*A*((A-1)-(A+1)*cs);b2=A*((A+1)-(A-1)*cs-s);a0=(A+1)+(A-1)*cs+s;a1=-2*((A-1)+(A+1)*cs);a2=(A+1)+(A-1)*cs-s;break;
+    default:s=2*Math.sqrt(A)*al;b0=A*((A+1)+(A-1)*cs+s);b1=-2*A*((A-1)+(A+1)*cs);b2=A*((A+1)+(A-1)*cs-s);a0=(A+1)-(A-1)*cs+s;a1=2*((A-1)-(A+1)*cs);a2=(A+1)-(A-1)*cs-s}
+  b0/=a0;b1/=a0;b2/=a0;a1/=a0;a2/=a0;var x1=0,x2=0,z1=0,z2=0;
+  return function(x){var y=b0*x+b1*x1+b2*x2-a1*z1-a2*z2;x2=x1;x1=x;z2=z1;z1=y;return y}}
+function dline(n){var L=n+4,b=new Float32Array(L),w=0;return{push:function(x){b[w]=x;w=(w+1)%L},read:function(d){var r=w-1-d;while(r<0)r+=L;var i=Math.floor(r),f=r-i;return b[i%L]*(1-f)+b[(i+1)%L]*f}}}
+RV.fxProc=function(fx,sr){var q=Object.assign(RV.fxDefaults(fx.type),fx),mx=function(a,b,m){return a*(1-m)+b*m},t=0,w;
+  switch(fx.type){
+    case 'eq':{var e1=biq('lowshelf',250,.707,q.low,sr),e2=biq('peak',q.midF,1,q.mid,sr),e3=biq('highshelf',5000,.707,q.high,sr);return function(x){return e3(e2(e1(x)))}}
+    case 'filter':return biq(q.mode,q.freq,q.q,0,sr);
+    case 'pitch':{var ratio=Math.pow(2,q.semi/12),W=Math.round(sr*.06),L=dline(W*2),ph=0;return function(x){L.push(x);ph+=(1-ratio)/W;ph-=Math.floor(ph);var p2=(ph+.5)%1;
+      return mx(x,L.read(ph*W)*(.5-.5*Math.cos(2*Math.PI*ph))+L.read(p2*W)*(.5-.5*Math.cos(2*Math.PI*p2)),q.mix)}}
+    case 'ring':w=2*Math.PI*q.freq/sr;return function(x){t+=w;if(t>6.283185307)t-=6.283185307;return mx(x,x*Math.sin(t)*1.4,q.mix)};
+    case 'crush':{var lv=Math.pow(2,q.bits-1),c=0,hold=0,dn=Math.max(1,Math.round(q.down));return function(x){if(c++%dn===0)hold=Math.round(x*lv)/lv;return mx(x,hold,q.mix)}}
+    case 'drive':{var kk=1+q.amount*30,nn=Math.tanh(kk)*Math.sqrt(kk);return function(x){return mx(x,Math.tanh(x*kk)/nn,q.mix)}}
+    case 'chorus':{var L2=dline(Math.ceil(sr*.07)),bs=sr*.015,dp=sr*q.depth/2000;w=2*Math.PI*q.rate/sr;return function(x){L2.push(x);t+=w;
+      return mx(x,.5*L2.read(bs+dp*(1+Math.sin(t)))+.5*L2.read(bs+dp*(1+Math.sin(t+2.1))),q.mix)}}
+    case 'flanger':{var L3=dline(Math.ceil(sr*.03)),dp3=sr*q.depth/1000,fbk=0;w=2*Math.PI*q.rate/sr;return function(x){L3.push(x+fbk*q.fb);t+=w;var y=L3.read(1+dp3*(.5+.5*Math.sin(t)));fbk=y;return x*(1-q.mix*.5)+y*q.mix*.5}}
+    case 'tremolo':w=2*Math.PI*q.rate/sr;return function(x){t+=w;return x*(1-q.depth*(.5+.5*Math.sin(t)))};
+    case 'echo':{var ne=Math.max(1,Math.round(sr*q.time/1000)),L4=dline(ne+2);return function(x){var d=L4.read(ne-1);L4.push(x+d*q.fb);return x+d*q.mix}}
+    case 'reverb':{var s=sr/44100,fk=.7+.27*q.size,dm=q.damp*.45;
+      var combs=[1116,1188,1277,1356,1422,1491,1557,1617].map(function(l){return{b:new Float32Array(Math.max(8,Math.round(l*s*(.45+q.size*.75)))),i:0,f:0}});
+      var aps=[556,441,341,225].map(function(l){return{b:new Float32Array(Math.max(4,Math.round(l*s))),i:0}});
+      return function(x){var o=0,inp=x*.12;for(var j=0;j<8;j++){var cb=combs[j],y=cb.b[cb.i];cb.f=y*(1-dm)+cb.f*dm;cb.b[cb.i]=inp+cb.f*fk;cb.i=(cb.i+1)%cb.b.length;o+=y}
+        for(j=0;j<4;j++){var a=aps[j],bo=a.b[a.i];a.b[a.i]=o+bo*.5;o=bo-o;a.i=(a.i+1)%a.b.length}return x*(1-q.mix*.5)+o*q.mix*1.2}}
+    case 'radio':{var h1=biq('highpass',q.low,.8,0,sr),h2=biq('highpass',q.low,.8,0,sr),l1=biq('lowpass',q.high,.8,0,sr),l2=biq('lowpass',q.high,.8,0,sr),kr=1+q.grit*8,nr=Math.tanh(kr),seed=12345;
+      return function(x){seed=(Math.imul(seed,1103515245)+12345)>>>0;var nz=(seed/4294967296*2-1)*q.noise;return l2(l1(h2(h1(Math.tanh(x*kr)/nr+nz))))}}
+    case 'comp':{var env=0,at=Math.exp(-1/(sr*.005)),rl=Math.exp(-1/(sr*.12)),mk=Math.pow(10,q.makeup/20);return function(x){var a=Math.abs(x);env=a>env?at*env+(1-at)*a:rl*env+(1-rl)*a;
+      var db=20*Math.log(env+1e-9)/Math.LN10,g=db>q.thresh?Math.pow(10,(q.thresh-db)*(1-1/q.ratio)/20):1;return x*g*mk}}
+    case 'gain':{var gg=Math.pow(10,q.db/20);return function(x){return x*gg}}}
+  return function(x){return x}};
+function fxTail(list){var t=0;(list||[]).forEach(function(f){if(f.on===false)return;var q=Object.assign(RV.fxDefaults(f.type),f);
+  if(f.type==='echo')t+=q.time/1000*Math.min(12,Math.log(.01)/Math.log(Math.max(.05,q.fb))+1);if(f.type==='reverb')t+=.4+2.2*q.size});return Math.min(t,15)}
+RV.applyFx=function(x,list,sr){list=(list||[]).filter(function(f){return f&&f.on!==false&&RV.FX[f.type]});if(!list.length)return x;
+  var tail=Math.round(fxTail(list)*sr),out=new Float32Array(x.length+tail),procs=list.map(function(f){return RV.fxProc(f,sr)});
+  for(var i=0;i<out.length;i++){var v=i<x.length?x[i]:0;for(var j=0;j<procs.length;j++)v=procs[j](v);out[i]=isFinite(v)?v:0}
+  var e=out.length;while(e>x.length&&Math.abs(out[e-1])<2e-4)e--;return e<out.length?out.slice(0,e):out};
+function peakNorm(x,target){var pk=0;for(var i=0;i<x.length;i++){var a=Math.abs(x[i]);if(a>pk)pk=a}if(pk>0){var g=target/pk;for(i=0;i<x.length;i++)x[i]*=g}return x}
+function dcBlock(x,sr){var R=Math.exp(-2*Math.PI*35/sr),px=0,py=0;for(var i=0;i<x.length;i++){var y=x[i]-px+R*py;px=x[i];py=y;x[i]=y}return x}
+function addInto(a,b,g){for(var i=0;i<a.length&&i<b.length;i++)a[i]+=b[i]*g}
+RV.finish=function(x,gainDb){peakNorm(x,.89);var g=Math.pow(10,(gainDb||0)/20);if(g!==1)for(var i=0;i<x.length;i++){var v=x[i]*g,a=Math.abs(v);x[i]=a>.9?Math.sign(v)*(.9+.09*Math.tanh((a-.9)/.09)):v}return x};
+
+/* ---------- Public: render, speak, timeline, WAV ---------- */
+RV.render=function(text,voice){var V=RV.clean(voice),p=V.params,sr=+p.sr||24000,segs=RV.segments(text,V),T=tracks(segs,p),seed=(hash(text)^hash(V.name))>>>0;
+  var out=synthCore(T,p,sr,1,seed),n=Math.round(p.voices),i;
+  if(n>1){var half=Math.ceil((n-1)/2)||1;for(i=1;i<n;i++){var c=(i%2?1:-1)*Math.ceil(i/2)/half*p.detune;addInto(out,synthCore(T,p,sr,Math.pow(2,c/1200),seed+i*977),.8)}}
+  if(p.harm1Mix>0&&p.harm1)addInto(out,synthCore(T,p,sr,Math.pow(2,p.harm1/12),seed+31),p.harm1Mix*(n>1?1.3:1));
+  if(p.harm2Mix>0&&p.harm2)addInto(out,synthCore(T,p,sr,Math.pow(2,p.harm2/12),seed+57),p.harm2Mix*(n>1?1.3:1));
+  dcBlock(out,sr);peakNorm(out,.5);out=RV.applyFx(out,V.fx,sr);RV.finish(out,p.gain);
+  var f0=new Float32Array(T.n);for(i=0;i<T.n;i++)f0[i]=T.av[i]>.15&&T.wh[i]<.9&&p.whisper<.9?p.pitch*Math.pow(2,T.st[i]/12):0;
+  return{samples:out,sr:sr,segs:segs,f0:f0,duration:out.length/sr}};
+RV.timeline=function(text,voice){var r=Array.isArray(text)?{segs:text}:{segs:RV.segments(text,voice)},V=RV.clean(voice),out=[],t=0,cur=null;
+  r.segs.forEach(function(s){var d=Math.max(1,Math.round(s.dur))/1000,key=s.pi+':'+s.ph;
+    if(cur&&cur.key===key)cur.end=+(t+d).toFixed(3);else{cur={key:key,ph:s.ph,word:s.word||'',start:+t.toFixed(3),end:+(t+d).toFixed(3),viseme:RV.viseme(s.ph)};out.push(cur)}t+=d});
+  out.forEach(function(o){delete o.key});return out};
+RV.phonemes=function(text,voice){var V=RV.clean(voice);return parse(text).filter(function(i){return i.k==='w'}).map(function(i){return{word:i.text,ph:(i.ph||wordPh(i.text,V.dict)).join(' ')}})};
+RV.wav=function(r,sr){var x=r.samples||r;sr=r.sr||sr||24000;var n=x.length,b=new ArrayBuffer(44+n*2),v=new DataView(b);
+  function s(o,t){for(var i=0;i<t.length;i++)v.setUint8(o+i,t.charCodeAt(i))}
+  s(0,'RIFF');v.setUint32(4,36+n*2,true);s(8,'WAVE');s(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,sr,true);
+  v.setUint32(28,sr*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);s(36,'data');v.setUint32(40,n*2,true);
+  for(var i=0;i<n;i++){var q=Math.max(-1,Math.min(1,x[i]));v.setInt16(44+i*2,q<0?q*32768:q*32767,true)}return new Uint8Array(b)};
+var actx=null,playing=null;
+RV.play=function(r){if(typeof window==='undefined')return null;var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return null;actx=actx||new AC();if(actx.state==='suspended')actx.resume();
+  RV.stop();var buf=actx.createBuffer(1,r.samples.length,r.sr);buf.copyToChannel?buf.copyToChannel(r.samples,0):buf.getChannelData(0).set(r.samples);
+  var src=actx.createBufferSource();src.buffer=buf;src.connect(actx.destination);var h={src:src,t0:actx.currentTime,duration:r.duration,ctx:actx};
+  h.ended=new Promise(function(res){src.onended=function(){if(playing===h)playing=null;res()}});src.start();playing=h;return h};
+RV.stop=function(){if(playing){try{playing.src.stop()}catch(e){}playing=null}if(typeof speechSynthesis!=='undefined')try{speechSynthesis.cancel()}catch(e){}};
+RV.playing=function(){return playing};
+RV.speak=function(text,voice){var V=RV.clean(voice);
+  if(V.engine==='system'&&typeof speechSynthesis!=='undefined'){RV.stop();var u=new SpeechSynthesisUtterance(String(text).replace(/\[[^\]]*\]|\{[^}]*\}|\*/g,''));
+    var vs=speechSynthesis.getVoices(),pick=vs.filter(function(x){return x.name===V.system.voice})[0];if(pick)u.voice=pick;u.rate=V.system.rate;u.pitch=V.system.pitch;u.volume=V.system.volume;
+    var h={ended:new Promise(function(res){u.onend=res;u.onerror=res})};speechSynthesis.speak(u);return h}
+  return RV.play(RV.render(text,V))};
+G.RandisVoiceEngine=RV;
+if(typeof module==='object'&&module&&module.exports)module.exports=RV;
+})(typeof globalThis!=='undefined'?globalThis:this);
+</script>
+
+<script>
+/* ====================== Voice Forge app (the tab) ====================== */
+'use strict';
+const RV=window.RandisVoiceEngine;
+const HOST=window.parent!==window;
+const $=(s,r=document)=>r.querySelector(s);
+function h(tag,a,...kids){const e=document.createElement(tag);for(const k in a||{}){const v=a[k];if(v==null||v===false)continue;
+  if(k==='class')e.className=v;else if(k==='style'&&typeof v==='object')Object.assign(e.style,v);else if(k.startsWith('on'))e.addEventListener(k.slice(2),v);
+  else if(k==='html')e.innerHTML=v;else if(k==='value')e.value=v;else if(k==='checked')e.checked=!!v;else e.setAttribute(k,v===true?'':v)}
+  for(const c of kids.flat(9))if(c!=null&&c!==false)e.append(c.nodeType?c:String(c));return e}
+const clone=o=>JSON.parse(JSON.stringify(o));
+const uid=()=>Math.random().toString(36).slice(2,10);
+function toast(t,ms=2600){const e=$('#toast');e.textContent=t;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',ms)}
+function status(t){$('#status').textContent=t||''}
+function fmt(v,step){if(typeof v!=='number')return String(v);const d=step>=1?0:step>=.1?1:step>=.01?2:3;return v.toFixed(d)}
+function safeName(n){return String(n||'voice').replace(/[\\/:*?"<>|]+/g,'_').replace(/\s+/g,'-').slice(0,60)||'voice'}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+
+/* ---------- Saving files ---------- */
+function saveFile(name,data,mime){const blob=data instanceof Blob?data:new Blob([data],{type:mime||'text/plain;charset=utf-8'});
+  if(HOST){parent.postMessage({uds:'export-file',name,data:blob},'*');toast('Choose where to save '+name+'…');return}
+  const a=h('a',{href:URL.createObjectURL(blob),download:name});document.body.append(a);a.click();a.remove()}
+window.addEventListener('message',e=>{const d=e.data||{};
+  if(d.uds==='exported')toast(d.note||(d.ok?'Saved':'Not saved'),4000);
+  if(d.uds==='exporting')status(d.note);
+  if(d.uds==='store')gotStore(d.data);
+  if(d.uds==='store-error')toast('Could not keep your library: '+d.note,5000)});
+function pickFile(accept){return new Promise(res=>{const i=h('input',{type:'file',accept,style:{display:'none'}});document.body.append(i);
+  i.addEventListener('change',()=>{const f=i.files[0];i.remove();res(f||null)});i.click()})}
+
+/* ---------- Tiny ZIP writer (stored, no compression) ---------- */
+const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function crc32(b){let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=CRC[(c^b[i])&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0}
+function zip(files){const enc=new TextEncoder(),parts=[],cen=[];let off=0;
+  for(const f of files){const name=enc.encode(f.name),data=typeof f.data==='string'?enc.encode(f.data):f.data,crc=crc32(data);
+    const lh=new DataView(new ArrayBuffer(30));lh.setUint32(0,0x04034b50,true);lh.setUint16(4,20,true);lh.setUint16(6,0x0800,true);lh.setUint32(14,crc,true);lh.setUint32(18,data.length,true);lh.setUint32(22,data.length,true);lh.setUint16(26,name.length,true);
+    parts.push(new Uint8Array(lh.buffer),name,data);
+    const ch=new DataView(new ArrayBuffer(46));ch.setUint32(0,0x02014b50,true);ch.setUint16(4,20,true);ch.setUint16(6,20,true);ch.setUint16(8,0x0800,true);ch.setUint32(16,crc,true);ch.setUint32(20,data.length,true);ch.setUint32(24,data.length,true);ch.setUint16(28,name.length,true);ch.setUint32(42,off,true);
+    cen.push(new Uint8Array(ch.buffer),name);off+=30+name.length+data.length}
+  const csize=cen.reduce((a,b)=>a+b.length,0),end=new DataView(new ArrayBuffer(22));end.setUint32(0,0x06054b50,true);end.setUint16(8,files.length,true);end.setUint16(10,files.length,true);end.setUint32(12,csize,true);end.setUint32(16,off,true);
+  return new Blob([...parts,...cen,new Uint8Array(end.buffer)],{type:'application/zip'})}
+
+/* ---------- Presets ---------- */
+const PRESETS=[
+ {name:'Warm Narrator',d:'Calm, rich storyteller.',p:{pitch:104,range:.42,tension:.42,tract:.97,rate:.93,breath:.1},fx:[{type:'eq',low:3,high:1},{type:'reverb',size:.3,mix:.12}]},
+ {name:'Bright Guide',d:'Friendly, clear, upbeat helper.',p:{pitch:205,tract:1.16,range:.55,breath:.12,stress:.8,rate:1.03}},
+ {name:'Kid Sidekick',d:'Small, bouncy, eager.',p:{pitch:290,tract:1.32,rate:1.07,range:.7,pitchRand:.3}},
+ {name:'Old Wizard',d:'Ancient, wavering, wise.',p:{pitch:96,jitter:.04,shimmer:.16,creak:.2,vibDepth:.25,vibRate:4.5,rate:.8,tract:.95,breath:.2},fx:[{type:'reverb',size:.6,mix:.22}]},
+ {name:'Mountain Giant',d:'Huge, slow, rumbling.',p:{pitch:55,tract:.7,rate:.72,bw:1.3,creak:.15},fx:[{type:'eq',low:6,high:-4},{type:'reverb',size:.85,mix:.3}]},
+ {name:'Chipmunk',d:'Tiny, fast, squeaky.',p:{pitch:420,tract:1.55,rate:1.4,range:.6}},
+ {name:'Classic Robot',d:'Flat, buzzing, metal box.',p:{wave:'buzz',range:0,quant:1,precision:.9,pitch:110,wordGap:40,jitter:0,shimmer:0},fx:[{type:'ring',freq:50,mix:.5},{type:'crush',bits:8,down:2,mix:.5}]},
+ {name:'Android',d:'Smooth synthetic person.',p:{wave:'saw',range:.25,quant:.7,tension:.7,pitch:150,tract:1.05,jitter:0},fx:[{type:'chorus',mix:.35},{type:'eq',high:2}]},
+ {name:'Alien Envoy',d:'Strange, warbling visitor.',p:{pitch:165,tract:1.38,f2:300,vibRate:9,vibDepth:.6,range:.9},fx:[{type:'ring',freq:220,mix:.35},{type:'flanger',mix:.4}]},
+ {name:'Ghost',d:'Breathy whisper from far away.',p:{whisper:.85,breath:.6,pitch:140,rate:.85},fx:[{type:'echo',time:320,fb:.4,mix:.3},{type:'reverb',size:.9,mix:.45}]},
+ {name:'Radio DJ',d:'Punchy, close, smiling.',p:{pitch:100,tension:.62,range:.65,rate:1.1,stress:.9},fx:[{type:'comp',thresh:-20,ratio:5},{type:'eq',low:4,high:3}]},
+ {name:'Phone Operator',d:'Polite voice through a phone line.',p:{pitch:190,tract:1.12,range:.4},fx:[{type:'radio',grit:.2,noise:.01}]},
+ {name:'Dark Lord',d:'Deep, doubled, menacing.',p:{pitch:62,tract:.78,creak:.4,harm1:-12,harm1Mix:.5,rate:.85},fx:[{type:'drive',amount:.15,mix:.4},{type:'reverb',size:.8,mix:.3}]},
+ {name:'Angel Choir',d:'Many voices in harmony.',p:{pitch:220,tract:1.15,voices:5,detune:18,harm2:7,harm2Mix:.4,vibDepth:.3,rate:.85},fx:[{type:'reverb',size:.95,mix:.45}]},
+ {name:'Swamp Monster',d:'Gurgling, growling beast.',p:{pitch:50,tract:.66,creak:.65,bw:1.7,jitter:.06,rate:.8},fx:[{type:'drive',amount:.5,mix:.6}]},
+ {name:'ASMR Whisper',d:'Soft, close, airy.',p:{whisper:1,breath:.7,rate:.8,fric:1.3,range:.3}},
+ {name:'Sports Announcer',d:'Huge energy, big swings.',p:{pitch:130,range:1.05,rate:1.25,stress:1.2,energy:.9,tension:.75},fx:[{type:'echo',time:180,fb:.25,mix:.2},{type:'reverb',size:.7,mix:.2}]},
+ {name:'Sleepy Bear',d:'Low, slow, drowsy.',p:{pitch:95,range:.15,rate:.7,tension:.2,breath:.3,precision:.25,tract:.9}},
+ {name:'Excited Kid',d:'High, fast, everything is amazing.',p:{pitch:300,tract:1.3,rate:1.25,range:1,stress:1,pitchRand:.4}},
+ {name:'Retro Computer',d:'8-bit beeping terminal.',p:{wave:'square',range:.1,quant:1,sr:16000,precision:.9,jitter:0,shimmer:0},fx:[{type:'crush',bits:6,down:4}]},
+ {name:'Station AI',d:'Calm ship computer in space.',p:{pitch:172,tract:1.1,range:.25,tension:.55,precision:.8,jitter:.003},fx:[{type:'chorus',mix:.25},{type:'eq',high:3},{type:'reverb',size:.5,mix:.18}]},
+ {name:'Salty Pirate',d:'Gravelly, swaggering sailor.',p:{pitch:108,creak:.3,jitter:.03,tract:.92,range:.75,pitchRand:.4},fx:[{type:'drive',amount:.12,mix:.4}]},
+ {name:'Opera Star',d:'Big vibrato and drama.',p:{pitch:235,vibDepth:.65,vibRate:5.8,range:.95,rate:.8,tract:1.1},fx:[{type:'reverb',size:.9,mix:.35}]},
+ {name:'Glitch Bot',d:'Broken, stuttering machine.',p:{wave:'pulse',jitter:.15,pitchRand:1.2,quant:.6},fx:[{type:'ring',freq:600,mix:.3},{type:'crush',bits:5,down:3,mix:.6},{type:'tremolo',rate:14,depth:.5}]},
+ {name:'Forest Elf',d:'Light, airy, musical.',p:{pitch:255,tract:1.25,breath:.25,sib:1.3,vibDepth:.15},fx:[{type:'reverb',size:.7,mix:.28},{type:'chorus',mix:.2}]},
+ {name:'Mountain Dwarf',d:'Stout, gruff, hearty.',p:{pitch:86,tract:.85,creak:.25,bw:1.3,rate:.92,stress:1}},
+ {name:'Randis Duck',d:'The app mascot: nasal and cheerful.',p:{pitch:255,nasal:1,tract:1.4,bw:.55,range:.8,rate:1.15},fx:[{type:'filter',mode:'bandpass',freq:1600,q:.8}]},
+ {name:'Grandma Storyteller',d:'Gentle, warm, a little wavery.',p:{pitch:178,jitter:.03,shimmer:.12,breath:.2,rate:.85,vibDepth:.1,tract:1.08}},
+ {name:'Hissing Villain',d:'Sly, sharp, snake-like.',p:{pitch:118,sib:1.4,fric:1.7,range:.8,whisper:.3,rate:.9}},
+ {name:'News Anchor',d:'Neutral, steady, authoritative.',p:{pitch:115,range:.35,precision:.8,tension:.55,rate:1.02},fx:[{type:'comp',thresh:-16,ratio:3}]},
+ {name:'Underwater Diver',d:'Muffled and wobbly.',p:{pitch:120,vibDepth:.4,vibRate:2},fx:[{type:'filter',mode:'lowpass',freq:800,q:2},{type:'chorus',rate:.4,depth:12,mix:.6}]},
+ {name:'Cave Echo',d:'Shouting in a big cave.',p:{pitch:130,range:.6},fx:[{type:'echo',time:420,fb:.5,mix:.4},{type:'reverb',size:1,mix:.4}]}
+];
+function presetVoice(pr){const v=RV.newVoice(pr.name);Object.assign(v.params,pr.p||{});v.fx=(pr.fx||[]).map(f=>Object.assign(RV.fxDefaults(f.type),f));v.description=pr.d||'';v.tags=['preset'];return RV.clean(v)}
+
+/* ---------- State ---------- */
+const S={cur:null,lib:[],text:'Hello! I am your new voice. Can you hear me? I was made in *Voice Forge*, and I can go anywhere.',page:'studio',auto:true,
+  scene:'NARRATOR: Long ago, in a quiet valley, two friends met.\nWIZARD: [pause 200] Who goes there?\nKID: It is me! I brought snacks!\nROBOT: Snacks detected. Joy level, one hundred percent.',cast:{},changerSemi:0,changerUseFx:true,abA:null,abB:null,morph:.5};
+let hist=[],hpos=-1,lastRender=null,storeLoaded=false;
+function cur(){return S.cur}
+function setCur(v,noHist){S.cur=RV.clean(v);S.cur.id=v.id||S.cur.id||uid();if(!noHist)pushHist(true);syncHeader();render()}
+function pushHist(now){clearTimeout(pushHist.t);const go=()=>{const s=JSON.stringify(S.cur);if(hist[hpos]===s)return;hist=hist.slice(0,hpos+1);hist.push(s);if(hist.length>120)hist.shift();hpos=hist.length-1};now?go():pushHist.t=setTimeout(go,450)}
+function undo(){if(hpos>0){hpos--;S.cur=JSON.parse(hist[hpos]);syncHeader();render();toast('Undone')}}
+function redo(){if(hpos<hist.length-1){hpos++;S.cur=JSON.parse(hist[hpos]);syncHeader();render();toast('Redone')}}
+function touch(){pushHist();saveStoreSoon();if(S.auto)autoPreview()}
+function syncHeader(){$('#vname').value=S.cur.name}
+
+/* ---------- Library store (kept by the app in this tab's folder) ---------- */
+function saveStoreSoon(){clearTimeout(saveStoreSoon.t);saveStoreSoon.t=setTimeout(saveStore,700)}
+function saveStore(){const data={v:1,lib:S.lib,cur:S.cur,text:S.text,scene:S.scene,cast:S.cast,auto:S.auto};
+  if(HOST&&storeLoaded)parent.postMessage({uds:'store-set',data},'*')}
+function gotStore(d){if(storeLoaded)return;storeLoaded=true;clearTimeout(gotStore.t);
+  if(d&&d.v===1){S.lib=(d.lib||[]).map(v=>Object.assign(RV.clean(v),{id:v.id||uid(),fav:!!v.fav}));if(d.cur)S.cur=Object.assign(RV.clean(d.cur),{id:d.cur.id||uid()});
+    if(typeof d.text==='string')S.text=d.text;if(typeof d.scene==='string')S.scene=d.scene;S.cast=d.cast||{};if(typeof d.auto==='boolean')S.auto=d.auto}
+  hist=[];hpos=-1;pushHist(true);syncHeader();render();status(S.lib.length?S.lib.length+' saved voice'+(S.lib.length>1?'s':''):'')}
+
+/* ---------- Playing ---------- */
+let rafId=0;
+function renderVoice(text,v){const t0=performance.now();const r=RV.render(text,v||S.cur);r.ms=Math.round(performance.now()-t0);return r}
+function speak(text,v){text=text==null?S.text:text;if(!text.trim())return toast('Type something to say first.');
+  const vv=v||S.cur;
+  if(vv.engine==='system'&&!v){RV.speak(text,vv);status('Speaking with the system voice…');return}
+  try{const r=renderVoice(text,vv);lastRender=r;drawViz(r);const hd=RV.play(r);status(`${r.duration.toFixed(2)} s · made in ${r.ms} ms`);startHead(hd,r);return r}
+  catch(err){console.error(err);toast('Could not make that sound: '+err.message,5000)}}
+function stop(){RV.stop();cancelAnimationFrame(rafId);const ph=$('#playhead');if(ph)ph.style.display='none'}
+function startHead(hd,r){cancelAnimationFrame(rafId);const ph=$('#playhead'),cv=$('#viz');if(!hd||!ph||!cv)return;ph.style.display='block';
+  const step=()=>{const t=hd.ctx.currentTime-hd.t0;if(t>r.duration||RV.playing()!==hd){ph.style.display='none';return}ph.style.left=(t/r.duration*cv.clientWidth)+'px';rafId=requestAnimationFrame(step)};step()}
+let apT=0;function autoPreview(){clearTimeout(apT);apT=setTimeout(()=>{const t=(S.text.split(/(?<=[.!?])\s+/)[0]||S.text).slice(0,120);speak(t)},500)}
+
+/* ---------- Visualizer: waveform, spectrogram, pitch, phonemes ---------- */
+function fft(re,im){const n=re.length;for(let i=1,j=0;i<n;i++){let b=n>>1;for(;j&b;b>>=1)j^=b;j^=b;if(i<j){[re[i],re[j]]=[re[j],re[i]];[im[i],im[j]]=[im[j],im[i]]}}
+  for(let len=2;len<=n;len<<=1){const a=-2*Math.PI/len,wr=Math.cos(a),wi=Math.sin(a);for(let i=0;i<n;i+=len){let cr=1,ci=0;for(let k=0;k<len/2;k++){const ur=re[i+k],ui=im[i+k],vr=re[i+k+len/2]*cr-im[i+k+len/2]*ci,vi=re[i+k+len/2]*ci+im[i+k+len/2]*cr;
+    re[i+k]=ur+vr;im[i+k]=ui+vi;re[i+k+len/2]=ur-vr;im[i+k+len/2]=ui-vi;const nr=cr*wr-ci*wi;ci=cr*wi+ci*wr;cr=nr}}}}
+function drawViz(r,cv){cv=cv||$('#viz');if(!cv||!r)return;const W=cv.width=cv.clientWidth*devicePixelRatio,H=cv.height=cv.clientHeight*devicePixelRatio,g=cv.getContext('2d');
+  g.fillStyle='#090b10';g.fillRect(0,0,W,H);const x=r.samples,N=x.length,waveH=H*.22,specY=waveH,specH=H*.62,labY=specY+specH;
+  const img=g.createImageData(W,Math.round(specH)),FN=512,re=new Float32Array(FN),im=new Float32Array(FN),bins=FN/2,maxF=Math.min(r.sr/2,8000),useB=Math.floor(bins*maxF/(r.sr/2));
+  for(let c=0;c<W;c++){const at=Math.floor(c/W*N)-FN/2;for(let i=0;i<FN;i++){const s=x[at+i]||0;re[i]=s*(.5-.5*Math.cos(2*Math.PI*i/FN));im[i]=0}fft(re,im);
+    for(let y=0;y<img.height;y++){const b=Math.floor((1-y/img.height)*useB),m=Math.sqrt(re[b]*re[b]+im[b]*im[b]),db=Math.max(0,Math.min(1,(20*Math.log10(m+1e-7)+60)/60));
+      const o=(y*W+c)*4;img.data[o]=Math.round(255*Math.min(1,db*1.6))*.55+db*90;img.data[o+1]=Math.round(80*db+120*db*db);img.data[o+2]=Math.round(140*Math.sqrt(db)+90*db);img.data[o+3]=255}}
+  g.putImageData(img,0,Math.round(specY));
+  g.strokeStyle='#4fd1c5';g.beginPath();for(let c=0;c<W;c++){let mn=0,mx=0;const a=Math.floor(c/W*N),b=Math.floor((c+1)/W*N);for(let i=a;i<b;i++){if(x[i]<mn)mn=x[i];if(x[i]>mx)mx=x[i]}
+    g.moveTo(c+.5,waveH/2-mx*waveH/2);g.lineTo(c+.5,waveH/2-mn*waveH/2+1)}g.stroke();
+  const durMs=r.f0.length,totMs=N/r.sr*1000;let fmax=0;for(const f of r.f0)if(f>fmax)fmax=f;fmax=Math.max(fmax*1.15,200);
+  g.strokeStyle='#ff7ab6';g.lineWidth=2*devicePixelRatio;g.beginPath();let pen=false;
+  for(let m=0;m<durMs;m+=2){const f=r.f0[m],X=m/totMs*W;if(!f){pen=false;continue}const Y=specY+specH-(f/fmax)*specH;pen?g.lineTo(X,Y):g.moveTo(X,Y);pen=true}g.stroke();g.lineWidth=1;
+  g.fillStyle='#8f9ab0';g.font=(10*devicePixelRatio)+'px Consolas';g.fillText(Math.round(fmax)+' Hz',4,specY+12*devicePixelRatio);
+  let t=0,last='';g.textBaseline='top';for(const s of r.segs){const X=t/totMs*W;t+=Math.max(1,Math.round(s.dur));const key=s.pi+s.ph;if(key===last)continue;last=key;if(s.ph==='_')continue;
+    g.fillStyle=s.vowel?'#7c9cff':'#5d6780';g.fillRect(X,labY,1,6);g.fillText(s.ph,X+2,labY+6*devicePixelRatio)}
+  t=0;last='';g.fillStyle='#e8ecf4';for(const s of r.segs){const X=t/totMs*W;t+=Math.max(1,Math.round(s.dur));if(!s.word||s.word===last)continue;last=s.word;g.fillText(s.word,X+2,labY+20*devicePixelRatio)}}
+
+/* ---------- Building blocks ---------- */
+function prmRow(key,obj,def,onSet){const d=def;const v=obj[key];const changed=v!==d.d;
+  let inp;if(d.opts){inp=h('select',{onchange:e=>{const x=d.opts.find(o=>String(o)===e.target.value);onSet(key,x);}},d.opts.map(o=>h('option',{value:o,selected:String(o)===String(v)},String(o))));}
+  else inp=h('input',{type:'range',min:d.min,max:d.max,step:d.step,value:v,oninput:e=>{const x=+e.target.value;val.textContent=fmt(x,d.step);onSet(key,x,true)},onchange:e=>onSet(key,+e.target.value)});
+  const val=h('span',{class:'val'},d.opts?'':fmt(v,d.step));
+  return h('div',{class:'prm'+(changed?' changed':'')},h('label',{title:(d.h||'')+(d.u?' ('+d.u+')':'')},d.l+(d.u?' ('+d.u+')':'')),inp,val,
+    h('button',{class:'rst',title:'Back to default',onclick:()=>onSet(key,d.d)},'↺'))}
+function setParam(k,v,live){S.cur.params[k]=v;if(live){pushHist();saveStoreSoon();return}touch();if(['tract','pitch'].includes(k)||true)refreshPage()}
+let refreshT=0;function refreshPage(){clearTimeout(refreshT);refreshT=setTimeout(()=>{const sc=$('#page').scrollTop;render();$('#page').scrollTop=sc},30)}
+function card(title,...kids){return h('div',{class:'card'},title?h('h3',{},title):null,...kids)}
+function btn(label,fn,cls,title){return h('button',{class:cls||'',onclick:fn,title},label)}
+
+/* ---------- Pages ---------- */
+const PAGES=[
+ ['Make','studio','🎚️ Studio'],['Make','fx','🎛️ Effects rack'],['Make','presets','🎭 Presets'],['Make','describe','✨ Describe & mutate'],['Make','morph','🧬 Morph & A/B'],
+ ['Words','words','🔤 Words & phonemes'],['Words','scene','🎬 Scene / cast'],['Words','sing','🎵 Sing mode'],
+ ['Sound','changer','🔁 Voice changer'],['Sound','system','🖥️ System voices'],
+ ['Ship','library','📚 Library'],['Ship','ship','📦 Ship & export'],['Ship','spec','📜 Format & API'],['Ship','ideas','💡 Ideas']];
+function nav(){const n=$('#nav');n.innerHTML='';let sec='';for(const [s,id,l] of PAGES){if(s!==sec){sec=s;n.append(h('div',{class:'sec'},s))}
+  n.append(h('button',{class:S.page===id?'on':'',onclick:()=>{S.page=id;render();$('#page').scrollTop=0}},l))}}
+function render(){nav();const p=$('#page');p.innerHTML='';(PAGE[S.page]||PAGE.studio)(p)}
+const TAGS=[['*word*','*really*','Emphasis'],['[pause 500]','[pause 500]','Silence in ms'],['[pitch +4]','[pitch +4]','Shift pitch (semitones) until [pitch 0]'],['[rate 0.7]','[rate 0.7]','Speed until [rate 1]'],
+  ['[whisper]…[/whisper]','[whisper]','Whisper part of a line'],['[laugh]','[laugh]','Laugh'],['[sigh]','[sigh]','Sigh'],['[hmm]','[hmm]','Hmm'],['[gasp]','[gasp]','Gasp'],['[breath]','[breath]','Breath'],
+  ['[sing C4 E4 G4]','[sing C4 E4 G4]','Sing the next syllables on these notes'],['[note A3]','[note A3]','Hold one note (use [note off])'],['[spell UDS]','[spell UDS]','Spell letters'],['{HH AH L OW}','{HH AH L OW}','Raw phonemes'],['[reset]','[reset]','Clear all tags']];
+function textBox(rows){const ta=h('textarea',{rows:rows||3,value:S.text,oninput:e=>{S.text=e.target.value;saveStoreSoon()},onkeydown:e=>{if(e.key==='Enter'&&e.ctrlKey){e.preventDefault();speak()}}});
+  const chips=h('div',{class:'chips'},TAGS.map(([l,ins,tip])=>h('span',{class:'chip',title:tip,onclick:()=>{const s=ta.selectionStart,e=ta.selectionEnd;
+    if(ins==='*really*'&&e>s){ta.setRangeText('*'+ta.value.slice(s,e)+'*',s,e,'end')}else if(ins==='[whisper]'&&e>s){ta.setRangeText('[whisper]'+ta.value.slice(s,e)+'[/whisper]',s,e,'end')}else ta.setRangeText(ins+' ',s,e,'end');
+    S.text=ta.value;ta.focus();saveStoreSoon()}},l)));return[ta,chips]}
+const PAGE={};
+PAGE.studio=p=>{const v=S.cur;
+  p.append(h('h2',{},'Studio'),h('p',{class:'sub'},'Shape every part of the voice. Hover a control for what it does. Changes play a short preview when “Auto preview” is on.'));
+  p.append(card('Say something',...textBox(3),h('div',{class:'row'},btn('▶ Speak',()=>speak(),'go'),btn('■ Stop',stop),btn('💾 Save as WAV',()=>exportWav()),
+    h('label',{class:'row',style:{gap:'4px'}},h('input',{type:'checkbox',checked:S.auto,onchange:e=>{S.auto=e.target.checked;saveStoreSoon()}}),'Auto preview'),
+    h('span',{class:'mut small'},'Engine: '),h('select',{onchange:e=>{v.engine=e.target.value;touch();render()}},h('option',{value:'forge',selected:v.engine==='forge'},'Forge (portable)'),h('option',{value:'system',selected:v.engine==='system'},'System voice (this PC only)')),
+    btn('🎲 Surprise me',()=>{randomize(.7,true)},'', 'Random new voice'))));
+  p.append(h('div',{class:'card'},h('div',{class:'vizwrap'},h('canvas',{id:'viz'}),h('div',{id:'playhead'})),h('div',{class:'mut small'},'Top: wave · middle: spectrogram with the pitch line (pink) · bottom: phonemes and words. Click Speak to draw.')));
+  if(lastRender)requestAnimationFrame(()=>drawViz(lastRender));
+  const grid=h('div',{class:'grid'});
+  for(const g of RV.GROUPS){const keys=Object.keys(RV.PARAMS).filter(k=>RV.PARAMS[k].g===g);
+    grid.append(card(g,keys.map(k=>prmRow(k,v.params,RV.PARAMS[k],setParam)),h('div',{class:'row',style:{marginTop:'6px'}},
+      btn('↺ Reset group',()=>{keys.forEach(k=>v.params[k]=RV.PARAMS[k].d);touch();render()},'sm'),btn('🎲 Shake group',()=>{shake(keys);},'sm'))))}
+  p.append(grid);
+  if(v.engine==='system')p.prepend(h('div',{class:'card',style:{borderColor:'var(--warn)'}},'This voice uses a Windows system voice (settings on the System voices page). The sliders below only shape the portable Forge version, which exports use.'))};
+function shake(keys){for(const k of keys){const d=RV.PARAMS[k];if(d.opts||k==='sr')continue;const span=(d.max-d.min)*.12;let x=S.cur.params[k]+(Math.random()*2-1)*span;x=Math.min(d.max,Math.max(d.min,x));S.cur.params[k]=+fmt(x,d.step)}touch();render()}
+
+PAGE.fx=p=>{const v=S.cur;p.append(h('h2',{},'Effects rack'),h('p',{class:'sub'},'Effects run top to bottom on the voice. They are saved in the voice, so they ship with it.'));
+  p.append(card('Add an effect',h('div',{class:'row'},Object.keys(RV.FX).map(t=>btn('+ '+RV.FX[t].l,()=>{v.fx.push(RV.fxDefaults(t));touch();render()},'sm')))),h('div',{class:'row',style:{marginBottom:'10px'}},btn('▶ Speak',()=>speak(),'go'),btn('Remove all',()=>{v.fx=[];touch();render()},'sm bad')));
+  if(!v.fx.length)p.append(h('p',{class:'mut'},'No effects yet. The voice is dry.'));
+  v.fx.forEach((f,i)=>{const def=RV.FX[f.type];
+    const rows=Object.keys(def.p).map(k=>{const a=def.p[k];const d=Array.isArray(a[0])?{d:a[0][0],opts:a[0],l:a[1]}:{d:a[0],min:a[1],max:a[2],step:a[3],l:a[4],u:a[5]};
+      return prmRow(k,f,d,(kk,x,live)=>{f[kk]=x;if(live){pushHist();saveStoreSoon()}else{touch();refreshPage()}})});
+    p.append(h('div',{class:'card fx'+(f.on===false?' off':'')},h('div',{class:'fxhead'},h('input',{type:'checkbox',checked:f.on!==false,title:'On/off',onchange:e=>{f.on=e.target.checked;touch();render()}}),h('b',{},(i+1)+'. '+def.l),
+      btn('↑',()=>{if(i>0){[v.fx[i-1],v.fx[i]]=[v.fx[i],v.fx[i-1]];touch();render()}},'sm'),btn('↓',()=>{if(i<v.fx.length-1){[v.fx[i+1],v.fx[i]]=[v.fx[i],v.fx[i+1]];touch();render()}},'sm'),
+      btn('⧉',()=>{v.fx.splice(i+1,0,clone(f));touch();render()},'sm','Duplicate'),btn('✕',()=>{v.fx.splice(i,1);touch();render()},'sm bad','Remove')),rows))})};
+
+PAGE.presets=p=>{p.append(h('h2',{},'Presets'),h('p',{class:'sub'},'Starting points. Play one, then load it and make it yours.'));
+  const g=h('div',{class:'grid'});PRESETS.forEach(pr=>{g.append(h('div',{class:'card preset'},h('div',{class:'nm'},pr.name),h('div',{class:'ds'},pr.d),
+    h('div',{class:'row'},btn('▶ Hear',()=>speak(`Hello, I am ${pr.name}. How do I sound?`,presetVoice(pr)),'sm'),btn('Load',()=>{const v=presetVoice(pr);v.id=uid();setCur(v);toast('Loaded '+pr.name)},'sm pri'),
+      btn('Add to current',()=>{Object.assign(S.cur.params,pr.p||{});(pr.fx||[]).forEach(f=>S.cur.fx.push(Object.assign(RV.fxDefaults(f.type),f)));touch();toast('Blended '+pr.name+' into this voice')},'sm'))))});p.append(g)};
+
+/* Describe: words to settings */
+const WORDS=[
+ [/deep|low|bass/,v=>{v.p.pitch*=.75;v.p.tract*=.93}],[/high|squeak/,v=>{v.p.pitch*=1.35}],
+ [/female|woman|girl|lady|feminine/,v=>{v.p.pitch=210;v.p.tract=1.17}],[/\bmale|\bman\b|\bguy|masculine/,v=>{v.p.pitch=110;v.p.tract=1}],
+ [/child|kid|little/,v=>{v.p.pitch=290;v.p.tract=1.3}],[/old|elder|aged|ancient|grand/,v=>{v.p.jitter+=.03;v.p.shimmer+=.1;v.p.creak+=.15;v.p.rate*=.85}],[/young|teen/,v=>{v.p.tract*=1.05;v.p.rate*=1.05}],
+ [/robot|machine|mechanical|computer|android|cyborg/,v=>{v.p.wave='buzz';v.p.range=.05;v.p.quant=1;v.p.jitter=0;v.p.shimmer=0;v.fx.push({type:'ring',freq:55,mix:.45})}],
+ [/breath|airy/,v=>{v.p.breath=.45}],[/whisper/,v=>{v.p.whisper=.9;v.p.breath=.5}],[/rasp|gravel|rough|husky|gruff/,v=>{v.p.creak=.4;v.p.jitter+=.04;v.p.shimmer+=.15}],
+ [/smooth|silky|velvet/,v=>{v.p.jitter=.003;v.p.shimmer=.01;v.p.tension=.4}],[/fast|quick|rapid/,v=>{v.p.rate*=1.3}],[/slow|lazy|drawl/,v=>{v.p.rate*=.75}],
+ [/calm|sooth|gentle|relax/,v=>{v.p.range=.2;v.p.rate*=.9;v.p.tension=.35}],[/excit|energ|happy|cheer|hyper/,v=>{v.p.range=.9;v.p.rate*=1.12;v.p.pitch*=1.1;v.p.stress=1}],
+ [/sad|gloomy|tired|bored/,v=>{v.p.pitch*=.9;v.p.range=.15;v.p.rate*=.8;v.p.breath+=.2}],[/angry|mad|furious|shout/,v=>{v.p.tension=.85;v.p.stress=1.3;v.p.rate*=1.08;v.fx.push({type:'drive',amount:.2,mix:.4})}],
+ [/scary|creepy|evil|sinister|villain|demon/,v=>{v.p.pitch*=.7;v.p.creak+=.25;v.p.harm1=-12;v.p.harm1Mix=.4;v.fx.push({type:'reverb',size:.8,mix:.3})}],
+ [/giant|huge|big|ogre|troll/,v=>{v.p.tract=.72;v.p.pitch*=.6;v.p.rate*=.85}],[/tiny|small|mouse|fairy|pixie/,v=>{v.p.tract=1.45;v.p.pitch*=1.6}],
+ [/alien|cosmic|martian/,v=>{v.p.tract=1.35;v.p.vibRate=9;v.p.vibDepth=.5;v.fx.push({type:'ring',freq:220,mix:.3},{type:'flanger',mix:.35})}],
+ [/ghost|spirit|phantom|haunt/,v=>{v.p.whisper=.7;v.fx.push({type:'echo',time:320,fb:.4,mix:.3},{type:'reverb',size:.9,mix:.45})}],
+ [/radio|phone|walkie|intercom/,v=>{v.fx.push({type:'radio'})}],[/cave|hall|church|cathedral|stadium/,v=>{v.fx.push({type:'reverb',size:.95,mix:.4})}],
+ [/nasal|whiny/,v=>{v.p.nasal=.8}],[/bright|crisp|clear/,v=>{v.p.tension=.68;v.p.precision=.85;v.fx.push({type:'eq',high:4})}],[/warm|rich/,v=>{v.p.tension=.4;v.fx.push({type:'eq',low:4,high:-1})}],
+ [/dark|muffled/,v=>{v.fx.push({type:'eq',high:-6})}],[/metal|tin|hollow/,v=>{v.p.bw=.4}],[/choir|crowd|many|army|swarm/,v=>{v.p.voices=5;v.p.detune=20}],[/echo/,v=>{v.fx.push({type:'echo'})}],
+ [/sing|music|melod/,v=>{v.p.vibDepth=.4;v.p.quant=.8;v.p.range=.8}],[/monoton|flat|bored/,v=>{v.p.range=0}],[/wobbl|shak|nervous|trembl/,v=>{v.p.vibDepth=.5;v.p.vibRate=7;v.p.jitter+=.03}],
+ [/mumbl|sloppy|drunk/,v=>{v.p.precision=.1;v.p.fric=.6}],[/underwater|bubbl/,v=>{v.fx.push({type:'filter',mode:'lowpass',freq:800,q:2},{type:'chorus',depth:12,mix:.6})}],
+ [/space|starship|station/,v=>{v.fx.push({type:'chorus',mix:.25},{type:'reverb',size:.5,mix:.2})}],[/retro|8.?bit|arcade|chiptune/,v=>{v.p.wave='square';v.fx.push({type:'crush',bits:6,down:4})}],
+ [/snake|hiss/,v=>{v.p.sib=1.4;v.p.fric=1.7}],[/pirate/,v=>{v.p.creak=.3;v.p.range=.75}],[/announc|host|dj|presenter/,v=>{v.p.range=.8;v.p.stress=1.1;v.fx.push({type:'comp'})}],
+ [/opera|dramatic|theatr/,v=>{v.p.vibDepth=.6;v.p.range=1}],[/sleep|drows/,v=>{v.p.rate*=.75;v.p.range=.15;v.p.tension=.2}],[/glitch|broken|corrupt/,v=>{v.p.jitter=.15;v.p.pitchRand=1.2;v.fx.push({type:'crush',bits:5,down:3,mix:.6})}]];
+function describe(text){const t=text.toLowerCase();const v={p:clone(RV.defaults()),fx:[]};let hits=0;for(const [re,fn] of WORDS)if(re.test(t)){fn(v);hits++}
+  const nv=RV.clean({name:text.slice(0,40)||'Described voice',params:v.p,fx:v.fx.map(f=>Object.assign(RV.fxDefaults(f.type),f)),description:text});nv.id=uid();return{v:nv,hits}}
+function randomize(amt,wild){const v=RV.newVoice('Surprise '+Math.floor(Math.random()*900+100));const r=(a,b)=>a+Math.random()*(b-a);const pk=a=>a[Math.floor(Math.random()*a.length)];
+  Object.assign(v.params,{pitch:Math.round(r(70,320)),tract:+r(.8,1.35).toFixed(2),tension:+r(.2,.8).toFixed(2),breath:+r(0,.35*amt).toFixed(2),jitter:+r(0,.04*amt).toFixed(3),shimmer:+r(0,.15*amt).toFixed(2),
+    creak:Math.random()<.2?+r(0,.5).toFixed(2):0,vibDepth:Math.random()<.3?+r(0,.5).toFixed(2):0,range:+r(.1,1).toFixed(2),rate:+r(.8,1.25).toFixed(2),pitchRand:+r(0,.5).toFixed(2),f2:Math.round(r(-150,150)*amt)});
+  if(wild){if(Math.random()<.35)v.params.wave=pk(['saw','square','buzz','pulse','sine']);const n=Math.floor(r(0,3));for(let i=0;i<n;i++){const t=pk(['reverb','echo','chorus','ring','flanger','crush','eq','radio','tremolo']);v.fx.push(RV.fxDefaults(t))}}
+  v.id=uid();setCur(v);speak((S.text.split(/(?<=[.!?])\s+/)[0]||'Hello there.'))}
+function mutate(amt){const v=clone(S.cur);for(const k in RV.PARAMS){const d=RV.PARAMS[k];if(d.opts)continue;if(Math.random()<.5)continue;let x=v.params[k]+(Math.random()*2-1)*(d.max-d.min)*.08*amt;v.params[k]=+fmt(Math.min(d.max,Math.max(d.min,x)),d.step)}setCur(v);speak()}
+PAGE.describe=p=>{p.append(h('h2',{},'Describe & mutate'),h('p',{class:'sub'},'Describe a voice in plain words and Voice Forge builds it. Or roll the dice.'));
+  const ta=h('textarea',{rows:2,placeholder:'e.g. an old raspy pirate captain in a big cave, slow and dramatic'});
+  const out=h('div',{class:'mut small'});
+  p.append(card('Describe a voice',ta,h('div',{class:'row',style:{marginTop:'6px'}},btn('✨ Build it',()=>{const r=describe(ta.value);if(!r.hits){out.textContent='No words I know yet. Try: deep, old, robot, ghost, giant, whisper, excited, radio, choir…';return}
+    setCur(r.v);out.textContent=`Used ${r.hits} idea${r.hits>1?'s':''}. Tweak it in the Studio.`;speak()},'pri')),out,
+    h('div',{class:'chips'},['a tiny excited fairy','a deep calm male narrator in a hall','an old raspy wizard','a robot on a phone line','a scary giant ghost','a sad slow android','a choir of aliens','a whispering snake villain','a fast energetic sports announcer'].map(x=>h('span',{class:'chip',onclick:()=>{ta.value=x}},x)))));
+  p.append(card('Roll the dice',h('div',{class:'row'},btn('🎲 Random (human)',()=>randomize(.6,false)),btn('🌀 Random (wild)',()=>randomize(1,true)),btn('🧪 Mutate a little',()=>mutate(.6)),btn('💥 Mutate a lot',()=>mutate(2))),
+    h('p',{class:'mut small'},'Mutate nudges the current voice. Don’t like it? Press ↶ to go back.')))};
+
+PAGE.morph=p=>{p.append(h('h2',{},'Morph & A/B'),h('p',{class:'sub'},'Blend two voices into a new one, or compare them side by side.'));
+  const opts=()=>[h('option',{value:'cur'},'— Current voice —'),...S.lib.map(v=>h('option',{value:'lib:'+v.id},'📚 '+v.name)),...PRESETS.map((pr,i)=>h('option',{value:'pre:'+i},'🎭 '+pr.name))];
+  const get=k=>!k||k==='cur'?S.cur:k.startsWith('lib:')?S.lib.find(v=>v.id===k.slice(4)):presetVoice(PRESETS[+k.slice(4)]);
+  const sa=h('select',{onchange:e=>{S.abA=e.target.value}},opts()),sb=h('select',{onchange:e=>{S.abB=e.target.value}},opts());sa.value=S.abA||'cur';sb.value=S.abB||'pre:6';S.abA=sa.value;S.abB=sb.value;
+  const mval=h('span',{},Math.round(S.morph*100)+'% B');
+  const blend=()=>{const A=RV.clean(get(S.abA)),B=RV.clean(get(S.abB)),t=S.morph,v=RV.newVoice(`${A.name} × ${B.name}`);
+    for(const k in RV.PARAMS){const d=RV.PARAMS[k];v.params[k]=d.opts?(t<.5?A.params[k]:B.params[k]):+fmt(A.params[k]*(1-t)+B.params[k]*t,d.step)}
+    v.fx=clone(t<.5?A.fx:B.fx);v.dict=Object.assign({},A.dict,B.dict);v.id=uid();return RV.clean(v)};
+  p.append(card('Pick two voices',h('div',{class:'two'},h('div',{},h('b',{},'A '),sa,' ',btn('▶ A',()=>speak(null,RV.clean(get(S.abA))),'sm')),h('div',{},h('b',{},'B '),sb,' ',btn('▶ B',()=>speak(null,RV.clean(get(S.abB))),'sm'))),
+    h('div',{class:'row',style:{marginTop:'10px'}},'A',h('input',{type:'range',min:0,max:1,step:.01,value:S.morph,style:{flex:1},oninput:e=>{S.morph=+e.target.value;mval.textContent=Math.round(S.morph*100)+'% B'}}),'B',mval),
+    h('div',{class:'row',style:{marginTop:'8px'}},btn('▶ Hear the blend',()=>speak(null,blend()),'go'),btn('Use the blend',()=>{setCur(blend());toast('Blend is now the current voice')},'pri'),
+      btn('⇄ Quick A/B/A/B',async()=>{for(const k of [S.abA,S.abB,S.abA,S.abB]){const r=RV.render('This is how I sound.',RV.clean(get(k)));const hd=RV.play(r);if(!hd)break;await hd.ended}}))))};
+
+PAGE.words=p=>{const v=S.cur;p.append(h('h2',{},'Words & phonemes'),h('p',{class:'sub'},'See how the voice reads your text, fix any word it says wrong, and get lip-sync timing.'));
+  const box=h('div');const show=()=>{box.innerHTML='';RV.phonemes(S.text,v).forEach(w=>box.append(h('span',{class:'phw',title:'Click to fix this word',style:{cursor:'pointer'},onclick:()=>{wi.value=w.word.toLowerCase();pi.value=w.ph}},h('b',{},w.word),h('span',{},w.ph))))};
+  p.append(card('How it reads the text',...textBox(2),h('div',{class:'row'},btn('Show phonemes',show),btn('▶ Speak',()=>speak(),'go')),box));show();
+  const wi=h('input',{placeholder:'word'}),pi=h('input',{placeholder:'phonemes, e.g. R AE N D IH S',style:{flex:1}});
+  const list=h('table',{},h('tr',{},h('th',{},'Word'),h('th',{},'Says it as'),h('th',{})),Object.keys(v.dict).sort().map(k=>h('tr',{},h('td',{},k),h('td',{class:'mono'},v.dict[k]),
+    h('td',{},btn('▶',()=>speak(k),'sm'),' ',btn('✕',()=>{delete v.dict[k];touch();render()},'sm bad')))));
+  p.append(card('Pronunciation dictionary (ships with the voice)',h('div',{class:'row'},wi,pi,btn('▶ Try',()=>speak('{'+pi.value+'}'),'sm'),btn('Add / update',()=>{const w=wi.value.trim().toLowerCase();if(!w||!pi.value.trim())return;v.dict[w]=pi.value.trim().toUpperCase();touch();render()},'sm pri'),
+    btn('Guess',()=>{pi.value=RV.wordPhonemes(wi.value.trim(),{}).join(' ')},'sm')),Object.keys(v.dict).length?list:h('p',{class:'mut small'},'No custom words yet.')));
+  const g=h('div',{class:'chips'});Object.keys(RV.PHONEMES).forEach(ph=>g.append(h('span',{class:'chip',title:'as in “'+RV.PH_EXAMPLES[ph]+'” — click to hear',
+    onclick:()=>{pi.value=(pi.value+' '+ph).trim();const isV=/[AEIOU]/.test(ph[0]);speak(isV?'{'+ph+'}':'{'+ph+' AA}')}},h('b',{},ph),' '+RV.PH_EXAMPLES[ph])));
+  p.append(card('Phoneme chart (click to hear and add)',g));
+  const tl=h('div');p.append(card('Lip-sync timeline (visemes)',h('div',{class:'row'},btn('Make timeline',()=>{const t=RV.timeline(S.text,v).filter(x=>x.ph!=='_');tl.innerHTML='';
+    tl.append(h('table',{},h('tr',{},h('th',{},'Start s'),h('th',{},'End s'),h('th',{},'Phoneme'),h('th',{},'Mouth shape'),h('th',{},'Word')),t.slice(0,300).map(x=>h('tr',{},h('td',{},x.start),h('td',{},x.end),h('td',{class:'mono'},x.ph),h('td',{},x.viseme),h('td',{},x.word)))))}),
+    btn('Save timeline JSON',()=>saveFile(safeName(v.name)+'-lipsync.json',JSON.stringify(RV.timeline(S.text,v),null,1),'application/json'))),
+    h('p',{class:'mut small'},'Mouth shapes: A, E, O, U, R, MBP, FV, L, TH, etc, rest. Use them to animate an avatar’s mouth in time with the WAV.'),tl))};
+
+PAGE.scene=p=>{p.append(h('h2',{},'Scene / cast'),h('p',{class:'sub'},'Write a script with one line per speaker as NAME: words. Give each name a voice, then make the whole scene as one audio file.'));
+  const ta=h('textarea',{rows:8,value:S.scene,oninput:e=>{S.scene=e.target.value;saveStoreSoon()},onchange:()=>render()});
+  const names=[...new Set(S.scene.split('\n').map(l=>(/^\s*([^:]{1,30}):/.exec(l)||[])[1]).filter(Boolean).map(s=>s.trim()))];
+  const choices=[h('option',{value:'cur'},'— Current voice —'),...S.lib.map(v=>h('option',{value:'lib:'+v.id},'📚 '+v.name)),...PRESETS.map((pr,i)=>h('option',{value:'pre:'+i},'🎭 '+pr.name))];
+  const guess=n=>{const i=PRESETS.findIndex(pr=>pr.name.toLowerCase().includes(n.toLowerCase().split(' ')[0]));return i>=0?'pre:'+i:'pre:'+(Math.abs([...n].reduce((a,c)=>a*31+c.charCodeAt(0),7))%PRESETS.length)};
+  const castRows=names.map(n=>{const s=h('select',{onchange:e=>{S.cast[n]=e.target.value;saveStoreSoon()}},choices.map(o=>o.cloneNode(true)));s.value=S.cast[n]||guess(n);S.cast[n]=s.value;
+    return h('tr',{},h('td',{},h('b',{},n)),h('td',{},s))});
+  const gap=h('input',{type:'number',value:350,min:0,max:5000,style:{width:'80px'}});
+  p.append(card('Script',ta,h('p',{class:'mut small'},'Tags like [pause 300], *emphasis* and [laugh] work in every line.')),
+    card('Cast',names.length?h('table',{},castRows):h('p',{class:'mut'},'No speakers found. Start lines with a name and a colon.'),
+      h('div',{class:'row',style:{marginTop:'8px'}},'Gap between lines (ms)',gap,btn('▶ Play scene',()=>{const r=renderScene(+gap.value);if(r){lastRender=r;RV.play(r);status(r.duration.toFixed(1)+' s scene')}},'go'),
+        btn('💾 Save scene WAV',()=>{const r=renderScene(+gap.value);if(r)saveFile('scene.wav',new Blob([RV.wav(r)],{type:'audio/wav'}))}))))};
+function voiceByKey(k){return !k||k==='cur'?S.cur:k.startsWith('lib:')?(S.lib.find(v=>v.id===k.slice(4))||S.cur):presetVoice(PRESETS[+k.slice(4)]||PRESETS[0])}
+function resample(x,from,to){if(from===to)return x;const n=Math.round(x.length*to/from),o=new Float32Array(n),k=from/to;for(let i=0;i<n;i++){const t=i*k,j=Math.floor(t),f=t-j;o[i]=(x[j]||0)*(1-f)+(x[j+1]||0)*f}return o}
+function renderScene(gapMs){const SR=24000,parts=[];for(const line of S.scene.split('\n')){const m=/^\s*([^:]{1,30}):\s*(.+)$/.exec(line);if(!m)continue;
+    const v=voiceByKey(S.cast[m[1].trim()]);const r=RV.render(m[2],v);parts.push(resample(r.samples,r.sr,SR),new Float32Array(Math.round(SR*gapMs/1000)))}
+  if(!parts.length){toast('Nothing to play.');return null}const n=parts.reduce((a,b)=>a+b.length,0),o=new Float32Array(n);let at=0;for(const q of parts){o.set(q,at);at+=q.length}
+  return{samples:o,sr:SR,segs:[],f0:new Float32Array(0),duration:n/SR}}
+
+PAGE.sing=p=>{p.append(h('h2',{},'Sing mode'),h('p',{class:'sub'},'Give the voice a melody. Each note goes to the next syllable. Robo-tune and vibrato make it more musical.'));
+  const notes=h('input',{value:'C4 D4 E4 F4 G4 G4 A4 G4',style:{flex:1}}),lyr=h('input',{value:'do re mi fa so so la so',style:{flex:1}}),oct=h('select',{},[-12,0,12].map(x=>h('option',{value:x,selected:x===0},x?((x>0?'+':'')+x/12+' octave'):'as written')));
+  const build=()=>{const o=+oct.value;const ns=notes.value.split(/\s+/).filter(Boolean).map(n=>{const hz=RV.noteHz(n);return hz?(hz*Math.pow(2,o/12)).toFixed(1):''}).filter(Boolean);return `[rate 0.6][sing ${ns.join(' ')}]${lyr.value}[/sing][reset]`};
+  p.append(card('Melody',h('div',{class:'row'},'Notes',notes),h('div',{class:'row',style:{marginTop:'6px'}},'Words',lyr),h('div',{class:'row',style:{marginTop:'6px'}},'Shift',oct,
+    btn('▶ Sing',()=>speak(build()),'go'),btn('Put in text box',()=>{S.text=build();saveStoreSoon();toast('Copied into the Studio text box')}),btn('💾 Save WAV',()=>{const r=renderVoice(build());saveFile(safeName(S.cur.name)+'-sing.wav',new Blob([RV.wav(r)],{type:'audio/wav'}))})),
+    h('p',{class:'mut small'},'Note names like C4, F#3, Bb4 or a number in Hz. Tip: set Vibrato depth to 0.3–0.6 and Robo-tune to 0.8+ in the Studio.')))
+  const tunes={'Twinkle':['C4 C4 G4 G4 A4 A4 G4','twin kle twin kle lit tle star'],'Scale up':['C4 D4 E4 F4 G4 A4 B4 C5','do re mi fa so la ti do'],'Happy beeps':['E4 G4 C5 G4 E4 C4','beep boop bee boop beep boop'],'Birthday':['C4 C4 D4 C4 F4 E4','hap py birth day to you']};
+  p.append(card('Quick tunes',h('div',{class:'chips'},Object.keys(tunes).map(k=>h('span',{class:'chip',onclick:()=>{notes.value=tunes[k][0];lyr.value=tunes[k][1];speak(build())}},k)))))};
+
+/* Voice changer: imported audio through the rack */
+let changerBuf=null;
+PAGE.changer=p=>{p.append(h('h2',{},'Voice changer'),h('p',{class:'sub'},'Run a recording through this voice’s effects rack and a pitch shift. Open a WAV, MP3 or OGG file (record one with Windows Sound Recorder).'));
+  const info=h('span',{class:'mut'},changerBuf?`${changerBuf.name} · ${(changerBuf.x.length/changerBuf.sr).toFixed(1)} s`:'No file yet.');
+  const semi=h('input',{type:'range',min:-12,max:12,step:.5,value:S.changerSemi,style:{flex:1},oninput:e=>{S.changerSemi=+e.target.value;sv.textContent=S.changerSemi+' st'}}),sv=h('span',{},S.changerSemi+' st');
+  const go=()=>{if(!changerBuf)return toast('Open an audio file first.'),null;const fx=[];if(S.changerSemi)fx.push({type:'pitch',semi:S.changerSemi,mix:1});if(S.changerUseFx)fx.push(...S.cur.fx);
+    let y=RV.applyFx(new Float32Array(changerBuf.x),fx,changerBuf.sr);RV.finish(y,0);return{samples:y,sr:changerBuf.sr,segs:[],f0:new Float32Array(0),duration:y.length/changerBuf.sr}};
+  p.append(card('Your recording',h('div',{class:'row'},btn('📂 Open audio file',async()=>{const f=await pickFile('audio/*,.wav,.mp3,.ogg,.m4a,.flac');if(!f)return;
+      try{const AC=window.AudioContext||window.webkitAudioContext,ac=new AC(),b=await ac.decodeAudioData(await f.arrayBuffer());const x=new Float32Array(b.length);
+        for(let c=0;c<b.numberOfChannels;c++){const d=b.getChannelData(c);for(let i=0;i<x.length;i++)x[i]+=d[i]/b.numberOfChannels}changerBuf={name:f.name,x,sr:b.sampleRate};ac.close();render()}
+      catch(e){toast('Could not read that file: '+e.message,5000)}},'pri'),info,btn('▶ Original',()=>{if(changerBuf)RV.play({samples:changerBuf.x,sr:changerBuf.sr,duration:changerBuf.x.length/changerBuf.sr})},'sm')),
+    h('div',{class:'row',style:{marginTop:'10px'}},'Pitch shift',semi,sv),
+    h('label',{class:'row',style:{marginTop:'6px'}},h('input',{type:'checkbox',checked:S.changerUseFx,onchange:e=>{S.changerUseFx=e.target.checked}}),`Use “${S.cur.name}” effects rack (${S.cur.fx.length} effect${S.cur.fx.length===1?'':'s'})`),
+    h('div',{class:'row',style:{marginTop:'10px'}},btn('▶ Play changed',()=>{const r=go();if(r)RV.play(r)},'go'),btn('■',stop),btn('💾 Save changed WAV',()=>{const r=go();if(r)saveFile(safeName(changerBuf.name.replace(/\.\w+$/,''))+'-changed.wav',new Blob([RV.wav(r)],{type:'audio/wav'}))}))),
+    card('About the microphone',h('p',{class:'mut'},'Tabs in Randis UDS are walled off from the microphone for safety, so live mic changing is not on. Record with Windows Sound Recorder (Start → type “Sound Recorder”), then open the file here.')))};
+
+PAGE.system=p=>{const v=S.cur,sy=v.system;p.append(h('h2',{},'System voices'),h('p',{class:'sub'},'The natural-sounding voices built into Windows. They only work on this PC and can’t be exported as audio here, but a voice can point to one as its live engine.'));
+  const list=typeof speechSynthesis!=='undefined'?speechSynthesis.getVoices():[];
+  if(typeof speechSynthesis!=='undefined'&&!list.length){speechSynthesis.onvoiceschanged=()=>{if(S.page==='system')render()}}
+  const sel=h('select',{onchange:e=>{sy.voice=e.target.value;touch()}},h('option',{value:''},'(default)'),list.map(x=>h('option',{value:x.name,selected:x.name===sy.voice},x.name+' — '+x.lang)));
+  const sl=(k,min,max,l)=>h('div',{class:'prm'},h('label',{},l),h('input',{type:'range',min,max,step:.05,value:sy[k],oninput:e=>{sy[k]=+e.target.value;e.target.nextSibling.textContent=sy[k].toFixed(2)},onchange:()=>touch()}),h('span',{class:'val'},sy[k].toFixed(2)),h('span'));
+  p.append(card('Windows voice',list.length?sel:h('p',{class:'mut'},'No system voices found in this view.'),sl('rate',.3,3,'Speed'),sl('pitch',0,2,'Pitch'),sl('volume',0,1,'Volume'),
+    h('div',{class:'row',style:{marginTop:'8px'}},btn('▶ Test system voice',()=>RV.speak(S.text,Object.assign(clone(v),{engine:'system'})),'go'),btn('■',stop),
+      h('label',{class:'row'},h('input',{type:'checkbox',checked:v.engine==='system',onchange:e=>{v.engine=e.target.checked?'system':'forge';touch()}}),'Use as this voice’s live engine')),
+    h('p',{class:'mut small'},'Exports always include the portable Forge version too, so the voice still works on any device.')));
+  p.append(card('SSML (for any speech service that reads SSML)',h('pre',{},ssml()),btn('Copy SSML',()=>copy(ssml()),'sm'),' ',btn('Save .ssml',()=>saveFile(safeName(v.name)+'.ssml',ssml(),'application/ssml+xml'),'sm')))};
+function ssml(){const v=S.cur,p=v.params;const pct=Math.round((p.rate-1)*100),st=(12*Math.log2(p.pitch/120)).toFixed(1);
+  const body=esc(S.text).replace(/\[pause\s*=?\s*(\d+)\]/gi,'<break time="$1ms"/>').replace(/\*([^*]+)\*/g,'<emphasis level="strong">$1</emphasis>').replace(/\[whisper\]/gi,'<prosody volume="x-soft">').replace(/\[\/whisper\]/gi,'</prosody>').replace(/\[[^\]]*\]|\{[^}]*\}/g,'');
+  return `<speak version="1.0" xml:lang="en-US">\n  <\!-- ${v.name}: made with Voice Forge (Randis UDS) -->\n  <prosody rate="${pct>=0?'+':''}${pct}%" pitch="${st>=0?'+':''}${st}st">\n    ${body}\n  </prosody>\n</speak>`}
+async function copy(t){try{await navigator.clipboard.writeText(t);toast('Copied')}catch(e){const ta=h('textarea',{style:{position:'fixed',left:'-9999px'}});ta.value=t;document.body.append(ta);ta.select();document.execCommand('copy');ta.remove();toast('Copied')}}
+
+PAGE.library=p=>{p.append(h('h2',{},'Library'),h('p',{class:'sub'},'Your saved voices. They’re kept inside this tab, so they stay when you close the app.'));
+  p.append(h('div',{class:'row',style:{marginBottom:'10px'}},btn('💾 Save current voice',saveCur,'pri'),btn('📂 Import voice files',importVoices),btn('⬇ Export whole library',()=>saveFile('voice-library.rvoices.json',JSON.stringify({format:'randis-voice-library/1',voices:S.lib.map(exportVoice)},null,1),'application/json'))));
+  if(!S.lib.length)p.append(h('p',{class:'mut'},'Nothing saved yet. Make a voice and press 💾 Save voice.'));
+  const sorted=[...S.lib].sort((a,b)=>(b.fav-a.fav)||a.name.localeCompare(b.name));
+  p.append(card(null,sorted.map(v=>h('div',{class:'libitem'},h('span',{class:'fav',style:{cursor:'pointer'},title:'Favorite',onclick:()=>{v.fav=!v.fav;saveStoreSoon();render()}},v.fav?'★':'☆'),
+    h('div',{class:'nm'},h('b',{},v.name),' ',(v.tags||[]).map(t=>h('span',{class:'tag'},t)),h('div',{class:'mut small'},v.description||'')),
+    btn('▶',()=>speak(`Hi, I am ${v.name}.`,v),'sm'),btn('Open',()=>{setCur(clone(v));toast('Opened '+v.name)},'sm pri'),btn('⧉',()=>{const c=clone(v);c.id=uid();c.name+=' copy';S.lib.push(c);saveStoreSoon();render()},'sm','Duplicate'),
+    btn('⬇',()=>saveFile(safeName(v.name)+'.rvoice.json',JSON.stringify(exportVoice(v),null,1),'application/json'),'sm','Export'),
+    btn('✕',()=>{if(confirm('Delete “'+v.name+'” from the library?')){S.lib=S.lib.filter(x=>x!==v);saveStoreSoon();render()}},'sm bad','Delete')))))};
+function saveCur(){const v=clone(S.cur);v.name=$('#vname').value.trim()||v.name;S.cur.name=v.name;const i=S.lib.findIndex(x=>x.id===v.id);
+  v.saved=Date.now();if(i>=0){v.fav=S.lib[i].fav;S.lib[i]=v}else S.lib.push(v);saveStore();toast(`Saved “${v.name}” to your library`);if(S.page==='library')render();status(S.lib.length+' saved voices')}
+async function importVoices(){const f=await pickFile('.json,.rvoice,.rvoices,application/json');if(!f)return;try{const j=JSON.parse(await f.text());const arr=j.voices||(Array.isArray(j)?j:[j]);let n=0;
+  for(const x of arr){if(!x||!x.params)continue;const v=RV.clean(x);v.id=uid();S.lib.push(v);n++}saveStore();render();toast(`Imported ${n} voice${n===1?'':'s'}`)}catch(e){toast('That file is not a voice file: '+e.message,5000)}}
+function exportVoice(v){const o=RV.clean(v);delete o.id;delete o.fav;o.engineVersion=RV.version;o.made='Voice Forge · '+RV.credit;return o}
+
+/* ---------- Ship ---------- */
+function engineSource(){return document.getElementById('rv-engine').textContent.trim()}
+function buildJS(v){const V=exportVoice(v),n=V.name.replace(/\*\//g,'');return `/* ${n}: a portable AI voice (randis-voice/1), made with Voice Forge.
+ * ${RV.credit}
+ * Voice license: ${V.license}. ${V.author?'Voice by '+V.author+'. ':''}Synthetic voice: made from numbers, not a recording of anyone.
+ *
+ * Browser:  <script src="${safeName(n)}.voice.js"><\/script>
+ *           RandisVoices[${JSON.stringify(n)}].speak("Hello there!")
+ * Node.js:  node ${safeName(n)}.voice.js "Hello there!" hello.wav
+ * Also:     .render(text) -> {samples, sr}, .wav(text) -> WAV bytes, .timeline(text) -> lip-sync, .phonemes(text)
+ */
+${engineSource()}
+;(function(G){var E=G.RandisVoiceEngine,V=${JSON.stringify(V)};
+var api={name:V.name,voice:V,engine:E,render:function(t){return E.render(t,V)},wav:function(t){return E.wav(E.render(t,V))},speak:function(t){return E.speak(t,V)},stop:function(){E.stop()},
+  timeline:function(t){return E.timeline(t,V)},phonemes:function(t){return E.phonemes(t,V)}};
+G.RandisVoices=G.RandisVoices||{};G.RandisVoices[V.name]=api;
+if(typeof module==='object'&&module&&module.exports){module.exports=api;
+  if(typeof require==='function'&&require.main===module){var t=process.argv[2]||('Hello. I am '+V.name+'.'),o=process.argv[3]||'voice.wav';require('fs').writeFileSync(o,Buffer.from(api.wav(t)));console.log('Wrote '+o)}}
+})(typeof globalThis!=='undefined'?globalThis:this);
+`}
+function buildDemo(v){const n=esc(v.name);return `<!doctype html><html><head><meta charset="utf-8"><title>${n}: voice demo</title>
+<\!-- ${esc(RV.credit)} -->
+<style>body{font:15px system-ui;max-width:640px;margin:40px auto;padding:0 16px;background:#111;color:#eee}textarea{width:100%;height:90px;font:inherit;background:#222;color:#eee;border:1px solid #444;border-radius:8px;padding:8px}button{font:inherit;padding:8px 16px;border-radius:8px;border:0;background:#6a7cff;color:#fff;cursor:pointer;margin:8px 6px 0 0}small{color:#999}</style></head>
+<body><h1>🎙️ ${n}</h1><p>${esc(v.description||'A portable voice made with Voice Forge.')}</p>
+<textarea id="t">${esc(S.text)}</textarea><br><button onclick="V.speak(document.getElementById('t').value)">▶ Speak</button><button onclick="V.stop()">■ Stop</button><button onclick="dl()">💾 WAV</button>
+<p><small>Works offline in any modern browser. Made with Voice Forge in Randis UDS™ by Randy Moore · https://github.com/RandyWilliamMoore/randis-uds</small></p>
+<script>
+${buildJS(v).replace(/<\/script/gi,'<\\/script')}
+<\/script>
+<script>var V=RandisVoices[${JSON.stringify(v.name)}];function dl(){var b=new Blob([V.wav(document.getElementById('t').value)],{type:'audio/wav'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='speech.wav';a.click()}<\/script>
+</body></html>`}
+function readme(v){const V=exportVoice(v),f=safeName(V.name);return `# ${V.name}
+
+${V.description||'A portable synthetic voice.'}
+
+Made with **Voice Forge** in Randis UDS™ by Randy Moore.
+Original: https://github.com/RandyWilliamMoore/randis-uds · Support: https://ko-fi.com/moorescombinatoricsmatrix
+
+- Voice license: **${V.license}**${V.author?` · Voice by ${V.author}`:''}
+- Format: randis-voice/1 · Engine: Randis Voice Engine ${RV.version}
+- Synthetic: made from numbers by a formant synthesizer. Not a recording or clone of any real person.
+
+## What's in this pack
+
+| File | What it is |
+|---|---|
+| ${f}.rvoice.json | The voice itself: every setting, effect and custom word. Open it in Voice Forge. |
+| ${f}.voice.js | Engine + voice in one file, no dependencies. Works in browsers and Node.js. |
+| ${f}-demo.html | Double-click to try the voice in a browser, offline. |
+| sample.wav | A sample line. |
+| LICENSE.txt | The voice's license. |
+
+## Use it on a web page
+
+\`\`\`html
+<script src="${f}.voice.js"><\/script>
+<script>
+  const v = RandisVoices[${JSON.stringify(V.name)}];
+  v.speak("Hello there!");               // play it
+  const wavBytes = v.wav("Save me");     // Uint8Array, a 16-bit mono WAV
+  const lips = v.timeline("Hi!");        // [{ph, start, end, viseme, word}] for lip-sync
+<\/script>
+\`\`\`
+
+## Use it from the command line (Node.js)
+
+\`\`\`
+node ${f}.voice.js "Hello there!" hello.wav
+\`\`\`
+
+## Use it in a Randis UDS tab
+
+Ask the app's AI: "use the voice in ${f}.voice.js in this tab". Paste the file's text into a <script> in the tab page, then call RandisVoices[...].speak(text).
+
+## Text tags
+
+*word* emphasis · [pause 500] · [pitch +4] · [rate 0.8] · [whisper]…[/whisper] · [laugh] [sigh] [hmm] [gasp] [breath] · [sing C4 E4 G4] … [/sing] · [note A3] / [note off] · [spell ABC] · {HH AH L OW} raw phonemes · [reset]
+`}
+async function packZip(v){const V=exportVoice(v),f=safeName(V.name),r=RV.render(S.text||('Hello, I am '+V.name+'.'),v);
+  return zip([{name:f+'/'+f+'.rvoice.json',data:JSON.stringify(V,null,1)},{name:f+'/'+f+'.voice.js',data:buildJS(v)},{name:f+'/'+f+'-demo.html',data:buildDemo(v)},
+    {name:f+'/README.md',data:readme(v)},{name:f+'/LICENSE.txt',data:licenseText(V)},{name:f+'/sample.wav',data:RV.wav(r)}])}
+const LICENSES={'CC0-1.0':'CC0 1.0: no rights reserved. Anyone may use, change and sell this voice for anything, with no credit needed. https://creativecommons.org/publicdomain/zero/1.0/',
+  'CC-BY-4.0':'CC BY 4.0: anyone may use, change and sell this voice, as long as they credit the author. https://creativecommons.org/licenses/by/4.0/',
+  'CC-BY-SA-4.0':'CC BY-SA 4.0: use and change it with credit; changed versions must use the same license. https://creativecommons.org/licenses/by-sa/4.0/',
+  'CC-BY-NC-4.0':'CC BY-NC 4.0: use and change it with credit, but not to make money. https://creativecommons.org/licenses/by-nc/4.0/',
+  'Proprietary':'All rights reserved by the author. Ask the author before using this voice.'};
+function licenseText(V){return `${V.name}\nVoice by: ${V.author||'(not given)'}\nLicense: ${V.license}\n\n${LICENSES[V.license]||V.license}\n\nThe voice engine inside the .voice.js file is part of Randis UDS™ by Randy Moore.\nOriginal: https://github.com/RandyWilliamMoore/randis-uds · Support: https://ko-fi.com/moorescombinatoricsmatrix\n`}
+function exportWav(text){const r=renderVoice(text||S.text);lastRender=r;saveFile(safeName(S.cur.name)+'.wav',new Blob([RV.wav(r)],{type:'audio/wav'}))}
+PAGE.ship=p=>{const v=S.cur;p.append(h('h2',{},'Ship & export'),h('p',{class:'sub'},'Package this voice so anyone can use it anywhere: web pages, games, apps, Node.js, other Randis UDS tabs.'));
+  const f=(l,el)=>h('div',{class:'prm',style:{gridTemplateColumns:'120px 1fr'}},h('label',{},l),el);
+  p.append(card('About this voice',f('Name',h('input',{value:v.name,onchange:e=>{v.name=e.target.value.trim()||v.name;syncHeader();touch()}})),f('Author',h('input',{value:v.author,placeholder:'your name or handle',onchange:e=>{v.author=e.target.value;touch()}})),
+    f('Version',h('input',{value:v.version,onchange:e=>{v.version=e.target.value;touch()}})),f('Description',h('input',{value:v.description,onchange:e=>{v.description=e.target.value;touch()}})),
+    f('Tags',h('input',{value:(v.tags||[]).join(', '),placeholder:'robot, narrator, game',onchange:e=>{v.tags=e.target.value.split(',').map(s=>s.trim()).filter(Boolean);touch()}})),
+    f('License',h('select',{onchange:e=>{v.license=e.target.value;touch();render()}},Object.keys(LICENSES).map(k=>h('option',{value:k,selected:v.license===k},k)))),h('p',{class:'mut small'},LICENSES[v.license]||'')));
+  p.append(card('Export',h('div',{class:'grid',style:{gridTemplateColumns:'repeat(auto-fill,minmax(250px,1fr))'}},
+    [['📦 Voice pack (.zip)','Everything below in one zip: voice file, player script, demo page, sample, readme, license.',async()=>saveFile(safeName(v.name)+'-voicepack.zip',await packZip(v))],
+     ['🧬 Voice file (.rvoice.json)','The voice’s settings. Small. Opens in Voice Forge anywhere.',()=>saveFile(safeName(v.name)+'.rvoice.json',JSON.stringify(exportVoice(v),null,1),'application/json')],
+     ['⚙️ Player script (.voice.js)','Engine + voice, one file, no internet. Browsers and Node.js.',()=>saveFile(safeName(v.name)+'.voice.js',buildJS(v),'text/javascript')],
+     ['🌐 Demo page (.html)','A web page that speaks with this voice. Double-click to open.',()=>saveFile(safeName(v.name)+'-demo.html',buildDemo(v),'text/html')],
+     ['🔊 Speech (.wav)','The Studio text spoken by this voice.',()=>exportWav()],
+     ['👄 Lip-sync (.json)','Phoneme and mouth-shape timing for the Studio text.',()=>saveFile(safeName(v.name)+'-lipsync.json',JSON.stringify(RV.timeline(S.text,v),null,1),'application/json')],
+     ['🗣️ SSML (.ssml)','Rate and pitch for speech services that read SSML.',()=>saveFile(safeName(v.name)+'.ssml',ssml(),'application/ssml+xml')],
+     ['📝 Readme (.md)','How to use the voice.',()=>saveFile('README.md',readme(v),'text/markdown')]]
+    .map(([t,d,fn])=>h('div',{class:'card preset'},h('div',{class:'nm'},t),h('div',{class:'ds'},d),btn('Save',fn,'sm pri'))))));
+  const snip=`<script src="${safeName(v.name)}.voice.js"><\/script>\n<script>\n  RandisVoices[${JSON.stringify(v.name)}].speak("Hello there!");\n<\/script>`;
+  p.append(card('Embed in a web page',h('pre',{},snip),btn('Copy',()=>copy(snip),'sm')),
+    card('Use in Randis UDS',h('p',{},'Any built tab can talk with this voice. Save the Player script, then ask the app’s AI something like:'),
+      h('pre',{},`Make my game tab talk using the voice in ${safeName(v.name)}.voice.js (paste its text into a script in the tab and call RandisVoices["${v.name}"].speak(...)).`),
+      h('p',{class:'mut small'},'Tabs are offline and walled off, which is fine: the voice needs no internet and no files.')))};
+
+PAGE.spec=p=>{p.append(h('h2',{},'Format & API'),h('p',{class:'sub'},'An open, plain-JSON voice format that any program can read or write.'));
+  p.append(card('randis-voice/1 (the .rvoice.json file)',h('pre',{},JSON.stringify(exportVoice(S.cur),null,2).slice(0,2200)+'\n…'),
+    h('table',{},h('tr',{},h('th',{},'Field'),h('th',{},'Meaning')),[['format','Always "randis-voice/1"'],['name, version, author, description, tags','About the voice'],['license','CC0-1.0, CC-BY-4.0, CC-BY-SA-4.0, CC-BY-NC-4.0 or Proprietary'],
+      ['synthetic','true: made from numbers, not a recording of a person'],['engine','"forge" (portable) or "system" (a Windows voice live, with Forge as the fallback)'],['params','The sound controls below'],['fx','Effects in order: {type, on, …settings}'],
+      ['dict','Custom words: {"word": "ARPABET PHONEMES"}'],['system','{voice, rate, pitch, volume} for the system engine']].map(r=>h('tr',{},h('td',{class:'mono'},r[0]),h('td',{},r[1]))))));
+  p.append(card('params',h('table',{},h('tr',{},h('th',{},'Key'),h('th',{},'Default'),h('th',{},'Range'),h('th',{},'What it does')),Object.keys(RV.PARAMS).map(k=>{const d=RV.PARAMS[k];
+    return h('tr',{},h('td',{class:'mono'},k),h('td',{},String(d.d)),h('td',{class:'small'},d.opts?d.opts.join(' | '):d.min+' … '+d.max+(d.u?' '+d.u:'')),h('td',{class:'small'},d.l+'. '+(d.h||'')))}))));
+  p.append(card('fx types',h('table',{},Object.keys(RV.FX).map(t=>h('tr',{},h('td',{class:'mono'},t),h('td',{},RV.FX[t].l),h('td',{class:'small mono'},Object.keys(RV.FX[t].p).join(', ')))))));
+  p.append(card('JavaScript API (in every .voice.js)',h('pre',{},`RandisVoices[name].speak(text)      // play in a browser; returns {ended: Promise}
+RandisVoices[name].stop()
+RandisVoices[name].render(text)     // {samples: Float32Array, sr, duration, segs, f0}
+RandisVoices[name].wav(text)        // Uint8Array: 16-bit mono WAV file
+RandisVoices[name].timeline(text)   // [{ph, start, end, viseme, word}] lip-sync
+RandisVoices[name].phonemes(text)   // [{word, ph}]
+RandisVoiceEngine.render(text, anyVoiceJson)   // speak with any .rvoice.json
+// Node.js: const v = require('./name.voice.js'); fs.writeFileSync('a.wav', v.wav('Hi'))`)));
+  p.append(card('Phonemes',h('p',{class:'small'},Object.keys(RV.PHONEMES).map(k=>k+' ('+RV.PH_EXAMPLES[k]+')').join(' · '))))};
+
+const IDEAS=[['done','Formant voice engine you can ship: no internet, no recordings, runs anywhere'],['done','40 sound controls: pitch, throat, tension, breath, jitter, shimmer, fry, vibrato, formants, nasality, articulation, prosody'],
+ ['done','14-effect rack: EQ, filter, pitch shift, ring-mod robot, bit crusher, distortion, chorus, flanger, tremolo, echo, reverb, radio, compressor, gain'],['done','Unison choir and two harmony voices'],
+ ['done','32 character presets'],['done','Describe a voice in words'],['done','Random, wild random and mutate'],['done','Morph between two voices and quick A/B'],['done','Text tags: emphasis, pauses, pitch, speed, whisper, laughs, sighs, singing, spelling, raw phonemes'],
+ ['done','Pronunciation dictionary that ships with the voice'],['done','Phoneme chart and lip-sync visemes'],['done','Scene / cast scripts rendered to one file'],['done','Sing mode with melodies and robo-tune'],
+ ['done','Voice changer for recordings'],['done','Windows system voices and SSML'],['done','Library with favorites, import and export'],['done','Voice pack zip, player script, demo page, WAV, lip-sync, SSML exports'],
+ ['done','Open format spec and API'],['done','Undo / redo for every change'],
+ ['next','Let the rubber duck and the app’s chat read replies aloud in a voice you pick'],['next','Live microphone voice changer (needs the app to allow the mic for this tab)'],
+ ['next','Emotion timeline: draw happy / sad / angry over a script'],['next','Draw your own pitch curve with the mouse'],['next','Breath and mouth-click sounds between phrases'],
+ ['next','More languages: Spanish, French, German letter-to-sound rules'],['next','Stereo placement and room position for scene speakers'],['next','Batch export: one WAV per line of a script'],
+ ['next','A Python player so Python programs can use .rvoice.json'],['next','Voice “DNA” cards: a picture that encodes the voice'],['next','Publish voices to your Shop through Shop Studio'],
+ ['next','Neural voice option (bigger downloads, more natural sound) behind a switch'],['next','Accent sliders (vowel shifts) and regional presets'],['next','MIDI keyboard to play the singing voice']];
+PAGE.ideas=p=>{p.append(h('h2',{},'Ideas'),h('p',{class:'sub'},'What’s in Voice Forge now, and what could come next. Ask the app’s AI for any “next” item.'));
+  p.append(card(null,IDEAS.map(([s,t])=>h('div',{class:'idea'},h('span',{class:'st '+s},s==='done'?'✓ built':'→ next'),h('span',{},t)))));
+  p.append(card('Character idea generator',h('p',{class:'mut small'},'Need inspiration? Roll a character and Voice Forge will build its voice.'),
+    btn('🎲 Roll a character',()=>{const pk=a=>a[Math.floor(Math.random()*a.length)];const d=`${pk(['an old','a tiny','a giant','a young','a sad','an excited','a calm','a scary','a sleepy','a nervous'])} ${pk(['robot','wizard','ghost','pirate','alien','fairy','announcer','android','monster','elf'])} ${pk(['in a cave','on the radio','in space','underwater','in a big hall','',''])}`.trim();
+      const r=describe(d);r.v.name=d.replace(/^(an?|the)\s/,'');r.v.name=r.v.name[0].toUpperCase()+r.v.name.slice(1);setCur(r.v);toast(d);speak()},'pri')))};
+
+/* ---------- Header and start ---------- */
+$('#bSpeak').onclick=()=>speak();$('#bStop').onclick=stop;$('#bUndo').onclick=undo;$('#bRedo').onclick=redo;$('#bSave').onclick=saveCur;
+$('#bNew').onclick=()=>{const v=RV.newVoice('New voice');v.id=uid();setCur(v);toast('Fresh voice')};
+$('#vname').onchange=e=>{S.cur.name=e.target.value.trim()||S.cur.name;touch()};
+document.addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='Enter'){e.preventDefault();speak()}else if(e.key==='Escape')stop();
+  else if(e.ctrlKey&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){if(e.key==='z'){e.preventDefault();undo()}else if(e.key==='y'){e.preventDefault();redo()}}});
+window.addEventListener('resize',()=>{if(lastRender&&S.page==='studio')drawViz(lastRender)});
+S.cur=presetVoice(PRESETS[0]);S.cur.id=uid();S.cur.name='My first voice';
+pushHist(true);syncHeader();render();
+if(HOST){parent.postMessage({uds:'store-get'},'*');gotStore.t=0}else storeLoaded=true;
+</script>
+</body>
+</html>

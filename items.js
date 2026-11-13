@@ -36,6 +36,23 @@ window.ITEMS = [
  },
  {
   "kind": "games",
+  "slug": "blockwild",
+  "name": "Blockwild",
+  "by": "Randy",
+  "blurb": "An original voxel sandbox: an endless generated world of plains, forests, deserts, snow, mountains, oceans and caves. Break and place 22 block types in Survival (health, crafting) or Creative (all blocks, flying), with day and night, glow lamps and several saved worlds.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=games/blockwild",
+  "file": "games/blockwild/item.html",
+  "logo": "games/blockwild/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "games",
   "slug": "card-master",
   "name": "Card Master",
   "by": "Randy",
@@ -172,6 +189,23 @@ window.ITEMS = [
  },
  {
   "kind": "games",
+  "slug": "lanternfall",
+  "name": "Lanternfall",
+  "by": "Randy",
+  "blurb": "An original card-building roguelike. Pick the Lamplighter or the Tidecaller, build a deck from 60+ upgradable cards, 27 trinkets and 11 tonics, and climb 3 depths of branching maps past elites, events, shops and 6 bosses. Runs are saved.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=games/lanternfall",
+  "file": "games/lanternfall/item.html",
+  "logo": "games/lanternfall/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "games",
   "slug": "lhc-simulator",
   "name": "LHC Simulator",
   "by": "Randy",
@@ -274,6 +308,23 @@ window.ITEMS = [
  },
  {
   "kind": "games",
+  "slug": "rev-the-frog",
+  "name": "REV! The Frog Who Saved the World",
+  "by": "Randy",
+  "blurb": "An original 3D platformer. Rev, a rocket-booted frog, frees 25 Beat Cores across 5 lands and beats 5 bosses, with a full story, lore tapes, synth music, gamepad support and saved progress.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=games/rev-the-frog",
+  "file": "games/rev-the-frog/item.html",
+  "logo": "games/rev-the-frog/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "games",
   "slug": "sandwich-master",
   "name": "Sandwich Master",
   "by": "Randy",
@@ -342,6 +393,40 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "club-wiki",
+  "name": "Club Wiki",
+  "by": "Randy",
+  "blurb": "A sample wiki for a club or makerspace: pages, links and how-tos, ready to fill in and make your own.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/club-wiki",
+  "file": "apps/club-wiki/item.html",
+  "logo": "apps/club-wiki/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "heirloom-boxes",
+  "name": "Heirloom Boxes",
+  "by": "Randy",
+  "blurb": "R&D for curio boxes, toy boxes and kids' toolboxes made to be handed down. Design 7 types with a 3D drawing, cut list, board feet, cost, weight, hardware, build steps and a live safety check, plus safety and selling basics (CPSIA, ASTM F963).",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/heirloom-boxes",
+  "file": "apps/heirloom-boxes/item.html",
+  "logo": "apps/heirloom-boxes/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "music-studio",
   "name": "Music Studio",
   "by": "Randy",
@@ -406,6 +491,57 @@ window.ITEMS = [
   "open_with": "randisuds://open?item=apps/randis-sound-forge",
   "file": "apps/randis-sound-forge/item.html",
   "logo": "apps/randis-sound-forge/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "the-dispatch",
+  "name": "The Dispatch",
+  "by": "Randy",
+  "blurb": "A sample newsletter page for a club: long reads, desk cards, money and events, read as cards or as a magazine. Every story is made up, ready to make your own.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/the-dispatch",
+  "file": "apps/the-dispatch/item.html",
+  "logo": "apps/the-dispatch/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "voice-forge",
+  "name": "Voice Forge",
+  "by": "Randy",
+  "blurb": "A voice design suite with its own speech engine (no internet, no recordings): 40 controls, a 14-effect rack, 32 presets, describe-a-voice, morph and A/B, text tags for emphasis, pauses, whispers and singing, and lip-sync visemes.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/voice-forge",
+  "file": "apps/voice-forge/item.html",
+  "logo": "apps/voice-forge/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "wiki-suite",
+  "name": "Wiki Suite",
+  "by": "Randy",
+  "blurb": "A wiki workspace: linked pages and templates, with their own suites for books, media and meta pages, and export and import.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/wiki-suite",
+  "file": "apps/wiki-suite/item.html",
+  "logo": "apps/wiki-suite/logo.svg",
   "video_pic": null
  }
 ];

@@ -1,0 +1,1008 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Lanternfall</title>
+<!-- Randis UDS™ by Randy Moore. Original: https://github.com/RandyWilliamMoore/randis-uds · Support: https://ko-fi.com/moorescombinatoricsmatrix -->
+<style>
+:root{--bg:#0c121d;--bg2:#141e2e;--bg3:#1d2b42;--line:#2d4263;--tx:#eef3f8;--mut:#93a6bf;--amb:#f5b54a;--amb2:#c9832a;--red:#e2574c;--grn:#58c27d;--blu:#4aa8f0;--pur:#b07df0}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;color:var(--tx);font-family:'Segoe UI',system-ui,sans-serif;user-select:none;overflow:hidden;background:var(--bg)}
+body{background:radial-gradient(ellipse at 50% 35%,#22314a 0,#0c121d 65%)}
+button{font-family:inherit;cursor:pointer;border:1px solid var(--line);background:linear-gradient(#24365a,#182640);color:var(--tx);padding:8px 16px;border-radius:8px;font-size:14px}
+button:hover:not(:disabled){border-color:var(--amb);box-shadow:0 0 10px #f5b54a44}
+button:disabled{opacity:.4;cursor:default}
+button.amb{background:linear-gradient(#ffc964,#c9832a);color:#1d1205;font-weight:700;border-color:#ffd78a}
+button.big{font-size:18px;padding:12px 26px}
+#app{height:100vh;display:flex;flex-direction:column}
+.top{display:flex;align-items:center;gap:14px;padding:6px 12px;background:#0a0f18cc;border-bottom:1px solid var(--line);font-size:15px;min-height:44px;flex-wrap:wrap}
+.top .hp{color:#ff8a80;font-weight:700}.top .gold{color:#ffd166;font-weight:700}
+.top .sp{flex:1}
+.slot{display:inline-grid;place-items:center;width:30px;height:30px;border:1px dashed #3b5378;border-radius:50%;font-size:17px;cursor:pointer;margin-right:2px}
+.slot.full{border-style:solid;border-color:#6b88b5;background:#1b2a42}
+.slot.sel{box-shadow:0 0 10px var(--amb);border-color:var(--amb)}
+.tr{font-size:20px;cursor:default;margin-right:3px;display:inline-block}
+.tr.flash{animation:pop .5s}
+.screen{flex:1;overflow:auto;display:flex;flex-direction:column;align-items:center;position:relative}
+h1,h2,h3{margin:.3em 0}
+.mut{color:var(--mut)}
+.panel{background:#121c2bdd;border:1px solid var(--line);border-radius:14px;padding:18px 22px;margin:16px;max-width:820px}
+/* title */
+.logo{font-size:64px;font-weight:800;letter-spacing:3px;margin-top:9vh;background:linear-gradient(#ffe2a3,#f5a73a 60%,#b0601c);-webkit-background-clip:text;color:transparent;text-shadow:0 0 40px #f5b54a33}
+.lamp{font-size:70px;animation:sway 4s ease-in-out infinite;transform-origin:50% 0;filter:drop-shadow(0 0 22px #ffb84d)}
+@keyframes sway{50%{transform:rotate(6deg)}0%,100%{transform:rotate(-6deg)}}
+.btncol{display:flex;flex-direction:column;gap:10px;margin-top:22px;width:240px}
+.heroes{display:flex;gap:26px;margin-top:24px;flex-wrap:wrap;justify-content:center}
+.heroc{width:300px;background:linear-gradient(#1c2a42,#111a29);border:2px solid var(--line);border-radius:16px;padding:18px;cursor:pointer;text-align:center;transition:.15s}
+.heroc:hover{transform:translateY(-4px);border-color:var(--amb);box-shadow:0 0 22px #f5b54a33}
+.heroc .art{font-size:72px}
+/* cards */
+.card{width:126px;height:176px;border-radius:11px;background:linear-gradient(#26364f,#16202f);border:2px solid #777;position:relative;padding:6px 7px;display:flex;flex-direction:column;align-items:center;flex-shrink:0;cursor:pointer;box-shadow:0 4px 12px #0008}
+.card.tA{border-color:#e2675c}.card.tS{border-color:#58c27d}.card.tP{border-color:#f5b54a}.card.tX,.card.tK{border-color:#6a6a7a;background:linear-gradient(#2a2a35,#18181f)}
+.card .cost{position:absolute;left:-9px;top:-9px;width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#ffe19a,#c9832a);color:#241503;font-weight:800;display:grid;place-items:center;font-size:16px;border:2px solid #1a1206}
+.card.cant .cost{background:#555;color:#ccc}
+.card .cn{font-weight:700;font-size:13px;text-align:center;margin-top:2px;padding:1px 6px;border-radius:5px;width:100%}
+.card.rC .cn{background:#3a4458}.card.rU .cn{background:#2a5185}.card.rR .cn{background:#8a6a1e}.card.rS .cn{background:#3a4458}
+.card.up .cn{color:#9effa9}
+.card .art{font-size:36px;height:50px;display:grid;place-items:center}
+.card .ty{font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:1px}
+.card .cd{font-size:11.5px;text-align:center;line-height:1.3;margin-top:4px;color:#dde6f0}
+.cd b.up{color:#7dff8e}.cd b.dn{color:#ff8a80}
+.cd .k{color:#ffd27a}
+.cardgrid{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;padding:10px}
+.cardgrid .card:hover{transform:scale(1.06)}
+/* combat */
+.field{flex:1;display:flex;align-items:center;justify-content:space-around;padding:10px 30px;min-height:250px}
+.enemies{display:flex;gap:26px;align-items:flex-end;flex-wrap:wrap;justify-content:center}
+.unit{display:flex;flex-direction:column;align-items:center;width:150px;position:relative;border-radius:14px;padding:6px;transition:.15s}
+.unit .art{font-size:76px;line-height:1.1;filter:drop-shadow(0 6px 10px #000a)}
+.unit.boss .art{font-size:104px}.unit.elite .art{font-size:90px}
+.unit .un{font-size:13px;font-weight:700;margin-top:2px;text-align:center}
+.unit.dead{opacity:0;pointer-events:none;transition:opacity .6s}
+.unit.tgt{cursor:crosshair}
+.unit.tgt:hover{background:#f5b54a22;box-shadow:0 0 0 2px var(--amb)}
+.hpbar{width:130px;height:15px;background:#311;border-radius:8px;position:relative;overflow:hidden;border:1px solid #000;margin-top:4px}
+.hpbar>div{height:100%;background:linear-gradient(#ff6b5e,#b5281e);transition:width .3s}
+.hpbar>span{position:absolute;inset:0;font-size:11px;text-align:center;line-height:14px;font-weight:700;text-shadow:0 1px 2px #000}
+.hpbar.blk{border-color:#6fb6ff;box-shadow:0 0 6px #6fb6ff}
+.blkb{position:absolute;left:-14px;bottom:42px;background:#2c6ab3;border:2px solid #9fd0ff;border-radius:8px 8px 14px 14px;padding:0 6px;font-weight:800;font-size:14px}
+.sts{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;margin-top:4px;min-height:22px}
+.st{font-size:12px;background:#0008;border-radius:6px;padding:1px 4px;border:1px solid #334}
+.st.d{border-color:#a44}.st.p{border-color:#a8822a}
+.intent{font-size:15px;font-weight:800;background:#0009;border:1px solid #445;border-radius:10px;padding:2px 9px;margin-bottom:4px;min-height:26px;white-space:nowrap}
+.intent.atk{color:#ff9b8f;border-color:#a44}
+.tide{width:130px;height:12px;background:#0b2033;border:1px solid #2a5d88;border-radius:6px;overflow:hidden;margin-top:4px;position:relative}
+.tide>div{height:100%;background:linear-gradient(90deg,#1d6fb8,#6ed3ff)}
+.tide>span{position:absolute;inset:0;font-size:10px;text-align:center;line-height:11px;font-weight:700}
+.bottom{display:flex;align-items:flex-end;gap:12px;padding:0 14px 10px;height:232px}
+.pile{width:70px;text-align:center;cursor:pointer;font-size:12px;color:var(--mut)}
+.pile .pc{width:56px;height:76px;margin:0 auto 4px;border-radius:8px;background:repeating-linear-gradient(45deg,#2a3f63 0 6px,#22344f 6px 12px);border:2px solid #4d6b9a;display:grid;place-items:center;font-weight:800;font-size:18px;color:#fff}
+.pile.dp .pc{background:repeating-linear-gradient(45deg,#4a2f2f 0 6px,#3a2626 6px 12px);border-color:#8a5a5a}
+.energy{width:74px;height:74px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#ffe7a8,#f0a030 55%,#8a4a10);display:grid;place-items:center;font-size:24px;font-weight:800;color:#2a1600;box-shadow:0 0 22px #f5a53a88;border:3px solid #ffdf9a;flex-shrink:0;margin-bottom:60px}
+.energy.zero{filter:grayscale(.8) brightness(.7);box-shadow:none}
+.hand{flex:1;display:flex;justify-content:center;align-items:flex-end;height:220px;padding-bottom:4px}
+.hand .card{margin:0 -3px;transition:transform .12s,box-shadow .12s}
+.hand .card:hover{transform:translateY(-30px) scale(1.13);z-index:5}
+.hand .card.sel{transform:translateY(-44px) scale(1.15);z-index:6;box-shadow:0 0 22px var(--amb)}
+.hand .card .key{position:absolute;bottom:3px;right:6px;font-size:10px;color:#7d8da6}
+.endt{margin-bottom:56px}
+.msg{position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);font-size:40px;font-weight:800;color:var(--amb);text-shadow:0 0 20px #000,0 0 30px #f5b54a88;pointer-events:none;animation:msg 1.2s forwards;z-index:30;white-space:nowrap}
+@keyframes msg{0%{opacity:0;transform:translate(-50%,-30%)}20%{opacity:1;transform:translate(-50%,-50%)}80%{opacity:1}100%{opacity:0}}
+.float{position:fixed;font-weight:900;font-size:26px;pointer-events:none;z-index:50;animation:fl 1s forwards;text-shadow:0 2px 4px #000}
+.float.dmg{color:#ff6a5e}.float.blk{color:#8fd0ff}.float.heal{color:#7dff8e}.float.st{color:#ffd27a;font-size:17px}.float.crest{color:#7fe0ff;font-size:32px}
+@keyframes fl{0%{opacity:0;transform:translate(-50%,0)}15%{opacity:1}100%{opacity:0;transform:translate(-50%,-60px)}}
+.shake{animation:shake .35s}
+@keyframes shake{20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(4px)}}
+@keyframes pop{50%{transform:scale(1.6)}}
+.lunge{animation:lunge .3s}
+@keyframes lunge{50%{transform:translateX(-30px)}}
+/* map */
+.mapwrap{flex:1;overflow-y:auto;width:100%;display:flex;justify-content:center}
+.mapside{position:absolute;left:16px;top:16px;width:220px}
+svg .nd{cursor:default}
+svg .nd circle{fill:#18263c;stroke:#3a5478;stroke-width:2}
+svg .nd.can{cursor:pointer}
+svg .nd.can circle{stroke:var(--amb);stroke-width:3;animation:pulse 1.2s infinite}
+svg .nd.can:hover circle{fill:#3a3420}
+svg .nd.done circle{fill:#2d3d22;stroke:#7fbf5a}
+svg .nd.here circle{fill:#5a4416;stroke:#ffd27a;stroke-width:4}
+@keyframes pulse{50%{stroke-width:6;stroke:#ffe1a0}}
+svg line{stroke:#2f4566;stroke-width:3;stroke-dasharray:2 7;stroke-linecap:round}
+svg line.walked{stroke:#d9a441;stroke-dasharray:none}
+/* overlays */
+#ov{position:fixed;inset:0;background:#000b;display:none;z-index:40;overflow:auto}
+#ov.on{display:flex;flex-direction:column;align-items:center;padding:30px 10px}
+#tip{position:fixed;display:none;z-index:99;max-width:280px;background:#0b111c;border:1px solid var(--amb2);border-radius:8px;padding:8px 10px;font-size:13px;line-height:1.4;pointer-events:none;box-shadow:0 4px 16px #000}
+#tip b{color:var(--amb)}
+.rw{display:flex;flex-direction:column;gap:8px;width:360px}
+.rw button{text-align:left;font-size:15px;padding:11px 14px}
+.shop{display:grid;grid-template-columns:repeat(5,auto);gap:18px 16px;justify-content:center}
+.price{text-align:center;color:#ffd166;font-weight:700;margin-top:6px}
+.price.no{color:#a86}
+.sold{opacity:.25;pointer-events:none}
+.item{display:flex;flex-direction:column;align-items:center;width:126px;cursor:pointer;background:#162236;border:1px solid var(--line);border-radius:12px;padding:10px}
+.item:hover{border-color:var(--amb)}
+.item .ic{font-size:40px}
+.evart{font-size:90px;text-align:center}
+.opt{display:block;width:100%;text-align:left;margin-top:8px;font-size:15px;padding:11px 14px}
+.toast{position:fixed;left:50%;top:70px;transform:translateX(-50%);background:#2a1414;border:1px solid #a44;padding:8px 18px;border-radius:8px;z-index:60;animation:msg 1.6s forwards}
+kbd{background:#223;border:1px solid #445;border-radius:4px;padding:0 5px;font-size:12px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="ov"></div>
+<div id="tip"></div>
+<script>
+(function(){var ok=false;try{ok=!!window.localStorage;localStorage.getItem('x')}catch(e){ok=false}
+if(!ok){var m={};var st={getItem:function(k){return k in m?m[k]:null},setItem:function(k,v){m[k]=String(v)},removeItem:function(k){delete m[k]},clear:function(){m={}}};try{Object.defineProperty(window,'localStorage',{value:st,configurable:true})}catch(e){window.__ls=st}}})();
+
+'use strict';
+/* ============ helpers ============ */
+const SAVE='lanternfall_run',STATS='lanternfall_stats';
+const $=s=>document.querySelector(s);
+const R=n=>Math.floor(Math.random()*n);
+const pick=a=>a[R(a.length)];
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=R(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+let uidc=1;
+let S=null,C=null;
+const has=id=>S&&S.relics.includes(id);
+const inC=()=>C&&!C.over;
+
+/* ============ keywords & statuses ============ */
+const KW={
+ Burn:'At the start of its turn, it takes damage equal to its Burn (ignores Block), then Burn goes down by 1.',
+ Might:'Each attack hit deals this much more damage.',
+ Poise:'Each Block card gives this much more Block.',
+ Sapped:'Deals 25% less attack damage. Goes down by 1 each turn.',
+ Exposed:'Takes 50% more attack damage. Goes down by 1 each turn.',
+ Brittle:'Gets 25% less Block from cards. Goes down by 1 each turn.',
+ Tide:'Builds up during a fight. At the end of your turn, if you have 10 or more Tide, a Crest crashes: lose 10 Tide and deal 12 damage to ALL enemies.',
+ Crest:'When you end your turn with 10+ Tide: lose 10 Tide and deal 12 damage to ALL enemies.',
+ Exhaust:'Removed from play until the fight ends.',
+ Thorns:'When attacked, deals this much damage back to the attacker.',
+ Unplayable:'Can\'t be played.',
+ Block:'Stops attack damage. Goes away at the start of your next turn.',
+ Power:'Played once, it lasts the rest of the fight.'
+};
+const ST={
+ might:['Might','💪','b','Each attack hit deals this much more damage.'],
+ poise:['Poise','🧘','b','Block cards give this much more Block.'],
+ sapped:['Sapped','🥀','d','Deals 25% less attack damage. Goes down by 1 each turn.'],
+ exposed:['Exposed','🎯','d','Takes 50% more attack damage. Goes down by 1 each turn.'],
+ brittle:['Brittle','🧊','d','Gets 25% less Block from cards. Goes down by 1 each turn.'],
+ burn:['Burn','🔥','d','At the start of its turn, takes this much damage (ignores Block), then Burn goes down by 1.'],
+ thorns:['Thorns','🌵','b','When attacked, deals this much damage back.'],
+ ritual:['Ritual','🕯','b','Gains this much Might at the end of each of its turns.'],
+ tide:['Tide','🌊','b',KW.Tide],
+ drain:['Drained','🌑','d','Next turn you get this much less energy.'],
+ nextblock:['Coral','🐚','b','Gain this much Block at the start of your next turn.'],
+ energyNext:['Surge','⚡','b','Gain this much extra energy next turn.'],
+ drawNext:['Foresight','👁','b','Draw this many extra cards next turn.']
+};
+const PW={
+ coal:{n:'Coal Heart',i:'❤️',d:a=>`At the start of your turn, apply ${a} Burn to ALL enemies.`},
+ heathaze:{n:'Heat Haze',i:'♨️',d:a=>`Whenever an enemy takes Burn damage, gain ${a} Block.`},
+ phoenix:{n:'Phoenix Oath',i:'🔆',d:a=>`At the start of your turn, gain ${a} Might.`},
+ everlit:{n:'Ever-Lit',i:'🕯',d:()=>'Enemy Burn no longer goes down.'},
+ hightide:{n:'High Tide',i:'🌕',d:a=>`At the start of your turn, gain ${a} Tide.`},
+ moonpull:{n:'Moon Pull',i:'🌙',d:()=>'Crests crash at 7 Tide instead of 10.'},
+ abyssal:{n:'Abyssal Calm',i:'💧',d:a=>`Whenever a Crest crashes, next turn gain ${a} energy and draw ${2*a} cards.`},
+ leviathan:{n:'Leviathan Form',i:'🐋',d:a=>`At the start of your turn, gain ${a} Might and ${2*a} Tide.`}
+};
+
+/* ============ combat number helpers for card text ============ */
+function D(n){if(!inC())return `${n}`;const st=C.P.st;let v=n+(st.might||0);if(st.sapped)v=Math.floor(v*.75);v=Math.max(0,v);return v===n?`${n}`:`<b class="${v>n?'up':'dn'}">${v}</b>`}
+function B(n){if(!inC())return `${n}`;const st=C.P.st;let v=n+(st.poise||0);if(st.brittle)v=Math.floor(v*.75);v=Math.max(0,v);return v===n?`${n}`:`<b class="${v>n?'up':'dn'}">${v}</b>`}
+const TD=()=>inC()?(C.P.st.tide||0):0;
+const U=(u,a,b)=>u?b:a;
+
+/* ============ cards ============ */
+// t: A attack, S skill, P power, X status, K curse. r: S starter, C common, U uncommon, R rare. h: L, T, S(shared starter), N(neutral)
+const CARDS={
+ strike:{n:'Strike',h:'S',r:'S',t:'A',c:1,tg:1,art:'🗡️',d:u=>`Deal ${D(U(u,6,9))} damage.`,p:(u,t)=>hit(t,U(u,6,9))},
+ ward:{n:'Ward',h:'S',r:'S',t:'S',c:1,art:'🛡️',d:u=>`Gain ${B(U(u,5,8))} Block.`,p:u=>blk(U(u,5,8))},
+ // ---- Lamplighter
+ flare:{n:'Flare',h:'L',r:'S',t:'A',c:1,tg:1,art:'🎇',d:u=>`Deal ${D(U(u,5,7))} damage. Apply ${U(u,3,4)} Burn.`,p:(u,t)=>{hit(t,U(u,5,7));ap(t,'burn',U(u,3,4))}},
+ wickslash:{n:'Wick Slash',h:'L',r:'C',t:'A',c:1,tg:1,art:'🔪',d:u=>`Deal ${D(U(u,8,11))} damage. If the enemy has Burn, draw 1 card.`,p:(u,t)=>{const b=t.st.burn>0;hit(t,U(u,8,11));if(b)drw(1)}},
+ sootcloud:{n:'Soot Cloud',h:'L',r:'C',t:'S',c:1,art:'🌫️',d:u=>`Gain ${B(U(u,6,9))} Block. Apply 1 Sapped to ALL enemies.`,p:u=>{blk(U(u,6,9));apAll('sapped',1)}},
+ cindertoss:{n:'Cinder Toss',h:'L',r:'C',t:'A',c:0,tg:1,art:'✨',d:u=>`Deal ${D(U(u,3,5))} damage. Apply ${U(u,2,3)} Burn.`,p:(u,t)=>{hit(t,U(u,3,5));ap(t,'burn',U(u,2,3))}},
+ stoke:{n:'Stoke',h:'L',r:'C',t:'S',c:1,tg:1,art:'🔥',d:u=>`Apply ${U(u,5,8)} Burn.`,p:(u,t)=>ap(t,'burn',U(u,5,8))},
+ brace:{n:'Brace',h:'L',r:'C',t:'S',c:1,art:'🧱',d:u=>`Gain ${B(U(u,8,11))} Block.`,p:u=>blk(U(u,8,11))},
+ twinspark:{n:'Twin Spark',h:'L',r:'C',t:'A',c:1,tg:1,art:'⚡',d:u=>`Deal ${D(U(u,4,6))} damage twice.`,p:(u,t)=>hit(t,U(u,4,6),2)},
+ ashstep:{n:'Ash Step',h:'L',r:'C',t:'S',c:1,art:'👣',d:u=>`Gain ${B(U(u,4,7))} Block. Draw 2 cards.`,p:u=>{blk(U(u,4,7));drw(2)}},
+ scorchline:{n:'Scorch Line',h:'L',r:'C',t:'A',c:1,art:'〰️',d:u=>`Deal ${D(U(u,5,8))} damage to ALL enemies. Apply 1 Burn to ALL enemies.`,p:u=>{hitAll(U(u,5,8));apAll('burn',1)}},
+ kindling:{n:'Kindling',h:'L',r:'C',t:'S',c:0,ex:1,art:'🌾',d:u=>`Draw ${U(u,2,3)} cards.`,p:u=>drw(U(u,2,3))},
+ heatshield:{n:'Heat Shield',h:'L',r:'C',t:'S',c:1,art:'🔰',d:u=>`Gain ${B(U(u,6,9))} Block. Gain ${U(u,3,4)} more if any enemy has Burn.`,p:u=>{blk(U(u,6,9));if(liveEn().some(e=>e.st.burn))blkRaw(U(u,3,4))}},
+ emberjab:{n:'Ember Jab',h:'L',r:'C',t:'A',c:0,tg:1,art:'👊',d:u=>`Deal ${D(U(u,3,5))} damage. Apply ${U(u,1,2)} Exposed.`,p:(u,t)=>{hit(t,U(u,3,5));ap(t,'exposed',U(u,1,2))}},
+ bellows:{n:'Bellows',h:'L',r:'C',t:'S',c:1,cu:0,tg:1,art:'💨',d:u=>`Double the enemy's Burn.`,p:(u,t)=>{if(t.st.burn)ap(t,'burn',t.st.burn,1)}},
+ wildfire:{n:'Wildfire',h:'L',r:'U',t:'S',c:2,art:'🌋',d:u=>`Apply ${U(u,6,9)} Burn to ALL enemies.`,p:u=>apAll('burn',U(u,6,9))},
+ pyrewall:{n:'Pyre Wall',h:'L',r:'U',t:'S',c:2,art:'🏯',d:u=>`Gain ${B(U(u,14,19))} Block.`,p:u=>blk(U(u,14,19))},
+ fanflames:{n:'Fan the Flames',h:'L',r:'U',t:'A',c:1,cu:0,tg:1,art:'🌬️',d:u=>`Deal damage equal to the enemy's Burn${inC()&&C.P.st.might?' (+Might)':''}.`,p:(u,t)=>hit(t,t.st.burn||0)},
+ smokescreen:{n:'Smoke Screen',h:'L',r:'U',t:'S',c:1,tg:1,art:'☁️',d:u=>`Gain ${B(U(u,8,11))} Block. Apply 2 Sapped.`,p:(u,t)=>{blk(U(u,8,11));ap(t,'sapped',2)}},
+ lanternbash:{n:'Lantern Bash',h:'L',r:'U',t:'A',c:2,tg:1,art:'🏮',d:u=>`Deal ${D(U(u,14,18))} damage. Apply ${U(u,2,3)} Exposed.`,p:(u,t)=>{hit(t,U(u,14,18));ap(t,'exposed',U(u,2,3))}},
+ flashpowder:{n:'Flash Powder',h:'L',r:'U',t:'S',c:1,ex:1,art:'💥',d:u=>`Apply ${U(u,2,3)} Exposed to ALL enemies.`,p:u=>apAll('exposed',U(u,2,3))},
+ coalheart:{n:'Coal Heart',h:'L',r:'U',t:'P',c:1,art:'❤️',d:u=>`At the start of your turn, apply ${U(u,2,3)} Burn to ALL enemies.`,p:u=>addPow('coal',U(u,2,3))},
+ heathaze:{n:'Heat Haze',h:'L',r:'U',t:'P',c:1,art:'♨️',d:u=>`Whenever an enemy takes Burn damage, gain ${U(u,2,3)} Block.`,p:u=>addPow('heathaze',U(u,2,3))},
+ relight:{n:'Relight',h:'L',r:'U',t:'S',c:0,ex:1,art:'🪔',d:u=>`Gain ${U(u,1,2)} energy.`,p:u=>nrg(U(u,1,2))},
+ forgestrike:{n:'Forge Strike',h:'L',r:'U',t:'A',c:2,tg:1,art:'⚒️',d:u=>`Deal ${D(U(u,10,14))} damage. Gain 1 Might.`,p:(u,t)=>{hit(t,U(u,10,14));apP('might',1)}},
+ brand:{n:'Searing Brand',h:'L',r:'U',t:'A',c:1,tg:1,art:'♨',d:u=>`Deal ${D(U(u,7,10))} damage. Apply ${U(u,3,4)} Burn.`,p:(u,t)=>{hit(t,U(u,7,10));ap(t,'burn',U(u,3,4))}},
+ inferno:{n:'Inferno',h:'L',r:'R',t:'A',c:3,art:'🌞',d:u=>`Deal ${D(U(u,20,28))} damage to ALL enemies. Apply 5 Burn to ALL enemies.`,p:u=>{hitAll(U(u,20,28));apAll('burn',5)}},
+ phoenix:{n:'Phoenix Oath',h:'L',r:'R',t:'P',c:2,cu:1,art:'🔆',d:u=>`At the start of your turn, gain 1 Might.`,p:u=>addPow('phoenix',1)},
+ bonfire:{n:'Bonfire',h:'L',r:'R',t:'A',c:-1,tg:1,art:'🏕️',d:u=>`Deal ${D(U(u,7,10))} damage X times. (X = your energy)`,p:(u,t,X)=>hit(t,U(u,7,10),X)},
+ supernova:{n:'Supernova',h:'L',r:'R',t:'A',c:2,tg:1,art:'💫',d:u=>`Remove all of the enemy's Burn. Deal ${U(u,3,4)} times that much damage.`,p:(u,t)=>{const b=t.st.burn||0;delete t.st.burn;hit(t,b*U(u,3,4))}},
+ everlit:{n:'Ever-Lit',h:'L',r:'R',t:'P',c:3,cu:2,art:'🕯️',d:u=>`Enemy Burn no longer goes down.`,p:u=>addPow('everlit',1)},
+ beacon:{n:'Beacon',h:'L',r:'R',t:'S',c:2,art:'🗼',d:u=>`Gain ${B(U(u,18,24))} Block. Gain 1 Poise.`,p:u=>{blk(U(u,18,24));apP('poise',1)}},
+ // ---- Tidecaller
+ swell:{n:'Swell',h:'T',r:'S',t:'S',c:1,art:'🌊',d:u=>`Gain ${B(U(u,4,6))} Block. Gain ${U(u,3,4)} Tide.`,p:u=>{blk(U(u,4,6));tide(U(u,3,4))}},
+ riptide:{n:'Riptide',h:'T',r:'C',t:'A',c:1,tg:1,art:'🌀',d:u=>`Deal ${D(U(u,6,9)+Math.floor(TD()/2))} damage. +1 for every 2 Tide you have.`,p:(u,t)=>hit(t,U(u,6,9)+Math.floor(TD()/2))},
+ spray:{n:'Spray',h:'T',r:'C',t:'A',c:0,tg:1,art:'💦',d:u=>`Deal ${D(U(u,3,5))} damage. Gain 1 Tide.`,p:(u,t)=>{hit(t,U(u,3,5));tide(1)}},
+ shellup:{n:'Shell Up',h:'T',r:'C',t:'S',c:1,art:'🐚',d:u=>`Gain ${B(U(u,7,10))} Block. Gain 1 Tide.`,p:u=>{blk(U(u,7,10));tide(1)}},
+ undertow:{n:'Undertow',h:'T',r:'C',t:'A',c:1,tg:1,art:'⤵️',d:u=>`Deal ${D(U(u,6,9))} damage. Apply ${U(u,1,2)} Sapped. Gain 1 Tide.`,p:(u,t)=>{hit(t,U(u,6,9));ap(t,'sapped',U(u,1,2));tide(1)}},
+ kelpwrap:{n:'Kelp Wrap',h:'T',r:'C',t:'S',c:1,art:'🌿',d:u=>`Gain ${B(U(u,4,7)+TD())} Block. (${U(u,4,7)} + your Tide)`,p:u=>blk(U(u,4,7)+TD())},
+ risingwater:{n:'Rising Water',h:'T',r:'C',t:'S',c:1,art:'📈',d:u=>`Gain ${U(u,4,6)} Tide.`,p:u=>tide(U(u,4,6))},
+ roguewave:{n:'Rogue Wave',h:'T',r:'C',t:'A',c:2,art:'🌊',d:u=>`Deal ${D(U(u,10,14))} damage to ALL enemies.`,p:u=>hitAll(U(u,10,14))},
+ brinecut:{n:'Brine Cut',h:'T',r:'C',t:'A',c:1,tg:1,art:'🧂',d:u=>`Deal ${D(U(u,4,5))} damage twice. Gain 2 Tide.`,p:(u,t)=>{hit(t,U(u,4,5),2);tide(2)}},
+ foam:{n:'Foam',h:'T',r:'C',t:'S',c:1,art:'💧',d:u=>`Draw ${U(u,2,3)} cards. Gain 1 Tide.`,p:u=>{drw(U(u,2,3));tide(1)}},
+ ebb:{n:'Ebb',h:'T',r:'C',t:'S',c:0,art:'↩️',can:u=>TD()>=U(u,3,2),d:u=>`Lose ${U(u,3,2)} Tide. Gain 1 energy. Draw 1 card.`,p:u=>{C.P.st.tide-=U(u,3,2);nrg(1);drw(1)}},
+ coralguard:{n:'Coral Guard',h:'T',r:'C',t:'S',c:1,art:'🐚',d:u=>`Gain ${B(U(u,5,7))} Block now and ${U(u,5,7)} at the start of your next turn.`,p:u=>{blk(U(u,5,7));apP('nextblock',U(u,5,7),1)}},
+ pearlshot:{n:'Pearl Shot',h:'T',r:'C',t:'A',c:1,tg:1,art:'⚪',d:u=>`Deal ${D(U(u,9,13))} damage. If you have 5+ Tide, draw 1 card.`,p:(u,t)=>{hit(t,U(u,9,13));if(TD()>=5)drw(1)}},
+ maelstrom:{n:'Maelstrom',h:'T',r:'U',t:'A',c:2,art:'🌪️',d:u=>`Lose all Tide. Deal ${U(u,2,3)}× that much damage${inC()?' ('+D(U(u,2,3)*TD())+')':''} to ALL enemies.`,p:u=>{const n=TD();C.P.st.tide=0;hitAll(n*U(u,2,3))}},
+ hightide:{n:'High Tide',h:'T',r:'U',t:'P',c:1,art:'🌕',d:u=>`At the start of your turn, gain ${U(u,2,3)} Tide.`,p:u=>addPow('hightide',U(u,2,3))},
+ moonpull:{n:'Moon Pull',h:'T',r:'U',t:'P',c:1,cu:0,art:'🌙',d:u=>`Crests crash at 7 Tide instead of 10.`,p:u=>addPow('moonpull',1)},
+ breakwater:{n:'Breakwater',h:'T',r:'U',t:'S',c:2,art:'🧱',d:u=>`Gain ${B(U(u,12,16))} Block. Gain ${U(u,3,4)} Tide.`,p:u=>{blk(U(u,12,16));tide(U(u,3,4))}},
+ pressure:{n:'Pressure',h:'T',r:'U',t:'A',c:1,tg:1,art:'✋',d:u=>`Deal damage equal to ${U(u,2,3)}× your Tide${inC()?' ('+D(U(u,2,3)*TD())+')':''}.`,p:(u,t)=>hit(t,U(u,2,3)*TD())},
+ saltspray:{n:'Salt Spray',h:'T',r:'U',t:'S',c:1,tg:1,ex:u=>!u,art:'🧂',d:u=>`Apply 2 Sapped and 2 Exposed.`,p:(u,t)=>{ap(t,'sapped',2);ap(t,'exposed',2)}},
+ current:{n:'Current',h:'T',r:'U',t:'S',c:0,art:'➰',d:u=>`Gain ${U(u,2,3)} Tide. Draw 1 card.`,p:u=>{tide(U(u,2,3));drw(1)}},
+ reefspikes:{n:'Reef Spikes',h:'T',r:'U',t:'P',c:1,art:'🌵',d:u=>`Gain ${U(u,3,5)} Thorns.`,p:u=>apP('thorns',U(u,3,5),1)},
+ siren:{n:'Siren Song',h:'T',r:'U',t:'S',c:1,ex:1,art:'🎶',d:u=>`Apply ${U(u,2,3)} Sapped to ALL enemies.`,p:u=>apAll('sapped',U(u,2,3))},
+ whirlpool:{n:'Whirlpool',h:'T',r:'U',t:'A',c:1,art:'🌀',d:u=>`Deal ${D(5)} damage to a random enemy ${U(u,3,4)} times.`,p:u=>{for(let i=0;i<U(u,3,4);i++){const l=liveEn();if(l.length)hit(pick(l),5)}}},
+ tsunami:{n:'Tsunami',h:'T',r:'R',t:'A',c:3,art:'🌊',d:u=>`Deal ${D(U(u,18,24)+TD())} damage to ALL enemies. (${U(u,18,24)} + your Tide)`,p:u=>hitAll(U(u,18,24)+TD())},
+ abyssal:{n:'Abyssal Calm',h:'T',r:'R',t:'P',c:2,cu:1,art:'💧',d:u=>`Whenever a Crest crashes, next turn gain 1 energy and draw 2 cards.`,p:u=>addPow('abyssal',1)},
+ deepreserve:{n:'Deep Reserve',h:'T',r:'R',t:'S',c:1,cu:0,ex:1,art:'🏺',d:u=>`Double your Tide.`,p:u=>tide(TD())},
+ leviathan:{n:'Leviathan Form',h:'T',r:'R',t:'P',c:3,cu:2,art:'🐋',d:u=>`At the start of your turn, gain 1 Might and 2 Tide.`,p:u=>addPow('leviathan',1)},
+ mirrorpool:{n:'Mirror Pool',h:'T',r:'R',t:'S',c:1,ex:u=>!u,art:'🔷',d:u=>`Gain Block equal to 2× your Tide${inC()?' ('+B(2*TD())+')':''}.`,p:u=>blk(2*TD())},
+ // ---- status & curses
+ soot:{n:'Soot',h:'N',r:'C',t:'X',c:1,ex:1,art:'💨',d:u=>`Does nothing.`,p:()=>{}},
+ regret:{n:'Regret',h:'N',r:'C',t:'K',c:0,un:1,art:'🥀',d:u=>`Unplayable. At the end of your turn, if this is in your hand, lose 1 HP.`},
+ haze:{n:'Spore Haze',h:'N',r:'C',t:'K',c:0,un:1,art:'🍄',d:u=>`Unplayable.`}
+};
+const TNAME={A:'Attack',S:'Skill',P:'Power',X:'Status',K:'Curse'};
+const costOf=c=>{const d=CARDS[c.id];return c.u&&d.cu!==undefined?d.cu:d.c};
+const exOf=c=>{const e=CARDS[c.id].ex;return typeof e==='function'?e(c.u):!!e};
+const canUp=c=>!c.u&&'ASP'.includes(CARDS[c.id].t);
+const mk=(id,u)=>({id,u:!!u,uid:uidc++});
+
+/* ============ heroes ============ */
+const HEROES={
+ L:{n:'The Lamplighter',art:'🧑‍🚒',hp:80,relic:'lantern',deck:['strike','strike','strike','strike','strike','ward','ward','ward','ward','flare'],
+  blurb:'Keeper of the last lights. Sets enemies alight with <span class="k">Burn</span> that grows every turn, and hides behind walls of heat.'},
+ T:{n:'The Tidecaller',art:'🧜',hp:72,relic:'tidestone',deck:['strike','strike','strike','strike','strike','ward','ward','ward','ward','swell'],
+  blurb:'A diver who talks to the deep. Builds up <span class="k">Tide</span> until a <span class="k">Crest</span> crashes over every enemy at once.'}
+};
+// use simple, widely supported faces
+HEROES.L.art='🏮';HEROES.T.art='🔱';
+
+/* ============ trinkets ============ */
+const TR={
+ lantern:{n:'Old Lantern',i:'🏮',r:'S',d:'At the end of each fight, heal 6 HP.'},
+ tidestone:{n:'Tidestone',i:'💠',r:'S',d:'Start each fight with 3 Tide.'},
+ pewter:{n:'Pewter Buckler',i:'🛡️',r:'C',d:'Start each fight with 10 Block.'},
+ grind:{n:'Grindstone',i:'🪓',r:'C',d:'Your first attack hit each fight deals 8 more damage.'},
+ bookmark:{n:'Bookmark',i:'🔖',r:'C',d:'Draw 2 more cards on the first turn of each fight.'},
+ purse:{n:'Fat Purse',i:'👛',r:'C',d:'Gain 50% more gold from fights.'},
+ bone:{n:'Bone Charm',i:'🦴',r:'C',d:'Raise your Max HP by 8.',get:()=>{S.max+=8;S.hp+=8}},
+ filing:{n:'Iron Filings',i:'🧲',r:'C',d:'Start each fight with 1 Might.'},
+ feather:{n:'Grey Feather',i:'🕊️',r:'C',d:'Start each fight with 1 Poise.'},
+ salts:{n:'Smelling Salts',i:'🧂',r:'C',d:'At the start of each fight, apply 1 Exposed to ALL enemies.'},
+ tea:{n:'Tea Tin',i:'🍵',r:'C',d:'Resting heals 15 more HP.'},
+ cricket:{n:'Cog Cricket',i:'🦗',r:'U',d:'Every 10th card you play in a fight gives 1 energy and draws 1 card.'},
+ thimble:{n:'Thimble',i:'🧵',r:'U',d:'Whenever you play a Power, draw 1 card.'},
+ emring:{n:'Ember Ring',i:'💍',r:'U',d:'Whenever you apply Burn, apply 1 more.'},
+ conch:{n:'Conch Shell',i:'🐚',r:'U',d:'Whenever you gain Tide, gain 1 Block.'},
+ sandglass:{n:'Sandglass',i:'⏳',r:'U',d:'At the start of your 3rd turn of each fight, gain 2 energy.'},
+ collar:{n:'Thorn Collar',i:'🌵',r:'U',d:'Start each fight with 3 Thorns.'},
+ coin:{n:'Lucky Coin',i:'💰',r:'U',d:'Shop prices are 20% lower.'},
+ wick:{n:'Spare Wick',i:'🕯️',r:'U',d:'The first time your HP drops below half in a fight, gain 2 Might.'},
+ belt:{n:'Bandolier',i:'🎽',r:'U',d:'You can carry 1 more tonic.',get:()=>{S.tslots=4}},
+ mender:{n:"Mender's Needle",i:'🧷',r:'R',d:'Whenever you play a Power, heal 3 HP.'},
+ kite:{n:'Paper Kite',i:'🪁',r:'R',d:'The 3rd Attack you play each turn gives 1 energy.'},
+ acorn:{n:'Golden Acorn',i:'🌰',r:'R',d:'Raise your Max HP by 15. Heal 15.',get:()=>{S.max+=15;S.hp+=15}},
+ eye:{n:'Third Eye',i:'👁️',r:'B',d:'Gain 1 energy each turn. You can no longer see what enemies intend.'},
+ crown:{n:'Heavy Crown',i:'👑',r:'B',d:'Gain 1 energy each turn. You can no longer heal at rest sites.'},
+ gear:{n:'Cracked Gear',i:'⚙️',r:'B',d:'Gain 1 energy each turn. Start each fight with 2 Exposed.'},
+ satchel:{n:'Deep Satchel',i:'🎒',r:'B',d:'Draw 1 more card each turn.'},
+ fang:{n:'Golden Fang',i:'🦷',r:'B',d:'Gain 1 energy each turn. Card rewards show 2 cards instead of 3.'}
+};
+const trTip=k=>`<b>${TR[k].n}</b><br>${TR[k].d}`;
+
+/* ============ tonics ============ */
+const TN={
+ fire:{n:'Fire Tonic',i:'🧨',tg:1,d:'Deal 20 damage to an enemy.',p:t=>{dmgEnemy(t,20)}},
+ iron:{n:'Iron Tonic',i:'🧪',d:'Gain 12 Block.',p:()=>blkRaw(12)},
+ swift:{n:'Swift Tonic',i:'💨',d:'Draw 3 cards.',p:()=>drw(3)},
+ spark:{n:'Spark Tonic',i:'⚡',d:'Gain 2 energy.',p:()=>nrg(2)},
+ bull:{n:'Bull Tonic',i:'🐂',d:'Gain 2 Might.',p:()=>apP('might',2)},
+ steady:{n:'Steady Tonic',i:'🧘',d:'Gain 2 Poise.',p:()=>apP('poise',2)},
+ wilt:{n:'Wilting Draught',i:'🥀',d:'Apply 3 Sapped to ALL enemies.',p:()=>apAll('sapped',3)},
+ mark:{n:'Marking Dust',i:'🎯',tg:1,d:'Apply 3 Exposed to an enemy.',p:t=>ap(t,'exposed',3)},
+ salve:{n:'Healing Salve',i:'💖',any:1,d:'Heal 25% of your Max HP. (Usable any time.)',p:()=>heal(Math.floor(S.max*.25))},
+ oil:{n:'Lamp Oil',i:'🛢️',d:'Apply 7 Burn to ALL enemies.',p:()=>apAll('burn',7)},
+ brine:{n:'Brine Flask',i:'🍶',d:'Gain 7 Tide.',p:()=>tide(7)}
+};
+
+/* ============ enemies ============ */
+const cyc=(...ks)=>e=>ks[e.turn%ks.length];
+const rnd=w=>e=>{const h=e.hist,ks=Object.keys(w).filter(k=>!(h.length>=2&&h[h.length-1]===k&&h[h.length-2]===k));let tot=ks.reduce((a,k)=>a+w[k],0),r=Math.random()*tot;for(const k of ks){r-=w[k];if(r<=0)return k}return ks[0]};
+const EN={
+ // act 1
+ sporeling:{n:'Sporeling',art:'🍄',hp:[12,15],mv:{puff:{n:'Puff',i:'debuff',fx:()=>apP('sapped',1)},bump:{n:'Bump',d:5}},ai:rnd({puff:1,bump:2})},
+ rat:{n:'Gutter Rat',art:'🐀',hp:[10,13],mv:{gnaw:{n:'Gnaw',d:5},skitter:{n:'Skitter',d:3,b:4}},ai:rnd({gnaw:3,skitter:2})},
+ moth:{n:'Lantern Moth',art:'🦋',hp:[24,28],mv:{dust:{n:'Glitter Dust',d:4,fx:()=>apP('exposed',1)},beat:{n:'Wingbeat',d:7}},ai:cyc('dust','beat','beat')},
+ brute:{n:'Cave Brute',art:'🦍',hp:[40,44],mv:{wind:{n:'Wind Up',i:'buff',fx:e=>apE(e,'might',3)},smash:{n:'Smash',d:11}},ai:cyc('wind','smash','smash')},
+ slug:{n:'Thornback Slug',art:'🐌',hp:[32,36],st:{thorns:3},mv:{slime:{n:'Slime',d:8},curl:{n:'Curl Up',b:9}},ai:rnd({slime:3,curl:2})},
+ cultist:{n:'Mud Cultist',art:'🧙',hp:[46,50],mv:{chant:{n:'Chant',i:'buff',fx:e=>{e.st.ritual=3}},lash:{n:'Lash',d:6}},ai:e=>e.turn===0?'chant':'lash'},
+ sentinel:{n:'Rusted Sentinel',art:'🤖',hp:[78,82],mv:{grind:{n:'Grind',d:13},plate:{n:'Replate',b:12,i:'buff',fx:e=>apE(e,'might',2)},cleave:{n:'Cleave',d:7,h:2}},ai:cyc('grind','plate','cleave')},
+ swarm:{n:'Swarm Mother',art:'🐝',hp:[66,70],mv:{storm:{n:'Dust Storm',i:'debuff',fx:()=>{apP('exposed',2);apP('sapped',2)}},gorge:{n:'Gorge',d:6,h:3},molt:{n:'Molt',b:10,i:'buff',fx:e=>apE(e,'might',2)}},ai:cyc('storm','gorge','molt','gorge')},
+ witch:{n:'Bog Witch',art:'🔮',hp:[62,66],mv:{hex:{n:'Hex',i:'debuff',fx:()=>addToDisc('soot',2)},bolt:{n:'Curse Bolt',d:15},brew:{n:'Brew',b:8,i:'buff',fx:e=>healE(e,8)}},ai:cyc('hex','bolt','brew','bolt')},
+ bell:{n:'The Drowned Bell',art:'🔔',hp:[160,160],mv:{toll:{n:'Toll',d:8,fx:()=>apP('sapped',1)},great:{n:'Great Toll',d:6,h:3},reson:{n:'Resonate',b:15,i:'buff',fx:e=>apE(e,'might',3)},hush:{n:'Hush',i:'debuff',fx:()=>addToDisc('soot',2)}},ai:cyc('toll','great','reson','hush','great')},
+ mireking:{n:'The Mire King',art:'🐸',hp:[150,150],mv:{tongue:{n:'Tongue Lash',d:12,fx:()=>apP('exposed',1)},bloat:{n:'Bloat',b:12,i:'buff',fx:e=>apE(e,'might',2)},flop:{n:'Belly Flop',d:22},spit:{n:'Spit',d:4,h:4}},ai:cyc('spit','tongue','bloat','flop')},
+ // act 2
+ crab:{n:'Brine Crab',art:'🦀',hp:[50,54],mv:{pinch:{n:'Pinch',d:10},harden:{n:'Harden',b:12},snip:{n:'Snip Snip',d:5,h:2}},ai:cyc('pinch','harden','snip')},
+ wraith:{n:'Salt Wraith',art:'👻',hp:[38,42],mv:{wail:{n:'Wail',i:'debuff',fx:()=>{apP('exposed',2);apP('sapped',1)}},chill:{n:'Chill',d:7,h:2}},ai:cyc('wail','chill','chill')},
+ acolyte:{n:'Ashen Acolyte',art:'🧛',hp:[52,56],mv:{chant:{n:'Rite',i:'buff',fx:e=>{e.st.ritual=3}},brand:{n:'Ash Brand',d:7,fx:()=>apP('burn',3)},flay:{n:'Flay',d:9}},ai:e=>e.turn===0?'chant':(e.turn%2?'flay':'brand')},
+ eel:{n:'Hookjaw Eel',art:'🐍',hp:[58,62],mv:{bite:{n:'Bite',d:7,fx:()=>apP('brittle',2)},coil:{n:'Coil',b:8},lunge:{n:'Lunge',d:17}},ai:cyc('bite','coil','lunge')},
+ mite:{n:'Gear Mite',art:'🐞',hp:[20,24],mv:{drill:{n:'Drill',d:6},spark:{n:'Spark',d:3,fx:()=>addToDisc('soot',1)}},ai:rnd({drill:2,spark:1})},
+ golem:{n:'Gravel Golem',art:'🗿',hp:[140,146],mv:{pebbles:{n:'Pebbles',d:4,h:4},slam:{n:'Slam',d:22},settle:{n:'Settle',b:20,i:'buff',fx:e=>apE(e,'might',2)}},ai:cyc('pebbles','slam','settle')},
+ lamplord:{n:'Lamplord',art:'🎃',hp:[64,68],mv:{gutter:{n:'Gutter Flame',d:8,fx:()=>apP('burn',3)},glare:{n:'Glare',b:10,i:'debuff',fx:()=>apP('sapped',1)},flare:{n:'Flare Up',d:13}},ai:cyc('gutter','glare','flare')},
+ toll:{n:'Toll Keeper',art:'⚖️',hp:[120,126],mv:{tax:{n:'Tax',d:10,fx:()=>{const g=Math.min(S.gold,15);S.gold-=g;if(g)fx('p','-'+g+' gold','st')}},ledger:{n:'Ledger',b:12,i:'buff',fx:e=>apE(e,'might',3)},audit:{n:'Audit',d:8,h:2}},ai:cyc('tax','audit','ledger')},
+ matron:{n:'Matron of Gears',art:'🦾',hp:[260,260],mv:{pistons:{n:'Pistons',d:7,h:4},overhaul:{n:'Overhaul',b:25,i:'debuff',fx:()=>addToDisc('soot',2)},wind:{n:'Wind Up',i:'buff',fx:e=>apE(e,'might',4)},crush:{n:'Crush',d:30}},ai:cyc('pistons','overhaul','wind','crush','pistons')},
+ monger:{n:'The Saltmonger',art:'🐳',hp:[250,250],mv:{wave:{n:'Brine Wave',d:10,h:2,fx:()=>apP('brittle',2)},crust:{n:'Salt Crust',b:30},breach:{n:'Breach',d:32},hoard:{n:'Hoard',i:'buff',fx:e=>apE(e,'might',4)}},ai:cyc('wave','crust','breach','hoard','wave')},
+ // act 3
+ mote:{n:'Void Mote',art:'⚫',hp:[30,34],mv:{flicker:{n:'Flicker',d:9},unmake:{n:'Unmake',d:6,fx:()=>apP('brittle',1)}},ai:rnd({flicker:2,unmake:1})},
+ stalker:{n:'Ink Stalker',art:'🐙',hp:[80,86],mv:{smear:{n:'Ink Smear',d:8,fx:()=>apP('sapped',2)},lurk:{n:'Lurk',b:15,i:'buff',fx:e=>apE(e,'might',2)},pounce:{n:'Pounce',d:20}},ai:cyc('smear','lurk','pounce')},
+ choir:{n:'Choir of Teeth',art:'👄',hp:[92,98],mv:{bite:{n:'Bite',d:6,h:3},hymn:{n:'Hymn',i:'buff',fx:()=>liveEn().forEach(x=>apE(x,'might',2))}},ai:cyc('bite','hymn','bite')},
+ pilgrim:{n:'Hollow Pilgrim',art:'🧎',hp:[106,112],mv:{penance:{n:'Penance',d:18,fx:()=>apP('sapped',2)},rake:{n:'Rake',d:10,h:2},pray:{n:'Pray',i:'buff',fx:e=>{healE(e,15);apE(e,'might',1)}}},ai:cyc('penance','rake','pray')},
+ warden:{n:'Abyssal Warden',art:'🗝️',hp:[220,226],mv:{shackle:{n:'Shackle',i:'debuff',fx:()=>{apP('brittle',2);apP('sapped',2);apP('exposed',2)}},execute:{n:'Execute',d:14,h:2},bulwark:{n:'Bulwark',b:30,i:'buff',fx:e=>apE(e,'might',3)}},ai:cyc('shackle','execute','bulwark','execute')},
+ eater:{n:'Lamp Eater',art:'🦈',hp:[200,206],mv:{snuff:{n:'Snuff',d:10,fx:()=>apP('drain',1)},gnash:{n:'Gnash',d:26},feast:{n:'Feast',i:'buff',fx:e=>{healE(e,20);apE(e,'might',2)}}},ai:cyc('snuff','gnash','feast','gnash')},
+ unlit:{n:'The Unlit Sun',art:'🌑',hp:[420,420],mv:{eclipse:{n:'Eclipse',i:'debuff',fx:()=>{apP('brittle',2);apP('sapped',2)}},flares:{n:'Dark Flares',d:5,h:6},gather:{n:'Gathering Dark',b:20},corona:{n:'Black Corona',d:45},absorb:{n:'Absorb',i:'buff',fx:e=>{healE(e,25);apE(e,'might',3)}}},ai:cyc('eclipse','flares','gather','corona','absorb','flares')},
+ keeper:{n:'The Last Keeper',art:'🕳️',hp:[400,400],mv:{lock:{n:'Lock Away',i:'debuff',fx:()=>{addToDisc('soot',3);apP('drain',1)}},sweep:{n:'Sweep',d:16,h:2},still:{n:'Stillness',b:35,i:'buff',fx:e=>apE(e,'might',3)},end:{n:'The End',d:40}},ai:cyc('sweep','lock','still','end','sweep')}
+};
+const ENC={
+ 1:{easy:[['rat','rat'],['cultist'],['moth'],['sporeling','sporeling']],hard:[['brute'],['slug','sporeling'],['rat','rat','rat'],['moth','rat'],['cultist','sporeling']],elite:[['sentinel'],['swarm'],['witch']],boss:[['bell'],['mireking']]},
+ 2:{easy:[['crab'],['wraith','mite'],['mite','mite','mite']],hard:[['eel'],['acolyte','mite'],['crab','wraith'],['eel','mite'],['wraith','wraith']],elite:[['golem'],['lamplord','lamplord'],['toll']],boss:[['matron'],['monger']]},
+ 3:{easy:[['mote','mote','mote'],['stalker']],hard:[['choir','mote'],['pilgrim'],['stalker','mote'],['choir','stalker'],['pilgrim','mote']],elite:[['warden'],['eater']],boss:[['unlit'],['keeper']]}
+};
+const ACTS={1:'The Mossdeep',2:'The Saltworks',3:'The Hollow Heart'};
+
+/* ============ save ============ */
+function save(force){if(!S)return;if(S.screen==='combat'&&!force)return;try{localStorage.setItem(SAVE,JSON.stringify({S,uidc}))}catch(e){}}
+function load(){try{const j=JSON.parse(localStorage.getItem(SAVE));if(j&&j.S){S=j.S;uidc=j.uidc||1000;return true}}catch(e){}return false}
+function stats(){try{return JSON.parse(localStorage.getItem(STATS))||{runs:0,wins:0,best:0}}catch(e){return {runs:0,wins:0,best:0}}}
+function setStats(f){const s=stats();f(s);localStorage.setItem(STATS,JSON.stringify(s))}
+
+/* ============ run setup ============ */
+function newRun(h){
+ const H=HEROES[h];
+ S={hero:h,hp:H.hp,max:H.hp,gold:99,deck:H.deck.map(id=>mk(id)),relics:[H.relic],tonics:[null,null,null],tslots:3,act:1,floor:0,
+  map:null,pos:null,path:[],screen:'map',fights:0,lastEnc:'',removeCost:75,tonicChance:.4,seenEv:[],kills:0,elites:0,bosses:0,node:null,rewards:null,boss:null};
+ setStats(s=>s.runs++);
+ newAct();
+ S.screen='event';S.node={ev:'gift',stage:0};
+ save();render();
+}
+function newAct(){S.map=genMap();S.pos=null;S.path=[];S.fights=0;S.boss=pick(ENC[S.act].boss)}
+
+/* ============ map ============ */
+const RW=14,CL=7;
+function genMap(){
+ const nodes={},edges=new Set(),K=(r,c)=>r+'_'+c;
+ const s0=R(CL);let s1=R(CL);while(s1===s0)s1=R(CL);
+ for(let p=0;p<6;p++){
+  let c=p===0?s0:p===1?s1:R(CL);
+  for(let r=0;r<RW;r++){
+   const k=K(r,c);if(!nodes[k])nodes[k]={r,c,t:null,nx:[],x:R(23)-11,y:R(15)-7};
+   if(r<RW-1){
+    let nc=pick([c-1,c,c+1].filter(x=>x>=0&&x<CL));
+    if(nc===c+1&&edges.has(K(r,c+1)+'>'+K(r+1,c)))nc=c;
+    if(nc===c-1&&edges.has(K(r,c-1)+'>'+K(r+1,c)))nc=c;
+    const ek=k+'>'+K(r+1,nc);if(!edges.has(ek)){edges.add(ek);nodes[k].nx.push(K(r+1,nc))}
+    c=nc;
+   }else if(!nodes[k].nx.length)nodes[k].nx.push('boss');
+  }
+ }
+ nodes.boss={r:RW,c:3,t:'B',nx:[],x:0,y:0};
+ const par={};for(const k in nodes)for(const n of nodes[k].nx)(par[n]=par[n]||[]).push(k);
+ const W={F:45,Q:22,E:14,R:12,S:7};
+ const keys=Object.keys(nodes).filter(k=>k!=='boss').sort((a,b)=>nodes[a].r-nodes[b].r);
+ for(const k of keys){
+  const n=nodes[k];
+  if(n.r===0){n.t='F';continue}
+  if(n.r===8){n.t='T';continue}
+  if(n.r===RW-1){n.t='R';continue}
+  for(let tries=0;tries<12;tries++){
+   let tot=0;for(const t in W)tot+=W[t];let x=Math.random()*tot,t='F';
+   for(const tt in W){x-=W[tt];if(x<=0){t=tt;break}}
+   if((t==='E'||t==='R')&&n.r<5)continue;
+   if(t==='R'&&n.r===RW-2)continue;
+   if('ERS'.includes(t)&&(par[k]||[]).some(p=>nodes[p].t===t))continue;
+   n.t=t;break;
+  }
+  if(!n.t)n.t='F';
+ }
+ return nodes;
+}
+const NODE={F:['⚔️','Fight'],E:['💀','Elite: a tough fight with a trinket reward'],R:['🔥','Rest site: heal or upgrade a card'],S:['🛒','Shop'],Q:['❓','Unknown: something strange happens'],T:['💎','Treasure'],B:['👑','Boss']};
+function canGo(k){const n=S.map[k];if(S.pos===null)return n.r===0;return S.map[S.pos].nx.includes(k)}
+function goNode(k){
+ if(S.screen!=='map'||!canGo(k))return;
+ S.pos=k;S.path.push(k);S.floor++;
+ const t=S.map[k].t;
+ if(t==='F'){const pool=S.fights<3?ENC[S.act].easy:ENC[S.act].hard;let e;do{e=pick(pool)}while(pool.length>1&&e.join()===S.lastEnc);S.lastEnc=e.join();S.fights++;startCombat(e,'fight')}
+ else if(t==='E')startCombat(pick(ENC[S.act].elite),'elite');
+ else if(t==='B')startCombat(S.boss,'boss');
+ else if(t==='R'){S.screen='rest';S.node={};save();render()}
+ else if(t==='S'){S.screen='shop';S.node=genShop();save();render()}
+ else if(t==='T'){S.screen='treasure';S.node={open:false};save();render()}
+ else if(t==='Q'){S.screen='event';S.node={ev:pickEvent(),stage:0};save();render()}
+}
+
+/* ============ combat ============ */
+const liveEn=()=>C?C.en.filter(e=>!e.dead):[];
+function mkEnemy(k){const d=EN[k];const lo=d.hp[0],hi=d.hp[1]||lo;const hp=lo+R(hi-lo+1);return {uid:uidc++,k,n:d.n,art:d.art,hp,max:hp,block:0,st:Object.assign({},d.st||{}),turn:0,mv:null,hist:[],dead:false}}
+function pickMove(e){e.mv=EN[e.k].ai(e);e.hist.push(e.mv)}
+function startCombat(list,kind,extra){
+ S.screen='combat';S.combat={list,kind,extra:extra||null};save(true);
+ C={en:list.map(mkEnemy),kind,extra:extra||null,hand:[],draw:shuffle(S.deck.map(c=>Object.assign({},c))),disc:[],exh:[],energy:0,turn:0,
+  P:{block:0,st:{},pw:{}},played:0,over:false,busy:true,sel:-1,tsel:-1,grind:has('grind'),wick:false,atkTurn:0,kite:false};
+ C.en.forEach(pickMove);
+ render();
+ msg(kind==='boss'?C.en[0].n:kind==='elite'?'Elite!':'Fight!');
+ setTimeout(startTurn,500);
+}
+function startTurn(){
+ if(!C||C.over)return;
+ C.turn++;const P=C.P;
+ P.block=0;
+ if(C.turn===1){
+  if(has('pewter'))P.block+=10;
+  if(has('filing'))P.st.might=(P.st.might||0)+1;
+  if(has('feather'))P.st.poise=(P.st.poise||0)+1;
+  if(has('collar'))P.st.thorns=(P.st.thorns||0)+3;
+  if(has('tidestone'))P.st.tide=(P.st.tide||0)+3;
+  if(has('gear'))P.st.exposed=(P.st.exposed||0)+2;
+  if(has('salts'))C.en.forEach(e=>apE(e,'exposed',1));
+  if(S.hero==='T'&&P.st.tide===undefined)P.st.tide=0;
+ }
+ if(P.st.nextblock){P.block+=P.st.nextblock;delete P.st.nextblock}
+ if(P.st.burn){hurtPlayer(P.st.burn,true);P.st.burn--;if(!P.st.burn)delete P.st.burn;if(S.hp<=0){render();return lose()}}
+ C.energy=baseEnergy()+(P.st.energyNext||0)-(P.st.drain||0);
+ delete P.st.energyNext;delete P.st.drain;
+ if(C.turn===3&&has('sandglass'))C.energy+=2;
+ C.energy=Math.max(0,C.energy);
+ C.atkTurn=0;C.kite=false;
+ if(P.pw.coal)apAll('burn',P.pw.coal);
+ if(P.pw.phoenix)apP('might',P.pw.phoenix,1);
+ if(P.pw.hightide)tide(P.pw.hightide);
+ if(P.pw.leviathan){apP('might',P.pw.leviathan,1);tide(2*P.pw.leviathan)}
+ let n=5+(has('satchel')?1:0)+(C.turn===1&&has('bookmark')?2:0)+(P.st.drawNext||0);
+ delete P.st.drawNext;
+ drw(n);
+ C.busy=false;render();
+}
+const baseEnergy=()=>3+['eye','crown','gear','fang'].filter(has).length;
+function drw(n){for(let i=0;i<n;i++){if(C.hand.length>=10)break;if(!C.draw.length){if(!C.disc.length)break;C.draw=shuffle(C.disc);C.disc=[]}C.hand.push(C.draw.pop())}}
+function calc(src,tgt,base){let d=base+(src.st.might||0);if(src.st.sapped)d*=.75;if(tgt.st.exposed)d*=1.5;return Math.max(0,Math.floor(d))}
+function hurtPlayer(d,pierce){
+ let left=d;
+ if(!pierce&&C.P.block>0){const ab=Math.min(C.P.block,left);C.P.block-=ab;left-=ab}
+ if(left>0){S.hp=Math.max(0,S.hp-left);fx('p','-'+left,'dmg')}else fx('p','Blocked','blk');
+ if(has('wick')&&!C.wick&&S.hp>0&&S.hp<S.max/2){C.wick=true;apP('might',2);flashTr('wick')}
+}
+function dmgEnemy(e,d,pierce){
+ if(!e||e.dead)return;let left=d;
+ if(!pierce&&e.block>0){const ab=Math.min(e.block,left);e.block-=ab;left-=ab}
+ if(left>0){e.hp-=left;fx('e'+e.uid,'-'+left,'dmg')}else fx('e'+e.uid,'Blocked','blk');
+ if(e.hp<=0){e.hp=0;e.dead=true;S.kills++}
+}
+function hit(t,base,times=1){
+ for(let i=0;i<times;i++){
+  if(!t||t.dead)return;
+  let d=calc(C.P,t,base);
+  if(C.grind){d+=8;C.grind=false;flashTr('grind')}
+  dmgEnemy(t,d);
+  if(t.st.thorns&&S.hp>0)hurtPlayer(t.st.thorns);
+ }
+}
+function hitAll(base,times=1){liveEn().forEach(e=>hit(e,base,times))}
+function blk(n){let v=n+(C.P.st.poise||0);if(C.P.st.brittle)v=Math.floor(v*.75);blkRaw(Math.max(0,v))}
+function blkRaw(n){if(n<=0)return;C.P.block+=n;fx('p','+'+n+' 🛡','blk')}
+function ap(t,k,n,raw){if(!t||t.dead||n<=0)return;if(k==='burn'&&has('emring')&&!raw)n++;t.st[k]=(t.st[k]||0)+n;fx('e'+t.uid,ST[k][1]+' '+ST[k][0],'st')}
+function apAll(k,n){liveEn().forEach(e=>ap(e,k,n))}
+function apE(e,k,n){e.st[k]=(e.st[k]||0)+n;fx('e'+e.uid,ST[k][1]+' '+(n>0?'+':'')+n,'st')}
+function apP(k,n,quiet){C.P.st[k]=(C.P.st[k]||0)+n;if(!quiet)fx('p',ST[k][1]+' '+ST[k][0],'st')}
+function tide(n){if(n<=0)return;C.P.st.tide=(C.P.st.tide||0)+n;if(has('conch'))blkRaw(1)}
+function nrg(n){C.energy+=n}
+function addPow(k,n){C.P.pw[k]=(C.P.pw[k]||0)+n;fx('p',PW[k].i+' '+PW[k].n,'st')}
+function addToDisc(id,n){for(let i=0;i<n;i++)C.disc.push(mk(id));fx('p','+'+n+' '+CARDS[id].n,'st')}
+function heal(n){const before=S.hp;S.hp=Math.min(S.max,S.hp+n);if(S.hp>before&&inC())fx('p','+'+(S.hp-before),'heal')}
+function healE(e,n){const b=e.hp;e.hp=Math.min(e.max,e.hp+n);if(e.hp>b)fx('e'+e.uid,'+'+(e.hp-b),'heal')}
+function decay(st){['sapped','exposed','brittle'].forEach(k=>{if(st[k]){st[k]--;if(!st[k])delete st[k]}})}
+function playable(c){const d=CARDS[c.id];if(d.un)return 'That card can\'t be played.';if(d.c!==-1&&costOf(c)>C.energy)return 'Not enough energy.';if(d.can&&!d.can(c.u))return 'You don\'t have enough Tide.';return ''}
+function clickCard(i){
+ if(!C||C.busy||C.over)return;
+ const c=C.hand[i];if(!c)return;
+ const why=playable(c);if(why){toast(why);return}
+ C.tsel=-1;
+ if(CARDS[c.id].tg){const l=liveEn();if(l.length===1)return playCard(i,l[0]);C.sel=C.sel===i?-1:i;render();return}
+ playCard(i,null);
+}
+function clickEnemy(uid){
+ if(!C||C.busy||C.over)return;const e=C.en.find(x=>x.uid===uid);if(!e||e.dead)return;
+ if(C.sel>=0){const i=C.sel;C.sel=-1;playCard(i,e)}
+ else if(C.tsel>=0){const i=C.tsel;C.tsel=-1;drinkTonic(i,e)}
+}
+function playCard(i,t){
+ const c=C.hand[i],d=CARDS[c.id];
+ const X=d.c===-1?C.energy:0;
+ C.energy-=d.c===-1?C.energy:costOf(c);
+ C.hand.splice(i,1);C.sel=-1;
+ d.p(c.u,t,X);
+ C.played++;
+ if(d.t==='A'){C.atkTurn++;if(has('kite')&&C.atkTurn===3&&!C.kite){C.kite=true;nrg(1);flashTr('kite')}}
+ if(d.t==='P'){if(has('thimble'))drw(1);if(has('mender'))heal(3)}
+ if(has('cricket')&&C.played%10===0){nrg(1);drw(1);flashTr('cricket')}
+ if(d.t!=='P')(exOf(c)?C.exh:C.disc).push(c);
+ render();checkEnd();
+}
+function checkEnd(){
+ if(!C||C.over)return true;
+ if(S.hp<=0){lose();return true}
+ if(C.en.every(e=>e.dead)){C.over=true;C.busy=true;setTimeout(winFight,650);return true}
+ return false;
+}
+function crest(){
+ const thr=C.P.pw.moonpull?7:10;
+ while((C.P.st.tide||0)>=thr&&liveEn().length){
+  C.P.st.tide-=thr;fx('p','🌊 CREST!','crest');
+  liveEn().forEach(e=>dmgEnemy(e,12));
+  if(C.P.pw.abyssal){apP('energyNext',C.P.pw.abyssal,1);apP('drawNext',2*C.P.pw.abyssal,1)}
+ }
+}
+async function endTurn(){
+ if(!C||C.busy||C.over)return;
+ C.busy=true;C.sel=-1;C.tsel=-1;
+ for(const c of C.hand)if(c.id==='regret'){hurtPlayer(1,true)}
+ C.disc.push(...C.hand);C.hand=[];
+ crest();
+ decay(C.P.st);
+ render();
+ if(checkEnd())return;
+ await sleep(350);
+ for(const e of C.en){
+  if(e.dead||C.over)continue;
+  e.block=0;
+  if(e.st.burn){
+   dmgEnemy(e,e.st.burn,true);
+   if(C.P.pw.heathaze)blkRaw(C.P.pw.heathaze);
+   if(!C.P.pw.everlit){e.st.burn--;if(!e.st.burn)delete e.st.burn}
+   render();await sleep(300);
+   if(e.dead){if(checkEnd())return;continue}
+  }
+  const m=EN[e.k].mv[e.mv];
+  await doMove(e,m);
+  if(S.hp<=0){render();return lose()}
+  if(checkEnd())return;
+  if(e.st.ritual&&e.mv!=='chant')apE(e,'might',e.st.ritual);
+  decay(e.st);e.turn++;pickMove(e);
+  render();await sleep(380);
+ }
+ if(checkEnd())return;
+ startTurn();
+}
+async function doMove(e,m){
+ const el=document.querySelector(`[data-ent="e${e.uid}"]`);if(el&&m.d)el.classList.add('lunge');
+ if(m.b){e.block+=m.b;fx('e'+e.uid,'+'+m.b+' 🛡','blk')}
+ if(m.d){const h=m.h||1;for(let i=0;i<h;i++){if(e.dead||S.hp<=0)break;hurtPlayer(calc(e,C.P,m.d));if(C.P.st.thorns)dmgEnemy(e,C.P.st.thorns);render();await sleep(h>1?170:240)}}
+ if(m.fx&&!e.dead&&S.hp>0)m.fx(e);
+ render();
+}
+function intentOf(e){
+ const m=EN[e.k].mv[e.mv];let ic='',txt='',cls='',tip=`<b>${m.n}</b><br>`;
+ if(m.d){const d=calc(e,C.P,m.d);ic='⚔️';txt=d+(m.h>1?'×'+m.h:'');cls='atk';tip+=`Attacks for ${d}${m.h>1?' damage '+m.h+' times':' damage'}. `}
+ if(m.b){ic+='🛡️';tip+=`Gains ${m.b} Block. `}
+ if(m.fx){const i=m.i||(m.d?'debuff':'buff');ic+=i==='debuff'?'🌀':'⬆️';tip+=i==='debuff'?'Weakens you or fouls your deck.':'Grows stronger.'}
+ return `<div class="intent ${cls}" data-tip="${esc(tip)}">${ic} ${txt}</div>`;
+}
+/* tonics */
+function clickTonic(i){
+ const k=S.tonics[i];if(!k)return;const t=TN[k];
+ if(inC()&&!C.busy){
+  if(t.tg){const l=liveEn();if(l.length===1)return drinkTonic(i,l[0]);C.sel=-1;C.tsel=C.tsel===i?-1:i;render();return}
+  return drinkTonic(i,null);
+ }
+ ov(`<div class="panel" style="text-align:center"><div style="font-size:50px">${t.i}</div><h2>${t.n}</h2><p>${t.d}</p>
+  ${t.any?`<button class="amb" onclick="S.tonics[${i}]=null;heal(Math.floor(S.max*.25));closeOv();save();render()">Drink</button> `:''}
+  <button onclick="S.tonics[${i}]=null;closeOv();save();render()">Throw away</button> <button onclick="closeOv()">Keep</button></div>`);
+}
+function drinkTonic(i,t){const k=S.tonics[i];S.tonics[i]=null;C.tsel=-1;TN[k].p(t);render();checkEnd()}
+function gainTonic(k){const i=S.tonics.slice(0,S.tslots).indexOf(null);if(i<0)return false;S.tonics[i]=k;return true}
+const randTonic=()=>{const ks=Object.keys(TN).filter(k=>!(k==='oil'&&S.hero==='T')&&!(k==='brine'&&S.hero==='L'));return pick(ks)};
+
+/* ============ win / lose ============ */
+function winFight(){
+ const kind=C.kind;
+ if(has('lantern')){heal(6)}
+ let gold=kind==='boss'?95+R(11):kind==='elite'?28+R(11):12+R(9);
+ if(has('purse'))gold=Math.floor(gold*1.5);
+ const rw=[{t:'gold',v:gold}];
+ if(kind!=='boss'&&Math.random()<S.tonicChance){rw.push({t:'tonic',v:randTonic()});S.tonicChance=.4}else S.tonicChance=Math.min(.8,S.tonicChance+.1);
+ if(kind==='elite'){rw.push({t:'trinket',v:randTrinket()});S.elites++}
+ if(C.extra==='trinket')rw.push({t:'trinket',v:randTrinket()});
+ rw.push({t:'card',v:cardChoices(kind)});
+ if(kind==='boss'){S.bosses++;const pool=shuffle(Object.keys(TR).filter(k=>TR[k].r==='B'&&!has(k)));rw.push({t:'boss',v:pool.slice(0,3)})}
+ S.rewards=rw.filter(r=>r.v);S.screen='reward';C=null;save();render();
+}
+function lose(){
+ if(C)C.over=true;
+ setStats(s=>{s.best=Math.max(s.best,floorTotal())});
+ S.screen='dead';localStorage.removeItem(SAVE);
+ setTimeout(render,700);
+}
+const floorTotal=()=>(S.act-1)*(RW+1)+(S.pos?S.map[S.pos].r+1:0);
+function randTrinket(){
+ const x=Math.random(),r=x<.55?'C':x<.88?'U':'R';
+ let pool=Object.keys(TR).filter(k=>TR[k].r===r&&!has(k));
+ if(!pool.length)pool=Object.keys(TR).filter(k=>'CUR'.includes(TR[k].r)&&!has(k));
+ return pool.length?pick(pool):null;
+}
+function gainTrinket(k){if(!k||has(k))return;S.relics.push(k);if(TR[k].get)TR[k].get()}
+function cardChoices(kind,n){
+ n=n||(has('fang')?2:3);const out=[],H=S.hero;
+ for(let i=0;i<n;i++){
+  let r;const x=Math.random();
+  if(kind==='boss')r='R';else if(kind==='elite')r=x<.15?'R':x<.55?'U':'C';else r=x<.06?'R':x<.4?'U':'C';
+  const pool=Object.keys(CARDS).filter(k=>CARDS[k].h===H&&CARDS[k].r===r&&!out.some(o=>o.id===k));
+  const up=Math.random()<(S.act===1?0:S.act===2?.12:.25);
+  out.push(mk(pick(pool),up));
+ }
+ return out;
+}
+
+/* ============ shop ============ */
+function price(base){let p=Math.round(base*(.9+Math.random()*.2));return p}
+function genShop(){
+ const H=S.hero,cards=[];
+ const rs=['C','C','U','U','R'];
+ rs.forEach(r=>{const pool=Object.keys(CARDS).filter(k=>CARDS[k].h===H&&CARDS[k].r===r&&!cards.some(c=>c.id===k));const id=pick(pool);cards.push({id,u:false,price:price(r==='C'?50:r==='U'?75:150)})});
+ const trs=[];for(let i=0;i<3;i++){const x=Math.random(),r=x<.5?'C':x<.85?'U':'R';const pool=Object.keys(TR).filter(k=>TR[k].r===r&&!has(k)&&!trs.some(t=>t.id===k));if(pool.length){const id=pick(pool);trs.push({id,price:price(r==='C'?150:r==='U'?220:290)})}}
+ const tns=[];for(let i=0;i<3;i++){const id=randTonic();tns.push({id,price:price(55)})}
+ return {cards,trs,tns,removed:false};
+}
+const disc=p=>has('coin')?Math.floor(p*.8):p;
+function buy(kind,i){
+ const sh=S.node,it=sh[kind][i];if(!it||it.sold)return;const p=disc(it.price);
+ if(S.gold<p)return toast('Not enough gold.');
+ if(kind==='tns'&&!gainTonic(it.id))return toast('Your tonic belt is full.');
+ S.gold-=p;it.sold=true;
+ if(kind==='cards')S.deck.push(mk(it.id));
+ if(kind==='trs')gainTrinket(it.id);
+ save();render();
+}
+function buyRemove(){
+ const p=disc(S.removeCost);if(S.node.removed)return;if(S.gold<p)return toast('Not enough gold.');
+ pickDeck('Choose a card to remove',c=>true,c=>{S.gold-=p;S.removeCost+=25;S.node.removed=true;removeCard(c);save();render()},true);
+}
+function removeCard(c){S.deck=S.deck.filter(x=>x.uid!==c.uid)}
+
+/* ============ events ============ */
+const EVENTS={
+ gift:{n:'The Well-Keeper',art:'🧓',once:1,txt:'At the top of the shaft, an old keeper hands out what little she has. "The lights below are going out. Take something for the way down."',opts:[
+  {t:'❤️ Raise your Max HP by 10',f:()=>{S.max+=10;S.hp+=10;return 'You feel sturdier.'}},
+  {t:'💰 Take 100 gold',f:()=>{S.gold+=100;return 'A heavy little purse.'}},
+  {t:'🎁 Take a random common trinket',f:()=>{const pool=Object.keys(TR).filter(k=>TR[k].r==='C'&&!has(k));const k=pick(pool);gainTrinket(k);return 'She hands you a '+TR[k].n+'.'}},
+  {t:'✂️ Remove a card from your deck',pick:'rem'}]},
+ well:{n:'The Wishing Well',art:'⛲',txt:'An old well hums with soft light. Coins glitter far below.',opts:[
+  {t:'Throw in 30 gold (half the time: a trinket)',ok:()=>S.gold>=30,f:()=>{S.gold-=30;if(Math.random()<.5){const k=randTrinket();if(k){gainTrinket(k);return 'Something bright floats up: '+TR[k].n+'!'}}return 'The coins sink. Nothing happens.'}},
+  {t:'Drink deeply (heal 12 HP, gain the curse Regret)',f:()=>{heal(12);S.deck.push(mk('regret'));return 'The water is sweet, but it leaves a sour thought behind.'}},
+  {t:'Leave',f:()=>'You walk on.'}]},
+ shrine:{n:'Ember Shrine',art:'⛩️',txt:'A shrine of warm coals offers to temper what you carry.',opts:[
+  {t:'Upgrade a card',pick:'upg'},{t:'Burn away a card (lose 7 HP)',ok:()=>S.hp>7,pick:'rem',hp:7},{t:'Leave',f:()=>'You leave the coals to glow.'}]},
+ camp:{n:'Abandoned Camp',art:'⛺',txt:'Someone left in a hurry. The fire is still warm.',opts:[
+  {t:'Rest a while (heal 15 HP)',f:()=>{heal(15);return 'You doze by the fire.'}},
+  {t:'Search the packs (choose a card)',cards:1},{t:'Leave',f:()=>'You leave the camp as you found it.'}]},
+ statue:{n:'The Hungry Statue',art:'🗿',txt:'A stone face with an open mouth. A carved line reads: FEED ME.',opts:[
+  {t:'Feed it your hand (lose 8 HP, gain 80 gold)',ok:()=>S.hp>8,f:()=>{S.hp-=8;S.gold+=80;return 'It bites. Then it spits out a pile of coins.'}},
+  {t:'Feed it 50 gold (gain a trinket)',ok:()=>S.gold>=50,f:()=>{S.gold-=50;const k=randTrinket();gainTrinket(k);return k?'It burps up a '+TR[k].n+'.':'It burps. Nothing else.'}},
+  {t:'Leave',f:()=>'Its eyes follow you out.'}]},
+ pool:{n:'The Silver Pool',art:'🔷',txt:'Still water shows your deck, card by card. Touch one and the pool gives it back twice.',opts:[
+  {t:'Copy a card (lose 5 Max HP)',ok:()=>S.max>10,pick:'dup'},{t:'Leave',f:()=>'The water goes still again.'}]},
+ ring:{n:'Mushroom Ring',art:'🍄',txt:'Glowing mushrooms stand in a perfect circle. Something sleeps under them.',opts:[
+  {t:'Step inside (fight, then get a trinket)',fight:1},
+  {t:'Eat one (heal 25% HP, gain the curse Spore Haze)',f:()=>{heal(Math.floor(S.max*.25));S.deck.push(mk('haze'));return 'Delicious. Your head swims a little.'}},
+  {t:'Leave',f:()=>'You step around the ring.'}]},
+ library:{n:'The Drowned Library',art:'📚',txt:'Soaked books line the walls. A few pages can still be read.',opts:[
+  {t:'Read (choose 1 of 3 cards)',cards:1},{t:'Tear out a page (remove a card)',pick:'rem'},{t:'Leave',f:()=>'You leave the books to the water.'}]},
+ dice:{n:'The Bone Dicer',art:'🎲',txt:'A grinning stranger rattles a cup of bone dice. "Double or nothing?"',opts:[
+  {t:'Bet 40 gold (50/50)',ok:()=>S.gold>=40,f:()=>{if(Math.random()<.5){S.gold+=40;return 'Sixes! You win 40 gold.'}S.gold-=40;return 'Snake eyes. The stranger pockets your 40 gold.'}},
+  {t:'Leave',f:()=>'"Another time, then."'}]},
+ peddler:{n:'Tonic Peddler',art:'🧳',txt:'A tired peddler with a clinking bag. "Free samples, one per customer. The good stuff costs."',opts:[
+  {t:'Take a free tonic',f:()=>gainTonic(randTonic())?'You pocket a tonic.':'Your belt is full, so you take nothing.'},
+  {t:'Pay 60 gold for 2 tonics',ok:()=>S.gold>=60,f:()=>{S.gold-=60;gainTonic(randTonic());gainTonic(randTonic());return 'Two bottles change hands.'}},
+  {t:'Leave',f:()=>'He shrugs.'}]},
+ smith:{n:'Forgotten Forge',art:'⚒️',txt:'An anvil still warm from someone else\'s work. There is time to hammer twice, if you can stand the heat.',opts:[
+  {t:'Upgrade 2 random cards (lose 6 HP)',ok:()=>S.hp>6,f:()=>{S.hp-=6;const c=shuffle(S.deck.filter(canUp)).slice(0,2);c.forEach(x=>x.u=true);return c.length?'Upgraded: '+c.map(x=>CARDS[x.id].n).join(', ')+'.':'Nothing to upgrade.'}},
+  {t:'Leave',f:()=>'You leave the anvil cooling.'}]}
+};
+function pickEvent(){let pool=Object.keys(EVENTS).filter(k=>!EVENTS[k].once&&!S.seenEv.includes(k));if(!pool.length){S.seenEv=[];pool=Object.keys(EVENTS).filter(k=>!EVENTS[k].once)}const k=pick(pool);S.seenEv.push(k);return k}
+function chooseOpt(i){
+ const ev=EVENTS[S.node.ev],o=ev.opts[i];if(o.ok&&!o.ok())return;
+ const done=txt=>{S.node.stage=1;S.node.res=txt;save();render()};
+ if(o.f)return done(o.f());
+ if(o.cards)return showChoice(cardChoices('fight'),c=>{S.deck.push(c);done('You take '+CARDS[c.id].n+'.')},'Choose a card',()=>done('You take nothing.'));
+ if(o.fight){S.node.stage=1;S.node.res='You won. Something glints in the dirt.';const enc=S.act===1?['sporeling','sporeling','sporeling']:pick(ENC[S.act].hard);return startCombat(enc,'fight','trinket')}
+ if(o.pick==='upg')return pickDeck('Choose a card to upgrade',canUp,c=>{c.u=true;done(CARDS[c.id].n+' is upgraded.')},true,true);
+ if(o.pick==='rem')return pickDeck('Choose a card to remove',()=>true,c=>{if(o.hp)S.hp-=o.hp;removeCard(c);done(CARDS[c.id].n+' is gone.')},true);
+ if(o.pick==='dup')return pickDeck('Choose a card to copy',c=>!'XK'.includes(CARDS[c.id].t),c=>{S.max-=5;S.hp=Math.min(S.hp,S.max);S.deck.push(mk(c.id,c.u));done('You now have two of '+CARDS[c.id].n+'.')},true);
+}
+function leaveNode(){S.node=null;S.screen='map';save();render()}
+
+/* ============ rest & treasure ============ */
+function doRest(){const n=Math.floor(S.max*.3)+(has('tea')?15:0);heal(n);S.node={done:'You rest by the fire and heal '+n+' HP.'};save();render()}
+function doSmith(){pickDeck('Choose a card to upgrade',canUp,c=>{c.u=true;S.node={done:CARDS[c.id].n+' is upgraded.'};save();render()},true,true)}
+function openChest(){const g=25+R(25);S.gold+=g;const k=randTrinket();gainTrinket(k);S.node={open:true,res:`You find ${g} gold${k?' and a '+TR[k].n+' ('+TR[k].d+')':''}.`};save();render()}
+
+/* ============ rewards ============ */
+function takeReward(i){
+ const r=S.rewards[i];if(!r)return;
+ if(r.t==='gold'){S.gold+=r.v;S.rewards.splice(i,1)}
+ else if(r.t==='tonic'){if(!gainTonic(r.v))return toast('Your tonic belt is full. Click a tonic up top to throw one away.');S.rewards.splice(i,1)}
+ else if(r.t==='trinket'){gainTrinket(r.v);S.rewards.splice(i,1)}
+ else if(r.t==='card'){return showChoice(r.v,c=>{S.deck.push(c);S.rewards.splice(i,1);save();render()},'Choose a card to add to your deck',()=>{})}
+ else if(r.t==='boss'){return ov(`<h2>Choose a boss trinket</h2><div class="cardgrid">${r.v.map(k=>`<div class="item" style="width:200px" onclick="pickBossTr('${k}',${i})"><div class="ic">${TR[k].i}</div><b>${TR[k].n}</b><div class="mut" style="font-size:13px;text-align:center">${TR[k].d}</div></div>`).join('')}</div><button onclick="closeOv()">Back</button>`)}
+ save();render();
+}
+function pickBossTr(k,i){gainTrinket(k);S.rewards.splice(i,1);closeOv();save();render()}
+function proceed(){
+ S.rewards=null;
+ if(S.combat&&S.combat.extra==='trinket'&&S.node&&S.node.ev){S.combat=null;S.screen='event';save();render();return}
+ S.combat=null;
+ if(S.pos==='boss'){
+  if(S.act>=3){S.screen='won';setStats(s=>{s.wins++;s.best=Math.max(s.best,floorTotal())});localStorage.removeItem(SAVE);render();return}
+  S.act++;newAct();S.hp=Math.min(S.max,S.hp+Math.ceil((S.max-S.hp)*.75));
+  S.screen='map';save();render();msg(ACTS[S.act]);return;
+ }
+ S.screen='map';save();render();
+}
+
+/* ============ overlays ============ */
+function ov(h){const o=$('#ov');o.innerHTML=h;o.classList.add('on');$('#tip').style.display='none'}
+function closeOv(){$('#ov').classList.remove('on');$('#ov').innerHTML=''}
+let pickCb=null,pickList=[];
+function showChoice(cards,onPick,title,onSkip){
+ pickList=cards;pickCb=c=>{closeOv();onPick(c)};
+ window._skip=()=>{closeOv();if(onSkip)onSkip()};
+ ov(`<h2>${title}</h2><div class="cardgrid">${cards.map((c,i)=>cardHTML(c,{click:`pickCb(pickList[${i}])`})).join('')}</div><button onclick="_skip()">Skip</button>`);
+}
+function pickDeck(title,filter,cb,cancel,preview){
+ pickList=S.deck.filter(filter);pickCb=c=>{closeOv();cb(c)};
+ if(!pickList.length){toast('No cards to choose.');return}
+ ov(`<h2>${title}</h2>${preview?'<div class="mut">Showing each card as it will be after the upgrade.</div>':''}<div class="cardgrid">${pickList.map((c,i)=>cardHTML(preview?Object.assign({},c,{u:true}):c,{click:`pickCb(pickList[${i}])`})).join('')}</div>${cancel?'<button onclick="closeOv()">Cancel</button>':''}`);
+}
+function showPile(w){
+ let list,title;
+ if(w==='deck'){list=S.deck;title='Your deck'}
+ else if(w==='draw'){list=C.draw.slice().sort((a,b)=>CARDS[a.id].n.localeCompare(CARDS[b.id].n));title='Draw pile (shown in a random order)'}
+ else if(w==='disc'){list=C.disc;title='Discard pile'}
+ else {list=C.exh;title='Exhausted'}
+ ov(`<h2>${title} (${list.length})</h2><div class="cardgrid">${list.map(c=>cardHTML(c,{})).join('')||'<div class="mut">Empty.</div>'}</div><button onclick="closeOv()">Close</button>`);
+}
+function help(){
+ ov(`<div class="panel" style="max-width:720px;line-height:1.55"><h2>How to play Lanternfall</h2>
+ <p>The lights at the bottom of the world are going out. Climb down through <b>3 depths</b>. Each one ends with a boss.</p>
+ <p><b>The map.</b> Pick a path from the bottom up. ⚔️ fights, 💀 elites (hard, but they drop trinkets), 🔥 rest sites, 🛒 shops, ❓ strange events, 💎 treasure, 👑 the boss.</p>
+ <p><b>Fights.</b> Each turn you get <b>3 energy</b> and draw <b>5 cards</b>. Cards cost energy (the gold circle). Click a card to play it; if it needs a target, click an enemy next. Over each enemy you can see what it means to do next (⚔️ attack, 🛡️ block, ⬆️ buff, 🌀 debuff). <b>Block</b> stops damage but goes away next turn. Cards you didn't play are discarded at the end of your turn.</p>
+ <p><b>After a fight</b> you pick 1 of 3 new cards (or skip — a lean deck is often stronger), and get gold, sometimes a tonic.</p>
+ <p><b>The Lamplighter</b> uses <span class="k">Burn</span>: it hurts enemies at the start of their turn and fades by 1 each time. <b>The Tidecaller</b> builds <span class="k">Tide</span>; end your turn with 10 or more and a <b>Crest</b> crashes for 12 damage to every enemy.</p>
+ <p><b>Keys:</b> <kbd>1</kbd>–<kbd>0</kbd> play cards, <kbd>E</kbd> end turn, <kbd>Esc</kbd> cancel, <kbd>D</kbd> deck. Hover anything for details.</p>
+ <p class="mut">Your run is saved when you're on the map, so you can close the tab and come back. A fight you leave restarts from its beginning.</p>
+ <button class="amb" onclick="closeOv()">Got it</button></div>`);
+}
+function menu(){
+ ov(`<div class="panel" style="text-align:center;width:320px"><h2>Menu</h2><div class="btncol" style="margin:10px auto">
+  <button onclick="closeOv()">Resume</button><button onclick="help()">How to play</button>
+  <button onclick="closeOv();save();S=null;C=null;render()">Save &amp; go to title</button>
+  <button onclick="if(confirm('Give up this run?')){closeOv();lose()}">Abandon run</button></div></div>`);
+}
+
+/* ============ fx ============ */
+let fxq=[];
+function fx(k,txt,cls){fxq.push({k,txt,cls})}
+function flushFx(){
+ const byKey={};
+ for(const f of fxq){
+  const el=document.querySelector(`[data-ent="${f.k}"]`);if(!el)continue;
+  const n=byKey[f.k]=(byKey[f.k]||0)+1;
+  const r=el.getBoundingClientRect();const d=document.createElement('div');
+  d.className='float '+f.cls;d.textContent=f.txt;d.style.left=(r.left+r.width/2+(n%2?1:-1)*R(30))+'px';d.style.top=(r.top+30+n*18)+'px';
+  document.body.appendChild(d);setTimeout(()=>d.remove(),1000);
+  if(f.cls==='dmg'){const a=el.querySelector('.art');if(a){a.classList.remove('shake');void a.offsetWidth;a.classList.add('shake')}}
+ }
+ fxq=[];
+}
+function msg(t){const d=document.createElement('div');d.className='msg';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),1300)}
+function toast(t){const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),1700)}
+function flashTr(k){setTimeout(()=>{const e=document.querySelector(`[data-tr="${k}"]`);if(e){e.classList.remove('flash');void e.offsetWidth;e.classList.add('flash')}},30)}
+
+/* ============ render ============ */
+function cardHTML(c,o){
+ const d=CARDS[c.id];o=o||{};
+ const cost=d.un?'':d.c===-1?'X':costOf(c);
+ let desc=d.d(c.u);if(exOf(c))desc+=' <span class="k">Exhaust.</span>';
+ const kws=Object.keys(KW).filter(k=>desc.includes(k)||(k==='Power'&&d.t==='P')||(k==='Unplayable'&&d.un));
+ desc=desc.replace(/\b(Burn|Might|Poise|Sapped|Exposed|Brittle|Tide|Crest|Thorns|Block|ALL)\b/g,'<span class="k">$1</span>');
+ const tip=kws.map(k=>`<b>${k}</b>: ${KW[k]}`).join('<br>');
+ return `<div class="card t${d.t} r${d.r} ${c.u?'up':''} ${o.cls||''}" ${o.click?`onclick="${o.click}"`:''} ${tip?`data-tip="${esc(tip)}"`:''}>
+  ${cost!==''?`<div class="cost">${cost}</div>`:''}<div class="cn">${d.n}${c.u?'+':''}</div><div class="art">${d.art}</div><div class="ty">${TNAME[d.t]}</div><div class="cd">${desc}</div>${o.key?`<div class="key">${o.key}</div>`:''}</div>`;
+}
+function topbar(){
+ const H=HEROES[S.hero];
+ const tons=S.tonics.slice(0,S.tslots).map((k,i)=>k?`<span class="slot full ${C&&C.tsel===i?'sel':''}" onclick="clickTonic(${i})" data-tip="${esc(`<b>${TN[k].n}</b><br>${TN[k].d}<br><i>Click to use.</i>`)}">${TN[k].i}</span>`:`<span class="slot" data-tip="Empty tonic slot"></span>`).join('');
+ return `<div class="top"><b>${H.art} ${H.n}</b><span class="hp">❤️ ${S.hp}/${S.max}</span><span class="gold">💰 ${S.gold}</span><span>${tons}</span>
+  <span>${S.relics.map(k=>`<span class="tr" data-tr="${k}" data-tip="${esc(trTip(k))}">${TR[k].i}</span>`).join('')}</span>
+  <span class="sp"></span><span class="mut">Depth ${S.act}: ${ACTS[S.act]} · Floor ${floorTotal()}</span>
+  <button onclick="showPile('deck')">🂠 Deck (${S.deck.length})</button><button onclick="help()">?</button><button onclick="menu()">☰</button></div>`;
+}
+function stsHTML(st,pw){
+ let h='';
+ for(const k in st){if(!st[k]&&k!=='tide')continue;if(k==='tide')continue;const s=ST[k];h+=`<span class="st ${s[2]}" data-tip="${esc(`<b>${s[0]}</b> ${st[k]}<br>${s[3]}`)}">${s[1]}${st[k]}</span>`}
+ if(pw)for(const k in pw){h+=`<span class="st p" data-tip="${esc(`<b>${PW[k].n}</b><br>${PW[k].d(pw[k])}`)}">${PW[k].i}${pw[k]>1?pw[k]:''}</span>`}
+ return `<div class="sts">${h}</div>`;
+}
+function render(){
+ const app=$('#app');
+ if(!S){app.innerHTML=rTitle();return}
+ let body='';
+ switch(S.screen){
+  case 'map':body=rMap();break;
+  case 'combat':body=C?rCombat():'';break;
+  case 'reward':body=rReward();break;
+  case 'rest':body=rRest();break;
+  case 'shop':body=rShop();break;
+  case 'treasure':body=rTreasure();break;
+  case 'event':body=rEvent();break;
+  case 'dead':body=rEnd(false);break;
+  case 'won':body=rEnd(true);break;
+ }
+ app.innerHTML=(S.screen==='dead'||S.screen==='won'?'':topbar())+body;
+ if(S.screen==='map'){const h=document.querySelector('.nd.can');if(h&&!render._scrolled){h.scrollIntoView({block:'center'});render._scrolled=true}}
+ flushFx();
+}
+function rTitle(){
+ const st=stats(),cont=!!localStorage.getItem(SAVE);
+ return `<div class="screen"><div class="lamp" style="margin-top:7vh">🏮</div><div class="logo" style="margin-top:0">LANTERNFALL</div>
+ <div class="mut">A card-building descent into the dark</div>
+ <div class="btncol">${cont?`<button class="amb big" onclick="if(load()){C=null;resume()}">Continue run</button>`:''}
+ <button class="${cont?'':'amb'} big" onclick="if(!localStorage.getItem(SAVE)||confirm('Start over? Your saved run will be lost.'))heroSelect()">New run</button>
+ <button onclick="help()">How to play</button></div>
+ <p class="mut" style="margin-top:22px">Runs: ${st.runs} · Wins: ${st.wins} · Deepest floor: ${st.best}</p></div>`;
+}
+function heroSelect(){
+ $('#app').innerHTML=`<div class="screen"><h1 style="margin-top:6vh">Choose who goes down</h1><div class="heroes">${Object.keys(HEROES).map(h=>{const H=HEROES[h],r=TR[H.relic];return `<div class="heroc" onclick="newRun('${h}')"><div class="art">${H.art}</div><h2>${H.n}</h2><p>${H.blurb}</p><p class="mut">❤️ ${H.hp} HP · starts with ${r.i} <b>${r.n}</b>: ${r.d}</p></div>`}).join('')}</div>
+ <button style="margin-top:24px" onclick="render()">Back</button></div>`;
+}
+function resume(){
+ render._scrolled=false;
+ if(S.screen==='combat'&&S.combat){const c=S.combat;startCombat(c.list,c.kind,c.extra);return}
+ render();
+}
+function rMap(){
+ const N=S.map,W=CL*74+80,Hh=(RW+1)*76+90;
+ const pos=k=>{const n=N[k];if(k==='boss')return [W/2,55];return [40+n.c*74+n.x,Hh-50-n.r*76+n.y]};
+ let lines='',nodes='';
+ const walked=new Set();for(let i=0;i<S.path.length-1;i++)walked.add(S.path[i]+'>'+S.path[i+1]);
+ for(const k in N)for(const n of N[k].nx){const [x1,y1]=pos(k),[x2,y2]=pos(n);lines+=`<line class="${walked.has(k+'>'+n)?'walked':''}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`}
+ for(const k in N){
+  const n=N[k],[x,y]=pos(k),can=canGo(k),done=S.path.includes(k),here=S.pos===k,big=k==='boss';
+  const t=k==='boss'?NODE.B:NODE[n.t];
+  nodes+=`<g class="nd ${can?'can':''} ${done?'done':''} ${here?'here':''}" ${can?`onclick="goNode('${k}')"`:''} data-tip="${esc(k==='boss'?'<b>Boss: '+EN[S.boss[0]].n+'</b>':t[1])}">
+   <circle cx="${x}" cy="${y}" r="${big?40:21}"/><text x="${x}" y="${y+(big?16:7)}" text-anchor="middle" font-size="${big?44:20}">${big?EN[S.boss[0]].art:t[0]}</text></g>`;
+ }
+ return `<div class="screen"><div class="mapside panel" style="margin:0"><h3>${ACTS[S.act]}</h3><div class="mut" style="font-size:13px">Depth ${S.act} of 3. Pick a glowing room. Bottom is the start.</div><hr style="border-color:#2d4263">
+  ${Object.keys(NODE).map(t=>`<div style="font-size:13px">${NODE[t][0]} ${NODE[t][1].split(':')[0]}</div>`).join('')}</div>
+  <div class="mapwrap"><svg width="${W}" height="${Hh}" style="flex-shrink:0">${lines}${nodes}</svg></div></div>`;
+}
+function rCombat(){
+ const P=C.P,H=HEROES[S.hero];
+ const selC=C.sel>=0||C.tsel>=0;
+ const isT=S.hero==='T'||P.st.tide>0;
+ const thr=P.pw.moonpull?7:10;
+ const player=`<div class="unit" data-ent="p">${P.block?`<div class="blkb" data-tip="<b>Block</b><br>${esc(KW.Block)}">🛡${P.block}</div>`:''}<div class="art">${H.art}</div>
+  <div class="hpbar ${P.block?'blk':''}"><div style="width:${100*S.hp/S.max}%"></div><span>${S.hp}/${S.max}</span></div>
+  ${isT?`<div class="tide" data-tip="${esc('<b>Tide</b> '+(P.st.tide||0)+'/'+thr+'<br>'+KW.Tide)}"><div style="width:${Math.min(100,100*(P.st.tide||0)/thr)}%"></div><span>🌊 ${P.st.tide||0}/${thr}</span></div>`:''}
+  ${stsHTML(P.st,P.pw)}<div class="un">${H.n}</div></div>`;
+ const ens=C.en.map(e=>{const kind=C.kind==='boss'?'boss':C.kind==='elite'?'elite':'';
+  return `<div class="unit ${kind} ${e.dead?'dead':''} ${selC&&!e.dead?'tgt':''}" data-ent="e${e.uid}" onclick="clickEnemy(${e.uid})">
+  ${e.dead?'<div class="intent"></div>':has('eye')?`<div class="intent" data-tip="Third Eye hides intents.">❔</div>`:intentOf(e)}
+  ${e.block?`<div class="blkb">🛡${e.block}</div>`:''}<div class="art">${e.art}</div>
+  <div class="hpbar ${e.block?'blk':''}"><div style="width:${100*e.hp/e.max}%"></div><span>${e.hp}/${e.max}</span></div>${stsHTML(e.st)}<div class="un">${e.n}</div></div>`}).join('');
+ const hand=C.hand.map((c,i)=>cardHTML(c,{click:`clickCard(${i})`,cls:(playable(c)?'cant ':'')+(C.sel===i?'sel':''),key:i<10?(i+1)%10:''})).join('');
+ return `<div class="field">${player}<div class="enemies">${ens}</div></div>
+ <div style="text-align:center;height:20px;color:var(--amb);font-size:14px">${C.sel>=0?'Click an enemy to target it (Esc to cancel)':C.tsel>=0?'Click an enemy to throw the tonic at (Esc to cancel)':''}</div>
+ <div class="bottom">
+  <div class="pile" onclick="showPile('draw')" data-tip="Draw pile"><div class="pc">${C.draw.length}</div>Draw</div>
+  <div class="energy ${C.energy?'':'zero'}" data-tip="Energy. Cards cost energy to play. Refills each turn.">${C.energy}/${baseEnergy()}</div>
+  <div class="hand">${hand}</div>
+  <button class="amb big endt" onclick="endTurn()" ${C.busy?'disabled':''}>End turn</button>
+  <div class="pile dp" onclick="showPile('disc')" data-tip="Discard pile"><div class="pc">${C.disc.length}</div>Discard${C.exh.length?`<div style="margin-top:4px;cursor:pointer" onclick="event.stopPropagation();showPile('exh')">🗑 ${C.exh.length}</div>`:''}</div>
+ </div>`;
+}
+function rReward(){
+ const lbl=r=>r.t==='gold'?`💰 ${r.v} gold`:r.t==='tonic'?`${TN[r.v].i} ${TN[r.v].n}`:r.t==='trinket'?`${TR[r.v].i} ${TR[r.v].n} <span class="mut">— ${TR[r.v].d}</span>`:r.t==='card'?'🂠 Add a card to your deck':'👑 Choose a boss trinket';
+ return `<div class="screen"><div class="panel" style="margin-top:8vh;text-align:center"><h1>Victory</h1><p class="mut">Take what you want.</p>
+ <div class="rw">${S.rewards.map((r,i)=>`<button onclick="takeReward(${i})">${lbl(r)}</button>`).join('')}</div>
+ <button class="amb big" style="margin-top:16px" onclick="proceed()">${S.pos==='boss'?(S.act>=3?'Finish':'Go deeper ⬇'):'Continue'}</button></div></div>`;
+}
+function rRest(){
+ const crown=has('crown'),n=Math.floor(S.max*.3)+(has('tea')?15:0);
+ if(S.node&&S.node.done)return `<div class="screen"><div class="panel" style="margin-top:10vh;text-align:center"><div class="evart">🔥</div><p>${S.node.done}</p><button class="amb big" onclick="leaveNode()">Continue</button></div></div>`;
+ return `<div class="screen"><div class="panel" style="margin-top:10vh;text-align:center"><div class="evart">🔥</div><h1>Rest Site</h1><p class="mut">A small fire in a dry corner. You have time for one thing.</p>
+ <div style="display:flex;gap:16px;justify-content:center"><button class="big" ${crown?'disabled':''} onclick="doRest()">😴 Rest<br><span class="mut" style="font-size:13px">${crown?'Heavy Crown: no healing':'Heal '+n+' HP'}</span></button>
+ <button class="big" onclick="doSmith()">⚒️ Smith<br><span class="mut" style="font-size:13px">Upgrade a card</span></button></div></div></div>`;
+}
+function rShop(){
+ const sh=S.node,pr=p=>{const v=disc(p);return `<div class="price ${S.gold<v?'no':''}">💰 ${v}</div>`};
+ return `<div class="screen"><div class="panel" style="text-align:center;max-width:900px"><h1>🛒 The Lamp Shop</h1><p class="mut">"Everything works. Mostly."</p>
+ <div class="cardgrid">${sh.cards.map((c,i)=>`<div class="${c.sold?'sold':''}">${cardHTML(c,{click:`buy('cards',${i})`})}${pr(c.price)}</div>`).join('')}</div>
+ <div class="cardgrid">${sh.trs.map((t,i)=>`<div class="item ${t.sold?'sold':''}" onclick="buy('trs',${i})" data-tip="${esc(trTip(t.id))}"><div class="ic">${TR[t.id].i}</div><b style="font-size:13px">${TR[t.id].n}</b>${pr(t.price)}</div>`).join('')}
+ ${sh.tns.map((t,i)=>`<div class="item ${t.sold?'sold':''}" onclick="buy('tns',${i})" data-tip="${esc(`<b>${TN[t.id].n}</b><br>${TN[t.id].d}`)}"><div class="ic">${TN[t.id].i}</div><b style="font-size:13px">${TN[t.id].n}</b>${pr(t.price)}</div>`).join('')}
+ <div class="item ${sh.removed?'sold':''}" onclick="buyRemove()" data-tip="Remove one card from your deck. Costs 25 more each time."><div class="ic">✂️</div><b style="font-size:13px">Remove a card</b>${pr(S.removeCost)}</div></div>
+ <button class="amb big" onclick="leaveNode()">Leave shop</button></div></div>`;
+}
+function rTreasure(){
+ const n=S.node;
+ return `<div class="screen"><div class="panel" style="margin-top:10vh;text-align:center"><div class="evart">${n.open?'📭':'🧰'}</div><h1>Treasure</h1>
+ ${n.open?`<p>${n.res}</p><button class="amb big" onclick="leaveNode()">Continue</button>`:`<button class="amb big" onclick="openChest()">Open the chest</button>`}</div></div>`;
+}
+function rEvent(){
+ const n=S.node,ev=EVENTS[n.ev];
+ return `<div class="screen"><div class="panel" style="margin-top:6vh;width:600px"><div class="evart">${ev.art}</div><h1 style="text-align:center">${ev.n}</h1><p>${ev.txt}</p>
+ ${n.stage===0?ev.opts.map((o,i)=>`<button class="opt" ${o.ok&&!o.ok()?'disabled':''} onclick="chooseOpt(${i})">${o.t}</button>`).join(''):`<p style="color:var(--amb)">${n.res}</p><button class="amb big" onclick="leaveNode()">Continue</button>`}</div></div>`;
+}
+function rEnd(won){
+ const fl=floorTotal();
+ const score=fl*5+S.kills*2+S.elites*15+S.bosses*50+Math.floor(S.gold/10)+(won?250:0);
+ const H=HEROES[S.hero];
+ return `<div class="screen"><div class="panel" style="margin-top:8vh;text-align:center;width:480px"><div class="evart">${won?'🌅':'🕯️'}</div>
+ <h1>${won?'The lights are lit again':'Your lantern goes out'}</h1>
+ <p class="mut">${H.n} · ${won?'cleared all 3 depths':'fell on floor '+fl+' in '+ACTS[S.act]}</p>
+ <p>Enemies beaten: ${S.kills} · Elites: ${S.elites} · Bosses: ${S.bosses} · Cards in deck: ${S.deck.length}</p>
+ <h2 style="color:var(--amb)">Score ${score}</h2>
+ <button class="amb big" onclick="S=null;C=null;render()">Back to title</button></div></div>`;
+}
+
+/* ============ input ============ */
+document.addEventListener('keydown',ev=>{
+ if(ev.key==='Escape'){if($('#ov').classList.contains('on')){closeOv();return}if(C){C.sel=-1;C.tsel=-1;render()}return}
+ if($('#ov').classList.contains('on'))return;
+ if(!S)return;
+ if(S.screen==='combat'&&inC()){
+  if(/^[0-9]$/.test(ev.key)){const i=ev.key==='0'?9:+ev.key-1;clickCard(i)}
+  else if(ev.key==='e'||ev.key==='E')endTurn();
+ }
+ if(ev.key==='d'||ev.key==='D')showPile('deck');
+});
+document.addEventListener('mousemove',ev=>{
+ const tip=$('#tip'),el=ev.target.closest&&ev.target.closest('[data-tip]');
+ if(!el){tip.style.display='none';return}
+ tip.innerHTML=el.getAttribute('data-tip');tip.style.display='block';
+ const w=tip.offsetWidth,h=tip.offsetHeight;
+ let x=ev.clientX+16,y=ev.clientY+16;if(x+w>innerWidth-6)x=ev.clientX-w-12;if(y+h>innerHeight-6)y=ev.clientY-h-12;
+ tip.style.left=x+'px';tip.style.top=y+'px';
+});
+render();
+</script>
+</body>
+</html>

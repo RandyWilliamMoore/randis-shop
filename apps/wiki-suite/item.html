@@ -1,0 +1,1164 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wiki Suite</title>
+<style>
+:root{--bg:#1e1f22;--fg:#e6e6e6;--mut:#9aa0a6;--pan:#2b2d31;--pan2:#232428;--line:#3a3c42;--acc:#5b9bff;--red:#ff6b6b;--ok:#51cf66}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.6 "Segoe UI",system-ui,Roboto,sans-serif}
+header{position:sticky;top:0;z-index:5;display:flex;gap:8px;align-items:center;padding:8px 14px;background:#18191c;border-bottom:1px solid var(--line)}
+.logo{font-weight:700;cursor:pointer;display:flex;gap:8px;align-items:center;font-size:17px;margin-right:6px}
+.gl{width:28px;height:28px;border-radius:50%;background:conic-gradient(#5b9bff,#c77dff,#ff7a6b,#e0a84f,#7bd88f,#56c7d6,#5b9bff);display:grid;place-items:center;color:#111;font-weight:900;font-family:Georgia,serif;flex:none}
+.gl.big{width:64px;height:64px;font-size:34px}
+select,input,textarea,button{font:inherit;font-size:14px;color:var(--fg);background:var(--pan2);border:1px solid var(--line);border-radius:6px;padding:6px 9px}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--acc)}
+button{cursor:pointer;background:#32343a}button:hover{background:#3b3e45}button:disabled{opacity:.4;cursor:default}
+button.pri{background:var(--acc);border-color:var(--acc);color:#0d1117;font-weight:600}
+button.dng{background:#5c2b2b;border-color:#7a3434}
+#q{flex:1;max-width:520px}
+.wrap{display:grid;grid-template-columns:232px 1fr;min-height:calc(100vh - 51px)}
+nav{background:var(--pan2);border-right:1px solid var(--line);padding:12px 10px 40px;font-size:14px}
+nav h4{margin:14px 8px 4px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+nav a{display:block;padding:3px 8px;border-radius:5px;color:var(--fg);cursor:pointer}
+nav a:hover{background:#33353b}
+nav .ic{display:inline-block;width:22px;text-align:center}
+.prow{display:flex;flex-wrap:wrap;gap:4px;padding:2px 6px}.prow a{padding:3px 6px;font-size:16px}
+.pbadge{display:flex;gap:10px;align-items:center;padding:6px;margin-bottom:6px;cursor:pointer;border-radius:8px}.pbadge:hover{background:#2c2e33}
+.pic{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;font-size:19px;flex:none;background:color-mix(in srgb,var(--acc) 22%,transparent);color:var(--acc);font-weight:700}
+.pic.big{width:64px;height:64px;font-size:34px;border-radius:14px}
+main{padding:16px 32px 80px;max-width:1120px;min-width:0}
+.mut{color:var(--mut)}.sm{font-size:12.5px}.ctr{text-align:center}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:10px;font-size:14px}
+.tabs a{padding:6px 12px;cursor:pointer;color:var(--mut);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs a:hover{color:var(--fg)}.tabs a.on{color:var(--fg);border-color:var(--acc)}.tabs .sp{flex:1}
+h1.t{font-family:Georgia,serif;font-weight:400;font-size:30px;margin:4px 0 2px;line-height:1.25}
+.sub0{color:var(--mut);font-size:13px;margin-bottom:14px}
+article{overflow-wrap:break-word}
+article h2,main h2{font-family:Georgia,serif;font-weight:400;font-size:23px;border-bottom:1px solid var(--line);padding-bottom:3px;margin:24px 0 10px}
+article h3{font-size:18px;margin:18px 0 6px}article h4,article h5,article h6{font-size:15px;margin:14px 0 4px}
+article p{margin:8px 0}
+article ul,article ol{padding-left:26px;margin:6px 0}article dl{margin:6px 0}article dd{margin-left:22px}article dt{font-weight:600}
+a.wl,.lnk{color:var(--acc);cursor:pointer;text-decoration:none}a.wl:hover,.lnk:hover{text-decoration:underline}
+a.wl.new{color:var(--red)}a.wl.iw{border-bottom:1px dotted color-mix(in srgb,var(--acc) 60%,transparent)}
+a[data-scroll]{color:var(--acc);cursor:pointer}
+.ext{color:#8fd3ff;cursor:help}
+code,kbd,pre{font-family:Consolas,"Cascadia Mono",monospace;font-size:13px}
+code{background:#2b2d31;padding:1px 5px;border-radius:4px}
+pre{background:#17181b;border:1px solid var(--line);border-radius:6px;padding:10px 12px;overflow:auto;white-space:pre-wrap}
+pre.code{border-left:3px solid var(--acc)}pre.out{min-height:38px}
+mark{background:#6b5a12;color:#fff;padding:0 2px;border-radius:2px}
+hr{border:0;border-top:1px solid var(--line);margin:16px 0}
+table.wt{border-collapse:collapse;margin:10px 0;font-size:14px}
+table.wt th,table.wt td{border:1px solid var(--line);padding:5px 10px;text-align:left;vertical-align:top}
+table.wt th{background:#2b2d31}table.wt caption{font-weight:600;padding:4px}
+.toc{display:inline-block;background:var(--pan2);border:1px solid var(--line);border-radius:8px;padding:8px 18px 8px 14px;margin:8px 0;font-size:14px}
+.toc ol{margin:4px 0;padding-left:18px}.toc .l3{margin-left:14px}.toc .l4,.toc .l5,.toc .l6{margin-left:28px}
+.ibox{float:right;clear:right;width:290px;margin:0 0 14px 20px;background:var(--pan2);border:1px solid var(--line);border-radius:8px;font-size:13.5px;border-collapse:separate;border-spacing:0;overflow:hidden}
+.ibox th,.ibox td{padding:5px 10px;vertical-align:top;text-align:left}
+.ibox .ih{background:color-mix(in srgb,var(--acc) 30%,#2b2d31);text-align:center;font-size:16px;padding:8px}
+.ibox .sub{background:#2b2d31;text-align:center;font-weight:600}
+.ibox img{max-width:100%;display:block;margin:6px auto;border-radius:4px;cursor:pointer}
+.ibox tr+tr td,.ibox tr+tr th{border-top:1px solid #303238}
+.ibox .cap{font-size:12.5px;color:var(--mut);text-align:center}
+figure.thumb{background:var(--pan2);border:1px solid var(--line);border-radius:8px;padding:5px;margin:4px 0 12px 18px;font-size:12.5px;color:var(--mut)}
+figure.thumb.right{float:right;clear:right}figure.thumb.left{float:left;margin:4px 18px 12px 0}figure.thumb.center,figure.thumb.none{margin:8px auto}
+figure.thumb img{width:100%;display:block;border-radius:4px;cursor:pointer}figure.thumb figcaption{padding:4px 2px 0}
+img.inl{max-width:100%;vertical-align:middle;cursor:pointer}img.inl.left{float:left;margin:0 14px 8px 0}img.inl.right{float:right;margin:0 0 8px 14px}
+.box{border:1px solid var(--line);border-left:4px solid var(--acc);background:var(--pan2);border-radius:6px;padding:8px 12px;margin:10px 0}
+.box.tip{border-left-color:var(--ok)}.box.warning{border-left-color:#ffa94d}.box.stub{border-left-color:var(--mut);font-size:13.5px;color:var(--mut)}
+.hat{font-style:italic;color:var(--mut);padding-left:22px;margin:4px 0 10px}
+blockquote.q{margin:12px 0;padding:10px 16px;border-left:4px solid var(--acc);background:var(--pan2);border-radius:0 8px 8px 0}
+blockquote.q .qt{font-family:Georgia,serif;font-size:17px}
+blockquote.q .qb{color:var(--mut);font-size:13.5px;margin-top:4px}
+.pron{background:#2b2d31;border-radius:12px;padding:2px 10px;font-size:13.5px}
+.srch{background:var(--pan2);border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:8px;padding:10px 14px;margin:6px 0 16px}
+.srch .st{font-family:Georgia,serif;font-size:21px}
+.dateline{color:var(--mut);font-size:13.5px;margin-bottom:4px}
+.badge{display:inline-block;font-size:11.5px;font-weight:600;padding:1px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:.04em;background:#2f5d3a;color:#b7f5c4}
+.badge.draft{background:#5d4a1f;color:#ffe08a}
+.quiz{border:1px solid var(--line);background:var(--pan2);border-radius:8px;padding:10px 14px;margin:10px 0}
+.quiz .qq{font-weight:600;margin-bottom:6px}.quiz button{margin:2px 6px 2px 0}
+.quiz button.right{background:#2f5d3a;border-color:var(--ok)}.quiz button.wrong{background:#5c2b2b;border-color:var(--red)}
+.qres{margin-left:6px;font-size:13.5px}
+.dest{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 12px}
+.chip{display:inline-block;font-size:12px;padding:1px 9px;border-radius:10px;background:color-mix(in srgb,var(--c,var(--acc)) 20%,#2b2d31);color:var(--c,var(--acc));white-space:nowrap}
+.listing{display:flex;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;margin:8px 0;background:var(--pan2)}
+.listing .li{font-size:20px;line-height:1.2}.listing b{font-size:15px}
+.fncard{border:1px solid var(--line);border-radius:8px;padding:10px 14px;background:var(--pan2);margin:8px 0}
+.fncard code{font-size:15px;background:none;padding:0;color:var(--acc)}
+.err{color:var(--red)}.okc{color:var(--ok)}
+.item{border:1px solid var(--line);border-radius:10px;padding:14px 18px;background:var(--pan2);margin:8px 0}
+.ilabel{font-size:24px;font-family:Georgia,serif}.idesc{color:var(--mut)}
+.cats{clear:both;margin-top:28px;border:1px solid var(--line);border-radius:6px;padding:6px 12px;font-size:13.5px;background:var(--pan2)}
+.cats a{margin-right:4px}
+.foot{clear:both;color:var(--mut);font-size:12.5px;margin-top:22px;border-top:1px solid var(--line);padding-top:8px}
+.notice{background:#3a3220;border:1px solid #6b5a2a;border-radius:6px;padding:6px 12px;margin:6px 0 10px;font-size:14px}
+.empty{border:1px dashed var(--line);border-radius:10px;padding:18px;margin:14px 0}
+.banner{display:flex;gap:16px;align-items:center;padding:16px 18px;border-radius:12px;margin:4px 0 16px;background:linear-gradient(120deg,color-mix(in srgb,var(--acc) 22%,#232428),#232428 70%);border:1px solid var(--line)}
+.banner h1{margin:0;font-family:Georgia,serif;font-weight:400;font-size:30px}
+.booknav{display:flex;justify-content:space-between;gap:10px;background:var(--pan2);border:1px solid var(--line);border-radius:8px;padding:6px 12px;margin:8px 0;font-size:14px;clear:both}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}.row.end{justify-content:flex-end}
+.row label{display:flex;gap:6px;align-items:center}
+.tb{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0}.tb button{padding:3px 9px;font-size:13px}.tb .sep{width:10px}
+.edgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.edgrid.one{grid-template-columns:1fr}
+#ed{width:100%;min-height:62vh;font-family:Consolas,"Cascadia Mono",monospace;font-size:13.5px;line-height:1.5;resize:vertical}
+.pv{border:1px solid var(--line);border-radius:6px;padding:4px 16px;max-height:72vh;overflow:auto;background:#1b1c1f}
+.hist{list-style:none;padding:0}.hist li{padding:6px 0;border-bottom:1px solid #2c2e33}.acts a{margin-left:10px;color:var(--acc);cursor:pointer}
+.diff{font-family:Consolas,monospace;font-size:13px;border:1px solid var(--line);border-radius:6px;overflow:auto}
+.diff div{padding:1px 10px;white-space:pre-wrap;min-height:1.4em}.diff .a{background:#1f3b27}.diff .d{background:#45222a;text-decoration:line-through;text-decoration-color:#a55}.diff .gap{color:var(--mut);background:#202125}
+.rc{list-style:none;padding:0;margin:6px 0}.rc li{padding:4px 0;border-bottom:1px solid #2a2c31;font-size:14px}
+.rc .sm a,.rc a.sm{color:var(--acc);cursor:pointer;margin:0 4px}
+.tag{font-size:11px;background:#2f5d3a;color:#b7f5c4;padding:0 6px;border-radius:8px;margin:0 4px}
+.cols{columns:3 200px;font-size:14px}.cols div{break-inside:avoid;padding:1px 0}
+.hero{display:flex;gap:18px;align-items:center;margin:10px 0 20px}.hero h1{margin:0;font-family:Georgia,serif;font-weight:400;font-size:36px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.card{display:flex;gap:12px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--pan2);cursor:pointer;transition:.12s}
+.card:hover{border-color:var(--c);transform:translateY(-1px)}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:10px 0}
+.gal figure{margin:0;background:var(--pan2);border:1px solid var(--line);border-radius:8px;padding:6px;font-size:12.5px;text-align:center}
+.gal img{width:100%;height:120px;object-fit:contain;cursor:pointer;background:#141518;border-radius:4px}
+ul.tree{list-style:none;padding-left:4px}ul.tree ul{list-style:none;padding-left:22px;border-left:1px dashed var(--line);margin-left:6px}
+.rank{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;display:inline-block;min-width:62px}
+.bar{height:8px;background:#2b2d31;border-radius:4px;overflow:hidden;width:160px;display:inline-block;vertical-align:middle}.bar i{display:block;height:100%;background:var(--acc)}
+.news{border-bottom:1px solid #2c2e33;padding:8px 0}.news .nt{font-size:17px}
+.form{display:grid;grid-template-columns:150px 1fr;gap:8px 12px;align-items:center;max-width:680px;margin:10px 0}
+.form textarea{min-height:80px}
+.ov{position:fixed;inset:0;background:#0009;display:grid;place-items:center;z-index:50}
+.dlg{background:#26272b;border:1px solid var(--line);border-radius:12px;padding:16px 20px;width:min(560px,92vw);max-height:90vh;overflow:auto;box-shadow:0 20px 60px #000a}
+.dlg h3{margin:0 0 10px}.dlg label{display:block;margin:8px 0}.dlg label input,.dlg label textarea{display:block;width:100%;margin-top:4px}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#33353b;border:1px solid var(--line);padding:8px 16px;border-radius:8px;opacity:0;transition:.25s;pointer-events:none;z-index:60}
+#toast.on{opacity:1}
+.embed{margin:6px 0}
+@media (max-width:760px){.wrap{grid-template-columns:1fr}nav{border-right:0;border-bottom:1px solid var(--line)}.ibox{float:none;width:auto;margin:10px 0}.edgrid{grid-template-columns:1fr}main{padding:12px 14px 60px}}
+</style></head>
+<body>
+<header>
+ <div class="logo" data-nav='{"v":"home"}'><span class="gl">W</span><span>Wiki Suite</span></div>
+ <button id="back" title="Back">◀</button><button id="fwd" title="Forward">▶</button>
+ <select id="psel" title="Switch project"></select>
+ <input id="q" placeholder="Search all wikis, or go to a page (Enter)">
+ <button data-act="io" title="Back up or restore everything">Export / Import</button>
+</header>
+<div class="wrap"><nav id="nav"></nav><main id="main"></main></div>
+<div id="toast"></div>
+<script>
+'use strict';
+const P=[
+{id:'enc',name:'Encyclopedia',icon:'📘',color:'#5b9bff',kind:'enc',blurb:'Articles on every subject'},
+{id:'dict',name:'Dictionary',icon:'🔤',color:'#e0a84f',kind:'dict',cs:true,blurb:'Words, meanings, origins, translations'},
+{id:'quote',name:'Quotes',icon:'❝',color:'#c77dff',kind:'quote',blurb:'Notable quotations with sources'},
+{id:'book',name:'Books',icon:'📚',color:'#4fc48a',kind:'book',blurb:'Open textbooks, chapter by chapter'},
+{id:'src',name:'Source Library',icon:'📜',color:'#d4b483',kind:'src',blurb:'Original texts kept word for word'},
+{id:'news',name:'News',icon:'📰',color:'#ff7a6b',kind:'news',blurb:'Reports written by contributors'},
+{id:'uni',name:'University',icon:'🎓',color:'#56c7d6',kind:'uni',blurb:'Courses, lessons and quizzes'},
+{id:'travel',name:'Travel Guide',icon:'🧭',color:'#7bd88f',kind:'travel',blurb:'Places to go and what to do there'},
+{id:'sp',name:'Species',icon:'🧬',color:'#a3d65c',kind:'sp',blurb:'The tree of life, taxon by taxon'},
+{id:'data',name:'Data',icon:'🗃️',color:'#ff9f43',kind:'data',blurb:'Structured items and statements'},
+{id:'media',name:'Media Commons',icon:'🖼️',color:'#4dabf7',kind:'media',blurb:'Shared images for every project'},
+{id:'fn',name:'Functions',icon:'ƒ',color:'#f06595',kind:'fn',cs:true,blurb:'Reusable functions with tests'},
+{id:'meta',name:'Meta Hub',icon:'🌐',color:'#adb5bd',kind:'meta',blurb:'Coordination, policies, shared templates'},
+{id:'docs',name:'Software Docs',icon:'⚙️',color:'#91a7ff',kind:'docs',blurb:'How the wiki engine and markup work'}];
+const PX={};P.forEach(p=>PX[p.id]=p);
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const unesc=s=>String(s).replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&amp;/g,'&');
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const when=ts=>new Date(ts).toLocaleString([],{dateStyle:'medium',timeStyle:'short'});
+const nav=o=>`data-nav="${esc(JSON.stringify(o))}"`;
+const slug=s=>'s-'+String(s).replace(/<[^>]*>/g,'').trim().replace(/[^\w\u00C0-\uFFFF]+/g,'-');
+const MEM={};
+const store={get(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){return MEM[k]||null}},
+ set(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){MEM[k]=v;toast('Could not save to storage (full or blocked). Use Export to keep a copy.');return false}}};
+const K='wikisuite.v1',KF='wikisuite.files.v1',KS='wikisuite.settings.v1',KP='wikisuite.progress.v1',KD='wikisuite.drafts.v1';
+let DB=store.get(K),FILES=store.get(KF)||{},SET=store.get(KS)||{name:'Anonymous'},PROG=store.get(KP)||{},DRAFT=store.get(KD)||{};
+const save=()=>store.set(K,DB),saveF=()=>store.set(KF,FILES),saveS=()=>store.set(KS,SET),saveP=()=>store.set(KP,PROG);
+let TT;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(TT);TT=setTimeout(()=>t.classList.remove('on'),2600)}
+
+/* ---------- pages ---------- */
+const pg=(p,t)=>DB.pages[p]&&Object.prototype.hasOwnProperty.call(DB.pages[p],t)?DB.pages[p][t]:null;
+const cur=(p,t)=>{const x=pg(p,t);return x?x.revs[x.revs.length-1].text:null};
+function put(p,t,text,sum){const x=DB.pages[p][t]||(DB.pages[p][t]={revs:[]});const l=x.revs[x.revs.length-1];if(l&&l.text===text)return false;x.revs.push({text,sum:sum||'',ts:Date.now(),by:SET.name||'Anonymous'});save();return true}
+const titles=p=>Object.keys(DB.pages[p]||{}).sort((a,b)=>a.localeCompare(b));
+const isContent=(t,p)=>p==='media'?!/^(Talk|Category|Template):/.test(t):!/^(Talk|Category|File|Template):/.test(t);
+function norm(p,t){t=String(t||'').replace(/_/g,' ').replace(/\s+/g,' ').trim();const cs=PX[p]&&PX[p].cs;let ns='';
+ const m=t.match(/^(talk|category|file|image|template)\s*:\s*(.*)$/i);
+ if(m){ns=m[1].toLowerCase()==='image'?'File':m[1][0].toUpperCase()+m[1].slice(1).toLowerCase();t=m[2]}
+ if(!cs||(ns&&ns!=='Talk'))t=t.charAt(0).toUpperCase()+t.slice(1);
+ return ns?ns+':'+t:t}
+const fkey=n=>norm('media','File:'+String(n).replace(/^(file|image)\s*:/i,'')).slice(5);
+const stripCode=s=>String(s||'').replace(/<(pre|nowiki|impl)>[\s\S]*?<\/\1>/g,'');
+const catsOf=txt=>{const s=new Set();stripCode(txt).replace(/\[\[\s*Category\s*:\s*([^\]|]+)/gi,(m,x)=>s.add(norm('enc',x)));return [...s]};
+function plain(txt){return String(txt||'').replace(/<(impl|pre)>[\s\S]*?<\/\1>/g,' ').replace(/<[^>]+>/g,'').replace(/\{\{|\}\}/g,' ').replace(/\|\s*[\w \-]+=/g,' ').replace(/\[\[(?:[^\]|]*\|)?([^\]]*)\]\]/g,'$1').replace(/'{2,}/g,'').replace(/^[=*#:;!|]+|=+\s*$/gm,'').replace(/\s+/g,' ').trim()}
+function itemOf(text){const it={label:'',description:'',aliases:'',st:[],rest:[]};
+ for(const l of String(text||'').split('\n')){const m=l.match(/^\s*([^=\n]+?)\s*=\s*(.*)$/);
+  if(m&&!/^[=*#{:;|!]/.test(l.trim())){const k=m[1].trim(),v=m[2].trim();if(/^(label|description|aliases)$/i.test(k))it[k.toLowerCase()]=v;else if(v)it.st.push([k,v])}else it.rest.push(l)}
+ return it}
+const dataLabel=t=>{const x=cur('data',t);const l=x!=null&&itemOf(x).label;return l||t};
+function dispTitle(p,t){if(p==='data'&&/^Q\d+$/.test(t)){const l=dataLabel(t);return l!==t?l+' ('+t+')':t}return t}
+const L=(p,t,label)=>`<a class="wl${pg(p,t)?'':' new'}" data-p="${p}" data-t="${esc(t)}">${esc(label!=null?label:dispTitle(p,t))}</a>`;
+const dayPick=a=>{if(!a.length)return null;const d=today();let h=0;for(const c of d)h=(h*31+c.charCodeAt(0))>>>0;return a[h%a.length]};
+
+/* ---------- wikitext ---------- */
+function mkctx(p,t){const c={p,t,cats:[],heads:[],refs:[],qn:0,ph:[]};c.hold=h=>'\u0001'+(c.ph.push(h)-1)+'\u0002';return c}
+function fin(h,c){for(let k=0;k<6&&/\u0001/.test(h);k++)h=h.replace(/\u0001(\d+)\u0002/g,(m,i)=>c.ph[+i]);return h}
+function splitTop(s){const out=[];let d1=0,d2=0,cur='';
+ for(let i=0;i<s.length;i++){const c=s[i],n=s[i+1];
+  if(c==='{'&&n==='{'){d1++;cur+='{{';i++;continue}
+  if(c==='}'&&n==='}'&&d1>0){d1--;cur+='}}';i++;continue}
+  if(c==='['&&n==='['){d2++;cur+='[[';i++;continue}
+  if(c===']'&&n===']'&&d2>0){d2--;cur+=']]';i++;continue}
+  if(c==='|'&&!d1&&!d2){out.push(cur);cur='';continue}
+  cur+=c}
+ out.push(cur);return out}
+function findTpls(s){const res=[];let i=0;
+ while((i=s.indexOf('{{',i))!==-1){let d=0,j=i,done=false;
+  for(;j<s.length-1;j++){if(s[j]==='{'&&s[j+1]==='{'){d++;j++}else if(s[j]==='}'&&s[j+1]==='}'){d--;j++;if(!d){done=true;break}}}
+  if(!done)break;res.push({start:i,end:j+1,inner:s.slice(i+2,j-1)});i=j+1}
+ return res}
+function parseArgs(inner){const parts=splitTop(inner);let tn=parts.shift().trim();const a={_:[]};
+ const m=tn.match(/^(#\w+)\s*:([\s\S]*)$/);if(m){tn=m[1];a._.push(m[2].trim())}
+ for(const x of parts){const k=x.match(/^\s*(\w[\w \-]{0,40}?)\s*=([\s\S]*)$/);
+  if(k&&k[1]!=='_'){if(/^\d+$/.test(k[1]))a._[+k[1]-1]=k[2].trim();else a[k[1].trim()]=k[2].trim()}else a._.push(x.trim())}
+ return {tn,a}}
+const tplArgs=(text,name)=>findTpls(String(text||'')).map(x=>parseArgs(x.inner)).filter(x=>x.tn.toLowerCase()===name);
+function expand(src,c,d){d=d||0;if(d>8)return src;const ts=findTpls(src);if(!ts.length)return src;
+ let out='',last=0;for(const t of ts){out+=src.slice(last,t.start)+callTpl(parseArgs(t.inner),c,d);last=t.end}return out+src.slice(last)}
+function fileImg(name,c){name=String(name||'').trim();if(!name)return '';const k=fkey(name),f=FILES[k];
+ return f?`<img src="${f.data}" alt="${esc(k)}" data-p="media" data-t="${esc('File:'+k)}">`:`<a class="wl new" data-p="media" data-t="${esc('File:'+k)}">File:${esc(k)}</a>`}
+function fileHtml(name,opts,c){const k=fkey(name),f=FILES[k];let thumb=false,align='',w=0,cap='';
+ for(const o of String(opts||'').split('|').map(s=>s.trim())){if(/^(thumb|thumbnail|frame)$/.test(o))thumb=true;else if(/^(left|right|center|none)$/.test(o))align=o;else if(/^\d+px$/.test(o))w=parseInt(o);else if(o)cap=o}
+ if(!f)return `<a class="wl new" data-p="media" data-t="${esc('File:'+k)}">File:${esc(k)}</a>`;
+ if(thumb)return c.hold(`<figure class="thumb ${align||'right'}" style="width:${(w||220)+12}px"><img src="${f.data}" alt="${cap||esc(k)}" data-p="media" data-t="${esc('File:'+k)}"><figcaption>${cap}</figcaption></figure>`);
+ return `<img class="inl ${align}" src="${f.data}" alt="${cap||esc(k)}" title="${cap}" ${w?`style="width:${w}px"`:''} data-p="media" data-t="${esc('File:'+k)}">`}
+function resolve(p,target){let t=String(target).trim(),lead=false;if(t[0]===':'){lead=true;t=t.slice(1)}
+ let anchor='';const hi=t.indexOf('#');if(hi>=0){anchor=t.slice(hi+1);t=t.slice(0,hi)}
+ const m=t.match(/^([a-z]+)\s*:\s*(.*)$/i);if(m&&PX[m[1].toLowerCase()]){p=m[1].toLowerCase();t=m[2]}
+ if(!lead&&/^category\s*:/i.test(t))return{kind:'cat',p,t:norm(p,t)};
+ if(/^(file|image)\s*:/i.test(t))return{kind:lead?'page':'file',p:'media',t:norm('media',t)};
+ return{kind:'page',p,t:t.trim()?norm(p,t):'',anchor}}
+function link(tg,tx,c){const r=resolve(c.p,unesc(tg));
+ if(r.kind==='cat'){c.cats.push(r.t.slice(9));return ''}
+ if(r.kind==='file')return fileHtml(r.t.slice(5),tx==null?'':tx,c);
+ if(!r.t)return `<a data-scroll="${esc(slug(r.anchor))}">${tx||esc(r.anchor)}</a>`;
+ const ex=!!pg(r.p,r.t);let label=tx;
+ if(label==null||label==='')label=esc(r.p==='data'&&/^Q\d+$/.test(r.t)&&ex?dataLabel(r.t):(r.p!==c.p&&r.t==='Main Page'?PX[r.p].name:r.t));
+ return `<a class="wl${ex?'':' new'}${r.p!==c.p?' iw':''}" data-p="${r.p}" data-t="${esc(r.t)}" title="${esc(PX[r.p].name+': '+r.t)}">${label}</a>`}
+function inl(s,c){s=esc(s);
+ s=s.replace(/&lt;(\/?)(code|s|u|sup|sub|small|kbd|mark|b|i|big)&gt;/g,'<$1$2>').replace(/&lt;br\s*\/?&gt;/g,'<br>');
+ s=s.replace(/\[\[([^\]|]+)(?:\|((?:[^\]]|\](?!\]))*))?\]\]/g,(m,tg,tx)=>link(tg,tx,c));
+ s=s.replace(/\[(https?:\/\/[^\s\]]+)(?:\s+([^\]]+))?\]/g,(m,u,tx)=>`<span class="ext" title="${u}">${tx||u} ↗</span>`);
+ s=s.replace(/(^|[\s(])(https?:\/\/[^\s<]+)/g,'$1<span class="ext">$2</span>');
+ s=s.replace(/'''''(.+?)'''''/g,'<b><i>$1</i></b>').replace(/'''(.+?)'''/g,'<b>$1</b>').replace(/''(.+?)''/g,'<i>$1</i>');
+ return s}
+function lists(g,c){const LT={'*':'ul','#':'ol',':':'dl',';':'dl'},IT=ch=>ch==='*'||ch==='#'?'li':ch===';'?'dt':'dd';let out='',st=[];
+ for(const ln of g){const pre=ln.match(/^[*#:;]+/)[0],d=pre.length;const body=ln.slice(d).trim();let k=0;
+  while(k<st.length&&k<d&&LT[st[k].c]===LT[pre[k]])k++;
+  while(st.length>k){const x=st.pop();out+=`</${x.it}></${LT[x.c]}>`}
+  if(k===d){const x=st[d-1];out+=`</${x.it}>`;x.c=pre[d-1];x.it=IT(x.c);out+=`<${x.it}>`}
+  else for(let i=k;i<d;i++){st.push({c:pre[i],it:IT(pre[i])});out+=`<${LT[pre[i]]}><${IT(pre[i])}>`}
+  const last=st[st.length-1];
+  if(pre[d-1]===';'&&body.includes(' : ')){const [a,...b]=body.split(' : ');out+=inl(a,c)+'</dt><dd>'+inl(b.join(' : '),c);last.it='dd'}
+  else out+=inl(body,c)}
+ while(st.length){const x=st.pop();out+=`</${x.it}></${LT[x.c]}>`}
+ return out}
+function table(g,c){let h='',row=false,cap='';
+ for(const l of g.slice(1)){
+  if(/^\|\}/.test(l))break;
+  if(/^\|\+/.test(l)){cap=inl(l.slice(2).trim(),c);continue}
+  if(/^\|-/.test(l)){if(row)h+='</tr>';h+='<tr>';row=true;continue}
+  if(/^!/.test(l)){if(!row){h+='<tr>';row=true}h+=l.slice(1).split('!!').map(x=>'<th>'+inl(x.trim(),c)+'</th>').join('');continue}
+  if(/^\|/.test(l)){if(!row){h+='<tr>';row=true}h+=l.slice(1).split('||').map(x=>'<td>'+inl(x.trim(),c)+'</td>').join('');continue}
+  if(l.trim()&&row)h=h.replace(/<\/t[dh]>$/,'')+' '+inl(l,c)+'</td>'}
+ return '<table class="wt">'+(cap?'<caption>'+cap+'</caption>':'')+h+(row?'</tr>':'')+'</table>'}
+const PHLINE=/^\s*(\u0001\d+\u0002\s*)+$/;
+function blocks(src,c){const Ls=src.split('\n');let out='',para=[],i=0;
+ const flush=()=>{if(para.length){const t=para.join('\n').trim();if(t)out+=PHLINE.test(t)?t:'<p>'+inl(t,c).replace(/\n/g,' ')+'</p>';para=[]}};
+ while(i<Ls.length){const ln=Ls[i];let m;
+  if((m=ln.match(/^(={1,6})\s*(.+?)\s*\1\s*$/))){flush();const lv=Math.max(2,m[1].length);const txt=inl(m[2],c);let id=slug(m[2]);if(c.heads.some(h=>h.id===id))id+='-'+c.heads.length;if(!c.heads.length)out+='\u0003';c.heads.push({lv,txt,id});out+=`<h${lv} id="${esc(id)}">${txt}</h${lv}>`;i++;continue}
+  if(/^----+\s*$/.test(ln)){flush();out+='<hr>';i++;continue}
+  if(/^[*#:;]/.test(ln)){flush();const g=[];while(i<Ls.length&&/^[*#:;]/.test(Ls[i]))g.push(Ls[i++]);out+=lists(g,c);continue}
+  if(/^\{\|/.test(ln)){flush();const g=[];while(i<Ls.length){g.push(Ls[i]);if(/^\|\}/.test(Ls[i++]))break}out+=table(g,c);continue}
+  if(/^ \S/.test(ln)&&!PHLINE.test(ln)){flush();const g=[];while(i<Ls.length&&/^ /.test(Ls[i])&&Ls[i].trim())g.push(Ls[i++].slice(1));out+='<pre>'+esc(g.join('\n'))+'</pre>';continue}
+  if(!ln.trim()){flush();i++;continue}
+  if(PHLINE.test(ln)){flush();out+=ln.trim();i++;continue}
+  para.push(ln);i++}
+ flush();return out}
+function wiki(src,c){
+ src=String(src==null?'':src).replace(/\r/g,'');
+ src=src.replace(/<nowiki>([\s\S]*?)<\/nowiki>/g,(m,x)=>c.hold(esc(x)));
+ src=src.replace(/<pre>([\s\S]*?)<\/pre>/g,(m,x)=>c.hold('<pre>'+esc(x.replace(/^\n|\n$/g,''))+'</pre>'));
+ src=src.replace(/<impl>([\s\S]*?)<\/impl>/g,(m,x)=>c.hold('<pre class="code">'+esc(x.replace(/^\n|\n$/g,''))+'</pre>'));
+ src=src.replace(/<!--[\s\S]*?-->/g,'');
+ if(/__NOTOC__/.test(src)){c.notoc=1;src=src.replace(/__NOTOC__/g,'')}
+ src=src.replace(/<\/?(noinclude|includeonly)>/g,'');
+ src=src.replace(/\{\{\{([^{}|]+)(?:\|([^{}]*))?\}\}\}/g,(m,k,d)=>d!=null?d:c.hold('<code>'+esc(m)+'</code>'));
+ src=src.replace(/^#REDIRECT\s*\[\[([^\]]+)\]\]/i,(m,x)=>'→ Redirect to [['+x+']]');
+ src=expand(src,c,0);
+ let h=blocks(src,c);
+ h=h.replace('\u0003',c.heads.length>=3&&!c.notoc?`<div class="toc"><b>Contents</b><ol>${c.heads.map(x=>`<li class="l${x.lv}"><a data-scroll="${esc(x.id)}">${x.txt}</a></li>`).join('')}</ol></div>`:'');
+ h=fin(h,c);
+ if(c.refs.length){const list=fin('<ol class="refs sm">'+c.refs.map((r,i)=>`<li id="r${i+1}">${r}</li>`).join('')+'</ol>',c);h=h.includes('\u0005')?h.replace('\u0005',list):h+'<h2>Notes</h2>'+list}
+ return h.replace(/\u0005/g,'')}
+const winl=(s,c)=>fin(inl(expand(String(s||''),c,1),c),c);
+
+/* ---------- templates ---------- */
+const LICON={see:'👁️',do:'🎯',eat:'🍽️',drink:'🍹',sleep:'🛏️',buy:'🛍️',go:'🚉'};
+function callTpl(x,c,d){const a=x.a,n=x.tn,ln=n.toLowerCase(),H=c.hold;
+ const raw=k=>typeof k==='number'?a._[k]:a[k];
+ const V=k=>expand(String(raw(k)==null?'':raw(k)),c,d+1);
+ const I=k=>inl(V(k),c);
+ const has=k=>raw(k)!=null&&String(raw(k)).trim()!=='';
+ const box=(cls,body)=>H(`<div class="box ${cls}">${body}</div>`);
+ switch(ln){
+ case 'pagename':return c.t;
+ case 'today':return today();
+ case 'sitename':return PX[c.p].name;
+ case 'numberofpages':return String(titles(c.p).filter(t=>isContent(t,c.p)).length);
+ case '#if':return V(0).trim()?V(1):V(2);
+ case '#fn':try{const args=a._.slice(1).map(v=>jparse(expand(v,c,d+1).trim()));return H('<span class="fnout">'+esc(show(callFn(V(0).trim(),...args)))+'</span>')}catch(e){return H('<span class="err" title="Function error">⚠ '+esc(e.message)+'</span>')}
+ case '#data':{const id=V(0).trim().toUpperCase(),it=cur('data',id);if(it==null)return H(`<span class="err">⚠ no item ${esc(id)}</span>`);const o=itemOf(it),k=V(1).trim().toLowerCase();
+  if(!k||k==='label')return o.label;if(k==='description'||k==='aliases')return o[k];const s=o.st.find(y=>y[0].toLowerCase()===k);return s?s[1].replace(/\[\[(?![a-z]+:)/gi,'[[data:'):''}
+ case 'special':{const s=SP[V(0).trim()];return s?H('<div class="embed">'+s.render(c.p,V(1).trim(),true)+'</div>'):''}
+ case 'infobox':{const skip=['_','title','image','caption'];const rows=Object.keys(a).filter(k=>!skip.includes(k)&&has(k));
+  return H(`<table class="ibox"><tr><th colspan="2" class="ih">${has('title')?I('title'):esc(c.t)}</th></tr>${has('image')?`<tr><td colspan="2">${fileImg(V('image'),c)}${has('caption')?`<div class="cap">${I('caption')}</div>`:''}</td></tr>`:''}${rows.map(k=>`<tr><th>${esc(k)}</th><td>${I(k)}</td></tr>`).join('')}</table>`)}
+ case 'quote':return H(`<blockquote class="q"><div class="qt">“${I(has('text')?'text':0)}”</div>${has('by')||has('source')?`<div class="qb">— ${I('by')}${has('source')?', '+I('source'):''}</div>`:''}</blockquote>`);
+ case 'pron':return H(`<span class="pron">🔊 ${I(0)}</span>`);
+ case 'header':return H(`<div class="srch"><div class="st">${has('title')?I('title'):esc(c.t)}</div><div>${has('author')?'by <b>'+I('author')+'</b>':''}${has('year')?' · '+I('year'):''}${has('license')?' · <span class="chip">'+I('license')+'</span>':''}</div>${has('notes')?`<div class="mut sm">${I('notes')}</div>`:''}</div>`);
+ case 'dateline':return H(`<div class="dateline">📅 ${I('date')}${has('place')?' · '+I('place'):''}</div>`);
+ case 'status':{const s=V(0).trim().toLowerCase()||'draft';return H(`<span class="badge ${s==='published'?'':'draft'}">${esc(s)}</span>`)}
+ case 'quiz':{c.qn++;const key=c.p+'|'+c.t+'|'+c.qn;const opts=V('options').split(';').map(s=>s.trim()).filter(Boolean);const ans=V('answer').trim();const prev=PROG[key];
+  return H(`<div class="quiz" data-key="${esc(key)}"><div class="qq">${c.qn}. ${I('q')}</div>${opts.map(o=>`<button data-quiz data-ok="${o===ans?1:0}">${inl(o,c)}</button>`).join('')}<span class="qres mut">${prev===true?'✓ answered right before':prev===false?'✗ missed before, try again':''}</span></div>`)}
+ case 'destination':return H(`<div class="dest">${['type','country','region'].filter(has).map(k=>`<span class="chip">${esc(k)}: ${I(k)}</span>`).join('')}</div>`);
+ case 'listing':{const t=V('type').trim().toLowerCase();return H(`<div class="listing"><div class="li">${LICON[t]||'📍'}</div><div><b>${I('name')}</b>${has('address')?' <span class="mut sm">'+I('address')+'</span>':''}<div>${I('desc')}</div><div class="mut sm">${['hours','price','phone'].filter(has).map(k=>esc(k)+': '+I(k)).join(' · ')}</div></div></div>`)}
+ case 'taxon':{const ch=taxChain(V('parent'));const nm=has('name')?V('name'):c.t;const it=/^(genus|species|subspecies)$/i.test(V('rank'));
+  return H(`<table class="ibox"><tr><th colspan="2" class="ih">${esc(has('common')?V('common'):nm)}</th></tr>${has('image')?`<tr><td colspan="2">${fileImg(V('image'),c)}</td></tr>`:''}${has('status')?`<tr><td colspan="2" class="ctr">Conservation status: <b>${I('status')}</b></td></tr>`:''}<tr><th colspan="2" class="sub">Scientific classification</th></tr>${ch.map(y=>`<tr><td>${esc(y.rank)}:</td><td>${L('sp',y.t,y.name)}</td></tr>`).join('')}<tr><td>${esc(V('rank'))}:</td><td><b>${it?'<i>'+esc(nm)+'</i>':esc(nm)}</b></td></tr></table>`)}
+ case 'fileinfo':return H(`<table class="wt"><tr><th colspan="2">File information</th></tr>${['author','license','source','date'].map(k=>`<tr><th>${k[0].toUpperCase()+k.slice(1)}</th><td>${I(k)||'<span class="mut">unknown</span>'}</td></tr>`).join('')}</table>`);
+ case 'function':return H(`<div class="fncard"><code>${esc(c.t)}(${esc(V('args'))})${has('returns')?' → '+esc(V('returns')):''}</code><div>${I('about')}</div></div>`);
+ case 'test':return '';
+ case 'note':return box('',I(has('text')?'text':0));
+ case 'tip':return box('tip','💡 '+I(has('text')?'text':0));
+ case 'warning':return box('warning','⚠️ '+I(has('text')?'text':0));
+ case 'stub':return box('stub','This page is a stub: it only has the basics. You can help by expanding it.');
+ case 'main':return H(`<div class="hat">Main article: ${inl('[['+V(0)+']]',c)}</div>`);
+ case 'ref':{c.refs.push(I(has('text')?'text':0));const n=c.refs.length;return H(`<sup><a data-scroll="r${n}">[${n}]</a></sup>`)}
+ case 'references':return H('\u0005');
+ case 'gallery':return H(`<div class="gal">${a._.map((f,i)=>V(i).trim()).filter(Boolean).map(f=>`<figure>${fileImg(f,c)}<div>${esc(fkey(f))}</div></figure>`).join('')}</div>`);
+ default:{const tn='Template:'+n.charAt(0).toUpperCase()+n.slice(1);let body=cur(c.p,tn);if(body==null)body=cur('meta',tn);
+  if(body==null)return H(`<a class="wl new" data-p="meta" data-t="${esc(tn)}" title="Template not found: click to create it">{{${esc(n)}}}</a>`);
+  if(d>6)return '';
+  body=body.replace(/<noinclude>[\s\S]*?<\/noinclude>/g,'').replace(/<\/?includeonly>/g,'').replace(/\s+$/,'');
+  body=body.replace(/\{\{\{([^{}|]+)(?:\|([^{}]*))?\}\}\}/g,(m,k,def)=>{k=k.trim();const v=/^\d+$/.test(k)?a._[k-1]:a[k];return v!=null?v:(def!=null?def:'')});
+  return expand(body,c,d+1)}}}
+
+/* ---------- functions, species, books ---------- */
+const jparse=s=>{try{return JSON.parse(s)}catch(e){return s}};
+const show=v=>v===undefined?'undefined':typeof v==='string'?v:JSON.stringify(v);
+function fnSrc(name){const txt=cur('fn',name);if(txt==null)throw new Error('No function "'+name+'"');const f=tplArgs(txt,'function')[0];
+ const args=f?String(f.a.args||'').split(',').map(s=>s.trim()).filter(Boolean):[];const m=txt.match(/<impl>([\s\S]*?)<\/impl>/);
+ if(!m)throw new Error('"'+name+'" has no <impl> code');return {args,code:m[1]}}
+let FDEPTH=0;
+function callFn(name,...v){const s=fnSrc(String(name));if(FDEPTH>400)throw new Error('Too many nested calls');FDEPTH++;
+ try{return new Function('fn',...s.args,s.code)(callFn,...v)}finally{FDEPTH--}}
+function runTests(name){return tplArgs(cur('fn',name),'test').map(x=>{try{const args=JSON.parse('['+(x.a.args||'')+']');const got=callFn(name,...args);const exp=jparse(String(x.a.expect==null?'':x.a.expect));return{ok:JSON.stringify(got)===JSON.stringify(exp),got:show(got)}}catch(e){return{ok:false,got:'Error: '+e.message}}})}
+function taxInfo(t){const x=cur('sp',t);if(x==null)return null;const a=tplArgs(x,'taxon')[0];return a?a.a:null}
+function taxChain(parent){const ch=[];let t=parent&&parent.trim()?norm('sp',parent):'';const seen=new Set();
+ while(t&&!seen.has(t)&&ch.length<40){seen.add(t);const i=taxInfo(t);ch.unshift({t,rank:(i&&i.rank)||'?',name:(i&&i.name)||t});t=i&&i.parent&&i.parent.trim()?norm('sp',i.parent):''}return ch}
+function chapters(root){const txt=cur('book',root)||'';const seen=[];txt.replace(/\[\[([^\]|]+)/g,(m,x)=>{const t=norm('book',x);if(t.startsWith(root+'/')&&!seen.includes(t))seen.push(t)});
+ titles('book').filter(t=>t.startsWith(root+'/')&&!seen.includes(t)).forEach(t=>seen.push(t));return seen}
+
+/* ---------- special views ---------- */
+const SP={};
+SP.recent={label:'Recent changes',render(p,x,emb){const ps=p&&p!=='*'?[p]:P.map(q=>q.id);const ch=[];
+ for(const q of ps)for(const t in DB.pages[q])DB.pages[q][t].revs.forEach((r,i)=>ch.push({p:q,t,i,r}));
+ ch.sort((a,b)=>b.r.ts-a.r.ts);if(!ch.length)return '<p class="mut">No changes yet.</p>';
+ return '<ul class="rc">'+ch.slice(0,emb?8:150).map(e=>`<li><span class="mut sm">${when(e.r.ts)}</span> ${ps.length>1?`<span class="chip" style="--c:${PX[e.p].color}">${PX[e.p].icon} ${esc(PX[e.p].name)}</span>`:''} ${L(e.p,e.t)} ${e.i?`<a class="sm" ${nav({v:'page',p:e.p,t:e.t,a:'diff',r:e.i})}>diff</a>`:'<span class="tag">new</span>'} <span class="mut sm">${esc(e.r.by||'')}</span> ${e.r.sum?`<i class="mut sm">(${esc(e.r.sum)})</i>`:''}</li>`).join('')+'</ul>'}};
+SP.all={label:'All pages',render(p){const g={};titles(p).forEach(t=>{const ns=(t.match(/^(Talk|Category|File|Template):/)||[0,'Pages'])[1];(g[ns]=g[ns]||[]).push(t)});
+ return Object.keys(g).sort((a,b)=>a==='Pages'?-1:b==='Pages'?1:a.localeCompare(b)).map(k=>`<h3>${k==='Pages'?'Pages':k+' pages'} <span class="mut">(${g[k].length})</span></h3><div class="cols">${g[k].map(t=>'<div>'+L(p,t)+'</div>').join('')}</div>`).join('')||'<p class="mut">No pages yet.</p>'}};
+SP.cats={label:'Categories',render(p){const n={};titles(p).forEach(t=>catsOf(cur(p,t)).forEach(x=>n[x]=(n[x]||0)+1));const ks=Object.keys(n).sort();
+ return ks.length?'<div class="cols">'+ks.map(k=>`<div>${L(p,'Category:'+k,k)} <span class="mut">(${n[k]})</span></div>`).join('')+'</div>':'<p class="mut">No categories yet. Add <code>[[Category:Name]]</code> to a page.</p>'}};
+SP.wanted={label:'Wanted pages',render(p){const w={};titles(p).forEach(t=>stripCode(cur(p,t)).replace(/\[\[([^\]|]+)/g,(m,x)=>{const r=resolve(p,x);if(r.kind==='cat'||!r.t)return;if(!pg(r.p,r.t)){const k=r.p+'\u0000'+r.t;(w[k]=w[k]||{p:r.p,t:r.t,n:0,from:[]}).n++;w[k].from.push(t)}}));
+ const ks=Object.values(w).sort((a,b)=>b.n-a.n);return ks.length?'<p class="mut">Pages that are linked to but don\'t exist yet. Click one to create it.</p><ul>'+ks.map(x=>`<li>${L(x.p,x.t,(x.p!==p?PX[x.p].name+': ':'')+x.t)} <span class="mut sm">(${x.n} link${x.n>1?'s':''}, from ${x.from.slice(0,3).map(esc).join(', ')})</span></li>`).join('')+'</ul>':'<p class="mut">No missing pages. Nice!</p>'}};
+SP.links={label:'What links here',hide:1,render(p,x){const res=[];for(const q of P)for(const t of titles(q.id))stripCode(cur(q.id,t)).replace(/\[\[([^\]|]+)/g,(m,y)=>{const r=resolve(q.id,y);if(r.p===p&&r.t===x&&!res.some(z=>z.p===q.id&&z.t===t))res.push({p:q.id,t})});
+ return `<p>Pages that link to ${L(p,x)}:</p>`+(res.length?'<ul>'+res.map(r=>`<li>${L(r.p,r.t,(r.p!==p?PX[r.p].name+': ':'')+dispTitle(r.p,r.t))}</li>`).join('')+'</ul>':'<p class="mut">None yet.</p>')}};
+const words=()=>titles('dict').filter(t=>isContent(t)&&t!=='Main Page');
+SP.index={label:'A–Z index',render(p,x,emb){const g={};words().forEach(w=>{const k=w[0].toUpperCase();(g[k]=g[k]||[]).push(w)});const ks=Object.keys(g).sort();
+ return ks.length?(emb?'':'<p>'+ks.map(k=>`<a data-scroll="ix-${esc(k)}">${esc(k)}</a>`).join(' · ')+'</p>')+ks.map(k=>`<h3 id="ix-${esc(k)}">${esc(k)}</h3><div class="cols">${g[k].map(w=>'<div>'+L('dict',w)+'</div>').join('')}</div>`).join(''):'<p class="mut">No entries yet.</p>'}};
+SP.wotd={label:'Word of the day',render(){const w=dayPick(words());if(!w)return '<p class="mut">Add some entries first.</p>';const txt=cur('dict',w);const pos=(txt.match(/^===\s*([^=]+?)\s*===/m)||[])[1];const def=(txt.match(/^#(?![:*#])\s*(.+)$/m)||[])[1]||'';
+ return `<div class="srch"><div class="st">${L('dict',w)} ${pos?`<span class="mut sm">${esc(pos.toLowerCase())}</span>`:''}</div><div>${winl(def,mkctx('dict',w))}</div></div>`}};
+function allQuotes(){const out=[];titles('quote').filter(t=>isContent(t)).forEach(t=>tplArgs(cur('quote',t),'quote').forEach(q=>out.push({t,a:q.a})));return out}
+const quoteBox=(q)=>{const c=mkctx('quote',q.t);return `<blockquote class="q"><div class="qt">“${winl(q.a.text||q.a._[0]||'',c)}”</div><div class="qb">— ${winl(q.a.by||'',c)}${q.a.source?', '+winl(q.a.source,c):''} · from ${L('quote',q.t)}</div></blockquote>`};
+SP.qotd={label:'Quote of the day',render(p,x,emb){const all=allQuotes();if(!all.length)return '<p class="mut">No quotes yet. Use the {{quote}} template on a page.</p>';
+ return quoteBox(dayPick(all))+(emb?'':`<h2>All quotes (${all.length})</h2>`+all.map(quoteBox).join(''))}};
+SP.shelf={label:'Bookshelf',render(){const bs=titles('book').filter(t=>isContent(t)&&t!=='Main Page'&&!t.includes('/'));
+ return bs.length?'<div class="grid">'+bs.map(b=>{const ch=chapters(b);const done=ch.filter(t=>pg('book',t)).length;return `<div class="card" style="--c:var(--acc)" data-p="book" data-t="${esc(b)}"><div class="pic">📖</div><div><b>${esc(b)}</b><div class="mut sm">${done} of ${ch.length} chapters written</div><span class="bar"><i style="width:${ch.length?done/ch.length*100:0}%"></i></span></div></div>`}).join('')+'</div>':'<p class="mut">No books yet. Create a page, then add chapters named <b>Book/Chapter</b>.</p>'}};
+SP.authors={label:'Authors',render(){const g={};titles('src').filter(t=>isContent(t)).forEach(t=>{const h=tplArgs(cur('src',t),'header')[0];if(!h)return;const au=(h.a.author||'Unknown').trim()||'Unknown';(g[au]=g[au]||[]).push({t,y:h.a.year||''})});
+ const ks=Object.keys(g).sort();return ks.length?ks.map(k=>`<h3>${esc(k)}</h3><ul>${g[k].map(x=>`<li>${L('src',x.t)} ${x.y?'<span class="mut">('+esc(x.y)+')</span>':''}</li>`).join('')}</ul>`).join(''):'<p class="mut">No texts with a {{header}} yet.</p>'}};
+SP.newsroom={label:'Newsroom',render(p,x,emb){const items=titles('news').filter(t=>isContent(t)&&t!=='Main Page').map(t=>{const txt=cur('news',t);const dl=tplArgs(txt,'dateline')[0],st=tplArgs(txt,'status')[0];
+  return{t,date:dl?(dl.a.date||''):'',place:dl?(dl.a.place||''):'',status:st?String(st.a._[0]||'draft').toLowerCase():'draft',lead:plain(txt.replace(/\{\{[\s\S]*?\}\}/g,'')).slice(0,220)}}).sort((a,b)=>b.date.localeCompare(a.date));
+ const card=n=>`<div class="news"><div class="mut sm">📅 ${esc(n.date||'undated')}${n.place?' · '+esc(n.place):''} <span class="badge ${n.status==='published'?'':'draft'}">${esc(n.status)}</span></div><div class="nt">${L('news',n.t)}</div><div class="sm">${esc(n.lead)}…</div></div>`;
+ const pub=items.filter(n=>n.status==='published'),dr=items.filter(n=>n.status!=='published');
+ return (pub.length?pub.map(card).join(''):'<p class="mut">Nothing published yet.</p>')+(dr.length?`<h3>Drafts in progress</h3>`+dr.map(card).join(''):'')}};
+SP.courses={label:'Courses & progress',render(p,x,emb){const cs=titles('uni').filter(t=>isContent(t)&&t!=='Main Page');
+ if(!cs.length)return '<p class="mut">No courses yet.</p>';
+ return '<table class="wt"><tr><th>Course</th><th>Quizzes</th><th>Your progress</th></tr>'+cs.map(t=>{const n=tplArgs(cur('uni',t),'quiz').length;let ok=0,done=0;for(let i=1;i<=n;i++){const v=PROG['uni|'+t+'|'+i];if(v!=null)done++;if(v===true)ok++}
+  return `<tr><td>${L('uni',t)}</td><td>${n}</td><td>${n?`<span class="bar"><i style="width:${ok/n*100}%"></i></span> <span class="sm">${ok}/${n} right${done>ok?', '+(done-ok)+' missed':''}</span>`:'<span class="mut">—</span>'}</td></tr>`}).join('')+'</table>'+(emb?'':'<p><button data-act="resetprog">Reset my quiz progress</button></p>')}};
+SP.destinations={label:'Destinations',render(){const g={};titles('travel').filter(t=>isContent(t)&&t!=='Main Page').forEach(t=>{const d=tplArgs(cur('travel',t),'destination')[0];const k=d&&d.a.country?d.a.country:'Other';(g[k]=g[k]||[]).push({t,r:d?d.a.region||'':'',ty:d?d.a.type||'':''})});
+ const ks=Object.keys(g).sort();return ks.length?ks.map(k=>`<h3>${esc(k)}</h3><ul>${g[k].map(x=>`<li>${L('travel',x.t)} <span class="mut sm">${esc([x.ty,x.r].filter(Boolean).join(' · '))}</span></li>`).join('')}</ul>`).join(''):'<p class="mut">No destinations yet.</p>'}};
+SP.tree={label:'Tree of life',render(){const nodes={};titles('sp').forEach(t=>{const i=taxInfo(t);if(i)nodes[t]={t,i,kids:[]}});const roots=[];
+ Object.values(nodes).forEach(n=>{const pt=n.i.parent&&n.i.parent.trim()?norm('sp',n.i.parent):'';if(pt&&nodes[pt]&&pt!==n.t)nodes[pt].kids.push(n);else roots.push(n)});
+ const rec=(n,d)=>`<li><span class="rank">${esc(n.i.rank||'')}</span> ${L('sp',n.t,n.i.name||n.t)}${n.i.common?` <span class="mut">(${esc(n.i.common)})</span>`:''}${n.kids.length&&d<40?'<ul>'+n.kids.sort((a,b)=>a.t.localeCompare(b.t)).map(k=>rec(k,d+1)).join('')+'</ul>':''}</li>`;
+ return roots.length?'<ul class="tree">'+roots.map(r=>rec(r,0)).join('')+'</ul>':'<p class="mut">No taxa yet. Make a page with a {{taxon}} box.</p>'}};
+const qItems=()=>titles('data').filter(t=>/^Q\d+$/.test(t)).sort((a,b)=>a.slice(1)-b.slice(1));
+SP.query={label:'Item browser',render(p,x,emb){const i=String(x||'').indexOf('=');const qp=i>=0?x.slice(0,i).trim():String(x||'').trim(),qv=i>=0?x.slice(i+1).trim():'';
+ const items=qItems().map(t=>({t,it:itemOf(cur('data',t))}));const props=[...new Set(items.flatMap(o=>o.it.st.map(s=>s[0])))].sort();
+ const lp=qp.toLowerCase(),lv=qv.toLowerCase();const f=items.filter(({it})=>!lp||it.st.some(([k,v])=>k.toLowerCase()===lp&&(!lv||v.toLowerCase().includes(lv))));
+ return (emb?'':`<div class="row"><input id="qp" list="qpl" placeholder="property, e.g. instance of" value="${esc(qp)}"><datalist id="qpl">${props.map(y=>`<option value="${esc(y)}">`).join('')}</datalist><input id="qv" placeholder="value contains…" value="${esc(qv)}"><button data-act="dquery">Find</button><button data-act="newitem" class="pri">+ New item</button></div>`)+
+ `<table class="wt"><tr><th>ID</th><th>Label</th><th>Description</th><th>${qp?esc(qp):'Statements'}</th></tr>${f.map(({t,it})=>`<tr><td>${L('data',t,t)}</td><td>${esc(it.label)}</td><td>${esc(it.description)}</td><td>${qp?it.st.filter(s=>s[0].toLowerCase()===lp).map(s=>winl(s[1],mkctx('data',t))).join(', '):it.st.length}</td></tr>`).join('')}</table>`+(f.length?'':'<p class="mut">No matching items.</p>')}};
+SP.gallery={label:'Gallery',render(p,x,emb){const ks=Object.keys(FILES).sort();
+ return (emb?'':`<p><button class="pri" ${nav({v:'special',p:'media',s:'upload'})}>⬆ Upload an image</button></p>`)+(ks.length?'<div class="gal">'+ks.map(k=>`<figure>${fileImg(k)}<div>${L('media','File:'+k,k)}</div></figure>`).join('')+'</div>':'<p class="mut">No files yet.</p>')}};
+SP.upload={label:'Upload file',render(p,x){const used=JSON.stringify(FILES).length;return `<p>Images you upload here can be used on any page in any project with <code>[[File:Name.png|thumb|Caption]]</code>.</p>
+ <div class="form"><span>Image</span><input type="file" id="uf" accept="image/*"><span>Name</span><input id="un" placeholder="Name.png (leave empty to use the file's name)" value="${esc(x||'')}"><span>Author</span><input id="ua" value="${esc(SET.name||'')}"><span>License</span><select id="ul"><option>CC BY 4.0</option><option>CC BY-SA 4.0</option><option>CC0 (no rights reserved)</option><option>Public domain</option><option>All rights reserved</option></select><span>Source</span><input id="us" placeholder="Own work, or where it came from"><span>Description</span><textarea id="ud"></textarea><span></span><div><button class="pri" data-act="upload">Upload</button></div></div>
+ <p class="mut sm">Large photos are shrunk to 1280 px to save space. Storage used by files: about ${(used/1e6).toFixed(2)} MB of roughly 5 MB available.</p>`}};
+SP.catalog={label:'Function catalog',render(p,x,emb){const fs=titles('fn').filter(t=>isContent(t)&&/<impl>/.test(cur('fn',t)));
+ return `<table class="wt"><tr><th>Function</th><th>Signature</th><th>About</th><th>Tests</th></tr>${fs.map(t=>{const f=(tplArgs(cur('fn',t),'function')[0]||{a:{}}).a;const n=tplArgs(cur('fn',t),'test').length;return `<tr><td>${L('fn',t)}</td><td><code>${esc(t)}(${esc(f.args||'')})${f.returns?' → '+esc(f.returns):''}</code></td><td>${esc(f.about||'')}</td><td data-ts="${esc(t)}">${n} test${n==1?'':'s'}</td></tr>`}).join('')}</table>`+
+ (emb?'':`<p><button data-act="runall" class="pri">Run all tests</button></p><h2>Playground</h2><div class="row"><select id="pf">${fs.map(t=>`<option>${esc(t)}</option>`).join('')}</select><input id="pa" placeholder='arguments as JSON, e.g. 5  or  "text"  or  [1,2], 3' style="flex:1"><button data-act="play">Run</button></div><pre id="po" class="out"></pre><p class="mut sm">Functions are JavaScript. Inside one, call another with <code>fn("name", args…)</code>. Use them on any page with <code>{{#fn:name|arg|arg}}</code>.</p>`)}};
+SP.stats={label:'Suite statistics',render(){let tp=0,tr=0;const rows=P.map(q=>{const ts=titles(q.id);const pages=ts.filter(t=>isContent(t,q.id)).length;let revs=0,last=0;ts.forEach(t=>{const r=DB.pages[q.id][t].revs;revs+=r.length;last=Math.max(last,r[r.length-1].ts)});tp+=pages;tr+=revs;
+  return `<tr><td>${q.icon} ${L(q.id,'Main Page',q.name)}</td><td><code>${q.id}:</code></td><td>${pages}</td><td>${revs}</td><td class="sm mut">${last?when(last):'—'}</td></tr>`});
+ return `<table class="wt"><tr><th>Project</th><th>Prefix</th><th>Pages</th><th>Edits</th><th>Last edit</th></tr>${rows.join('')}<tr><th>Total</th><th></th><th>${tp}</th><th>${tr}</th><th></th></tr></table><p class="mut sm">${Object.keys(FILES).length} shared files.</p>`}};
+SP.prefixes={label:'Projects and prefixes',render(){return `<table class="wt"><tr><th>Prefix</th><th>Project</th><th>Example link</th></tr>${P.map(q=>`<tr><td><code>${q.id}:</code></td><td>${q.icon} ${L(q.id,'Main Page',q.name)}</td><td><code>[[${q.id}:Main Page]]</code></td></tr>`).join('')}</table>`}};
+const COMMON=['recent','all','cats','wanted'];
+const KSP={enc:[],dict:['index','wotd'],quote:['qotd'],book:['shelf'],src:['authors'],news:['newsroom'],uni:['courses'],travel:['destinations'],sp:['tree'],data:['query'],media:['gallery','upload'],fn:['catalog'],meta:['stats','prefixes'],docs:['prefixes']};
+
+/* ---------- starters & editor snippets ---------- */
+const STARTER={
+enc:t=>`{{infobox\n|title=${t}\n|image=\n|caption=\n|Type=\n}}\n'''${t}''' is …\n\n== Overview ==\n\n== History ==\n\n== See also ==\n* \n\n== References ==\n{{references}}\n\n[[Category:Unsorted]]`,
+dict:t=>`== English ==\n{{pron|/ /}}\n\n=== Etymology ===\nFrom …\n\n=== Noun ===\n'''${t}'''\n# Meaning.\n#: ''Example sentence using ${t}.''\n\n=== Translations ===\n* Spanish: \n* French: \n\n[[Category:English nouns]]`,
+quote:t=>`Quotations about '''${t}'''.\n\n{{quote\n|text=\n|by=\n|source=\n}}\n\n[[Category:Themes]]`,
+book:t=>t.includes('/')?`== ${t.split('/').pop()} ==\nWrite this chapter here.\n`:`'''${t}''' is a book on this wiki.\n\n== Contents ==\n# [[${t}/Introduction|Introduction]]\n# [[${t}/Chapter 1|Chapter 1]]\n\n[[Category:Books]]`,
+src:t=>`{{header\n|title=${t}\n|author=\n|year=\n|license=Public domain\n|notes=\n}}\n\nPaste the original text here, unchanged.\n\n[[Category:Texts]]`,
+news:t=>`{{dateline|date=${today()}|place=}}\n{{status|draft}}\n\n'''Lead sentence: who, what, where, when.'''\n\nBody of the report.\n\n== Sources ==\n* \n\n[[Category:News]]`,
+uni:t=>`'''${t}''' is a course.\n\n== Learning goals ==\n* \n\n== Lesson 1 ==\nText…\n\n== Check yourself ==\n{{quiz\n|q=Question?\n|options=Right answer; Wrong; Also wrong\n|answer=Right answer\n}}\n\n[[Category:Courses]]`,
+travel:t=>`{{destination|type=City|country=|region=}}\n'''${t}''' is …\n\n== Understand ==\n\n== Get in ==\n\n== See ==\n{{listing|type=see|name=|desc=}}\n\n== Do ==\n\n== Eat ==\n{{listing|type=eat|name=|desc=|price=}}\n\n== Sleep ==\n\n== Stay safe ==\n\n[[Category:Destinations]]`,
+sp:t=>`{{taxon\n|rank=Species\n|name=${t}\n|common=\n|parent=\n|image=\n|status=\n}}\n''${t}'' is …\n\n== Description ==\n\n== Distribution ==\n`,
+data:t=>`label = \ndescription = \naliases = \ninstance of = `,
+media:t=>`{{fileinfo|author=|license=|source=|date=${today()}}}\nDescription.`,
+fn:t=>`{{function|args=x|returns=|about=What ${t} does.}}\n<impl>\nreturn x;\n</impl>\n{{test|args=1|expect=1}}\n\n[[Category:Functions]]`,
+meta:t=>`'''${t}'''\n\n`,docs:t=>`'''${t}'''\n\n== Overview ==\n`};
+function starter(p,t){if(t.startsWith('Talk:'))return '';if(t.startsWith('Category:'))return 'Pages in this category are listed below.';if(t.startsWith('Template:'))return 'Template text. Use {{{1}}} or {{{name|default}}} for parameters.\n<noinclude>\nHow to use: {{'+t.slice(9)+'|value}}\n</noinclude>';return STARTER[PX[p].kind](t)}
+const TB=[['<b>B</b>',"'''","'''",'bold text'],['<i>I</i>',"''","''",'italic text'],['🔗 Link','[[',']]','Page'],['H',"\n== "," ==\n",'Heading'],['• List','\n* ','','item'],['1. List','\n# ','','item'],['Table','\n{|\n! Head !! Head\n|-\n| ',' || cell\n|}\n','cell'],['Ref','{{ref|','}}','source'],['🖼 Image','[[File:','|thumb|caption]]','Name.png'],['Category','[[Category:',']]','Name'],['✍ Sign','~~~~','','']];
+const SNIP={enc:[['Infobox','{{infobox\n|title=\n|image=\n|caption=\n|Key=Value\n}}\n'],['Main article','{{main|Page}}'],['Stub','{{stub}}'],['References','== References ==\n{{references}}\n']],
+dict:[['Pronunciation','{{pron|/ /}}'],['Noun',"=== Noun ===\n'''word'''\n# Meaning.\n#: ''Example.''\n"],['Verb','=== Verb ===\n# Meaning.\n'],['Translations','=== Translations ===\n* Spanish: \n']],
+quote:[['Quote','{{quote\n|text=\n|by=\n|source=\n}}\n']],book:[['Tip','{{tip|…}}'],['Warning','{{warning|…}}'],['Chapter link','# [[Book/Chapter|Chapter]]']],
+src:[['Header','{{header\n|title=\n|author=\n|year=\n|license=Public domain\n}}\n']],news:[['Dateline','{{dateline|date='+today()+'|place=}}'],['Published','{{status|published}}'],['Draft','{{status|draft}}']],
+uni:[['Quiz','{{quiz\n|q=\n|options=A; B; C\n|answer=A\n}}\n']],travel:[['Destination','{{destination|type=City|country=|region=}}'],['See','{{listing|type=see|name=|desc=}}'],['Do','{{listing|type=do|name=|desc=}}'],['Eat','{{listing|type=eat|name=|desc=|price=}}'],['Sleep','{{listing|type=sleep|name=|desc=|price=}}']],
+sp:[['Taxon','{{taxon\n|rank=\n|name=\n|common=\n|parent=\n|image=\n|status=\n}}\n']],data:[['Statement','\nproperty = value'],['Link to item','[[Q1]]']],
+media:[['File info','{{fileinfo|author=|license=|source=|date=}}'],['Gallery','{{gallery|Name1.png|Name2.png}}']],
+fn:[['Function','{{function|args=x|returns=|about=}}'],['Code','<impl>\nreturn x;\n</impl>'],['Test','{{test|args=1|expect=1}}'],['Call','{{#fn:name|1|2}}']],
+meta:[['Note','{{note|…}}'],['Data value','{{#data:Q1|label}}'],['Embed view','{{special|recent}}']],docs:[['Code block','<pre>\n\n</pre>'],['Note','{{note|…}}']]};
+
+/* ---------- views ---------- */
+function tabs(p,t,a){const talk=t.startsWith('Talk:');const subj=talk?t.slice(5):t;const ex=!!pg(p,t);
+ const T=(lab,o,on)=>`<a class="${on?'on':''}" ${nav(o)}>${lab}</a>`;
+ const kind=p==='data'&&/^Q\d+$/.test(subj)?'Item':subj.startsWith('Category:')?'Category':subj.startsWith('File:')?'File':subj.startsWith('Template:')?'Template':'Page';
+ return `<div class="tabs">${T(kind,{v:'page',p,t:subj},!talk)}${T('Talk'+(pg(p,'Talk:'+subj)?'':' <span class="mut">·</span>'),{v:'page',p,t:'Talk:'+subj},talk)}<span class="sp"></span>${T('Read',{v:'page',p,t},a==='view')}${T(ex?'Edit':'Create',{v:'page',p,t,a:'edit'},a==='edit')}${ex?T('History',{v:'page',p,t,a:'history'},a==='history'||a==='diff'):''}</div>`}
+function dataCard(t,text,c){const it=itemOf(text);const g={};it.st.forEach(([k,v])=>(g[k]=g[k]||[]).push(v));const rest=it.rest.join('\n').trim();
+ return `<div class="item"><div class="ilabel">${esc(it.label||'(no label)')} <span class="mut sm">${esc(t)}</span></div><div class="idesc">${esc(it.description||'no description yet')}</div>${it.aliases?`<div class="mut sm">Also known as: ${esc(it.aliases)}</div>`:''}</div>
+ <h2>Statements</h2>${Object.keys(g).length?`<table class="wt"><tr><th>Property</th><th>Value</th></tr>${Object.keys(g).map(k=>`<tr><td><a class="lnk" ${nav({v:'special',p:'data',s:'query',x:k+'='})}>${esc(k)}</a></td><td>${g[k].map(v=>winl(v,c)).join('<br>')}</td></tr>`).join('')}</table>`:'<p class="mut">No statements yet.</p>'}${rest?'<h2>Notes</h2>'+wiki(rest,c):''}`}
+function pageView(p,t,rv,from){const q=PX[p],page=pg(p,t),talk=t.startsWith('Talk:');
+ if(!page)return tabs(p,t,'view')+`<h1 class="t">${esc(dispTitle(p,t))}</h1><div class="empty"><p>There is no page called <b>${esc(t)}</b> in ${esc(q.name)} yet.</p><div class="row">${talk?'<button class="pri" data-act="addtopic">Start a discussion</button>':`<button class="pri" ${nav({v:'page',p,t,a:'edit'})}>Create it</button>`}<button ${nav({v:'search',q:t.replace(/^\w+:/,'')})}>Search for it</button>${p==='media'&&t.startsWith('File:')?`<button ${nav({v:'special',p:'media',s:'upload',x:t.slice(5)})}>Upload this file</button>`:''}</div></div>`;
+ const n=page.revs.length,old=rv!=null&&rv<n-1,r=page.revs[rv!=null?Math.min(rv,n-1):n-1];const c=mkctx(p,t);
+ const isItem=p==='data'&&/^Q\d+$/.test(t);let body=isItem?dataCard(t,r.text,c):wiki(r.text,c);let h=tabs(p,t,'view');
+ if(from)h+=`<div class="sub0">↪ Redirected from <a class="lnk" ${nav({v:'page',p:from.p,t:from.t,noredirect:1})}>${esc(from.t)}</a></div>`;
+ if(old)h+=`<div class="notice">You are reading an old revision (#${rv+1}, ${when(r.ts)}). <a class="lnk" ${nav({v:'page',p,t})}>Go to the current version</a> · <a class="lnk" ${nav({v:'page',p,t,a:'edit',r:rv})}>Edit from this version</a></div>`;
+ if(t==='Main Page')h+=`<div class="banner"><div class="pic big">${q.icon}</div><div><h1>${esc(q.name)}</h1><div class="mut">${esc(q.blurb)}</div><div class="sm" style="color:var(--acc)">${titles(p).filter(x=>isContent(x,p)).length} pages · link here from anywhere with <code>[[${p}:Page]]</code></div></div></div>`;
+ else h+=`<h1 class="t">${esc(dispTitle(p,t))}</h1><div class="sub0">From ${q.icon} ${esc(q.name)}${t.includes('/')&&q.kind==='book'?` · Book: ${L('book',t.split('/')[0])}`:''}</div>`;
+ let nb='';if(q.kind==='book'&&t.includes('/')){const root=t.split('/')[0],ch=chapters(root),i=ch.indexOf(t);nb=`<div class="booknav"><span>${i>0?'← '+L('book',ch[i-1],ch[i-1].split('/').slice(1).join('/')):''}</span><span>${L('book',root,'📖 '+root+' contents')}${i>=0?` <span class="mut">(${i+1}/${ch.length})</span>`:''}</span><span>${i>=0&&i<ch.length-1?L('book',ch[i+1],ch[i+1].split('/').slice(1).join('/'))+' →':''}</span></div>`;h+=nb}
+ if(p==='media'&&t.startsWith('File:')){const k=t.slice(5),f=FILES[k];h+=f?`<p><img src="${f.data}" alt="${esc(k)}" style="max-width:100%;max-height:60vh;border-radius:8px;background:#141518"></p><p class="mut sm">Use it on any page: <code>[[File:${esc(k)}|thumb|Caption]]</code></p>`:`<div class="notice">No image has been uploaded under this name. <a class="lnk" ${nav({v:'special',p:'media',s:'upload',x:k})}>Upload one</a></div>`}
+ h+=`<article>${body}</article>`;
+ if(p==='fn'&&/<impl>/.test(r.text)){const ts=tplArgs(r.text,'test');h+=`<h2>Tests</h2>${ts.length?`<table class="wt"><tr><th>#</th><th>Arguments</th><th>Expected</th><th>Result</th></tr>${ts.map((x,i)=>`<tr><td>${i+1}</td><td><code>${esc(x.a.args||'')}</code></td><td><code>${esc(x.a.expect||'')}</code></td><td data-tr="${i}" class="mut">not run</td></tr>`).join('')}</table><button class="pri" data-act="runtests">Run tests</button>`:'<p class="mut">No tests yet. Add <code>{{test|args=…|expect=…}}</code>.</p>'}<h2>Try it</h2><div class="row"><input id="pa" placeholder="arguments as JSON, separated by commas" style="flex:1"><button data-act="tryfn">Run</button></div><pre id="po" class="out"></pre>`}
+ if(t.startsWith('Category:')){const nm=t.slice(9);const mem=[];P.forEach(qq=>{if(qq.id!==p)return;titles(qq.id).forEach(x=>{if(catsOf(cur(qq.id,x)).includes(nm))mem.push(x)})});
+  const sub=mem.filter(x=>x.startsWith('Category:')),pgs=mem.filter(x=>!x.startsWith('Category:'));
+  h+=(sub.length?`<h2>Subcategories</h2><div class="cols">${sub.map(x=>'<div>'+L(p,x,x.slice(9))+'</div>').join('')}</div>`:'')+`<h2>Pages in “${esc(nm)}” (${pgs.length})</h2>`+(pgs.length?`<div class="cols">${pgs.map(x=>'<div>'+L(p,x)+'</div>').join('')}</div>`:'<p class="mut">None yet.</p>')}
+ if(p==='media'&&t.startsWith('File:')){const k=t.slice(5),use=[];P.forEach(qq=>titles(qq.id).forEach(x=>{if(!(qq.id==='media'&&x===t)&&(cur(qq.id,x)||'').includes(k))use.push([qq.id,x])}));h+=`<h2>Used on</h2>`+(use.length?'<ul>'+use.map(([a,b])=>`<li>${L(a,b,PX[a].name+': '+dispTitle(a,b))}</li>`).join('')+'</ul>':'<p class="mut">Not used on any page yet.</p>')}
+ if(nb)h+=nb;
+ if(talk)h+=`<p><button class="pri" data-act="addtopic">+ Add topic</button></p>`;
+ if(c.cats.length)h+=`<div class="cats">Categories: ${[...new Set(c.cats)].map(x=>L(p,'Category:'+x,x)).join(' · ')}</div>`;
+ h+=`<div class="foot">Last edited ${when(page.revs[n-1].ts)} by ${esc(page.revs[n-1].by||'?')} · ${n} revision${n>1?'s':''} · <a class="lnk" ${nav({v:'special',p,s:'links',x:t})}>What links here</a></div>`;
+ return h}
+function editView(p,t,rv){const ex=cur(p,t);const txt=rv!=null&&pg(p,t)?pg(p,t).revs[rv].text:(ex!=null?ex:starter(p,t));const dk=p+'|'+t;const dr=DRAFT[dk]!=null&&DRAFT[dk]!==txt;
+ return tabs(p,t,'edit')+`<h1 class="t">${ex==null?'Creating':'Editing'} ${esc(dispTitle(p,t))}</h1>
+ ${rv!=null?'<div class="notice">You are editing an old revision. Saving makes it the current version.</div>':''}
+ ${dr?`<div class="notice">You have unsaved changes from before. <a class="lnk" data-act="drafton">Restore them</a> · <a class="lnk" data-act="draftoff">Discard</a></div>`:''}
+ <div class="tb">${TB.map((b,i)=>`<button data-act="ins" data-i="${i}" title="Insert">${b[0]}</button>`).join('')}<span class="sep"></span>${(SNIP[PX[p].kind]||[]).map((s,i)=>`<button data-act="snip" data-i="${i}">+ ${esc(s[0])}</button>`).join('')}</div>
+ <div class="edgrid"><textarea id="ed" spellcheck="true">${esc(txt)}</textarea><div id="pv" class="pv"></div></div>
+ <div class="row"><input id="sum" placeholder="Summary of your change (optional)" style="flex:1;min-width:220px"><label class="sm"><input type="checkbox" id="lp" checked> Live preview</label><button class="pri" data-act="save">Save page (Ctrl+S)</button><button data-act="cancel">Cancel</button></div>
+ <p class="mut sm">Markup help: ${L('docs','Markup','Markup guide')} · ${L('docs','Templates','Templates')} · Link other projects with prefixes like <code>[[dict:word]]</code>.</p>`}
+function histView(p,t){const x=pg(p,t);if(!x)return tabs(p,t,'history')+'<p class="mut">This page has no history yet.</p>';const n=x.revs.length;
+ return tabs(p,t,'history')+`<h1 class="t">History of ${esc(dispTitle(p,t))}</h1><p class="mut">${n} revision${n>1?'s':''}, newest first.</p><ul class="hist">${x.revs.map((r,i)=>({r,i})).reverse().map(({r,i})=>{const dl=i?r.text.length-x.revs[i-1].text.length:r.text.length;
+  return `<li><b>#${i+1}</b> <span class="mut">${when(r.ts)}</span> · ${esc(r.by||'?')} · <span class="${dl>=0?'okc':'err'} sm">${dl>=0?'+':''}${dl}</span> ${r.sum?'<i class="mut">'+esc(r.sum)+'</i>':''}<span class="acts"><a ${nav({v:'page',p,t,r:i})}>view</a>${i?`<a ${nav({v:'page',p,t,a:'diff',r:i})}>diff</a>`:''}${i<n-1?`<a data-act="restore" data-r="${i}">restore</a>`:''}</span></li>`}).join('')}</ul>`}
+function diffLines(a,b){a=a.split('\n');b=b.split('\n');const n=a.length,m=b.length;if(n*m>4e6)return a.map(x=>['-',x]).concat(b.map(x=>['+',x]));
+ const dp=[];for(let i=0;i<=n;i++)dp.push(new Uint32Array(m+1));
+ for(let i=n-1;i>=0;i--)for(let j=m-1;j>=0;j--)dp[i][j]=a[i]===b[j]?dp[i+1][j+1]+1:Math.max(dp[i+1][j],dp[i][j+1]);
+ const out=[];let i=0,j=0;while(i<n&&j<m){if(a[i]===b[j]){out.push([' ',a[i]]);i++;j++}else if(dp[i+1][j]>=dp[i][j+1])out.push(['-',a[i++]]);else out.push(['+',b[j++]])}
+ while(i<n)out.push(['-',a[i++]]);while(j<m)out.push(['+',b[j++]]);return out}
+function diffView(p,t,r){const x=pg(p,t);if(!x||!r||r>=x.revs.length)return histView(p,t);const A=x.revs[r-1],B=x.revs[r];const d=diffLines(A.text,B.text);let h='',run=[];
+ const flush=()=>{if(run.length>6){h+=run.slice(0,2).map(l=>`<div>${esc(l)||' '}</div>`).join('')+`<div class="gap">⋯ ${run.length-4} unchanged lines ⋯</div>`+run.slice(-2).map(l=>`<div>${esc(l)||' '}</div>`).join('')}else h+=run.map(l=>`<div>${esc(l)||' '}</div>`).join('');run=[]};
+ d.forEach(([k,l])=>{if(k===' ')run.push(l);else{flush();h+=`<div class="${k==='+'?'a':'d'}">${k} ${esc(l)}</div>`}});flush();
+ return tabs(p,t,'diff')+`<h1 class="t">Changes to ${esc(dispTitle(p,t))}</h1><p class="mut">Revision #${r} (${when(A.ts)}) → #${r+1} (${when(B.ts)}) by ${esc(B.by||'?')}${B.sum?' · <i>'+esc(B.sum)+'</i>':''}</p>
+ <div class="row">${r>1?`<button ${nav({v:'page',p,t,a:'diff',r:r-1})}>← Older change</button>`:''}${r<x.revs.length-1?`<button ${nav({v:'page',p,t,a:'diff',r:r+1})}>Newer change →</button>`:''}<button ${nav({v:'page',p,t,r})}>View this version</button></div><div class="diff">${h}</div>`}
+function specialView(p,s,x){const sp=SP[s];if(!sp)return '<p>Unknown view.</p>';return `<h1 class="t">${esc(sp.label)}</h1><div class="sub0">${p?PX[p].icon+' '+esc(PX[p].name):'All projects'}</div>`+sp.render(p||'*',x,false)}
+function searchView(q,scope){q=String(q||'').trim();const terms=q.toLowerCase().split(/\s+/).filter(Boolean);const res=[];
+ if(terms.length)for(const pr of P){if(scope&&scope!==pr.id)continue;for(const t in DB.pages[pr.id]){const txt=cur(pr.id,t);const lt=(t+' '+(pr.id==='data'&&/^Q\d+$/.test(t)?dataLabel(t):'')).toLowerCase(),lx=txt.toLowerCase();
+  if(!terms.every(w=>lt.includes(w)||lx.includes(w)))continue;let s=0;terms.forEach(w=>{if(lt.includes(w))s+=10;s+=Math.min(5,lx.split(w).length-1)});if(t.toLowerCase()===q.toLowerCase())s+=50;if(t.startsWith('Talk:'))s-=5;res.push({p:pr.id,t,s,txt})}}
+ res.sort((a,b)=>b.s-a.s);const re=terms.length?new RegExp('('+terms.map(w=>w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')','gi'):null;
+ const snip=txt=>{const pl=plain(txt);const i=Math.max(0,pl.toLowerCase().indexOf(terms[0]));const st=Math.max(0,i-70);return (st?'…':'')+esc(pl.slice(st,st+220)).replace(re,'<mark>$1</mark>')+'…'};
+ return `<h1 class="t">Search</h1><div class="row"><input id="sq" value="${esc(q)}" style="flex:1"><select id="ss"><option value="">All projects</option>${P.map(x=>`<option value="${x.id}" ${scope===x.id?'selected':''}>${x.icon} ${esc(x.name)}</option>`).join('')}</select><button class="pri" data-act="dosearch">Search</button></div>
+ ${q?`<p class="mut">${res.length} result${res.length==1?'':'s'} for “${esc(q)}”. Create a page: ${P.filter(x=>!scope||scope===x.id).slice(0,scope?1:4).map(x=>L(x.id,norm(x.id,q),x.name+': '+norm(x.id,q))).join(' · ')}</p>`:''}
+ ${res.slice(0,120).map(r=>`<div style="margin:12px 0"><span class="chip" style="--c:${PX[r.p].color}">${PX[r.p].icon} ${esc(PX[r.p].name)}</span> ${L(r.p,r.t)}<div class="sm mut">${snip(r.txt)}</div></div>`).join('')}`}
+function homeView(){const n=P.reduce((s,q)=>s+titles(q.id).filter(t=>isContent(t,q.id)).length,0);
+ return `<div class="hero"><div class="gl big">W</div><div><h1>Wiki Suite</h1><div class="mut">${P.length} linked wikis in one place · ${n} pages · ${Object.keys(FILES).length} shared files · everything is saved on this computer</div></div></div>
+ <div class="grid">${P.map(q=>`<div class="card" style="--c:${q.color}" ${nav({v:'page',p:q.id,t:'Main Page'})}><div class="pic" style="--acc:${q.color}">${q.icon}</div><div><b>${esc(q.name)}</b><div class="mut sm">${esc(q.blurb)}</div><div class="sm" style="color:${q.color}">${titles(q.id).filter(t=>isContent(t,q.id)).length} pages · <code>${q.id}:</code></div></div></div>`).join('')}</div>
+ <h2>Recent changes across the suite</h2>${SP.recent.render('*',null,true)}<p><a class="lnk" ${nav({v:'special',p:'',s:'recent'})}>All recent changes →</a></p>
+ <h2>You</h2><div class="row"><label>Name shown in history and signatures <input id="uname" value="${esc(SET.name||'')}"></label><button data-act="setname">Save</button></div>`}
+function navHtml(){const r=R;const other=`<h4>Projects</h4><div class="prow">${P.map(q=>`<a title="${esc(q.name)}" ${nav({v:'page',p:q.id,t:'Main Page'})}>${q.icon}</a>`).join('')}</div>`;
+ if(!r.p)return `<h4>Projects</h4>`+P.map(q=>`<a ${nav({v:'page',p:q.id,t:'Main Page'})}><span class="ic">${q.icon}</span> ${esc(q.name)}</a>`).join('')+`<h4>Whole suite</h4><a ${nav({v:'special',p:'',s:'recent'})}>Recent changes</a><a ${nav({v:'search',q:''})}>Search</a><a data-act="io">Export / Import</a>`;
+ const q=PX[r.p];const onPage=r.v==='page'&&pg(r.p,r.t);
+ return `<div class="pbadge" ${nav({v:'page',p:q.id,t:'Main Page'})}><div class="pic">${q.icon}</div><div><b>${esc(q.name)}</b><div class="mut sm" style="line-height:1.3">${esc(q.blurb)}</div></div></div>
+ <a ${nav({v:'page',p:q.id,t:'Main Page'})}>🏠 Main page</a><a data-act="new">➕ ${q.id==='data'?'New item':'Create page'}</a><a data-act="random">🎲 Random page</a>${q.id==='media'?`<a ${nav({v:'special',p:'media',s:'upload'})}>⬆ Upload file</a>`:''}
+ ${(KSP[q.kind]||[]).length?`<h4>${esc(q.name)}</h4>`+KSP[q.kind].filter(s=>s!=='upload').map(s=>`<a ${nav({v:'special',p:q.id,s})}>${esc(SP[s].label)}</a>`).join(''):''}
+ <h4>Browse</h4>${COMMON.map(s=>`<a ${nav({v:'special',p:q.id,s})}>${esc(SP[s].label)}</a>`).join('')}
+ ${onPage?`<h4>This page</h4><a ${nav({v:'special',p:r.p,s:'links',x:r.t})}>What links here</a><a ${nav({v:'page',p:r.p,t:r.t,a:'history'})}>History</a><a data-act="rename">Rename</a><a data-act="delete">Delete</a>`:''}
+ ${other}<h4>Suite</h4><a ${nav({v:'home'})}>🌐 All projects</a><a ${nav({v:'special',p:'',s:'recent'})}>Changes everywhere</a>`}
+
+/* ---------- routing ---------- */
+let R=store.get('wikisuite.route')||{v:'home'};if(R.p&&!PX[R.p])R={v:'home'};
+let HB=[],HF=[];
+function go(o,rep){if(!rep){HB.push(R);if(HB.length>100)HB.shift();HF=[]}R=o;store.set('wikisuite.route',R);render()}
+function render(){
+ if(R.v==='page'&&(!R.a||R.a==='view')&&R.r==null&&!R.noredirect){const tx=cur(R.p,R.t);const m=tx&&tx.match(/^#REDIRECT\s*\[\[([^\]|]+)/i);if(m){const r=resolve(R.p,m[1]);if(r.t&&!(r.p===R.p&&r.t===R.t))R={v:'page',p:r.p,t:r.t,from:{p:R.p,t:R.t}}}}
+ const p=R.p&&PX[R.p]?R.p:'';document.documentElement.style.setProperty('--acc',p?PX[p].color:'#5b9bff');
+ $('#psel').value=p;$('#nav').innerHTML=navHtml();let h='';
+ try{if(R.v==='search')h=searchView(R.q,R.p);else if(R.v==='special')h=specialView(p,R.s,R.x);
+  else if(R.v==='page'&&p){const a=R.a||'view';h=a==='edit'?editView(p,R.t,R.r):a==='history'?histView(p,R.t):a==='diff'?diffView(p,R.t,R.r):pageView(p,R.t,R.r,R.from)}
+  else h=homeView()}catch(err){h='<div class="notice err">Something went wrong showing this: '+esc(err.message)+'</div>';console.error(err)}
+ $('#main').innerHTML=h;window.scrollTo(0,0);$('#back').disabled=!HB.length;$('#fwd').disabled=!HF.length;
+ document.title=(R.t?dispTitle(p,R.t)+' – ':'')+(p?PX[p].name:'Wiki Suite');afterRender()}
+let PVT;
+function afterRender(){const ed=$('#ed');if(!ed)return;const dk=R.p+'|'+R.t;
+ const up=()=>{const on=$('#lp').checked;$('.edgrid').classList.toggle('one',!on);$('#pv').style.display=on?'':'none';if(on){const c=mkctx(R.p,R.t);try{$('#pv').innerHTML=(R.p==='data'&&/^Q\d+$/.test(R.t))?dataCard(R.t,ed.value,c):wiki(ed.value,c)}catch(e){$('#pv').textContent='Preview error: '+e.message}}};
+ ed.oninput=()=>{clearTimeout(PVT);PVT=setTimeout(()=>{up();DRAFT[dk]=ed.value;store.set(KD,DRAFT)},300)};
+ $('#lp').onchange=up;up();
+ ed.onkeydown=e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault();ACT.save()}};ed.focus();ed.setSelectionRange(0,0)}
+function insert(pre,post,def){const ed=$('#ed');if(!ed)return;const s=ed.selectionStart,e=ed.selectionEnd,sel=ed.value.slice(s,e)||def;ed.setRangeText(pre+sel+post,s,e,'end');ed.focus();const st=s+pre.length;ed.setSelectionRange(st,st+sel.length);ed.dispatchEvent(new Event('input'))}
+
+/* ---------- dialogs ---------- */
+function modal(title,body,onOk,ok,danger){const o=document.createElement('div');o.className='ov';
+ o.innerHTML=`<div class="dlg"><h3>${title}</h3><div>${body}</div><div class="row end"><button data-x>Cancel</button>${ok===null?'':`<button class="${danger?'dng':'pri'}" data-ok>${ok||'OK'}</button>`}</div></div>`;
+ document.body.appendChild(o);const close=()=>o.remove();
+ o.addEventListener('click',e=>{if(e.target===o||e.target.closest('[data-x]'))close();else if(e.target.closest('[data-ok]')){if(onOk(o)!==false)close()}});
+ o.addEventListener('keydown',e=>{if(e.key==='Escape')close();else if(e.key==='Enter'&&e.target.tagName==='INPUT'&&onOk){e.preventDefault();if(onOk(o)!==false)close()}});
+ const f=o.querySelector('input,textarea,select');if(f)f.focus();return o}
+const sig=()=>'— '+(SET.name||'Anonymous')+' ('+when(Date.now())+')';
+
+/* ---------- actions ---------- */
+const ACT={
+ save(){const ed=$('#ed');if(!ed)return;const existed=!!pg(R.p,R.t);const txt=ed.value.replace(/~~~~/g,sig());const ok=put(R.p,R.t,txt,$('#sum').value.trim()||(existed?'':'Created page'));
+  delete DRAFT[R.p+'|'+R.t];store.set(KD,DRAFT);toast(ok?'Saved':'No changes to save');go({v:'page',p:R.p,t:R.t},true)},
+ cancel(){go({v:'page',p:R.p,t:R.t},true)},
+ drafton(){const ed=$('#ed');ed.value=DRAFT[R.p+'|'+R.t];ed.dispatchEvent(new Event('input'));document.querySelector('.notice [data-act=drafton]').parentNode.remove()},
+ draftoff(){delete DRAFT[R.p+'|'+R.t];store.set(KD,DRAFT);document.querySelector('.notice [data-act=draftoff]').parentNode.remove()},
+ ins(el){const b=TB[+el.dataset.i];insert(b[1],b[2],b[3])},
+ snip(el){const s=SNIP[PX[R.p].kind][+el.dataset.i];insert(s[1],'','')},
+ new(){if(!R.p)return;if(R.p==='data')return ACT.newitem();const q=PX[R.p];
+  modal('Create a page in '+esc(q.name),`<label>Title<input id="mt" placeholder="${q.kind==='book'?'Book name  or  Book name/Chapter':q.kind==='dict'?'word':'Page title'}"></label>${q.kind==='book'?'<p class="mut sm">Chapters are named <b>Book name/Chapter name</b>.</p>':''}${q.kind==='media'?'<p class="mut sm">To add an image, use <b>Upload file</b> instead.</p>':''}`,o=>{const v=o.querySelector('#mt').value.trim();if(!v)return false;go({v:'page',p:R.p,t:norm(R.p,v),a:'edit'})},'Create')},
+ newitem(){let mx=0;qItems().forEach(t=>mx=Math.max(mx,+t.slice(1)));go({v:'page',p:'data',t:'Q'+(mx+1),a:'edit'})},
+ random(){const ts=titles(R.p).filter(t=>isContent(t,R.p)&&t!=='Main Page');if(!ts.length)return toast('No pages yet');go({v:'page',p:R.p,t:ts[Math.floor(Math.random()*ts.length)]})},
+ restore(el){const i=+el.dataset.r;put(R.p,R.t,pg(R.p,R.t).revs[i].text,'Restored revision #'+(i+1));toast('Restored');go({v:'page',p:R.p,t:R.t},true)},
+ rename(){const p=R.p,t=R.t;modal('Rename page',`<label>New title<input id="mt" value="${esc(t)}"></label><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="mr" checked style="width:auto;display:inline"> Leave a redirect at the old title</label>`,o=>{
+  const nt=norm(p,o.querySelector('#mt').value);if(!nt||nt===t)return false;if(pg(p,nt)){toast('A page with that title already exists');return false}
+  const mv=(a,b)=>{DB.pages[p][b]=DB.pages[p][a];delete DB.pages[p][a];DB.pages[p][b].revs.push({text:DB.pages[p][b].revs[DB.pages[p][b].revs.length-1].text,sum:'Renamed from '+a,ts:Date.now(),by:SET.name})};
+  mv(t,nt);if(pg(p,'Talk:'+t)&&!pg(p,'Talk:'+nt))mv('Talk:'+t,'Talk:'+nt);
+  if(o.querySelector('#mr').checked)DB.pages[p][t]={revs:[{text:'#REDIRECT [['+nt+']]',sum:'Renamed to '+nt,ts:Date.now(),by:SET.name}]};
+  save();go({v:'page',p,t:nt},true)},'Rename')},
+ delete(){const p=R.p,t=R.t;modal('Delete page?',`<p>This removes <b>${esc(t)}</b> and its whole history. This can't be undone here (an Export first keeps a copy).</p>`,()=>{delete DB.pages[p][t];save();toast('Deleted');go({v:'page',p,t:'Main Page'},true)},'Delete',true)},
+ addtopic(){const p=R.p,t=R.t;modal('Add a discussion topic',`<label>Subject<input id="ms"></label><label>Message<textarea id="mm" rows="5"></textarea></label><p class="mut sm">Your name and the date are added for you.</p>`,o=>{const s=o.querySelector('#ms').value.trim(),m=o.querySelector('#mm').value.trim();if(!s||!m)return false;
+  put(p,t,((cur(p,t)||'').trim()+`\n\n== ${s} ==\n${m} ${sig()}`).trim(),'New topic: '+s);go({v:'page',p,t},true)},'Post')},
+ setname(){SET.name=$('#uname').value.trim()||'Anonymous';saveS();toast('Saved. Hello, '+SET.name+'!')},
+ dosearch(){go({v:'search',q:$('#sq').value,p:$('#ss').value},true)},
+ dquery(){go({v:'special',p:'data',s:'query',x:$('#qp').value.trim()+'='+$('#qv').value.trim()},true)},
+ resetprog(){modal('Reset quiz progress?','<p>This clears your answers on every course.</p>',()=>{PROG={};saveP();render()},'Reset',true)},
+ runtests(){runTests(R.t).forEach((r,i)=>{const td=document.querySelector(`[data-tr="${i}"]`);if(td){td.className=r.ok?'okc':'err';td.textContent=(r.ok?'✓ ':'✗ ')+r.got}})},
+ runall(){document.querySelectorAll('[data-ts]').forEach(td=>{const rs=runTests(td.dataset.ts);const ok=rs.filter(r=>r.ok).length;td.className=ok===rs.length?'okc':'err';td.textContent=`${ok}/${rs.length} passed`})},
+ tryfn(){runFn(R.t)},play(){runFn($('#pf').value)},
+ upload(){doUpload()},
+ io(){const data=JSON.stringify({app:'wikisuite',v:1,pages:DB.pages,files:FILES});
+  modal('Export / Import',`<p class="sm mut">This box holds everything: all pages, history and files. Copy it somewhere safe to keep a backup. To restore, paste a backup here and choose an import.</p><textarea id="iot" rows="9" style="width:100%;font-family:Consolas,monospace;font-size:12px">${esc(data)}</textarea>
+  <div class="row"><button data-act="iosel">Select all</button><button data-act="iodl">Download as file</button><button data-act="iomerge">Import (merge)</button><button data-act="iorep">Import (replace all)</button><button class="dng" data-act="ioreset">Reset to samples</button></div>`,null,null)},
+ iosel(){const t=$('#iot');t.focus();t.select();try{document.execCommand('copy');toast('Copied')}catch(e){}},
+ iodl(){try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([$('#iot').value],{type:'application/json'}));a.download='wiki-suite-backup-'+today()+'.json';document.body.appendChild(a);a.click();a.remove();toast('Download started')}catch(e){toast('Download is blocked here: use Select all and copy instead')}},
+ iomerge(){importData(true)},iorep(){importData(false)},
+ ioreset(){modal('Reset everything?','<p>All pages, history and files are replaced by the sample content.</p>',()=>{DB={pages:{}};FILES={};seed();document.querySelectorAll('.ov').forEach(x=>x.remove());go({v:'home'},true)},'Reset',true)}};
+function runFn(name){const po=$('#po');try{const v=$('#pa').value.trim();const args=v?JSON.parse('['+v+']'):[];const r=callFn(name,...args);po.className='out okc';po.textContent=show(r)}catch(e){po.className='out err';po.textContent='Error: '+e.message}}
+function importData(merge){let d;try{d=JSON.parse($('#iot').value)}catch(e){return toast('That is not valid backup text')}
+ if(!d||typeof d.pages!=='object')return toast('That does not look like a Wiki Suite backup');
+ if(merge){for(const p in d.pages){if(!PX[p])continue;for(const t in d.pages[p]){const inc=d.pages[p][t];if(!inc||!Array.isArray(inc.revs))continue;const mine=pg(p,t);if(!mine){DB.pages[p][t]=inc;continue}const seen=new Set(mine.revs.map(r=>r.ts+'|'+r.text.length));inc.revs.forEach(r=>{if(!seen.has(r.ts+'|'+r.text.length))mine.revs.push(r)});mine.revs.sort((a,b)=>a.ts-b.ts)}}Object.assign(FILES,d.files||{})}
+ else{DB={pages:d.pages};FILES=d.files||{}}
+ P.forEach(q=>DB.pages[q.id]=DB.pages[q.id]||{});save();saveF();document.querySelectorAll('.ov').forEach(x=>x.remove());toast('Imported');go({v:'home'},true)}
+function shrink(url,max){return new Promise(res=>{const im=new Image();im.onload=()=>{const s=Math.min(1,max/Math.max(im.width,im.height));if(s>=1&&url.length<400000)return res(url);const cv=document.createElement('canvas');cv.width=Math.round(im.width*s);cv.height=Math.round(im.height*s);cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);let o=cv.toDataURL('image/webp',.85);if(!/^data:image\/webp/.test(o))o=cv.toDataURL('image/jpeg',.85);res(o.length<url.length?o:url)};im.onerror=()=>res(url);im.src=url})}
+async function doUpload(){const f=$('#uf').files[0];if(!f)return toast('Choose an image first');if(!/^image\//.test(f.type))return toast('Only images can be uploaded');
+ const name=fkey($('#un').value.trim()||f.name);if(FILES[name])return toast('A file called '+name+' already exists: pick another name');
+ const url=await new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.onerror=rej;fr.readAsDataURL(f)});
+ const data=/svg|gif/.test(f.type)?url:await shrink(url,1280);FILES[name]={data,type:f.type,ts:Date.now()};if(!saveF()){delete FILES[name];return}
+ const clean=s=>String(s).replace(/[|{}]/g,' ');
+ put('media','File:'+name,`{{fileinfo|author=${clean($('#ua').value)}|license=${clean($('#ul').value)}|source=${clean($('#us').value)}|date=${today()}}}\n${$('#ud').value}`,'Uploaded file');toast('Uploaded '+name);go({v:'page',p:'media',t:'File:'+name})}
+
+/* ---------- events ---------- */
+document.addEventListener('click',e=>{
+ if(e.target.closest('.ov')&&!e.target.closest('[data-act]'))return;
+ const n=e.target.closest('[data-nav]');if(n){e.preventDefault();go(JSON.parse(n.dataset.nav));return}
+ const w=e.target.closest('[data-p][data-t]');if(w){e.preventDefault();go({v:'page',p:w.dataset.p,t:w.dataset.t});return}
+ const sc=e.target.closest('[data-scroll]');if(sc){const el=document.getElementById(sc.dataset.scroll);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});return}
+ const a=e.target.closest('[data-act]');if(a&&ACT[a.dataset.act]){e.preventDefault();ACT[a.dataset.act](a,e);return}
+ const qz=e.target.closest('[data-quiz]');if(qz){const box=qz.closest('.quiz'),ok=qz.dataset.ok==='1';box.querySelectorAll('[data-quiz]').forEach(b=>{b.disabled=true;if(b.dataset.ok==='1')b.classList.add('right')});if(!ok)qz.classList.add('wrong');
+  const res=box.querySelector('.qres');res.className='qres '+(ok?'okc':'err');res.textContent=ok?'✓ Correct!':'✗ Not quite: the right answer is highlighted.';PROG[box.dataset.key]=ok;saveP()}});
+$('#psel').innerHTML='<option value="">🌐 All projects</option>'+P.map(q=>`<option value="${q.id}">${q.icon} ${esc(q.name)}</option>`).join('');
+$('#psel').onchange=e=>go(e.target.value?{v:'page',p:e.target.value,t:'Main Page'}:{v:'home'});
+$('#q').addEventListener('keydown',e=>{if(e.key!=='Enter')return;const v=e.target.value.trim();if(!v)return;
+ const r=resolve(R.p||'enc',v);if(R.p&&r.t&&pg(r.p,r.t)){e.target.value='';return go({v:'page',p:r.p,t:r.t})}
+ if(/^[a-z]+:/i.test(v)&&PX[v.split(':')[0].toLowerCase()]&&pg(r.p,r.t)){e.target.value='';return go({v:'page',p:r.p,t:r.t})}
+ go({v:'search',q:v,p:''})});
+$('#back').onclick=()=>{if(!HB.length)return;HF.push(R);R=HB.pop();render()};
+$('#fwd').onclick=()=>{if(!HF.length)return;HB.push(R);R=HF.pop();render()};
+
+/* ---------- sample content ---------- */
+function seed(){const base=Date.now()-3600e3;let i=0;P.forEach(q=>DB.pages[q.id]={});
+ const S=(p,t,text)=>{DB.pages[p][t]={revs:[{text:text.trim(),sum:'Sample page',ts:base+(i++)*1000,by:'Wiki Suite'}]}};
+ FILES={'Moon icon.svg':{type:'image/svg+xml',ts:base,data:'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="#0b0d14"/><circle cx="30" cy="30" r="1.5" fill="#fff"/><circle cx="170" cy="40" r="1" fill="#fff"/><circle cx="160" cy="175" r="1.5" fill="#fff"/><circle cx="100" cy="100" r="78" fill="#c9c9c4"/><circle cx="75" cy="80" r="14" fill="#a9a9a3"/><circle cx="125" cy="120" r="20" fill="#adada7"/><circle cx="118" cy="68" r="8" fill="#b3b3ad"/><circle cx="80" cy="135" r="9" fill="#b0b0aa"/><path d="M100 22a78 78 0 0 1 0 156a110 110 0 0 0 0-156z" fill="#000" opacity=".22"/></svg>')}};
+ S('enc','Main Page',`{{note|Welcome to the '''Encyclopedia''', the reference work of this suite. Anyone can edit any page: click '''Edit''' at the top.}}
+
+== Featured article ==
+[[File:Moon icon.svg|90px|left]] The '''[[Moon]]''' is Earth's only natural satellite. It drives the ocean tides, always shows Earth the same face, and twelve people have walked on it. ''[[Moon|Read more…]]''
+
+== Recently changed ==
+{{special|recent}}
+
+== Elsewhere in the suite ==
+* Look up a word in the [[dict:Main Page|Dictionary]]: [[dict:serendipity]]
+* Explore the [[sp:Main Page|tree of life]]
+* See the same facts as data: [[data:Q1]]
+* Learn the markup: [[docs:Markup]]
+__NOTOC__`);
+ S('enc','Moon',`{{infobox
+|title=Moon
+|image=Moon icon.svg
+|caption=An illustration of the Moon
+|Type=Natural satellite
+|Orbits=[[Earth]]
+|Mean radius={{#data:Q1|mean radius}}
+|Orbital period=27.3 days
+|Surface gravity=1.62 m/s²
+|Data item=[[data:Q1]]
+}}
+The '''Moon''' is [[Earth]]'s only natural satellite. It is the fifth-largest moon in the Solar System and the largest compared with the size of the planet it orbits.{{ref|See the data item [[data:Q1]] for the figures used here.}}
+
+== Formation ==
+The leading explanation is the ''giant-impact hypothesis'': about 4.5 billion years ago a body roughly the size of Mars struck the young Earth, and the debris came together to form the Moon.
+
+== Influence on Earth ==
+The Moon's gravity raises the [[ocean tides]]. The Moon is ''tidally locked'', so the same side always faces Earth.
+
+== Exploration ==
+{|
+|+ Milestones
+! Year !! Mission !! Note
+|-
+| 1959 || Luna 2 || First spacecraft to reach the surface
+|-
+| 1969 || Apollo 11 || First crewed landing
+|-
+| 1972 || Apollo 17 || Last crewed landing of the Apollo program
+|}
+Twelve astronauts walked on the Moon between 1969 and 1972.{{ref|NASA, Apollo program summary.}}
+
+== See also ==
+* [[Earth]]
+* Word history: [[dict:moon]]
+* [[quote:Main Page|Quotes]]
+
+== References ==
+{{references}}
+
+[[Category:Astronomy]]
+[[Category:Solar System]]`);
+ S('enc','Earth',`{{stub}}
+'''Earth''' is the third planet from the Sun and the only astronomical object known to harbor life. Its natural satellite is the [[Moon]].
+
+Mean radius: {{#data:Q2|mean radius}} (from [[data:Q2]]).
+
+[[Category:Astronomy]]`);
+ S('enc','Category:Astronomy','Pages about space and the objects in it.');
+ S('enc','Talk:Moon',`== Add the distance? ==
+The infobox could list the average distance from Earth (about 384,400 km). — Wiki Suite (sample)
+: Good idea. It should go into [[data:Q1]] first so every project can use it. — Wiki Suite (sample)`);
+ S('dict','Main Page',`Welcome to the '''Dictionary''': meanings, pronunciations, word origins and translations. Entries are case-sensitive, so ''moon'' and ''Moon'' are different pages.
+
+== Word of the day ==
+{{special|wotd}}
+
+== All entries ==
+{{special|index}}
+__NOTOC__`);
+ S('dict','serendipity',`== English ==
+{{pron|/ˌsɛɹ.ənˈdɪp.ɪ.ti/}}
+
+=== Etymology ===
+Coined by Horace Walpole in 1754, from the Persian fairy tale ''The Three Princes of Serendip'', whose heroes kept making lucky discoveries.
+
+=== Noun ===
+'''serendipity''' (''uncountable'')
+# The knack of making fortunate discoveries by accident.
+#: ''Finding the old letter was pure '''serendipity'''.''
+
+=== Translations ===
+* French: sérendipité
+* Spanish: serendipia
+* German: Serendipität
+
+[[Category:English nouns]]`);
+ S('dict','moon',`== English ==
+{{pron|/muːn/}}
+
+=== Etymology ===
+From Middle English ''mone'', from Old English ''mōna'', from Proto-Germanic ''*mēnô''.
+
+=== Noun ===
+'''moon''' (''plural'' moons)
+# (''often capitalized'') The natural satellite of Earth. See [[enc:Moon]].
+# Any natural satellite of a planet.
+#: ''Jupiter has dozens of '''moons'''.''
+
+=== Verb ===
+'''moon''' (''moons, mooning, mooned'')
+# To spend time idly or dreamily.
+#: ''He '''mooned''' about all afternoon.''
+
+=== Translations ===
+* Spanish: luna
+* French: lune
+* Japanese: 月 (tsuki)
+
+[[Category:English nouns]]
+[[Category:English verbs]]`);
+ S('quote','Main Page',`Welcome to '''Quotes''', a collection of notable sayings, always with their source.
+
+== Quote of the day ==
+{{special|qotd}}
+
+== Themes ==
+* [[Action]]
+* [[Thought]]
+__NOTOC__`);
+ S('quote','Action',`Quotations about doing rather than talking.
+
+{{quote
+|text=Well done is better than well said.
+|by=Benjamin Franklin
+|source=''Poor Richard's Almanack'', 1737
+}}
+{{quote
+|text=If one advances confidently in the direction of his dreams, and endeavors to live the life which he has imagined, he will meet with a success unexpected in common hours.
+|by=Henry David Thoreau
+|source=''Walden'', 1854
+}}
+
+[[Category:Themes]]`);
+ S('quote','Thought',`Quotations about the mind.
+
+{{quote
+|text=There is nothing either good or bad, but thinking makes it so.
+|by=William Shakespeare
+|source=''Hamlet'', Act 2, Scene 2
+}}
+{{quote
+|text=Such as are your habitual thoughts, such also will be the character of your mind; for the soul is dyed by the thoughts.
+|by=Marcus Aurelius
+|source=''Meditations'', Book V (translated by George Long)
+}}
+
+[[Category:Themes]]`);
+ S('book','Main Page',`Welcome to '''Books''': free textbooks and manuals written together. Each book has a contents page, and each chapter is a page named '''Book/Chapter'''.
+
+== Bookshelf ==
+{{special|shelf}}
+__NOTOC__`);
+ S('book','Cooking Basics',`'''Cooking Basics''' is a short book for people who are new to cooking.
+
+== Contents ==
+# [[Cooking Basics/Knife skills|Knife skills]]
+# [[Cooking Basics/Heat|Using heat]]
+# [[Cooking Basics/Seasoning|Seasoning]]
+
+[[Category:Books]]`);
+ S('book','Cooking Basics/Knife skills',`== Holding the knife ==
+Grip the handle with three fingers and pinch the blade just in front of the handle between thumb and index finger. This ''pinch grip'' gives the most control.
+
+== The claw ==
+Curl the fingertips of your other hand under, so your knuckles guide the side of the blade.
+
+{{tip|A sharp knife is safer than a dull one: it needs less force and slips less.}}
+
+== Basic cuts ==
+* '''Slice''': thin, even pieces.
+* '''Dice''': cubes, about 1 cm for a medium dice.
+* '''Mince''': very fine pieces, for garlic and herbs.`);
+ S('book','Cooking Basics/Heat',`== Ways to cook with heat ==
+; Sauté : quick cooking in a little fat over medium-high heat.
+; Simmer : liquid just below boiling, with small, lazy bubbles.
+; Roast : dry heat in an oven, usually 180–230 °C.
+
+{{warning|Never leave hot oil unattended. If oil catches fire, cover the pan and turn off the heat. Never use water.}}`);
+ S('src','Main Page',`The '''Source Library''' keeps original texts exactly as written. Fix typing mistakes, but never "improve" the wording.
+
+== Texts by author ==
+{{special|authors}}
+__NOTOC__`);
+ S('src','Gettysburg Address',`{{header
+|title=Gettysburg Address
+|author=Abraham Lincoln
+|year=1863
+|license=Public domain
+|notes=Text of the "Bliss copy", the version most often reproduced. Delivered November 19, 1863, at the dedication of the Soldiers' National Cemetery in Gettysburg, Pennsylvania.
+}}
+Four score and seven years ago our fathers brought forth on this continent, a new nation, conceived in Liberty, and dedicated to the proposition that all men are created equal.
+
+Now we are engaged in a great civil war, testing whether that nation, or any nation so conceived and so dedicated, can long endure. We are met on a great battle-field of that war. We have come to dedicate a portion of that field, as a final resting place for those who here gave their lives that that nation might live. It is altogether fitting and proper that we should do this.
+
+But, in a larger sense, we can not dedicate—we can not consecrate—we can not hallow—this ground. The brave men, living and dead, who struggled here, have consecrated it, far above our poor power to add or detract. The world will little note, nor long remember what we say here, but it can never forget what they did here. It is for us the living, rather, to be dedicated here to the unfinished work which they who fought here have thus far so nobly advanced. It is rather for us to be here dedicated to the great task remaining before us—that from these honored dead we take increased devotion to that cause for which they gave the last full measure of devotion—that we here highly resolve that these dead shall not have died in vain—that this nation, under God, shall have a new birth of freedom—and that government of the people, by the people, for the people, shall not perish from the earth.
+
+Abraham Lincoln<br>November 19, 1863
+
+[[Category:Speeches]]`);
+ S('news','Main Page',`'''News''' written by contributors. Every article has a dateline and is a ''draft'' until it is marked ''published''.
+
+{{special|newsroom}}
+__NOTOC__`);
+ S('news','Wiki Suite opens with fourteen projects',`{{dateline|date=2026-11-10|place=Your desktop}}
+{{status|published}}
+'''A collection of fourteen linked wikis opened today on this computer, giving its editor an encyclopedia, a dictionary, a species tree, a data store and more in one place.'''
+
+Every project shares the same markup, page history and search. Pages link across projects with short prefixes such as <code>dict:</code> or <code>sp:</code>, and one image in [[media:Main Page|Media Commons]] can appear on any page.
+
+== Sources ==
+* [[meta:Main Page|Meta Hub]]
+
+[[Category:Announcements]]`);
+ S('news','First edit-a-thon planned',`{{dateline|date=2026-11-12|place=Meta Hub}}
+{{status|draft}}
+'''Editors plan to spend an afternoon filling in the most wanted pages.'''
+
+See each project's ''Wanted pages'' list for ideas.
+
+[[Category:Announcements]]`);
+ S('uni','Main Page',`'''University''' hosts free courses. Each course has lessons and self-check quizzes, and your progress is remembered.
+
+== Courses ==
+{{special|courses}}
+__NOTOC__`);
+ S('uni','Introduction to Statistics',`'''Introduction to Statistics''' teaches the basic ideas used to describe a set of numbers.
+
+== Learning goals ==
+* Tell the mean, median and mode apart
+* Know when an average can mislead
+
+== Lesson 1: Averages ==
+; Mean : add the values and divide by how many there are.
+; Median : the middle value once the values are sorted.
+; Mode : the value that appears most often.
+
+For 2, 3, 3, 5, 12 the mean is {{#fn:mean|[2,3,3,5,12]}} (worked out live by the [[fn:mean|mean]] function), the median is 3 and the mode is 3.
+
+== Check yourself ==
+{{quiz
+|q=What is the median of 1, 4, 9?
+|options=4; 4.67; 9
+|answer=4
+}}
+{{quiz
+|q=Which average moves the most when one very large value is added?
+|options=Mean; Median; Mode
+|answer=Mean
+}}
+
+[[Category:Courses]]`);
+ S('travel','Main Page',`The '''Travel Guide''' covers places to go: how to get there, what to see, where to eat and how to stay safe.
+
+== Destinations ==
+{{special|destinations}}
+__NOTOC__`);
+ S('travel','Kyoto',`{{destination|type=City|country=Japan|region=Kansai}}
+'''Kyoto''' was Japan's capital for more than a thousand years and is famous for its temples, shrines and gardens.
+
+== Understand ==
+About 1.5 million people live in Kyoto. The city has well over a thousand Buddhist temples.
+
+== Get in ==
+The ''Tōkaidō Shinkansen'' bullet train links Kyoto with Tokyo in about 2 hours 15 minutes, and with Osaka in about 15 minutes.
+
+== See ==
+{{listing|type=see|name=Fushimi Inari Taisha|desc=Shrine famous for paths lined with thousands of orange torii gates winding up Mount Inari.}}
+{{listing|type=see|name=Kinkaku-ji|desc=The Golden Pavilion, a Zen temple covered in gold leaf, beside a calm pond.}}
+
+== Eat ==
+{{listing|type=eat|name=Nishiki Market|desc=A narrow covered market street full of food stalls and small shops.}}
+
+== Stay safe ==
+Kyoto is very safe. Crowds are the main problem: visit popular sights early in the morning.
+
+[[Category:Destinations]]`);
+ S('sp','Main Page',`'''Species''' maps the tree of life. Each taxon page has a {{taxon}} box naming its parent, and the tree below builds itself from those links.
+
+== Tree of life ==
+{{special|tree}}
+__NOTOC__`.replace('{{taxon}}','<code><nowiki>{{taxon}}</nowiki></code>'));
+ [['Animalia','Kingdom','','Animals'],['Chordata','Phylum','Animalia','Chordates'],['Mammalia','Class','Chordata','Mammals'],['Carnivora','Order','Mammalia','Carnivorans'],['Felidae','Family','Carnivora','Cats'],['Panthera','Genus','Felidae','Big cats']].forEach(([n,r,pa,co])=>S('sp',n,`{{taxon\n|rank=${r}\n|name=${n}\n|common=${co}\n|parent=${pa}\n}}\n'''${n}''' (${co.toLowerCase()}) is a ${r.toLowerCase()}${pa?' within [['+pa+']]':''}.\n\n== Members ==\nSee the [[Main Page|tree of life]].`));
+ S('sp','Panthera leo',`{{taxon
+|rank=Species
+|name=Panthera leo
+|common=Lion
+|parent=Panthera
+|status=Vulnerable
+}}
+''Panthera leo'', the '''lion''', is a large cat of the genus [[Panthera]], native to Africa and India. It is the only cat that commonly lives in groups, called prides.`);
+ S('sp','Panthera tigris',`{{taxon
+|rank=Species
+|name=Panthera tigris
+|common=Tiger
+|parent=Panthera
+|status=Endangered
+}}
+''Panthera tigris'', the '''tiger''', is the largest living cat species, recognizable by its dark vertical stripes on orange fur.`);
+ S('data','Main Page',`'''Data''' stores facts as items (Q1, Q2 …) made of ''property = value'' lines. Any page in any project can show a value with <code><nowiki>{{#data:Q1|mean radius}}</nowiki></code>.
+
+== Items ==
+{{special|query}}
+__NOTOC__`);
+ S('data','Q1',`label = Moon
+description = natural satellite of Earth
+aliases = Luna
+instance of = natural satellite
+orbits = [[Q2]]
+mean radius = 1,737.4 km
+encyclopedia article = [[enc:Moon]]`);
+ S('data','Q2',`label = Earth
+description = third planet from the Sun
+aliases = the World, Terra
+instance of = planet
+orbits = [[Q3]]
+satellite = [[Q1]]
+mean radius = 6,371 km
+encyclopedia article = [[enc:Earth]]`);
+ S('data','Q3',`label = Sun
+description = star at the center of the Solar System
+aliases = Sol
+instance of = star
+mean radius = 695,700 km`);
+ S('media','Main Page',`'''Media Commons''' holds images that every project can use. Upload once, then show it anywhere with <code><nowiki>[[File:Name.png|thumb|Caption]]</nowiki></code>.
+
+== Gallery ==
+{{special|gallery}}
+__NOTOC__`);
+ S('media','File:Moon icon.svg',`{{fileinfo|author=Wiki Suite|license=CC0|source=Drawn for this suite|date=2026-11-10}}
+A simple drawing of the Moon with craters, made as a sample image.`);
+ S('fn','Main Page',`'''Functions''' is a library of small reusable functions, each with tests. Any page in the suite can run one: <code><nowiki>{{#fn:factorial|5}}</nowiki></code> gives {{#fn:factorial|5}}.
+
+== Catalog ==
+{{special|catalog}}
+__NOTOC__`);
+ S('fn','add',`{{function|args=a, b|returns=number or text|about=Adds two numbers, or joins two pieces of text.}}
+<impl>
+return a + b;
+</impl>
+{{test|args=1, 2|expect=3}}
+{{test|args="snow", "ball"|expect="snowball"}}
+
+[[Category:Functions]]`);
+ S('fn','factorial',`{{function|args=n|returns=number|about=Multiplies 1 × 2 × … × n. Shows how a function can call itself with fn().}}
+<impl>
+if (n < 0) throw new Error("n must be 0 or more");
+return n <= 1 ? 1 : n * fn("factorial", n - 1);
+</impl>
+{{test|args=0|expect=1}}
+{{test|args=5|expect=120}}
+{{test|args=10|expect=3628800}}
+
+[[Category:Functions]]`);
+ S('fn','mean',`{{function|args=list|returns=number|about=The average of a list of numbers.}}
+<impl>
+if (!list.length) return null;
+return list.reduce((sum, x) => sum + x, 0) / list.length;
+</impl>
+{{test|args=[2,3,3,5,12]|expect=5}}
+{{test|args=[]|expect=null}}
+
+[[Category:Functions]]`);
+ S('fn','wordCount',`{{function|args=text|returns=number|about=Counts the words in a piece of text.}}
+<impl>
+return String(text).trim().split(/\\s+/).filter(Boolean).length;
+</impl>
+{{test|args="hello big world"|expect=3}}
+{{test|args="   "|expect=0}}
+
+[[Category:Functions]]`);
+ S('meta','Main Page',`The '''Meta Hub''' coordinates all the projects in this suite: shared templates, policies and statistics.
+
+{{Welcome|editor}}
+
+== Projects ==
+{{special|stats}}
+
+== Shared templates ==
+A template made here, such as [[Template:Welcome]], works in every project.
+
+== Policies ==
+See [[Policies]].`);
+ S('meta','Template:Welcome',`{{note|Hello, '''{{{1|friend}}}'''! Welcome to the suite. Start on any project's main page, or read the [[docs:Markup|markup guide]].}}
+<noinclude>
+Use it on any page as <code><nowiki>{{Welcome|name}}</nowiki></code>.
+</noinclude>`);
+ S('meta','Policies',`== Core principles ==
+# '''Be accurate.''' Say where facts come from with <code><nowiki>{{ref|…}}</nowiki></code>.
+# '''Stay neutral.''' Describe different views fairly.
+# '''Keep originals original.''' Source Library texts are never reworded.
+# '''Discuss.''' When unsure, use the page's '''Talk''' tab.
+# '''Data first.''' Numbers used in many places belong in a [[data:Main Page|Data]] item.`);
+ S('docs','Main Page',`'''Software Docs''' explains how this wiki engine works.
+
+* [[Markup]]: formatting, links, lists, tables, images
+* [[Templates]]: ready-made boxes, and making your own
+* [[Projects and prefixes]]: linking between projects, data items and functions
+__NOTOC__`);
+ S('docs','Markup',`All projects share this markup. Click '''Edit''' on any page to see it in use.
+
+== Text ==
+<pre>
+''italic''      '''bold'''      '''''bold italic'''''
+<code>code</code>   <s>struck</s>   <u>underlined</u>   x<sup>2</sup>   H<sub>2</sub>O
+</pre>
+
+== Headings and lines ==
+<pre>
+== Section ==
+=== Subsection ===
+----                (a horizontal line)
+ A line that starts with a space is shown as code.
+</pre>
+Three or more headings add a table of contents. Write <code><nowiki>__NOTOC__</nowiki></code> to hide it.
+
+== Links ==
+<pre>
+[[Page]]                   a page in the same project
+[[Page|shown text]]        a link with different text
+[[Page#Section]]           a section of a page
+[[dict:word]]              a page in another project
+[[Category:Name]]          put this page in a category
+[[:Category:Name]]         link to a category page
+[https://example.org Example]   an outside address (shown, not opened)
+#REDIRECT [[Other page]]   send readers to another page
+</pre>
+Links to pages that don't exist yet are shown in red: click one to create it.
+
+== Lists ==
+<pre>
+* bullet            # numbered          ; term : definition
+** nested bullet    #: indented note    : indented line
+</pre>
+
+== Tables ==
+<pre>
+{|
+|+ Caption
+! Header !! Header
+|-
+| cell || cell
+|}
+</pre>
+
+== Images ==
+<pre>
+[[File:Moon icon.svg|thumb|A caption]]
+[[File:Moon icon.svg|120px|left]]
+</pre>
+Upload images in [[media:Main Page|Media Commons]]. Every project can use them.
+
+== Notes and signatures ==
+<pre>
+A fact that needs a source.{{ref|Where it came from.}}
+{{references}}       where the list of notes goes (added at the end if left out)
+~~~~                 your name and the date (for Talk pages)
+<!-- hidden comment -->
+</pre>`);
+ S('docs','Templates',`Templates insert ready-made boxes. These are built in and work everywhere:
+
+{|
+! Template !! What it does
+|-
+| <nowiki>{{infobox|title=|image=|caption=|Key=Value}}</nowiki> || Fact box beside an article
+|-
+| <nowiki>{{quote|text=|by=|source=}}</nowiki> || A quotation (collected for Quote of the day)
+|-
+| <nowiki>{{pron|/IPA/}}</nowiki> || Pronunciation
+|-
+| <nowiki>{{taxon|rank=|name=|common=|parent=|status=}}</nowiki> || Classification box; parent builds the tree of life
+|-
+| <nowiki>{{header|title=|author=|year=|license=|notes=}}</nowiki> || Source text header
+|-
+| <nowiki>{{dateline|date=|place=}} {{status|published}}</nowiki> || News date, place and status
+|-
+| <nowiki>{{quiz|q=|options=A; B; C|answer=A}}</nowiki> || Self-check question
+|-
+| <nowiki>{{destination|type=|country=|region=}} {{listing|type=see|name=|desc=|price=}}</nowiki> || Travel guide parts (see, do, eat, drink, sleep, buy)
+|-
+| <nowiki>{{fileinfo|author=|license=|source=|date=}}</nowiki> || File description
+|-
+| <nowiki>{{function|args=|returns=|about=}} <impl>…</impl> {{test|args=|expect=}}</nowiki> || A function, its code and its tests
+|-
+| <nowiki>{{note|…}} {{tip|…}} {{warning|…}} {{stub}} {{main|Page}}</nowiki> || Notice boxes
+|-
+| <nowiki>{{ref|…}} {{references}}</nowiki> || Footnotes
+|-
+| <nowiki>{{gallery|A.png|B.png}}</nowiki> || Image gallery
+|-
+| <nowiki>{{special|recent}}</nowiki> || Embed a live list: recent, all, cats, wanted, index, wotd, qotd, shelf, authors, newsroom, courses, destinations, tree, query, gallery, catalog, stats, prefixes
+|-
+| <nowiki>{{#fn:name|arg|arg}}</nowiki> || Run a function and show the result
+|-
+| <nowiki>{{#data:Q1|property}}</nowiki> || Show a value from a Data item
+|-
+| <nowiki>{{#if:text|yes|no}}</nowiki> || Show ''yes'' if text isn't empty
+|-
+| <nowiki>{{PAGENAME}} {{TODAY}} {{SITENAME}} {{NUMBEROFPAGES}}</nowiki> || Magic words
+|}
+
+== Your own templates ==
+Make a page called <code>Template:Name</code> in any project, or in the [[meta:Main Page|Meta Hub]] to share it with all of them. Inside, use <code><nowiki>{{{1}}}</nowiki></code> or <code><nowiki>{{{name|default}}}</nowiki></code> for the values passed in. Then write <code><nowiki>{{Name|value}}</nowiki></code> on any page. Example: [[meta:Template:Welcome]].`);
+ S('docs','Projects and prefixes',`Link to a page in another project by putting its prefix in front: <code><nowiki>[[sp:Panthera leo]]</nowiki></code> gives [[sp:Panthera leo]].
+
+{{special|prefixes}}
+
+== Data items ==
+Items are named Q1, Q2 … Each line is <code>property = value</code>:
+<pre>
+label = Moon
+description = natural satellite of Earth
+instance of = natural satellite
+orbits = [[Q2]]
+</pre>
+Show a value anywhere with <code><nowiki>{{#data:Q1|orbits}}</nowiki></code>, which gives {{#data:Q1|orbits}}.
+
+== Functions ==
+A function page has a <code><nowiki>{{function|args=a, b}}</nowiki></code> line, JavaScript code between <code><nowiki><impl></nowiki></code> and <code><nowiki></impl></nowiki></code>, and <code><nowiki>{{test}}</nowiki></code> lines. Inside the code, <code>fn("other", …)</code> calls another function. Example: [[fn:factorial]].`);
+ save();saveF()}
+if(!DB||!DB.pages){DB={pages:{}};seed()}
+P.forEach(q=>{DB.pages[q.id]=DB.pages[q.id]||{}});
+render();
+</script>
+</body></html>
