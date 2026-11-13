@@ -1,0 +1,11 @@
+{
+ "name": "Mintworks Exchange",
+ "by": "Randy",
+ "blurb": "A play-money exchange simulation: about 45 markets (coins, bullion, gems, tokens, your own coins) with an order book, file NFTs that hold the real file, a DAO market, a creation suite and a trading-card exchange with packs, singles and a binder. No real money.",
+ "status": "ok",
+ "real_items": null,
+ "reviews": {
+  "randy": null,
+  "maker": null
+ }
+}
