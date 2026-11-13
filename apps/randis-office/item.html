@@ -172,6 +172,26 @@ table.sg{border-collapse:collapse;table-layout:fixed;font-size:12px}
 .task.done span{text-decoration:line-through;color:#999}
 .task span{flex:1}
 .prio{font-size:10px;padding:1px 5px;border-radius:8px;color:#fff}
+.pframe{flex:1;min-height:0;width:100%;border:0;background:#fff}
+.bld{flex:1;min-height:0;display:flex}
+.bside{width:380px;flex:none;display:flex;flex-direction:column;border-right:1px solid #dcdfe4;background:#f8f9fb;min-height:0}
+.bmine{padding:8px 10px;border-bottom:1px solid #e1e4e9;display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:2px;background:#fff;border:1px solid #d5d9e0;border-radius:12px;padding:2px 4px 2px 9px;font-size:12px}
+.chip.on{border-color:var(--ac);box-shadow:0 0 0 1px var(--ac)}
+.chip button{border:0;background:none;cursor:pointer;border-radius:8px;padding:0 4px;opacity:.65}.chip button:hover{opacity:1;background:#eef}
+.blog{flex:1;min-height:0;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
+.msg{white-space:pre-wrap;padding:7px 10px;border-radius:10px;max-width:92%;line-height:1.4;word-wrap:break-word}
+.msg.user{align-self:flex-end;background:var(--ac);color:#fff}
+.msg.assistant{align-self:flex-start;background:#fff;border:1px solid #e1e4e9}
+.bhint{color:#555;background:#fff;border:1px dashed #c9cdd5;border-radius:10px;padding:10px 12px}.bhint p{margin:6px 0 0}
+.bin{padding:8px;border-top:1px solid #e1e4e9;display:flex;flex-direction:column;gap:6px}
+.bin textarea{width:100%;resize:vertical;border:1px solid #c5c9d0;border-radius:8px;padding:6px 8px}
+.brow{display:flex;gap:6px;align-items:center}.bstat{flex:1;color:#777;font-size:12px}
+.bmain{flex:1;min-width:0;display:flex;flex-direction:column}
+.btop{display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid #e1e4e9;min-height:40px}
+.barea{flex:1;min-height:0;display:flex;flex-direction:column}
+.bempty{margin:auto;color:#999}
+.bnote{padding:6px 8px;color:#555}
 </style></head>
 <body>
 <div id="app">
@@ -1087,7 +1107,70 @@ function parseIcs(t){const lines=t.replace(/\r\n[ \t]/g,'').split(/\r?\n/);const
 <script>
 'use strict';
 /* ---------- the suite: app tabs → document tabs → the app ---------- */
-const APPS=[Writer,Sheets,Slides,Notes,Draw,Database,Planner];
+/* ---------- your own office products, made in a chat ---------- */
+const BASE_APPS=[Writer,Sheets,Slides,Notes,Draw,Database,Planner];
+function pageInfo(html){const d=new DOMParser().parseFromString(html,'text/html');const m=n=>((d.querySelector('meta[name="office-'+n+'"]')||{}).content||'').trim();
+  return{name:((d.querySelector('title')||{}).textContent||'').trim().slice(0,40)||'My product',icon:[...m('icon')][0]||'🧩',noun:m('noun').slice(0,30)||'document',color:/^#[0-9a-f]{3,8}$/i.test(m('color'))?m('color'):'#5b5fc7'}}
+function pullPage(text){const m=text.match(/```(?:html|HTML)?\s*\n([\s\S]*?)```/);const body=m?m[1]:text;const m2=body.match(/(<!doctype html[\s\S]*<\/html>|<html[\s\S]*<\/html>)/i);
+  if(m2)return m2[1].trim();if(m&&/<(body|div|button|canvas|script|style|h1|input)\b/i.test(body))return body.trim();return null}
+function wordsOnly(text){return text.replace(/```[\s\S]*?(```|$)/g,'').trim()}
+/* A product runs in its own sealed frame and talks to the suite: {office:'load',data} in, {office:'save'|'export'} out. */
+function productFrame(html,data,onSave){const f=h('iframe',{class:'pframe',sandbox:'allow-scripts allow-modals allow-forms',title:'Office product'});
+  const on=e=>{if(e.source!==f.contentWindow||!e.data||typeof e.data.office!=='string')return;const d=e.data;
+    if(d.office==='save'){try{onSave(JSON.parse(JSON.stringify(d.data??null)))}catch(x){toast('That product tried to save something it can\'t keep.')}}
+    if(d.office==='export')saveFile(safeName(String(d.name||'file.txt')),d.data instanceof Blob?d.data:String(d.text??''),String(d.mime||'text/plain;charset=utf-8'))};
+  addEventListener('message',on);f.addEventListener('load',()=>{try{f.contentWindow.postMessage({office:'load',data:data??null},'*')}catch(e){}});f.srcdoc=html;
+  return{el:f,destroy(){removeEventListener('message',on)}}}
+function customApp(p){return{id:'cx_'+p.id,name:p.name,icon:p.icon,color:p.color,noun:p.noun,custom:p,templates:{blank:{name:'Blank '+p.noun,icon:p.icon}},blank:()=>null,
+  mount(work,d,ctx){const fr=productFrame(p.html,d.data,v=>{d.data=v;ctx.save()});work.append(fr.el);return{destroy:fr.destroy}}}}
+const Builder={id:'builder',name:'Add office product',icon:'＋',color:'#5b5fc7',noun:'product',special:true,mount:mountBuilder};
+let APPS=BASE_APPS.slice();
+function rebuildApps(){S.custom=S.custom||[];APPS=[...BASE_APPS,...S.custom.map(customApp),Builder]}
+let askId=null;
+function mountBuilder(work){const B=S.builder=S.builder||{chat:[],html:'',editing:null};const editing=()=>(S.custom||[]).find(p=>p.id===B.editing);
+  const wrap=h('div',{class:'bld'});const side=h('div',{class:'bside'}),main=h('div',{class:'bmain'});wrap.append(side,main);work.append(wrap);
+  /* your products */
+  const mine=h('div',{class:'bmine'});
+  const drawMine=()=>{mine.innerHTML='';mine.append(h('b',null,'Your products '));if(!(S.custom||[]).length)mine.append(h('small',{style:{color:'#888'}},'none yet'));
+    for(const p of S.custom||[])mine.append(h('span',{class:'chip'+(p.id===B.editing?' on':'')},p.icon+' '+p.name,
+      h('button',{title:'Change it in the chat',onclick:()=>{if(B.html&&B.editing!==p.id&&!confirm('Leave the product you\'re working on? Anything not added to Office is lost.'))return;S.builder={chat:(p.chat||[]).slice(),html:p.html,editing:p.id};save();mount()}},'✎'),
+      h('button',{title:'Remove it from Randis Office',onclick:()=>{const n=(S.apps['cx_'+p.id]||{docs:[]}).docs.length;if(!confirm('Remove '+p.name+' from Randis Office'+(n?' along with its '+n+' saved '+p.noun+(n>1?'s':''):'')+'? This can\'t be undone here.'))return;
+        S.custom=S.custom.filter(x=>x!==p);delete S.apps['cx_'+p.id];if(B.editing===p.id)B.editing=null;rebuildApps();render();save()}},'✕')))};drawMine();
+  /* the chat */
+  const log=h('div',{class:'blog'}),box=h('textarea',{rows:3,placeholder:B.html?'Say what to change…':'Describe the office product you want, e.g. "an invoice maker with line items and totals that exports to HTML"'});
+  const status=h('div',{class:'bstat'}),send=h('button',{class:'btn pri'},'Send');
+  const drawLog=()=>{log.innerHTML='';if(!B.chat.length)log.append(h('div',{class:'bhint'},h('b',null,'Make a new office product'),h('p',null,'Tell your AI what you want it to do. It builds the whole thing and shows it on the right. Keep chatting to change it, then press “Add to Office” and it gets its own tab up top, next to Writer and Sheets.'),h('p',null,'It uses the AI linked in Randis UDS (the LLM button).')));
+    for(const m of B.chat)log.append(h('div',{class:'msg '+m.role},m.content));log.scrollTop=log.scrollHeight};drawLog();
+  const busy=v=>{send.disabled=v;box.disabled=v};
+  function go(){const t=box.value.trim();if(!t||send.disabled)return;if(!HOST||fallback==='shop'){toast('This only works inside Randis UDS, where an AI is linked.');return}
+    B.chat.push({role:'user',content:t.slice(0,4000)});B.chat=B.chat.slice(-30);box.value='';drawLog();save();busy(true);status.textContent='Asking…';
+    askId=uid();parent.postMessage({uds:'office-ask',id:askId,history:B.chat.slice(-16),page:B.html||''},'*')}
+  send.onclick=go;box.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();go()}});
+  const onReply=e=>{const d=e.data;if(!d||d.uds!=='office'||d.id!==askId)return;
+    if(!d.done){status.textContent=(d.status||'Working…')+(d.text?' '+Math.round(d.text.length/1024)+' KB so far':'');return}
+    askId=null;busy(false);status.textContent='';
+    if(d.error){B.chat.push({role:'assistant',content:'⚠ '+d.error});drawLog();save();return}
+    const page=pullPage(d.text||''),words=wordsOnly(d.text||'');
+    if(page){B.html=page;B.data=null;drawTop();preview()}
+    else if(/```html/i.test(d.text||''))toast('The reply was cut off before the page ended. Ask it to try again, maybe a bit simpler.',6000);
+    B.chat.push({role:'assistant',content:((words||'')+(page?(words?'\n\n':'')+'(Updated the product — try it on the right.)':''))||'(no answer)'});B.chat=B.chat.slice(-30);drawLog();save();box.focus()};
+  addEventListener('message',onReply);if(askId){busy(true);status.textContent='Still working on your last message…'}
+  side.append(mine,log,h('div',{class:'bin'},box,h('div',{class:'brow'},status,
+    h('button',{class:'btn',title:'Start over with a blank product',onclick:()=>{if((B.html||B.chat.length)&&!confirm('Start a new product? This chat and anything not added to Office are cleared.'))return;S.builder={chat:[],html:'',editing:null};save();mount()}},'New'),send)));
+  /* the product, live */
+  const top=h('div',{class:'btop'}),area=h('div',{class:'barea'});main.append(top,area);let fr=null;
+  function preview(){if(fr){fr.destroy();fr=null}area.innerHTML='';if(!B.html){area.append(h('div',{class:'bempty'},'Your product shows up here once the AI has built it.'));return}
+    fr=productFrame(B.html,B.data,v=>{B.data=v});area.append(fr.el)}
+  function drawTop(){top.innerHTML='';if(!B.html){top.append(h('span',{style:{color:'#888'}},'No product yet'));return}const i=pageInfo(B.html),p=editing();
+    top.append(h('b',{style:{color:i.color}},i.icon+' '+i.name),h('small',{style:{color:'#888'}},' makes '+i.noun+'s'),h('span',{style:{flex:1}}),
+      h('button',{class:'btn',title:'Start the preview fresh',onclick:()=>{B.data=null;preview()}},'↻ Restart'),
+      h('button',{class:'btn',title:'Save the product\'s page as a file',onclick:()=>saveFile(safeName(i.name)+'.html',B.html,'text/html')},'⤓ Page'),
+      h('button',{class:'btn pri',onclick:addIt},p?'Save changes to '+p.name:'Add to Office'))}
+  function addIt(){const i=pageInfo(B.html);let p=editing();
+    if(p)Object.assign(p,i,{html:B.html,chat:B.chat.slice()});else{p={id:uid(),...i,html:B.html,chat:B.chat.slice()};S.custom.push(p);B.editing=p.id}
+    rebuildApps();render();save();toast(i.icon+' '+i.name+' is in Randis Office now: its tab is up top.',4000)}
+  drawTop();preview();setTimeout(()=>box.focus(),0);
+  return{destroy(){removeEventListener('message',onReply);if(fr)fr.destroy()}}}
 const HOST=window.parent!==window;
 let S=null,CUR=null,loaded=false,saveT=null,fallback=false;
 const appOf=id=>APPS.find(a=>a.id===id)||APPS[0];
@@ -1103,11 +1186,11 @@ addEventListener('message',e=>{const d=e.data;if(!d||typeof d.uds!=='string')ret
   if(d.uds==='store-none'&&!loaded){fallback='shop';boot(null);toast('Work here isn\'t kept after you close it. Export anything you want to keep.',6000)}
   if(d.uds==='exporting')toast(d.note,4000);
   if(d.uds==='exported')toast(d.note,d.ok?3500:6000)});
-function boot(data){if(loaded)return;loaded=true;S=data&&data.S&&data.S.apps?data.S:{active:'writer',apps:{}};render();setState('Saved')}
+function boot(data){if(loaded)return;loaded=true;S=data&&data.S&&data.S.apps?data.S:{active:'writer',apps:{}};rebuildApps();render();setState('Saved')}
 function render(){const app=appOf(S.active);document.documentElement.style.setProperty('--ac',app.color);
   const nav=$('#apps');nav.innerHTML='';for(const a of APPS){const n=st(a.id).docs.filter(d=>d.open).length;nav.append(h('button',{class:a.id===app.id?'on':'',title:a.name+(n?` · ${n} open`:''),onclick:()=>{if(S.active===a.id)return;S.active=a.id;render();save()}},a.icon+' '+a.name+(n?` (${n})`:'')))}
   renderDocs();mount()}
-function renderDocs(){const app=appOf(S.active),s=st(app.id),bar=$('#docbar');bar.innerHTML='';
+function renderDocs(){const app=appOf(S.active),s=st(app.id),bar=$('#docbar');bar.innerHTML='';if(app.special){bar.append(h('div',{class:'bnote'},'Describe a new office product in the chat, try it on the right, then press Add to Office.'));return}
   for(const d of s.docs.filter(d=>d.open)){const t=h('div',{class:'dtab'+(d.id===s.cur?' on':''),title:d.name+' — double-click to rename, right-click for more'},h('span',null,app.icon+' '+d.name),h('button',{class:'x',title:'Close (it stays in Open…)',onclick:e=>{e.stopPropagation();closeDoc(d.id)}},'✕'));
     t.onclick=()=>{if(s.cur!==d.id){s.cur=d.id;renderDocs();mount();save()}};t.ondblclick=()=>renameDoc(d);t.onmousedown=e=>{if(e.button===1){e.preventDefault();closeDoc(d.id)}};
     t.oncontextmenu=e=>{e.preventDefault();menu(e.clientX,e.clientY,[['Rename',()=>renameDoc(d)],['Make a copy',()=>copyDoc(d)],['Close',()=>closeDoc(d.id)],['Close others',()=>{s.docs.forEach(x=>{if(x!==d)x.open=false});s.cur=d.id;render();save()}],['Delete for good',()=>deleteDoc(d)]])};bar.append(t)}
@@ -1115,7 +1198,7 @@ function renderDocs(){const app=appOf(S.active),s=st(app.id),bar=$('#docbar');ba
 function newMenu(btn){const app=appOf(S.active);const ts=Object.entries(app.templates||{blank:{name:'Blank'}});if(ts.length===1)return newDoc('blank');menuAt(btn,ts.map(([k,t])=>[t.icon+'  '+t.name,()=>newDoc(k)]))}
 function nextName(app){const s=st(app.id);const base=app.noun[0].toUpperCase()+app.noun.slice(1);let n=1;while(s.docs.some(d=>d.name===base+' '+n))n++;return base+' '+n}
 function addDoc(name,data){const app=appOf(S.active),s=st(app.id);const d={id:uid(),name,open:true,created:Date.now(),data};s.docs.push(d);s.cur=d.id;render();save();return d}
-function newDoc(t){const app=appOf(S.active);const tpl=app.templates&&app.templates[t];addDoc(t==='blank'||!tpl?nextName(app):tpl.name,app.blank(t))}
+function newDoc(t){const app=appOf(S.active);if(app.special)return;const tpl=app.templates&&app.templates[t];addDoc(t==='blank'||!tpl?nextName(app):tpl.name,app.blank(t))}
 function openDoc(id){const s=st(S.active);const d=s.docs.find(x=>x.id===id);if(!d)return;d.open=true;s.cur=id;render();save()}
 function closeDoc(id){const s=st(S.active);const open=s.docs.filter(d=>d.open);const i=open.findIndex(d=>d.id===id);if(s.cur===id){try{CUR&&CUR.flush&&CUR.flush()}catch(e){}}const d=s.docs.find(x=>x.id===id);if(d)d.open=false;
   if(s.cur===id){const rest=open.filter(x=>x.id!==id);s.cur=rest.length?rest[Math.min(i,rest.length-1)].id:null}render();save()}
@@ -1132,6 +1215,7 @@ function startScreen(app){const s=st(app.id);const box=h('div',{class:'start'},h
   if(s.docs.length){const r=h('div',{class:'recent'},h('h3',{style:{color:'#555'}},'Saved '+app.noun+'s'));for(const d of[...s.docs].sort((a,b)=>(b.created||0)-(a.created||0)).slice(0,12))r.append(h('div',{onclick:()=>openDoc(d.id)},h('span',null,app.icon+' '+d.name),h('small',{style:{color:'#999'}},new Date(d.created||Date.now()).toLocaleDateString())));box.append(r)}
   return box}
 function mount(){if(CUR){try{CUR.flush&&CUR.flush()}catch(e){}try{CUR.destroy&&CUR.destroy()}catch(e){}CUR=null}closeMenu();const work=$('#work');work.innerHTML='';const app=appOf(S.active),s=st(app.id);
+  if(app.special){CUR=app.mount(work)||{};return}
   const d=s.docs.find(x=>x.id===s.cur&&x.open);if(!d){work.append(startScreen(app));return}
   try{CUR=app.mount(work,d,{save,persist,rename:()=>renameDoc(d)})||{}}catch(e){console.error(e);work.innerHTML='';work.append(h('div',{class:'start'},h('h2',null,'This '+app.noun+' could not be opened'),h('p',null,String(e&&e.message||e)),h('button',{class:'btn',onclick:()=>closeDoc(d.id)},'Close it')))}}
 addEventListener('keydown',e=>{if(!loaded)return;const l=e.key.toLowerCase();if((e.ctrlKey||e.metaKey)&&l==='s'){e.preventDefault();persist();toast('Saved')}
