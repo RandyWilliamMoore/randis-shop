@@ -133,6 +133,8 @@ def main():
     write_list("items.js", "ITEMS", items)
     write_list("software.js", "SOFTWARE", software)
     write_list("music.js", "MUSIC", music)
+    import build_share
+    build_share.main()
 
 
 if __name__ == "__main__":

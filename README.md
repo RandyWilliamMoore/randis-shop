@@ -20,6 +20,10 @@ python tools/add_music.py "C:/path/My Song.wav" --name "My Song" --genre "Elevat
 
 On the Jukebox's stage, the Raisin Band plays along with whatever song is on, dressed for its genre, and bounces on its beat (`site/band.js`). Randis Sound Forge and Hotdog Tycoon carry their own copy of it; after changing `site/band.js`, run `python tools/sync_band.py`.
 
+## Share links
+
+Every item, song and download has a **Share** button that copies a link like `https://randywilliammoore.github.io/randis-shop/share/games/blockwild/`. Pasted in Discord, it shows the item's picture card, name and blurb, and it opens the item in the shop. The header's **Share the shop** and **Share Randis UDS** copy the shop's and the app's links. `tools/build_share.py` writes the share pages (`share/`) and picture cards (`site/share/`, made with Microsoft Edge); `build_index.py` runs it for you.
+
 ## Tests
 
 They run the real shop page in a real browser window (Edge WebView2, through pywebview), on Windows, from a test server on this computer. The window opens off screen.
@@ -32,6 +36,7 @@ python tests/link_test.py       # outside links ask first, and only "Open it" op
 python tests/save_test.py       # files a game makes are saved by the shop page: known kinds only, one at a time
 python tests/play_test.py       # real rounds of the games that have a play check
 python tests/music_test.py      # Sound Forge makes elevator music; add_music.py's tags and cover; the Jukebox and its band
+python tests/share_test.py      # every Share button copies the right link; every share page has the preview Discord shows
 ```
 
-`ship_test.py` and `play_test.py` take item names to test only those, like `python tests/ship_test.py dice-master`. Run all six before pushing a change to `site/`, `index.html` or `site.js`; run `ship_test.py` on any item you add or change.
+`ship_test.py` and `play_test.py` take item names to test only those, like `python tests/ship_test.py dice-master`. Run all seven before pushing a change to `site/`, `index.html` or `site.js`; run `ship_test.py` on any item you add or change.
