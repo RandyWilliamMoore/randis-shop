@@ -29,8 +29,10 @@ def read_item(kind, slug):
         problem(where, "needs item.html, info.json and one logo")
     with open(os.path.join(folder, "info.json"), encoding="utf-8") as f:
         info = json.load(f)
-    if set(info) != {"name", "by", "blurb", "status", "real_items", "reviews"}:
+    if set(info) - {"version"} != {"name", "by", "blurb", "status", "real_items", "reviews"}:
         problem(where, "info.json has the wrong fields")
+    if "version" in info and not (type(info["version"]) is int and 1 <= info["version"] <= 9999):
+        problem(where, "version must be a whole number from 1 up")
     for field, most in TEXT_MAX.items():
         if not isinstance(info[field], str) or not info[field].strip() or len(info[field]) > most:
             problem(where, f"{field} must be text of at most {most} characters")
