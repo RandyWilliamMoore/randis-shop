@@ -308,23 +308,6 @@ window.ITEMS = [
  },
  {
   "kind": "games",
-  "slug": "mintworks-exchange",
-  "name": "Mintworks Exchange",
-  "by": "Randy",
-  "blurb": "A play-money exchange simulation: about 45 markets (coins, bullion, gems, tokens, your own coins) with an order book, file NFTs that hold the real file, a DAO market, a creation suite and a trading-card exchange with packs, singles and a binder. No real money.",
-  "status": "ok",
-  "real_items": null,
-  "reviews": {
-   "randy": null,
-   "maker": null
-  },
-  "open_with": "randisuds://open?item=games/mintworks-exchange",
-  "file": "games/mintworks-exchange/item.html",
-  "logo": "games/mintworks-exchange/logo.svg",
-  "video_pic": null
- },
- {
-  "kind": "games",
   "slug": "pachinko-player",
   "name": "Pachinko Player",
   "by": "Randy",
@@ -474,6 +457,23 @@ window.ITEMS = [
   "open_with": "randisuds://open?item=apps/heirloom-boxes",
   "file": "apps/heirloom-boxes/item.html",
   "logo": "apps/heirloom-boxes/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "mintworks-exchange",
+  "name": "Mintworks Exchange",
+  "by": "Randy",
+  "blurb": "A play-money exchange simulation: about 45 markets (coins, bullion, gems, tokens, your own coins) with an order book, file NFTs that hold the real file, a DAO market, a creation suite and a trading-card exchange with packs, singles and a binder. No real money.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/mintworks-exchange",
+  "file": "apps/mintworks-exchange/item.html",
+  "logo": "apps/mintworks-exchange/logo.svg",
   "video_pic": null
  },
  {
