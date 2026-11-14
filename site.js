@@ -265,6 +265,8 @@ function playWindow(i) {
           const file = saveDownload(d.name, buf);
           reply(file ? `Saved ${file} in your downloads.` : "The shop can't save that kind of file, or a save just happened. Try again in a moment.");
         });
+      } else if (e.data && typeof e.data.uds === "string" && typeof e.data.id === "string" && e.data.id.length <= 64) {
+        e.source.postMessage({ uds: e.data.uds, id: e.data.id, r: { error: "This part only works inside Randis UDS." } }, "*");
       }
     };
     window.addEventListener("message", hear);
