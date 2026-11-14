@@ -1,0 +1,11 @@
+{
+ "name": "Life Tree",
+ "by": "Randy",
+ "blurb": "A life-planning to-do tree: endless nested checkboxes, folding, zoom, drag to move, status, priority, due dates, repeats with streaks, tags, metrics, wiki notes with [[links]], Today, Cards, Wiki and Done views, undo, export and import. The per-item AI chat needs Randis UDS.",
+ "status": "ok",
+ "real_items": null,
+ "reviews": {
+  "randy": null,
+  "maker": null
+ }
+}
