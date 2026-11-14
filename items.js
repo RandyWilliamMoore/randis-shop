@@ -512,6 +512,23 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "forge-rd-suite",
+  "name": "Forge R&D Suite",
+  "by": "Randy",
+  "blurb": "Take an idea all the way to production in any field: a project wizard with stage gates, starter requirements, risks and standards, plus 25 field suites (mechanical, medical, electronics, firmware, chemistry, construction and more), each with steps, tools and vendors to look at.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/forge-rd-suite",
+  "file": "apps/forge-rd-suite/item.html",
+  "logo": "apps/forge-rd-suite/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "free-money-finder",
   "name": "Free Money Finder",
   "by": "Randy",
@@ -899,6 +916,23 @@ window.ITEMS = [
   "open_with": "randisuds://open?item=apps/voice-forge",
   "file": "apps/voice-forge/item.html",
   "logo": "apps/voice-forge/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "vr-avatar-designer",
+  "name": "VR Avatar Designer",
+  "by": "Randy",
+  "blurb": "Design a rigged 3D avatar: body sliders and types, 13 presets (furry, dragon, robot, slime, chibi and more), face shape keys for blinking and lip-sync, ears, horns, hair, tails and wings with spring bones, then export it for VR apps.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/vr-avatar-designer",
+  "file": "apps/vr-avatar-designer/item.html",
+  "logo": "apps/vr-avatar-designer/logo.svg",
   "video_pic": null
  },
  {
