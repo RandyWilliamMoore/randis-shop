@@ -444,23 +444,6 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
-  "slug": "bindy-and-louis",
-  "name": "Bindy & Louis",
-  "by": "Randy",
-  "blurb": "Bindy the paperclip reads what you type and offers repair tips for phones, laptops, bikes, washers and more, from its own offline tip book. Plus a helper game: walk Louis around, let Bindy fix customers' devices to open each gate. Also a list of top repair channels and tools.",
-  "status": "ok",
-  "real_items": null,
-  "reviews": {
-   "randy": null,
-   "maker": null
-  },
-  "open_with": "randisuds://open?item=apps/bindy-and-louis",
-  "file": "apps/bindy-and-louis/item.html",
-  "logo": "apps/bindy-and-louis/logo.svg",
-  "video_pic": null
- },
- {
-  "kind": "apps",
   "slug": "club-wiki",
   "name": "Club Wiki",
   "by": "Randy",
