@@ -427,6 +427,23 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "aura-assistant",
+  "name": "Aura Assistant",
+  "by": "Randy",
+  "blurb": "An assistant with an animated avatar (hologram, anime character, orb, bot or waveform) that blinks, follows the mouse and changes moods. Timers, pomodoro, reminders, notes, to-dos and math work right here; chatting in character and voices need Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/aura-assistant",
+  "file": "apps/aura-assistant/item.html",
+  "logo": "apps/aura-assistant/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "club-wiki",
   "name": "Club Wiki",
   "by": "Randy",
@@ -508,6 +525,40 @@ window.ITEMS = [
   "open_with": "randisuds://open?item=apps/heirloom-boxes",
   "file": "apps/heirloom-boxes/item.html",
   "logo": "apps/heirloom-boxes/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "heirloom-design-lab",
+  "name": "Heirloom Design Lab",
+  "by": "Randy",
+  "blurb": "Design things built to be handed down: parts, materials, joints, repairability, a live score with a fix list, a wear-over-generations model with a care plan, a hand-down kit, and a benchmark designer to score your designs.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/heirloom-design-lab",
+  "file": "apps/heirloom-design-lab/item.html",
+  "logo": "apps/heirloom-design-lab/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "heritage",
+  "name": "Heritage",
+  "by": "Randy",
+  "blurb": "Ancestry and legacy: pedigree, fan, descendant and hourglass trees, profiles with sourced facts, research checks, timelines, a places map with migrations, DNA match estimates, stories and heirlooms. Web research and the AI genealogist need Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/heritage",
+  "file": "apps/heritage/item.html",
+  "logo": "apps/heritage/logo.svg",
   "video_pic": null
  },
  {
@@ -610,6 +661,23 @@ window.ITEMS = [
   "open_with": "randisuds://open?item=apps/quak-quak",
   "file": "apps/quak-quak/item.html",
   "logo": "apps/quak-quak/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "randis-bench-lab",
+  "name": "Randis Bench Lab",
+  "by": "Randy",
+  "blurb": "Design and run benchmarks: 14 graders, weights, versions, results with 95% ranges, paired compares, a leaderboard, a health check, a sample-size planner and synthetic data generators. Pasted or imported replies work here; running a linked AI needs Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/randis-bench-lab",
+  "file": "apps/randis-bench-lab/item.html",
+  "logo": "apps/randis-bench-lab/logo.svg",
   "video_pic": null
  },
  {

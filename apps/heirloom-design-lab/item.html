@@ -1,0 +1,906 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Heirloom Design Lab</title>
+<!-- Randis UDS™ by Randy Moore. Original: https://github.com/RandyWilliamMoore/randis-uds · Support: https://ko-fi.com/moorescombinatoricsmatrix -->
+<style>
+:root{--bg:#17140f;--bg2:#1d1a14;--bg3:#2a261e;--line:#3f392d;--tx:#f0ece2;--mut:#aaa18d;--acc:#d6a74b;--card:#201d17;
+--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#d55181;--s6:#008300;--s7:#9085e9;--s8:#e66767;
+--good:#0ca30c;--warn:#fab219;--bad:#d03b3b;--grid:#3a352b}
+body[data-theme=light]{--bg:#f4efe4;--bg2:#fbf7ee;--bg3:#ece4d3;--line:#d5c9b0;--tx:#221d14;--mut:#6c624e;--acc:#8d6110;--card:#fffcf6;
+--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;--s5:#e87ba4;--s6:#008300;--s7:#6250d6;--s8:#e34948;--grid:#e6dfcf}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font:14px/1.45 "Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--tx);display:flex;flex-direction:column;overflow:hidden}
+h2,h3{font-family:Georgia,"Times New Roman",serif;font-weight:600}
+h2{font-size:21px;margin:0 0 10px}
+h3{font-size:15px;margin:2px 0 8px;color:var(--acc)}
+h4{margin:12px 0 6px;font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
+p{margin:6px 0}
+button,input,select,textarea{font:inherit;color:inherit}
+input,select,textarea{background:var(--bg3);border:1px solid var(--line);border-radius:6px;padding:4px 7px;outline:none;min-width:0}
+input:focus,select:focus,textarea:focus{border-color:var(--acc)}
+input[type=checkbox]{accent-color:var(--acc)}
+textarea{width:100%;resize:vertical;min-height:60px}
+button{cursor:pointer;background:var(--bg3);border:1px solid var(--line);border-radius:6px;padding:5px 11px}
+button:hover{border-color:var(--acc)}
+button.pri{background:var(--acc);color:#1b1408;border-color:var(--acc);font-weight:600}
+button.sm{padding:2px 8px;font-size:12px}
+button.x{background:none;border:none;color:var(--mut);padding:2px 6px}
+button.x:hover{color:var(--bad)}
+#top{display:flex;align-items:center;gap:12px;padding:8px 14px;background:var(--bg2);border-bottom:1px solid var(--line)}
+#top .brand{font-family:Georgia,serif;font-size:18px;color:var(--acc)}
+#top .credit{font-size:11px;color:var(--mut);margin-left:auto}
+#top .credit a{color:var(--mut)}
+#suites button{border-radius:16px;padding:3px 13px}
+#suites button.on{background:var(--acc);color:#1b1408;border-color:var(--acc);font-weight:600}
+#wrap{flex:1;display:flex;min-height:0}
+#side{width:200px;background:var(--bg2);border-right:1px solid var(--line);padding:8px;overflow:auto;flex:none}
+#side h4{margin:10px 6px 4px}
+#side button{display:block;width:100%;text-align:left;background:none;border:1px solid transparent;margin-bottom:2px}
+#side button.on{background:var(--bg3);border-color:var(--line);color:var(--acc)}
+#side .pick{margin:4px 2px 8px;width:calc(100% - 4px)}
+#view{flex:1;overflow:auto;padding:16px 20px 50px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:12px}
+.grid2{display:grid;grid-template-columns:minmax(320px,1fr) minmax(320px,1fr);gap:14px;align-items:start}
+.grid3{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.form label{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:4px 0;font-size:13px}
+.form label>span{color:var(--mut)}
+.form input[type=number]{width:90px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.mut{color:var(--mut)}
+.small{font-size:12px}
+table{border-collapse:collapse;width:100%}
+th,td{border-bottom:1px solid var(--line);padding:4px 6px;text-align:left;vertical-align:middle;font-size:13px}
+th{color:var(--mut);font-weight:600;font-size:12px;position:sticky;top:0;background:var(--card)}
+td input,td select{width:100%}
+td input[type=number]{width:70px}
+td input[type=checkbox]{width:auto}
+.pill{display:inline-block;padding:1px 8px;border-radius:10px;background:var(--bg3);border:1px solid var(--line);font-size:12px}
+.st{display:inline-flex;gap:4px;align-items:center;font-weight:600;font-size:12px;padding:1px 8px;border-radius:10px;border:1px solid}
+.st.good{color:var(--good);border-color:var(--good)} .st.warn{color:var(--warn);border-color:var(--warn)} .st.bad{color:var(--bad);border-color:var(--bad)}
+.big{font-size:34px;font-family:Georgia,serif;line-height:1}
+.dcard{cursor:pointer}
+.dcard:hover{border-color:var(--acc)}
+.dcard.on{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc) inset}
+.bar{height:8px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--s1);border-radius:4px}
+.fix li{margin:3px 0}
+.ai{white-space:pre-wrap;background:var(--bg3);border-radius:8px;padding:10px;min-height:40px;font-size:13px}
+.cell{text-align:center;font-variant-numeric:tabular-nums;border:2px solid var(--card);border-radius:5px;padding:4px 2px}
+.tabs2{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+#tip{position:fixed;pointer-events:none;background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:6px 9px;font-size:12px;box-shadow:0 4px 14px #0006;display:none;z-index:50;max-width:320px}
+#tip .sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+#toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--acc);color:#1b1408;padding:7px 14px;border-radius:8px;font-weight:600;opacity:0;transition:.25s;pointer-events:none}
+#toast.on{opacity:1}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;margin:6px 0}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:5px;vertical-align:3px}
+svg text{fill:var(--mut);font-size:11px}
+.crit{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:8px;background:var(--bg2)}
+.crit .row>label{display:flex;gap:4px;align-items:center;font-size:12px;color:var(--mut)}
+details summary{cursor:pointer;color:var(--mut);font-size:12px}
+</style>
+</head>
+<body>
+<div id="top">
+  <span class="brand">⚜ Heirloom Design Lab</span>
+  <span id="suites"><button data-suite="design">Heritable item design</button> <button data-suite="bench">Benchmark design</button></span>
+  <button class="sm" id="themeBtn" title="Light / dark">◐</button>
+  <span class="credit">Randis UDS™ by Randy Moore · <a href="https://github.com/RandyWilliamMoore/randis-uds" target="_blank">Original</a> · <a href="https://ko-fi.com/moorescombinatoricsmatrix" target="_blank">Support</a></span>
+</div>
+<div id="wrap"><div id="side"></div><div id="view"></div></div>
+<div id="tip"></div><div id="toast"></div>
+<script>
+"use strict";
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const uid = () => Math.random().toString(36).slice(2, 10);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const pct = v => v == null || isNaN(v) ? "–" : Math.round(v * 100) + "%";
+const r1 = v => Math.round(v * 10) / 10;
+const inApp = window.parent !== window;
+const tell = m => { try { window.parent.postMessage(m, "*"); } catch (e) {} };
+function toast(t) { const e = $("#toast"); e.textContent = t; e.classList.add("on"); clearTimeout(toast.h); toast.h = setTimeout(() => e.classList.remove("on"), 2600); }
+function exportFile(name, text, mime) {
+  const blob = new Blob([text], { type: mime || "text/plain" });
+  if (inApp) { tell({ uds: "export-file", name, data: blob }); return; }
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+const SER = n => `var(--s${(n % 8) + 1})`;
+
+// ---------------------------------------------------------------- reference data
+const GROUPS = ["Wood", "Metal", "Stone & gem", "Textile & leather", "Ceramic & glass", "Paper & book", "Glue & finish", "Plastic & electronics", "Mechanism"];
+// name, group, life (years of normal use), repair 0-5, aging, hazard, sustain 0-5, cost 1-5, service interval (years, 0 = none), care
+const MAT0 = [
+  ["Quartersawn white oak", "Wood", 300, 5, "patina", "", 4, 3, 0, "Dust; keep out of direct sun and away from heaters; 40–55% humidity."],
+  ["Black walnut", "Wood", 250, 5, "patina", "", 4, 4, 0, "Dust; lightens in strong sun, so rotate items now and then."],
+  ["Cherry", "Wood", 250, 5, "patina", "", 4, 4, 0, "Darkens beautifully with light; don't cover half of it for years."],
+  ["Hard maple", "Wood", 250, 5, "neutral", "", 4, 3, 0, "Very hard; ambers slowly."],
+  ["Genuine mahogany (FSC)", "Wood", 300, 5, "patina", "", 3, 4, 0, "Stable; buy only certified stock."],
+  ["Teak", "Wood", 300, 5, "patina", "", 3, 5, 0, "Oily; good outdoors."],
+  ["Aromatic cedar", "Wood", 150, 4, "neutral", "", 4, 2, 10, "Lightly sand the inside every 10 years to refresh the scent."],
+  ["Spruce (tonewood)", "Wood", 150, 4, "patina", "", 4, 3, 0, "Soft; keep humidified 40–50%."],
+  ["Eastern white pine", "Wood", 120, 4, "patina", "", 5, 1, 0, "Soft; dents add character."],
+  ["Baltic birch plywood", "Wood", 80, 2, "neutral", "", 3, 2, 0, "Edges chip; keep dry."],
+  ["MDF / particleboard", "Wood", 20, 0, "degrades", "Formaldehyde binders in some boards; swells and crumbles when wet", 2, 1, 0, "Keep dry. Can't really be repaired."],
+  ["Sterling silver", "Metal", 500, 5, "patina", "", 3, 4, 3, "Store in anti-tarnish cloth; polish gently; can be re-soldered and resized."],
+  ["18k gold", "Metal", 1000, 5, "neutral", "", 2, 5, 10, "Have prongs and shanks checked every 10 years."],
+  ["Platinum", "Metal", 1000, 5, "patina", "", 2, 5, 10, "Develops a soft grey sheen; re-polish if wanted."],
+  ["Gold-filled", "Metal", 60, 2, "degrades", "", 3, 3, 0, "Thick gold layer; wears through over decades."],
+  ["Gold-plated", "Metal", 5, 0, "degrades", "Base metal (often nickel) shows through and can irritate skin", 2, 1, 0, "Plating wears off; not an heirloom material."],
+  ["Stainless steel 316", "Metal", 300, 4, "neutral", "", 3, 3, 0, "Wipe clean; can be re-brushed."],
+  ["High-carbon tool steel", "Metal", 200, 5, "patina", "", 4, 3, 1, "Keep oiled; rust is fixable; can be re-ground and re-hardened."],
+  ["Cast iron", "Metal", 300, 4, "patina", "", 4, 2, 1, "Keep dry and oiled; cracks are hard to fix."],
+  ["Brass", "Metal", 300, 5, "patina", "", 4, 3, 0, "Patina naturally or polish; solderable. Use lead-free brass for anything children mouth."],
+  ["Bronze", "Metal", 1000, 5, "patina", "", 4, 4, 0, "Wax yearly if outdoors."],
+  ["Copper", "Metal", 300, 5, "patina", "", 4, 3, 0, "Patinas green outdoors; solderable."],
+  ["Lead-free pewter", "Metal", 200, 3, "patina", "", 4, 3, 0, "Soft; avoid heat."],
+  ["Nickel silver (frets/fittings)", "Metal", 60, 4, "neutral", "Nickel can irritate skin", 3, 2, 30, "Frets wear; re-fret every few decades."],
+  ["Diamond / corundum (sapphire, ruby)", "Stone & gem", 2000, 1, "neutral", "", 2, 5, 0, "Nearly scratch-proof; can chip on a hard knock."],
+  ["Sapphire crystal (watch glass)", "Stone & gem", 500, 1, "neutral", "", 3, 4, 0, "Scratch-proof; replaceable by a watchmaker."],
+  ["Marble", "Stone & gem", 500, 3, "patina", "", 3, 4, 0, "Acids etch it; seal every few years."],
+  ["Vegetable-tanned leather", "Textile & leather", 100, 5, "patina", "", 4, 3, 1, "Condition yearly; darkens and softens."],
+  ["Chrome-tanned leather", "Textile & leather", 40, 2, "degrades", "Chromium salts", 2, 2, 1, "Cracks with age; hard to re-dye."],
+  ["Linen", "Textile & leather", 150, 4, "patina", "", 5, 3, 0, "Wash cool, store rolled, no plastic bags."],
+  ["Wool", "Textile & leather", 100, 4, "neutral", "", 4, 3, 1, "Moths: air yearly, store with cedar."],
+  ["Cotton", "Textile & leather", 80, 4, "neutral", "", 3, 2, 0, "Acid-free tissue, no folds kept for years."],
+  ["Silk", "Textile & leather", 60, 2, "degrades", "", 3, 4, 0, "Light and acids weaken it; store dark, flat."],
+  ["Polyester", "Textile & leather", 40, 1, "degrades", "Sheds microplastics", 1, 1, 0, "Pills and yellows."],
+  ["Stoneware", "Ceramic & glass", 500, 1, "neutral", "", 4, 2, 0, "Chips can be mended with kintsugi."],
+  ["Porcelain", "Ceramic & glass", 500, 1, "neutral", "", 3, 3, 0, "Hand wash heirloom pieces."],
+  ["Glass", "Ceramic & glass", 500, 0, "neutral", "", 4, 2, 0, "Breaks can't be undone; keep a spare pane."],
+  ["Stained glass with lead came", "Ceramic & glass", 100, 4, "patina", "Lead: wash hands, keep from children", 3, 3, 0, "Re-lead about every 100 years."],
+  ["Archival (acid-free) paper/board", "Paper & book", 300, 3, "neutral", "", 4, 2, 0, "Dark, cool, 30–50% humidity."],
+  ["Ordinary (acidic) paper", "Paper & book", 50, 1, "degrades", "", 3, 1, 0, "Yellows and crumbles; copy it onto archival paper."],
+  ["Archival polypropylene sleeves", "Paper & book", 100, 3, "neutral", "", 2, 2, 0, "Never PVC sleeves."],
+  ["Hide glue", "Glue & finish", 150, 5, "neutral", "", 5, 2, 0, "Reversible with heat and moisture: joints can be taken apart and re-glued."],
+  ["Wheat starch paste", "Glue & finish", 150, 5, "neutral", "", 5, 1, 0, "Reversible with water: the conservator's choice."],
+  ["PVA (yellow/white) glue", "Glue & finish", 50, 2, "neutral", "", 3, 1, 0, "Strong but hard to undo cleanly."],
+  ["Epoxy", "Glue & finish", 40, 0, "degrades", "Not reversible; yellows", 1, 2, 0, "Avoid in joints that someday need re-gluing."],
+  ["Shellac", "Glue & finish", 80, 5, "patina", "", 5, 2, 15, "Repairs blend in; avoid alcohol spills."],
+  ["Oil & wax finish", "Glue & finish", 15, 5, "patina", "", 5, 1, 2, "Re-wax every 1–2 years; spot repairs vanish."],
+  ["Polymerized oil seasoning", "Glue & finish", 5, 5, "patina", "", 5, 1, 1, "Cook with fat; re-season when dull or rusty."],
+  ["Polyurethane / lacquer", "Glue & finish", 30, 2, "degrades", "", 2, 1, 0, "Scratches show; repair needs full strip."],
+  ["Hard rubber (ebonite)", "Plastic & electronics", 100, 3, "degrades", "Fades and smells of sulphur in light", 3, 3, 0, "Keep from sunlight."],
+  ["ABS plastic", "Plastic & electronics", 30, 1, "degrades", "Goes brittle and yellow", 1, 1, 0, "Not an heirloom material."],
+  ["Lithium battery", "Plastic & electronics", 8, 0, "degrades", "Swells; fire risk when old", 1, 2, 0, "Plan for it to die. Must be swappable."],
+  ["Electronics (circuit board)", "Plastic & electronics", 20, 1, "degrades", "Capacitors leak; software and chargers vanish", 1, 3, 0, "Keep optional, swappable and documented."],
+  ["Rubber / elastomer", "Plastic & electronics", 15, 0, "degrades", "Perishes and goes sticky", 2, 1, 5, "Replace gaskets and bands on a schedule."],
+  ["Mechanical movement", "Mechanism", 200, 4, "neutral", "", 3, 4, 7, "Service (clean & oil) every 5–10 years."],
+  ["Quartz movement", "Mechanism", 25, 1, "neutral", "Battery may leak", 2, 2, 2, "Change battery every 2 years; swap the movement when it dies."]
+].map(a => ({ id: "m_" + a[0].toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/_+$/, ""), name: a[0], group: a[1], life: a[2], repair: a[3], aging: a[4], hazard: a[5], sustain: a[6], cost: a[7], interval: a[8], care: a[9] }));
+const MID = n => "m_" + n.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/_+$/, "");
+
+const JOINS = ["", "Dovetail", "Mortise & tenon", "Drawbored M&T", "Breadboard ends", "Dowel", "Pocket screw", "Machine screw", "Wood screw", "Rivet", "Solder", "Weld", "Hand-stitched", "Machine-stitched", "Press fit", "Glued only", "Cast in one piece", "Threaded", "Hinge pin", "Bezel/prong set", "Woven"];
+const LOADS = { low: ["Light", 1.25], med: ["Normal", 1], high: ["Heavy", 0.7] };
+const REPLS = { replaceable: "Replaceable", repairable: "Repairable", fixed: "Fixed (can't fix)" };
+const PRINCIPLES = [
+  ["handtools", "Can be taken apart and fixed with ordinary hand tools"],
+  ["reversible", "Stressed joints are mechanical or use reversible glue (no glue-only or epoxy in load paths)"],
+  ["nopower", "Works with no battery, power, account or app (or those parts are optional and swappable)"],
+  ["stdparts", "Wear parts are standard sizes still sold in 50 years"],
+  ["overbuilt", "Stressed parts sized well past the expected load"],
+  ["timeless", "Plain, well-proportioned form: no fad colors, logos or licensed characters"],
+  ["patina", "Materials look better with age, not worse"],
+  ["marked", "Maker's mark, date and serial in a place that won't wear off"],
+  ["personal", "Room left for each keeper to add a name or mark"],
+  ["docs", "Drawings, materials list and care card travel with it"],
+  ["moves", "Survives moving house: knocks down, or has its own case"],
+  ["safe", "Safe for children and pets of later generations (no lead, pinch points or tip-overs)"],
+  ["touchup", "Finish can be touched up in one spot without stripping it all"],
+  ["share", "Can be shared or divided fairly among heirs (sets, pairs, pieces)"]
+];
+const DOCS = [["care", "Care card"], ["drawings", "Drawings / measurements"], ["bom", "Materials list"], ["story", "Story / letter"], ["mark", "Maker's mark"], ["photos", "Photos at making"]];
+const DIMS = ["Durability", "Repairability", "Safety", "Timelessness", "Story & meaning", "Sustainability", "Care burden"];
+
+// templates: [name, material name, join, load, repl, std, hours/yr]
+const TEMPLATES = {
+  "Dining table": ["A table a family eats at for a century", [["Top", "Black walnut", "Breadboard ends", "med", "repairable", false, 0], ["Legs", "Quartersawn white oak", "Drawbored M&T", "high", "repairable", false, 0], ["Aprons", "Quartersawn white oak", "Mortise & tenon", "high", "repairable", false, 0], ["Joint glue", "Hide glue", "", "med", "repairable", false, 0], ["Finish", "Oil & wax finish", "", "low", "replaceable", true, 1], ["Top fasteners", "Brass", "Wood screw", "low", "replaceable", true, 0]]],
+  "Rocking chair": ["A nursing/rocking chair handed to each new parent", [["Seat", "Black walnut", "Mortise & tenon", "high", "repairable", false, 0], ["Legs & rockers", "Quartersawn white oak", "Drawbored M&T", "high", "repairable", false, 0], ["Spindles", "Hard maple", "Press fit", "med", "replaceable", false, 0], ["Joint glue", "Hide glue", "", "high", "repairable", false, 0], ["Finish", "Oil & wax finish", "", "low", "replaceable", true, 1]]],
+  "Blanket / hope chest": ["A chest that holds a family's linens and keepsakes", [["Carcass", "Cherry", "Dovetail", "med", "repairable", false, 0], ["Lid", "Cherry", "Breadboard ends", "med", "repairable", false, 0], ["Lining", "Aromatic cedar", "", "low", "replaceable", false, 0.2], ["Hinges", "Brass", "Wood screw", "high", "replaceable", true, 0], ["Lid stay (slow-close)", "Brass", "Machine screw", "high", "replaceable", true, 0], ["Finish", "Shellac", "", "low", "repairable", false, 0.3]]],
+  "Wedding ring": ["A ring worn by one generation after another", [["Band", "18k gold", "Cast in one piece", "high", "repairable", false, 0], ["Setting / prongs", "Platinum", "Bezel/prong set", "high", "repairable", false, 0.2], ["Center stone", "Diamond / corundum (sapphire, ruby)", "Bezel/prong set", "med", "fixed", false, 0]]],
+  "Pendant on a chain": ["A locket or pendant for each eldest child", [["Pendant", "Sterling silver", "Solder", "low", "repairable", false, 0.2], ["Chain", "Sterling silver", "", "high", "replaceable", true, 0], ["Clasp", "Sterling silver", "Solder", "high", "replaceable", true, 0], ["Photo window", "Glass", "Press fit", "low", "replaceable", false, 0]]],
+  "Mechanical watch": ["A watch wound by grandparent, parent and child", [["Case", "Stainless steel 316", "Threaded", "med", "repairable", false, 0], ["Movement", "Mechanical movement", "Machine screw", "med", "repairable", false, 0.3], ["Crystal", "Sapphire crystal (watch glass)", "Press fit", "med", "replaceable", true, 0], ["Gaskets", "Rubber / elastomer", "Press fit", "low", "replaceable", true, 0], ["Strap", "Vegetable-tanned leather", "Hinge pin", "high", "replaceable", true, 0.1]]],
+  "Quilt": ["A quilt that records family names and fabrics", [["Top", "Cotton", "Hand-stitched", "med", "repairable", false, 0.2], ["Batting", "Wool", "Hand-stitched", "low", "fixed", false, 0], ["Backing", "Linen", "Hand-stitched", "med", "repairable", false, 0], ["Binding", "Cotton", "Hand-stitched", "high", "replaceable", false, 0.1], ["Label", "Linen", "Hand-stitched", "low", "repairable", false, 0]]],
+  "Hand plane": ["A woodworking plane passed from maker to apprentice", [["Body", "Cast iron", "Cast in one piece", "high", "fixed", false, 0], ["Blade", "High-carbon tool steel", "Machine screw", "high", "replaceable", true, 0.3], ["Tote & knob", "Cherry", "Threaded", "med", "replaceable", false, 0], ["Screws", "Brass", "Machine screw", "med", "replaceable", true, 0]]],
+  "Chef's knife": ["The family kitchen knife", [["Blade", "High-carbon tool steel", "", "high", "repairable", false, 1], ["Handle scales", "Black walnut", "Rivet", "med", "replaceable", false, 0.1], ["Pins", "Brass", "Rivet", "med", "replaceable", true, 0], ["Saya / sheath", "Hard maple", "", "low", "replaceable", false, 0]]],
+  "Cast iron skillet": ["The pan everyone remembers", [["Body", "Cast iron", "Cast in one piece", "high", "fixed", false, 0], ["Seasoning", "Polymerized oil seasoning", "", "high", "replaceable", false, 1]]],
+  "Fountain pen": ["A pen for signing the important things", [["Body & cap", "Hard rubber (ebonite)", "Threaded", "med", "repairable", false, 0], ["Nib", "18k gold", "Press fit", "high", "replaceable", true, 0], ["Feed", "Hard rubber (ebonite)", "Press fit", "med", "replaceable", true, 0], ["Filler / converter", "ABS plastic", "Press fit", "med", "replaceable", true, 0], ["Clip", "Sterling silver", "Press fit", "med", "replaceable", false, 0]]],
+  "Family book / bible": ["A book where each generation writes births, marriages and stories", [["Text block", "Archival (acid-free) paper/board", "Hand-stitched", "med", "repairable", false, 0], ["Sewing thread", "Linen", "Hand-stitched", "high", "repairable", false, 0], ["Cover", "Vegetable-tanned leather", "", "med", "replaceable", false, 0.1], ["Spine glue", "Wheat starch paste", "", "med", "repairable", false, 0], ["Boards", "Archival (acid-free) paper/board", "", "low", "replaceable", false, 0]]],
+  "Wooden rocking horse": ["A toy that waits for each new child", [["Body", "Hard maple", "Dowel", "high", "repairable", false, 0], ["Rockers", "Quartersawn white oak", "Wood screw", "high", "replaceable", false, 0], ["Mane & tail", "Wool", "", "med", "replaceable", false, 0.2], ["Joint glue", "Hide glue", "", "high", "repairable", false, 0], ["Finish", "Oil & wax finish", "", "high", "replaceable", true, 0.5]]],
+  "Acoustic guitar": ["An instrument played by three generations", [["Top", "Spruce (tonewood)", "", "med", "repairable", false, 0], ["Back & sides", "Genuine mahogany (FSC)", "", "med", "repairable", false, 0], ["Neck", "Genuine mahogany (FSC)", "Dovetail", "high", "repairable", false, 0], ["Frets", "Nickel silver (frets/fittings)", "Press fit", "high", "replaceable", true, 0], ["Tuners", "Brass", "Wood screw", "med", "replaceable", true, 0], ["Body glue", "Hide glue", "", "high", "repairable", false, 0], ["Strings", "High-carbon tool steel", "", "high", "replaceable", true, 1], ["Finish", "Shellac", "", "med", "repairable", false, 0.2]]],
+  "Mantel clock": ["A clock that chimes in every home it lives in", [["Case", "Cherry", "Dovetail", "low", "repairable", false, 0], ["Movement", "Mechanical movement", "Machine screw", "med", "repairable", false, 0.3], ["Dial", "Brass", "Machine screw", "low", "repairable", false, 0], ["Glass", "Glass", "Press fit", "low", "replaceable", true, 0], ["Finish", "Shellac", "", "low", "repairable", false, 0.1]]],
+  "Leather bag": ["A satchel carried for a lifetime and then some", [["Body", "Vegetable-tanned leather", "Hand-stitched", "high", "repairable", false, 0.5], ["Thread", "Linen", "Hand-stitched", "high", "replaceable", true, 0], ["Buckles & rings", "Brass", "Rivet", "high", "replaceable", true, 0], ["Lining", "Linen", "Hand-stitched", "low", "replaceable", false, 0]]],
+  "Christening gown": ["A gown worn by each baby in the family", [["Gown", "Linen", "Hand-stitched", "low", "repairable", false, 0.1], ["Lace", "Cotton", "Hand-stitched", "low", "repairable", false, 0], ["Ribbon", "Silk", "Hand-stitched", "low", "replaceable", true, 0], ["Storage box", "Archival (acid-free) paper/board", "", "low", "replaceable", true, 0]]],
+  "Flatware set & chest": ["The holiday silver", [["Flatware", "Sterling silver", "Cast in one piece", "med", "repairable", false, 1], ["Chest", "Genuine mahogany (FSC)", "Dovetail", "low", "repairable", false, 0], ["Lining", "Wool", "", "low", "replaceable", false, 0], ["Hinges & latch", "Brass", "Wood screw", "med", "replaceable", true, 0]]],
+  "Family archive box": ["Photos, letters and recordings kept for great-grandchildren", [["Box", "Archival (acid-free) paper/board", "", "low", "replaceable", true, 0], ["Sleeves", "Archival polypropylene sleeves", "", "low", "replaceable", true, 0], ["Prints & letters", "Archival (acid-free) paper/board", "", "low", "fixed", false, 0], ["Digital copies (drive)", "Electronics (circuit board)", "", "low", "replaceable", true, 0.5]]],
+  "Blank (start empty)": ["", []]
+};
+
+// ---------------------------------------------------------------- benchmarks & protocols (starters)
+const LV = ["0 – missing", "1 – poor", "2 – weak", "3 – fair", "4 – good", "5 – exemplary"];
+const PROTO0 = [
+  { id: "pr_humid", name: "Humidity cycling", basis: "Own protocol, in the spirit of furniture/instrument climate tests", purpose: "Will joints, panels and finishes survive decades of dry winters and damp summers?", equip: "Closed box or room, humidifier + dehumidifier, hygrometer, feeler gauges, camera", steps: "1. Photograph and measure gaps at every joint.\n2. Hold at 30% RH for 7 days, then 75% RH for 7 days. That is one cycle.\n3. Do 6 cycles.\n4. Re-measure gaps, look for cracks, checks, finish crazing and loose joints.", pass: "No cracks; no joint opens more than 0.5 mm; finish not crazed.", results: [] },
+  { id: "pr_cycle", name: "Open–close cycle test", basis: "Inspired by furniture drawer/lid durability tests", purpose: "Will hinges, drawers, clasps and lids keep working after a lifetime of use?", equip: "Counter, a jig or patient helper, a small weight", steps: "1. Open and close the moving part 10,000 times (hinge, drawer, clasp, crown).\n2. Check every 1,000 cycles for wear, play or loosening.", pass: "Still works smoothly; any wear is only in a replaceable part.", results: [] },
+  { id: "pr_drop", name: "Drop & knock (use and abuse)", basis: "Modeled on toy use-and-abuse drop tests (e.g. ASTM F963)", purpose: "Can a child (or a move) drop it without it breaking into dangerous bits?", equip: "Hard floor, measuring tape", steps: "1. Drop from 4.5 ft (toys for under 18 months) or 3 ft (older) onto a hard floor, 10 times, different faces.\n2. Look for sharp edges, loose small parts, cracks.", pass: "No sharp edges, no small parts come loose, no structural crack.", results: [] },
+  { id: "pr_uv", name: "Light fade test", basis: "Blue Wool scale style comparison", purpose: "Will colors, dyes and finishes fade in a sunny room?", equip: "Sunny window or UV lamp, card to cover half of each sample, Blue Wool cards if you have them", steps: "1. Make sample boards of each finish/fabric.\n2. Cover half, expose the other half for 8 weeks.\n3. Compare halves (and against Blue Wool cards).", pass: "Fading no worse than Blue Wool 6, or fading is even and attractive.", results: [] },
+  { id: "pr_rack", name: "Racking / load test", basis: "Furniture strength test idea", purpose: "Do chairs, tables and frames stay tight under sideways force?", equip: "Sandbags or weights, a strap, ruler", steps: "1. Load the item to 2× its expected load for 24 hours.\n2. Push sideways 100 times with a firm, even force.\n3. Measure any movement at joints.", pass: "No joint moves more than 1 mm; no cracking sounds.", results: [] },
+  { id: "pr_abrade", name: "Abrasion (rub) test", basis: "In the spirit of Martindale rub tests for textiles", purpose: "Does the fabric, leather or finish wear through with use?", equip: "Sanding block wrapped in wool cloth, counter", steps: "1. Rub one spot with even pressure 5,000 times.\n2. Look for thinning, holes, pilling or finish wear-through.", pass: "No hole or wear-through; pilling is light.", results: [] },
+  { id: "pr_clasp", name: "Clasp & setting pull test", basis: "Jewelry check", purpose: "Do clasps, prongs and jump rings hold?", equip: "Luggage scale, loupe", steps: "1. Pull each clasp and ring to 5 kg (chains) or 2 kg (fine pieces).\n2. Check prongs with a loupe for lifting.", pass: "Nothing opens or deforms; stones don't move.", results: [] },
+  { id: "pr_finish", name: "Water, heat & alcohol ring test", basis: "Kitchen-table finish check", purpose: "How does the finish react to everyday spills, and can it be fixed?", equip: "Water glass, hot mug (80°C), alcohol, timer", steps: "1. Leave each for 1 hour on a sample board.\n2. Wipe; wait a day.\n3. Try to repair the mark with the item's own care method.", pass: "No mark, or the mark repairs invisibly with the care method.", results: [] },
+  { id: "pr_disasm", name: "Disassembly timing", basis: "Repairability index idea: time and tools to reach a wear part", purpose: "How quickly can someone in 50 years replace the part that wears out first?", equip: "Timer, common hand tools only", steps: "1. Hand the item and its care card to someone who hasn't seen it before.\n2. Time them replacing the first wear part, using only common hand tools.", pass: "Done in under 30 minutes, no special tools, nothing broken.", results: [] }
+];
+function C(name, dim, type, extra) { return Object.assign({ id: "c" + uid(), name, dim, type, metric: "", proto: "", weight: 10, gate: false, gateMin: 0.5, desc: "", levels: LV.slice() }, extra); }
+function starterBenches() {
+  const hs = { id: "b" + uid(), name: "Heirloom Standard", code: "HS-1", version: "1.0", purpose: "Will this thing still be loved, used and fixable when the target generation inherits it?", tiers: [{ name: "Not heritable", min: 0 }, { name: "Keepsake", min: 50 }, { name: "Heirloom", min: 70 }, { name: "Century piece", min: 85 }], history: [], refs: [],
+    crits: [
+      C("Outlives the target generations", "Durability", "auto", { metric: "lifespan", weight: 20, gate: true, gateMin: 0.6, desc: "Parts that can't be swapped should last the whole span." }),
+      C("Weakest permanent part", "Durability", "auto", { metric: "weakest", weight: 10 }),
+      C("Repair-friendly parts", "Repairability", "auto", { metric: "repair", weight: 15 }),
+      C("Standard wear parts", "Repairability", "auto", { metric: "stdparts", weight: 5 }),
+      C("No hidden hazards", "Safety", "auto", { metric: "hazards", weight: 10, gate: true, gateMin: 0.5 }),
+      C("Ages with grace", "Timelessness", "auto", { metric: "aging", weight: 8 }),
+      C("Timeless design (judged)", "Timelessness", "rubric", { weight: 10, desc: "Would it look right in a home in 1925 and in 2075?", levels: ["0 – licensed character, fad colors, logo-led", "1 – clearly of its decade", "2 – plain but awkward proportions", "3 – plain and decent", "4 – classic form, honest materials", "5 – timeless: proportion, material and purpose in harmony"] }),
+      C("Story & documents", "Story & meaning", "auto", { metric: "docs", weight: 8 }),
+      C("Room for keepers", "Story & meaning", "auto", { metric: "personal", weight: 4 }),
+      C("Low care burden", "Care burden", "auto", { metric: "maintain", weight: 5 }),
+      C("Responsible materials", "Sustainability", "auto", { metric: "sustain", weight: 5 })
+    ] };
+  const cr = hs.crits, v = (a) => { const o = {}; cr.forEach((c, i) => o[c.id] = a[i]); return o; };
+  hs.refs = [
+    { id: "r" + uid(), name: "Grandparent's dovetailed oak dresser (hide glue, shellac)", expect: "Heirloom", scores: v([5, 4, 5, 3, 5, 4, 4, 2, 2, 4, 4]) },
+    { id: "r" + uid(), name: "Flat-pack particleboard dresser", expect: "Not heritable", scores: v([1, 0, 1, 2, 2, 0, 2, 1, 0, 4, 1]) },
+    { id: "r" + uid(), name: "Smartwatch with a glued-in battery", expect: "Not heritable", scores: v([0, 0, 1, 0, 2, 1, 2, 1, 0, 2, 1]) },
+    { id: "r" + uid(), name: "Cast iron skillet from 1920", expect: "Century piece", scores: v([5, 5, 4, 5, 5, 5, 5, 2, 3, 4, 5]) }
+  ];
+  const rs = { id: "b" + uid(), name: "Repair Score", code: "RS-1", version: "1.0", purpose: "How easy is it for an ordinary person decades from now to fix it?", tiers: [{ name: "Poor", min: 0 }, { name: "Fair", min: 40 }, { name: "Good", min: 60 }, { name: "Excellent", min: 80 }], history: [], refs: [],
+    crits: [
+      C("Hand tools only", "Repairability", "auto", { metric: "p:handtools", weight: 20 }),
+      C("Reversible joints & glue", "Repairability", "auto", { metric: "p:reversible", weight: 15 }),
+      C("Spare parts you can still buy", "Repairability", "auto", { metric: "stdparts", weight: 20 }),
+      C("Repair information included", "Story & meaning", "auto", { metric: "docs", weight: 15 }),
+      C("Parts themselves repairable", "Repairability", "auto", { metric: "repair", weight: 20 }),
+      C("Disassembly timing test", "Repairability", "test", { proto: "pr_disasm", weight: 10 })
+    ] };
+  const ct = { id: "b" + uid(), name: "Century Test", code: "CT-1", version: "1.0", purpose: "Physical tests that stand in for 100 years of use.", tiers: [{ name: "Fail", min: 0 }, { name: "Pass", min: 60 }, { name: "Distinction", min: 85 }], history: [], refs: [],
+    crits: [
+      C("Humidity cycling", "Durability", "test", { proto: "pr_humid", weight: 20, gate: true, gateMin: 0.5 }),
+      C("Open–close cycles", "Durability", "test", { proto: "pr_cycle", weight: 15 }),
+      C("Racking / load", "Durability", "test", { proto: "pr_rack", weight: 15 }),
+      C("Light fade", "Timelessness", "test", { proto: "pr_uv", weight: 10 }),
+      C("Finish ring test", "Care burden", "test", { proto: "pr_finish", weight: 10 }),
+      C("Modeled lifespan", "Durability", "auto", { metric: "lifespan", weight: 30 })
+    ] };
+  const kg = { id: "b" + uid(), name: "Generations of Kids", code: "KG-1", version: "1.0", purpose: "For toys and children's things meant to wait for the next child.", tiers: [{ name: "Not for kids", min: 0 }, { name: "Supervised play", min: 55 }, { name: "Nursery heirloom", min: 75 }], history: [], refs: [],
+    crits: [
+      C("Child-safe for later generations", "Safety", "auto", { metric: "p:safe", weight: 20, gate: true, gateMin: 1 }),
+      C("No hazardous materials", "Safety", "auto", { metric: "hazards", weight: 15, gate: true, gateMin: 0.7 }),
+      C("Drop & knock test", "Safety", "test", { proto: "pr_drop", weight: 20, gate: true, gateMin: 1 }),
+      C("Survives rough love", "Durability", "auto", { metric: "lifespan", weight: 15 }),
+      C("Charm that doesn't date", "Timelessness", "rubric", { weight: 15 }),
+      C("Easy to refresh", "Repairability", "auto", { metric: "repair", weight: 15 })
+    ] };
+  return [hs, rs, ct, kg];
+}
+
+// ---------------------------------------------------------------- state
+const LKEY = "udsHeirDesignLab1";
+let S = null;
+function fresh() {
+  const s = { theme: "dark", suite: "design", view: "designs", mats: MAT0.map(m => Object.assign({}, m)), designs: [], benches: starterBenches(), protos: PROTO0.map(p => JSON.parse(JSON.stringify(p))), curD: null, curB: null, curP: "pr_humid", cmp: [] };
+  s.curB = s.benches[0].id;
+  return s;
+}
+try { S = JSON.parse(localStorage.getItem(LKEY) || "null"); } catch (e) { S = null; }
+if (!S || !Array.isArray(S.designs)) S = fresh();
+const save = () => { try { localStorage.setItem(LKEY, JSON.stringify(S)); } catch (e) { toast("Couldn't save (storage full?)."); } };
+
+function newDesign(tpl) {
+  const t = TEMPLATES[tpl] || TEMPLATES["Blank (start empty)"];
+  const d = { id: "d" + uid(), name: tpl === "Blank (start empty)" ? "New heirloom" : tpl, cat: tpl, purpose: t[0], gens: 4, ypg: 25, maker: "", year: new Date().getFullYear(), story: "", inscription: "", spots: 1, markPlace: "",
+    comps: t[1].map(c => ({ id: "k" + uid(), name: c[0], mat: MID(c[1]), join: c[2], load: c[3], repl: c[4], std: c[5], hours: c[6] })),
+    pr: {}, docs: {}, manual: {}, keepers: [], notes: "" };
+  return d;
+}
+if (!S.designs.length) {
+  const a = newDesign("Blanket / hope chest"); a.name = "Cherry hope chest"; Object.assign(a.pr, { handtools: true, reversible: true, nopower: true, stdparts: true, overbuilt: true, timeless: true, patina: true, marked: true }); a.docs = { care: true, drawings: true, bom: true };
+  const b = newDesign("Mechanical watch"); b.name = "Field watch"; Object.assign(b.pr, { nopower: true, stdparts: true, timeless: true, marked: true }); b.docs = { care: true };
+  const c = newDesign("Blank (start empty)"); c.name = "Fast-furniture bookcase (for contrast)"; c.cat = "Bookcase"; c.purpose = "A cheap reference point to compare against";
+  c.comps = [["Carcass", "MDF / particleboard", "Glued only", "med", "fixed", false, 0], ["Back panel", "MDF / particleboard", "Wood screw", "low", "fixed", false, 0], ["Cam fittings", "ABS plastic", "Press fit", "high", "replaceable", false, 0], ["Finish", "Polyurethane / lacquer", "", "low", "fixed", false, 0]].map(x => ({ id: "k" + uid(), name: x[0], mat: MID(x[1]), join: x[2], load: x[3], repl: x[4], std: x[5], hours: x[6] }));
+  S.designs.push(a, b, c); S.curD = a.id; S.cmp = [a.id, b.id, c.id];
+  const hs = S.benches[0], tc = hs.crits.find(x => x.type === "rubric");
+  a.manual[hs.id] = { [tc.id]: 4 }; b.manual[hs.id] = { [tc.id]: 4 }; c.manual[hs.id] = { [tc.id]: 1 };
+}
+const curD = () => S.designs.find(d => d.id === S.curD) || S.designs[0] || null;
+const curB = () => S.benches.find(b => b.id === S.curB) || S.benches[0] || null;
+const curP = () => S.protos.find(p => p.id === S.curP) || S.protos[0] || null;
+const mat = id => S.mats.find(m => m.id === id) || { id, name: "(unknown material)", life: 50, repair: 2, aging: "neutral", hazard: "", sustain: 2, cost: 2, interval: 0, care: "" };
+
+// ---------------------------------------------------------------- the model
+const target = d => (d.gens || 1) * (d.ypg || 25);
+const effLife = c => mat(c.mat).life * (LOADS[c.load] || LOADS.med)[1];
+const reachLife = c => effLife(c) * (c.repl === "repairable" ? 2 : 1);
+const METRICS = {
+  lifespan: ["Outlives the target (non-swappable parts)", "Durability", d => { const T = target(d), cs = d.comps.filter(c => c.repl !== "replaceable"); if (!cs.length) return { v: d.comps.length ? 1 : null, why: d.comps.length ? "Every part can be swapped." : "No parts listed yet." }; const v = cs.reduce((s, c) => s + Math.min(1, reachLife(c) / T), 0) / cs.length; return { v, why: `Average of each permanent part's reach (life, ×2 if repairable) against ${T} years.` }; }],
+  weakest: ["Weakest permanent part", "Durability", d => { const T = target(d), cs = d.comps.filter(c => c.repl !== "replaceable"); if (!cs.length) return { v: d.comps.length ? 1 : null, why: "No permanent parts." }; let w = cs[0]; cs.forEach(c => { if (reachLife(c) < reachLife(w)) w = c; }); return { v: Math.min(1, reachLife(w) / T), why: `${w.name} (${mat(w.mat).name}) reaches about ${Math.round(reachLife(w))} of ${T} years.` }; }],
+  repair: ["Repair-friendly parts", "Repairability", d => { if (!d.comps.length) return { v: null, why: "No parts." }; const rv = { replaceable: 1, repairable: .75, fixed: .15 }; const v = d.comps.reduce((s, c) => s + .5 * mat(c.mat).repair / 5 + .5 * (rv[c.repl] || .15), 0) / d.comps.length; return { v, why: "Half the material's repairability, half how each part is attached." }; }],
+  stdparts: ["Standard wear parts", "Repairability", d => { const r = d.comps.filter(c => c.repl === "replaceable"); if (!r.length) return { v: d.comps.length ? .7 : null, why: "No swappable wear parts listed." }; return { v: r.filter(c => c.std).length / r.length, why: `${r.filter(c => c.std).length} of ${r.length} swappable parts are standard sizes.` }; }],
+  hazards: ["No hidden hazards", "Safety", d => { const hz = [...new Set(d.comps.map(c => mat(c.mat)).filter(m => m.hazard).map(m => m.name))]; return { v: Math.max(0, 1 - .3 * hz.length), why: hz.length ? "Watch: " + hz.join(", ") : "No flagged materials." }; }],
+  aging: ["Ages with grace", "Timelessness", d => { if (!d.comps.length) return { v: null, why: "No parts." }; const av = { patina: 1, neutral: .6, degrades: 0 }; return { v: d.comps.reduce((s, c) => s + (av[mat(c.mat).aging] ?? .6), 0) / d.comps.length, why: "Patina = 100%, neutral = 60%, degrades = 0%." }; }],
+  principles: ["Design principles met", "Durability", d => { const n = PRINCIPLES.filter(p => d.pr[p[0]]).length; return { v: n / PRINCIPLES.length, why: `${n} of ${PRINCIPLES.length} principles ticked.` }; }],
+  docs: ["Story & documents", "Story & meaning", d => { const n = DOCS.filter(x => d.docs[x[0]]).length; return { v: n / DOCS.length, why: `${n} of ${DOCS.length} documents ready.` }; }],
+  maintain: ["Low care burden", "Care burden", d => { const h = d.comps.reduce((s, c) => s + (+c.hours || 0), 0); return { v: clamp(1 - (h - 1) / 11, 0, 1), why: `${r1(h)} hours of care a year (1 h or less = 100%, 12 h = 0%).` }; }],
+  sustain: ["Responsible materials", "Sustainability", d => { if (!d.comps.length) return { v: null, why: "No parts." }; return { v: d.comps.reduce((s, c) => s + mat(c.mat).sustain, 0) / d.comps.length / 5, why: "Average material sustainability rating." }; }],
+  personal: ["Room for keepers", "Story & meaning", d => { const v = (d.spots >= 1 ? .4 : 0) + (d.spots >= 3 ? .2 : 0) + (d.inscription ? .2 : 0) + (d.keepers.length ? .2 : 0); return { v, why: `${d.spots || 0} places for names, ${d.inscription ? "an" : "no"} inscription, ${d.keepers.length} keepers recorded.` }; }]
+};
+PRINCIPLES.forEach(p => { METRICS["p:" + p[0]] = ["Principle: " + p[1], "Repairability", d => ({ v: d.pr[p[0]] ? 1 : 0, why: d.pr[p[0]] ? "Ticked in the designer." : "Not ticked in the designer." })]; });
+const metric = (k, d) => METRICS[k] ? METRICS[k][2](d) : { v: null, why: "Unknown metric" };
+function lastResult(protoId, dId) { const p = S.protos.find(x => x.id === protoId); if (!p) return null; const rs = p.results.filter(r => r.design === dId); return rs.length ? rs[rs.length - 1] : null; }
+function critValue(c, d, b) {
+  if (c.type === "auto") return metric(c.metric, d).v;
+  if (c.type === "rubric" || c.type === "check") { const m = ((d.manual || {})[b.id] || {})[c.id]; if (m === undefined || m === null || m === "") return null; return c.type === "check" ? (+m ? 1 : 0) : clamp(+m / 5, 0, 1); }
+  if (c.type === "test") { const r = lastResult(c.proto, d.id); return r ? (r.result === "pass" ? 1 : r.result === "partial" ? .5 : 0) : null; }
+  return null;
+}
+function refValue(c, ref) { const m = ref.scores[c.id]; return m === undefined || m === null || m === "" ? null : clamp(+m / 5, 0, 1); }
+function scoreWith(b, valFn, crits) {
+  crits = crits || b.crits;
+  let tw = 0, sw = 0, s = 0; const vals = {}, gates = [], missingGates = [];
+  crits.forEach(c => { const w = Math.max(0, +c.weight || 0); tw += w; const v = valFn(c); vals[c.id] = v; if (v == null) { if (c.gate) missingGates.push(c); return; } sw += w; s += w * v; if (c.gate && v < (+c.gateMin || 0)) gates.push(c); });
+  const score = sw ? s / sw * 100 : null, coverage = tw ? sw / tw : 0;
+  const tiers = (b.tiers || []).slice().sort((x, y) => x.min - y.min);
+  let tier = tiers[0] ? tiers[0].name : "";
+  if (score != null && !gates.length) tiers.forEach(t => { if (score >= t.min) tier = t.name; });
+  return { score, coverage, vals, gates, missingGates, tier, tierIdx: tiers.findIndex(t => t.name === tier), nTiers: tiers.length };
+}
+const scoreDesign = (b, d, crits) => scoreWith(b, c => critValue(c, d, b), crits);
+const scoreRef = (b, r) => scoreWith(b, c => refValue(c, r));
+function statusOf(res) {
+  if (res.score == null) return ["warn", "⚠", "Not scored yet"];
+  if (res.gates.length) return ["bad", "✖", "Failed gate: " + res.gates.map(c => c.name).join(", ")];
+  if (res.missingGates.length) return ["warn", "⚠", "Gate not checked yet: " + res.missingGates.map(c => c.name).join(", ")];
+  if (res.coverage < .999) return ["warn", "◐", `Provisional: ${pct(res.coverage)} of the weight scored`];
+  return ["good", "✔", "Complete"];
+}
+const stBadge = res => { const s = statusOf(res); return `<span class="st ${s[0]}" title="${esc(s[2])}">${s[1]} ${esc(res.tier || "")}</span>`; };
+
+// condition simulation
+function simulate(d) {
+  const T = target(d), H = Math.max(50, Math.ceil(T * 1.25 / 10) * 10), events = [];
+  const lines = d.comps.map((c, i) => {
+    const m = mat(c.mat), L = Math.max(1, effLife(c)), pts = [];
+    let cond = 1, cap = 1, last = 0, svc = m.interval || 0;
+    const repairEvery = c.repl === "repairable" ? Math.max(2, Math.min(L * .5, svc || L * .5)) : 0;
+    const replaceEvery = c.repl === "replaceable" ? Math.max(1, Math.min(L * .85, svc ? Math.max(svc, L * .85) : L * .85)) : 0;
+    for (let y = 0; y <= H; y++) {
+      if (y > 0) {
+        cond = Math.max(0, cond - 1 / L);
+        if (svc && c.repl !== "fixed" && y % Math.round(svc) === 0 && Math.round(svc) < (replaceEvery || 1e9)) { cond = Math.min(cap, cond + .25); events.push({ y, c, kind: "service" }); }
+        if (repairEvery && y - last >= repairEvery) { cap = Math.max(.35, cap - .04); cond = cap; last = y; events.push({ y, c, kind: "repair" }); }
+        if (replaceEvery && y - last >= replaceEvery) { cond = 1; last = y; events.push({ y, c, kind: "replace" }); }
+        if (c.repl === "fixed" && cond <= 0 && !pts.failed) { pts.failed = y; events.push({ y, c, kind: "fail" }); }
+        if (c.repl === "repairable" && cond <= 0 && !pts.failed) { pts.failed = y; events.push({ y, c, kind: "fail" }); }
+      }
+      pts.push(cond);
+    }
+    return { c, i, pts };
+  });
+  const overall = [];
+  for (let y = 0; y <= H; y++) { const crit = lines.filter(l => l.c.repl !== "replaceable"); overall.push(crit.length ? Math.min(...crit.map(l => l.pts[y])) : 1); }
+  return { T, H, lines, overall, events };
+}
+
+// recommendations
+function fixList(d, b) {
+  const out = [], T = target(d);
+  d.comps.forEach(c => {
+    const m = mat(c.mat);
+    if (c.repl !== "replaceable" && reachLife(c) < T) {
+      const better = S.mats.filter(x => x.group === m.group && x.life * (LOADS[c.load] || LOADS.med)[1] * (c.repl === "repairable" ? 2 : 1) >= T && !x.hazard).sort((x, y) => y.repair - x.repair || x.cost - y.cost)[0];
+      out.push(`<b>${esc(c.name)}</b> (${esc(m.name)}) only reaches about ${Math.round(reachLife(c))} of ${T} years. ${c.repl === "fixed" ? "Make it repairable or swappable" : "Make it swappable"}${better ? `, or switch to <b>${esc(better.name)}</b>` : ""}.`);
+    }
+    if (m.hazard) out.push(`<b>${esc(c.name)}</b>: ${esc(m.name)} — ${esc(m.hazard)}.`);
+    if ((m.id === MID("Epoxy") || m.id === MID("PVA (yellow/white) glue")) && c.load !== "low") out.push(`<b>${esc(c.name)}</b>: ${esc(m.name)} in a stressed joint can't be undone cleanly. Hide glue or a mechanical joint lets a future repairer take it apart.`);
+    if (c.join === "Glued only" && c.load !== "low") out.push(`<b>${esc(c.name)}</b> is glue-only under load. Add a mechanical joint (dovetail, tenon, screw) so it survives glue failure.`);
+    if (m.aging === "degrades" && c.repl !== "replaceable") out.push(`<b>${esc(c.name)}</b>: ${esc(m.name)} looks worse with age. Pick a material that takes a patina, or make this part swappable.`);
+    if (c.repl === "replaceable" && !c.std) out.push(`<b>${esc(c.name)}</b> is swappable but not a standard size: write its exact size on the care card or include spares.`);
+  });
+  const miss = PRINCIPLES.filter(p => !d.pr[p[0]]).slice(0, 3);
+  if (miss.length) out.push("Principles still open: " + miss.map(p => esc(p[1])).join("; ") + ".");
+  const md = DOCS.filter(x => !d.docs[x[0]]).map(x => x[1]);
+  if (md.length) out.push("Still to make: " + md.join(", ") + ".");
+  if (b) { const r = scoreDesign(b, d); const weak = b.crits.filter(c => r.vals[c.id] != null && r.vals[c.id] < .5).map(c => esc(c.name)); if (weak.length) out.push(`Weak in ${esc(b.name)}: ${weak.join(", ")}.`); const un = b.crits.filter(c => r.vals[c.id] == null).map(c => esc(c.name)); if (un.length) out.push(`Not scored yet in ${esc(b.name)}: ${un.join(", ")} (Score designs page).`); }
+  return out;
+}
+
+// ---------------------------------------------------------------- charts
+function tipOn(el) { return `data-tip="${esc(el)}"`; }
+function lineChart(sim, maxLines) {
+  const W = 760, Hh = 260, L = 40, R = 14, T0 = 14, B = 30, w = W - L - R, h = Hh - T0 - B;
+  const x = y => L + y / sim.H * w, y = v => T0 + (1 - v) * h;
+  const lines = sim.lines.slice(0, maxLines);
+  let s = `<svg viewBox="0 0 ${W} ${Hh}" width="100%" style="max-width:${W}px" id="lc" data-h="${sim.H}">`;
+  [0, .25, .5, .75, 1].forEach(v => { s += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)" stroke-width="1"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${v * 100}%</text>`; });
+  const step = sim.H > 200 ? 50 : sim.H > 100 ? 25 : 10;
+  for (let t = 0; t <= sim.H; t += step) s += `<text x="${x(t)}" y="${Hh - 10}" text-anchor="middle">${t}</text>`;
+  s += `<line x1="${x(sim.T)}" x2="${x(sim.T)}" y1="${T0}" y2="${T0 + h}" stroke="var(--mut)" stroke-dasharray="4 4"/><text x="${x(sim.T) + 4}" y="${T0 + 10}">target ${sim.T}y</text>`;
+  lines.forEach((l, i) => { s += `<polyline fill="none" stroke="${SER(i)}" stroke-width="2" stroke-linejoin="round" points="${l.pts.map((v, t) => x(t).toFixed(1) + "," + y(v).toFixed(1)).join(" ")}"/>`; });
+  s += `<polyline fill="none" stroke="var(--tx)" stroke-width="2.5" stroke-dasharray="6 3" points="${sim.overall.map((v, t) => x(t).toFixed(1) + "," + y(v).toFixed(1)).join(" ")}"/>`;
+  s += `<line id="lcx" x1="0" x2="0" y1="${T0}" y2="${T0 + h}" stroke="var(--mut)" visibility="hidden"/><rect id="lcr" x="${L}" y="${T0}" width="${w}" height="${h}" fill="transparent"/></svg>`;
+  return s;
+}
+function radar(series, axes) {
+  const W = 420, Hh = 340, cx = 210, cy = 172, R = 120, n = axes.length;
+  if (n < 3) return `<p class="mut">The benchmark needs criteria in at least 3 dimensions to draw a radar.</p>`;
+  const pt = (i, v) => [cx + Math.sin(i / n * 2 * Math.PI) * R * v, cy - Math.cos(i / n * 2 * Math.PI) * R * v];
+  let s = `<svg viewBox="0 0 ${W} ${Hh}" width="100%" style="max-width:${W}px">`;
+  [.25, .5, .75, 1].forEach(r => s += `<polygon fill="none" stroke="var(--grid)" points="${axes.map((a, i) => pt(i, r).join(",")).join(" ")}"/>`);
+  axes.forEach((a, i) => { const [x2, y2] = pt(i, 1), [lx, ly] = pt(i, 1.17); s += `<line x1="${cx}" y1="${cy}" x2="${x2}" y2="${y2}" stroke="var(--grid)"/><text x="${lx}" y="${ly + 4}" text-anchor="middle">${esc(a)}</text>`; });
+  series.forEach(se => {
+    s += `<polygon fill="${SER(se.slot)}" fill-opacity=".10" stroke="${SER(se.slot)}" stroke-width="2" points="${se.vals.map((v, i) => pt(i, v || 0).join(",")).join(" ")}"/>`;
+    se.vals.forEach((v, i) => { const [px, py] = pt(i, v || 0); s += `<circle cx="${px}" cy="${py}" r="4" fill="${SER(se.slot)}" stroke="var(--card)" stroke-width="2"/><circle cx="${px}" cy="${py}" r="11" fill="transparent" ${tipOn(`<b>${esc(axes[i])}</b><br>` + series.map(o => `<span class="sw" style="background:${SER(o.slot)}"></span>${esc(o.name)}: ${o.vals[i] == null ? "not scored" : pct(o.vals[i])}`).join("<br>"))}/>`; });
+  });
+  return s + "</svg>";
+}
+function heat(v) { // sequential blue ramp, one hue light->dark
+  if (v == null) return `background:transparent;color:var(--mut)`;
+  const dark = S.theme !== "light";
+  const L = ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95", "#0d366b"];
+  const k = Math.round(clamp(v, 0, 1) * 6), bg = dark ? L[6 - k] : L[k];
+  const txt = (dark ? 6 - k : k) >= 3 ? "#fff" : "#0b0b0b";
+  return `background:${bg};color:${txt}`;
+}
+
+// ---------------------------------------------------------------- AI helper (uses the app's linked AI)
+const AI = { id: "", status: "", text: "" };
+function askAI(kind, question, context) {
+  if (!inApp) { toast("The AI helper works inside Randis UDS."); return; }
+  AI.id = kind + "-" + uid(); AI.status = "Asking…"; AI.text = ""; render();
+  tell({ uds: "planner-ask", id: AI.id, history: [{ role: "user", content: question }], context });
+}
+window.addEventListener("message", e => {
+  const m = e.data || {};
+  if (m.uds === "exported") toast(m.note || (m.ok ? "Saved." : "Not saved."));
+  if (m.uds === "planner" && m.id === AI.id) {
+    if (m.done) { AI.status = m.error ? "⚠ " + m.error : ""; AI.text = m.text || AI.text; } else { AI.status = m.status || ""; if (m.text) AI.text = m.text; }
+    const box = $("#aiBox"); if (box) { box.querySelector(".aist").textContent = AI.status; box.querySelector(".ai").textContent = AI.text || (AI.status ? "" : "—"); }
+  }
+});
+function aiBox(kind, label) {
+  return `<div class="card" id="aiBox"><h3>Ask the linked AI</h3><p class="small mut">Uses the AI linked in Randis UDS. It only reads the summary this page sends.</p>
+<div class="row"><input id="aiQ" style="flex:1" placeholder="${esc(label)}"><button class="pri" data-act="ai" data-kind="${kind}">Ask</button></div>
+<p class="small mut aist">${esc(AI.status)}</p><div class="ai">${esc(AI.text || "—")}</div></div>`;
+}
+function designSummary(d) {
+  const b = curB(), r = b ? scoreDesign(b, d) : null;
+  return `Heritable item design: ${d.name} (${d.cat}). Purpose: ${d.purpose}. Target: ${d.gens} generations × ${d.ypg} years = ${target(d)} years.\nParts:\n` +
+    d.comps.map(c => `- ${c.name}: ${mat(c.mat).name}, joint ${c.join || "n/a"}, load ${c.load}, ${REPLS[c.repl]}${c.std ? ", standard size" : ""}, care ${c.hours} h/yr, est. life ${Math.round(effLife(c))} y`).join("\n") +
+    `\nPrinciples met: ${PRINCIPLES.filter(p => d.pr[p[0]]).map(p => p[1]).join("; ") || "none"}\nDocuments: ${DOCS.filter(x => d.docs[x[0]]).map(x => x[1]).join(", ") || "none"}` +
+    (r ? `\nBenchmark ${b.name} ${b.version}: ${r.score == null ? "not scored" : Math.round(r.score)}/100, tier ${r.tier}. ` + b.crits.map(c => `${c.name} ${pct(r.vals[c.id])}`).join(", ") : "");
+}
+function benchSummary(b) {
+  return `Benchmark "${b.name}" (${b.code} v${b.version}). Purpose: ${b.purpose}\nTiers: ${b.tiers.map(t => t.name + "≥" + t.min).join(", ")}\nCriteria:\n` +
+    b.crits.map(c => `- ${c.name} [${c.dim}] ${c.type}${c.type === "auto" ? " metric " + c.metric : c.type === "test" ? " test " + ((S.protos.find(p => p.id === c.proto) || {}).name || "?") : ""}, weight ${c.weight}${c.gate ? ", gate ≥" + pct(c.gateMin) : ""}${c.desc ? " – " + c.desc : ""}`).join("\n") +
+    `\nHealth findings: ${health(b).map(h => h[2]).join(" | ")}`;
+}
+
+// ---------------------------------------------------------------- benchmark health
+function pearson(a, b) { const n = a.length; if (n < 3) return null; const ma = a.reduce((s, v) => s + v, 0) / n, mb = b.reduce((s, v) => s + v, 0) / n; let num = 0, da = 0, db = 0; for (let i = 0; i < n; i++) { num += (a[i] - ma) * (b[i] - mb); da += (a[i] - ma) ** 2; db += (b[i] - mb) ** 2; } return da && db ? num / Math.sqrt(da * db) : null; }
+function rankOrder(b, crits) { return S.designs.map(d => ({ id: d.id, s: scoreDesign(b, d, crits).score ?? -1 })).sort((x, y) => y.s - x.s).map(x => x.id).join(","); }
+function health(b) {
+  const out = []; const tw = b.crits.reduce((s, c) => s + Math.max(0, +c.weight || 0), 0);
+  if (!b.crits.length) return [["bad", "✖", "No criteria yet."]];
+  if (!tw) out.push(["bad", "✖", "All weights are zero."]);
+  b.crits.forEach(c => { const sh = (+c.weight || 0) / (tw || 1); if (sh > .4) out.push(["warn", "⚠", `"${c.name}" carries ${pct(sh)} of the weight: one criterion decides the result.`]); if (!(+c.weight)) out.push(["warn", "⚠", `"${c.name}" has zero weight: it is only a gate or does nothing.`]); if (c.type === "test" && !S.protos.find(p => p.id === c.proto)) out.push(["bad", "✖", `"${c.name}" points at a missing test protocol.`]); if (c.type === "auto" && !METRICS[c.metric]) out.push(["bad", "✖", `"${c.name}" has no metric picked.`]); if (c.type === "rubric" && (c.levels || []).filter(Boolean).length < 6) out.push(["warn", "⚠", `"${c.name}" rubric has unfilled levels: judges will disagree.`]); });
+  const dims = new Set(b.crits.map(c => c.dim)); const miss = DIMS.filter(x => !dims.has(x));
+  out.push([miss.length > 3 ? "warn" : "good", miss.length > 3 ? "⚠" : "✔", miss.length ? `Covers ${dims.size} of ${DIMS.length} dimensions (missing: ${miss.join(", ")}). Fine if on purpose.` : "Covers every dimension."]);
+  const obj = b.crits.filter(c => c.type !== "rubric").reduce((s, c) => s + (+c.weight || 0), 0) / (tw || 1);
+  out.push([obj >= .6 ? "good" : "warn", obj >= .6 ? "✔" : "⚠", `${pct(obj)} of the weight is measured (computed or tested) rather than judged.`]);
+  const gates = b.crits.filter(c => c.gate).length;
+  out.push([gates > 3 ? "warn" : "good", gates > 3 ? "⚠" : "✔", gates ? `${gates} gate${gates > 1 ? "s" : ""}: failing one caps the tier, whatever the score.` : "No gates: a dangerous item could still score well. Consider a safety gate."]);
+  const ts = (b.tiers || []).map(t => +t.min).sort((x, y) => x - y);
+  if (ts[0] !== 0) out.push(["warn", "⚠", "The lowest tier should start at 0."]);
+  for (let i = 1; i < ts.length; i++) if (ts[i] - ts[i - 1] < 8) out.push(["warn", "⚠", `Tiers ${ts[i - 1]} and ${ts[i]} are very close: small errors flip the tier.`]);
+  // discrimination & redundancy over designs + reference cases
+  const pts = S.designs.map(d => c => critValue(c, d, b)).concat((b.refs || []).map(r => c => refValue(c, r)));
+  if (pts.length >= 2) b.crits.forEach(c => { const vs = pts.map(f => f(c)).filter(v => v != null); if (vs.length >= 2 && Math.max(...vs) - Math.min(...vs) < .05) out.push(["warn", "⚠", `"${c.name}" gives every item the same score: it doesn't tell them apart.`]); });
+  for (let i = 0; i < b.crits.length; i++) for (let j = i + 1; j < b.crits.length; j++) {
+    const a = [], bb = []; pts.forEach(f => { const x = f(b.crits[i]), y = f(b.crits[j]); if (x != null && y != null) { a.push(x); bb.push(y); } });
+    if (a.length >= 4) { const r = pearson(a, bb); if (r != null && r > .95) out.push(["warn", "⚠", `"${b.crits[i].name}" and "${b.crits[j].name}" move together (r=${r.toFixed(2)}): you may be counting one thing twice.`]); }
+  }
+  // calibration
+  if ((b.refs || []).length) { const ok = b.refs.filter(r => scoreRef(b, r).tier === r.expect).length; out.push([ok === b.refs.length ? "good" : "warn", ok === b.refs.length ? "✔" : "⚠", `Calibration: ${ok} of ${b.refs.length} reference cases land in the expected tier.`]); }
+  else out.push(["warn", "⚠", "No reference cases: add known-good and known-bad items to check the benchmark ranks them right."]);
+  // sensitivity
+  if (S.designs.length >= 2 && b.crits.length) {
+    const base = rankOrder(b); let same = 0, tot = 0; const flips = [];
+    b.crits.forEach((c, i) => [.75, 1.25].forEach(f => { const cr = b.crits.map((x, j) => j === i ? Object.assign({}, x, { weight: (+x.weight || 0) * f }) : x); tot++; if (rankOrder(b, cr) === base) same++; else flips.push(c.name); }));
+    out.push([same / tot >= .8 ? "good" : "warn", same / tot >= .8 ? "✔" : "⚠", `Robustness: the design ranking survives ${same} of ${tot} ±25% weight changes${flips.length ? " (sensitive to: " + [...new Set(flips)].join(", ") + ")" : ""}.`]);
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------- views
+const NAV = {
+  design: [["designs", "Designs"], ["designer", "Designer"], ["gens", "Generations"], ["story", "Story & hand-down"], ["compare", "Compare"], ["mats", "Materials"]],
+  bench: [["benches", "Benchmarks"], ["bdesign", "Benchmark designer"], ["run", "Score designs"], ["health", "Health check"], ["refs", "Reference cases"], ["protos", "Test protocols"]],
+  more: [["guide", "Guide"], ["backup", "Backup"]]
+};
+function nav() {
+  $$("#suites button").forEach(b => b.classList.toggle("on", b.dataset.suite === S.suite));
+  const items = NAV[S.suite] || NAV.design, d = curD(), b = curB();
+  let h = S.suite === "design"
+    ? `<h4>Design</h4><select class="pick" data-pick="d">${S.designs.map(x => `<option value="${x.id}"${d && x.id === d.id ? " selected" : ""}>${esc(x.name)}</option>`).join("")}</select>`
+    : `<h4>Benchmark</h4><select class="pick" data-pick="b">${S.benches.map(x => `<option value="${x.id}"${b && x.id === b.id ? " selected" : ""}>${esc(x.name)} ${esc(x.version)}</option>`).join("")}</select>`;
+  h += items.map(([k, t]) => `<button data-view="${k}" class="${S.view === k ? "on" : ""}">${t}</button>`).join("");
+  h += `<h4>More</h4>` + NAV.more.map(([k, t]) => `<button data-view="${k}" class="${S.view === k ? "on" : ""}">${t}</button>`).join("");
+  if (S.suite === "design" && b) h += `<h4>Scoring with</h4><select class="pick" data-pick="b">${S.benches.map(x => `<option value="${x.id}"${x.id === b.id ? " selected" : ""}>${esc(x.name)}</option>`).join("")}</select>`;
+  $("#side").innerHTML = h;
+}
+const V = {};
+const needD = () => `<div class="card"><p>No design yet.</p><button class="pri" data-view="designs">Start one</button></div>`;
+
+V.designs = () => {
+  const b = curB();
+  return `<h2>Heritable item designs</h2><p class="mut">Design things meant to be handed down: what they're made of, how they wear, how they get fixed, and the story that goes with them. Score them with any benchmark from the Benchmark suite.</p>
+<div class="card"><h3>Start a new design</h3><div class="row"><select id="tplSel">${Object.keys(TEMPLATES).map(t => `<option>${esc(t)}</option>`).join("")}</select><button class="pri" data-act="newD">+ New design from this template</button></div></div>
+<div class="grid3">${S.designs.map(d => { const r = b ? scoreDesign(b, d) : null; return `<div class="card dcard${d.id === S.curD ? " on" : ""}" data-act="openD" data-id="${d.id}">
+<div class="row" style="justify-content:space-between"><b>${esc(d.name)}</b><button class="x" data-act="delD" data-id="${d.id}" title="Delete">✕</button></div>
+<div class="small mut">${esc(d.cat)} · ${d.comps.length} parts · ${d.gens} generations (${target(d)} y)</div>
+${r ? `<div class="row" style="margin-top:8px"><span class="big">${r.score == null ? "–" : Math.round(r.score)}</span><span>${stBadge(r)}<br><span class="small mut">${esc(b.name)}</span></span></div>` : ""}
+<div class="row" style="margin-top:8px"><button class="sm" data-act="dupD" data-id="${d.id}">Duplicate</button><button class="sm" data-act="expD" data-id="${d.id}">Export</button></div></div>`; }).join("")}</div>
+<div class="card"><label class="row"><span class="pill" style="cursor:pointer;padding:5px 11px">⬆ Import a design (.json)</span><input type="file" accept=".json" id="impD" style="display:none"></label></div>`;
+};
+
+V.designer = () => {
+  const d = curD(); if (!d) return needD(); const b = curB(), r = b ? scoreDesign(b, d) : null;
+  const matOpts = sel => GROUPS.map(g => `<optgroup label="${g}">${S.mats.filter(m => m.group === g).map(m => `<option value="${m.id}"${m.id === sel ? " selected" : ""}>${esc(m.name)}</option>`).join("")}</optgroup>`).join("");
+  return `<h2>${esc(d.name)}</h2>
+<div class="grid2"><div>
+<div class="card form"><h3>The item</h3>
+<label><span>Name</span><input data-set="d:name" value="${esc(d.name)}" style="width:60%"></label>
+<label><span>Kind</span><input data-set="d:cat" value="${esc(d.cat)}" style="width:60%"></label>
+<label><span>Who it's for / what it does</span><input data-set="d:purpose" value="${esc(d.purpose)}" style="width:60%"></label>
+<label><span>Generations it should serve</span><input type="number" min="1" max="20" data-set="d:gens" value="${d.gens}"></label>
+<label><span>Years per generation</span><input type="number" min="10" max="40" data-set="d:ypg" value="${d.ypg}"></label>
+<label><span>Maker</span><input data-set="d:maker" value="${esc(d.maker)}"></label>
+<label><span>Year made</span><input type="number" data-set="d:year" value="${d.year}"></label>
+<p class="small mut">Target life: <b>${target(d)} years</b> (until about ${(+d.year || 0) + target(d)}).</p></div>
+<div class="card"><h3>Design principles</h3>${PRINCIPLES.map(p => `<label class="row small" style="margin:3px 0;flex-wrap:nowrap"><input type="checkbox" data-set="d:pr.${p[0]}"${d.pr[p[0]] ? " checked" : ""}> ${esc(p[1])}</label>`).join("")}</div>
+</div><div>
+<div class="card"><h3>Score now</h3>${r ? `<div class="row"><span class="big">${r.score == null ? "–" : Math.round(r.score)}</span><span>${stBadge(r)}<br><span class="small mut">${esc(b.name)} ${esc(b.version)} · ${statusOf(r)[2]}</span></span></div>
+<table style="margin-top:8px">${b.crits.map(c => `<tr><td>${esc(c.name)}${c.gate ? ' <span class="pill" title="Gate">gate</span>' : ""}</td><td style="width:40%"><div class="bar" ${tipOn(c.type === "auto" ? metric(c.metric, d).why : c.type)}><i style="width:${(r.vals[c.id] || 0) * 100}%"></i></div></td><td style="width:44px">${pct(r.vals[c.id])}</td></tr>`).join("")}</table>` : "<p>No benchmark.</p>"}</div>
+<div class="card"><h3>What would make it more heritable</h3><ul class="fix small">${fixList(d, b).map(x => `<li>${x}</li>`).join("") || "<li>Nothing obvious. Run the physical tests next.</li>"}</ul></div>
+</div></div>
+<div class="card"><h3>Parts</h3><p class="small mut">Each part's material, joint, how hard it works, and whether it can be swapped or fixed. Life is the material's normal life adjusted for load.</p>
+<div style="overflow:auto"><table><tr><th>Part</th><th>Material</th><th>Joint / fastening</th><th>Load</th><th>When it wears</th><th title="A standard size you can still buy later">Std size</th><th>Care h/yr</th><th>Life</th><th></th></tr>
+${d.comps.map((c, i) => `<tr><td><input data-set="d:comps.${i}.name" value="${esc(c.name)}"></td><td><select data-set="d:comps.${i}.mat">${matOpts(c.mat)}</select></td>
+<td><select data-set="d:comps.${i}.join">${JOINS.map(j => `<option${j === c.join ? " selected" : ""}>${esc(j)}</option>`).join("")}</select></td>
+<td><select data-set="d:comps.${i}.load">${Object.entries(LOADS).map(([k, v]) => `<option value="${k}"${k === c.load ? " selected" : ""}>${v[0]}</option>`).join("")}</select></td>
+<td><select data-set="d:comps.${i}.repl">${Object.entries(REPLS).map(([k, v]) => `<option value="${k}"${k === c.repl ? " selected" : ""}>${v}</option>`).join("")}</select></td>
+<td><input type="checkbox" data-set="d:comps.${i}.std"${c.std ? " checked" : ""}></td><td><input type="number" step="0.1" min="0" data-set="d:comps.${i}.hours" value="${c.hours}"></td>
+<td class="small">${Math.round(effLife(c))} y</td><td><button class="x" data-act="delC" data-i="${i}">✕</button></td></tr>`).join("")}</table></div>
+<div class="row" style="margin-top:8px"><button data-act="addC">+ Add part</button></div></div>
+<div class="card"><h3>Notes</h3><textarea data-set="d:notes" placeholder="Sketch notes, dimensions, decisions and why">${esc(d.notes)}</textarea></div>
+${aiBox("design", "e.g. What would a furniture conservator change? / Pick better materials for 6 generations")}`;
+};
+
+V.gens = () => {
+  const d = curD(); if (!d) return needD(); const sim = simulate(d), shown = sim.lines.slice(0, 8);
+  const fail = sim.overall.findIndex(v => v <= 0);
+  const plan = [];
+  for (let g = 1; g <= d.gens; g++) {
+    const a = (g - 1) * d.ypg, z = g * d.ypg, ev = sim.events.filter(e => e.y > a && e.y <= z), byC = {};
+    ev.forEach(e => { const k = e.c.name + "|" + e.kind; byC[k] = (byC[k] || 0) + 1; });
+    const acts = Object.entries(byC).map(([k, n]) => { const [nm, kind] = k.split("|"); return kind === "fail" ? `<span class="st bad">✖ ${esc(nm)} wears out</span>` : `${{ service: "Care for", repair: "Repair/refit", replace: "Replace" }[kind]} ${esc(nm)}${n > 1 ? " ×" + n : ""}`; });
+    plan.push(`<tr><td><b>Generation ${g}</b><br><span class="small mut">years ${a}–${z} (${(+d.year || 0) + a}–${(+d.year || 0) + z})</span></td><td class="small">${acts.join("<br>") || "Everyday care only"}</td></tr>`);
+  }
+  return `<h2>Generations: ${esc(d.name)}</h2><p class="mut">A simple wear model: each part loses condition over its life, care and repairs restore it, swappable parts get replaced. The dashed line is the item as a whole (its weakest non-swappable part). Hover the chart for values.</p>
+<div class="card"><div class="row"><span class="big">${fail < 0 ? "✔" : fail + "y"}</span><span>${fail < 0 ? `Still going at ${sim.H} years with the care below.` : `A permanent part wears out at about year <b>${fail}</b> (target ${sim.T}).`}</span></div>
+<div class="legend">${shown.map((l, i) => `<span><i style="background:${SER(i)}"></i>${esc(l.c.name)}</span>`).join("")}<span><i style="background:var(--tx)"></i>Whole item</span></div>
+${sim.lines.length ? lineChart(sim, 8) : "<p class='mut'>Add parts in the Designer first.</p>"}
+${sim.lines.length > 8 ? `<p class="small mut">Showing the first 8 parts; the whole-item line includes all ${sim.lines.length}.</p>` : ""}</div>
+<div class="card"><h3>Care plan by generation</h3><table>${plan.join("")}</table></div>
+<div class="card"><h3>Condition table</h3><div style="overflow:auto"><table><tr><th>Part</th>${[0, .25, .5, .75, 1, 1.25].map(f => `<th>Year ${Math.round(sim.T * f)}</th>`).join("")}</tr>
+${sim.lines.map(l => `<tr><td>${esc(l.c.name)}</td>${[0, .25, .5, .75, 1, 1.25].map(f => `<td>${pct(l.pts[Math.min(sim.H, Math.round(sim.T * f))])}</td>`).join("")}</tr>`).join("")}</table></div></div>`;
+};
+
+V.story = () => {
+  const d = curD(); if (!d) return needD();
+  return `<h2>Story & hand-down: ${esc(d.name)}</h2><div class="grid2"><div>
+<div class="card form"><h3>Marks & personal touches</h3>
+<label><span>Inscription</span><input data-set="d:inscription" value="${esc(d.inscription)}" style="width:60%" placeholder="e.g. Made for the Moore family, 2026"></label>
+<label><span>Where the maker's mark goes</span><input data-set="d:markPlace" value="${esc(d.markPlace)}" style="width:60%" placeholder="Inside the lid, under the base…"></label>
+<label><span>Places for keepers' names</span><input type="number" min="0" max="30" data-set="d:spots" value="${d.spots}"></label></div>
+<div class="card"><h3>Hand-down kit</h3>${DOCS.map(x => `<label class="row small"><input type="checkbox" data-set="d:docs.${x[0]}"${d.docs[x[0]] ? " checked" : ""}> ${x[1]} ready</label>`).join("")}
+<div class="row" style="margin-top:8px"><button class="pri" data-act="careCard">⬇ Care card</button><button data-act="cert">⬇ Certificate</button><button data-act="bom">⬇ Materials list (.csv)</button></div></div>
+<div class="card"><h3>Story / letter to the next keeper</h3><textarea data-set="d:story" style="min-height:140px" placeholder="Why it was made, who made it, what it has seen…">${esc(d.story)}</textarea></div>
+</div><div>
+<div class="card"><h3>Keepers</h3><p class="small mut">The chain of people who've looked after it.</p><table><tr><th>Name</th><th>From</th><th>To</th><th>Note</th><th></th></tr>
+${d.keepers.map((k, i) => `<tr><td><input data-set="d:keepers.${i}.name" value="${esc(k.name)}"></td><td><input type="number" data-num="1" data-set="d:keepers.${i}.from" value="${esc(k.from)}"></td><td><input type="number" data-num="1" data-set="d:keepers.${i}.to" value="${esc(k.to)}"></td><td><input data-set="d:keepers.${i}.note" value="${esc(k.note)}"></td><td><button class="x" data-act="delK" data-i="${i}">✕</button></td></tr>`).join("")}</table>
+<button style="margin-top:8px" data-act="addK">+ Add keeper</button></div></div></div>`;
+};
+
+V.compare = () => {
+  const b = curB(); if (!b) return "<p>No benchmark.</p>";
+  S.cmp = (S.cmp || []).filter(id => S.designs.some(d => d.id === id));
+  const dims = DIMS.filter(x => b.crits.some(c => c.dim === x));
+  const ser = S.cmp.slice(0, 4).map(id => S.designs.find(d => d.id === id)).map((d, i) => {
+    const r = scoreDesign(b, d); const vals = dims.map(dm => { const cs = b.crits.filter(c => c.dim === dm && r.vals[c.id] != null); const w = cs.reduce((s, c) => s + (+c.weight || 0), 0); return w ? cs.reduce((s, c) => s + (+c.weight || 0) * r.vals[c.id], 0) / w : null; });
+    return { name: d.name, slot: S.designs.indexOf(d), vals, r, d };
+  });
+  return `<h2>Compare designs</h2><p class="mut">Pick up to 4 designs. Scores per dimension of <b>${esc(b.name)}</b>.</p>
+<div class="card row">${S.designs.map(d => `<label class="row small"><input type="checkbox" data-act="cmp" data-id="${d.id}"${S.cmp.includes(d.id) ? " checked" : ""}> ${esc(d.name)}</label>`).join("")}</div>
+<div class="grid2"><div class="card"><div class="legend">${ser.map(s => `<span><i style="background:${SER(s.slot)};height:10px;width:10px"></i>${esc(s.name)}</span>`).join("")}</div>${ser.length ? radar(ser, dims) : "<p class='mut'>Tick some designs.</p>"}</div>
+<div class="card"><h3>Table</h3><table><tr><th>Dimension</th>${ser.map(s => `<th>${esc(s.name)}</th>`).join("")}</tr>
+${dims.map((dm, i) => `<tr><td>${dm}</td>${ser.map(s => `<td>${pct(s.vals[i])}</td>`).join("")}</tr>`).join("")}
+<tr><td><b>Total</b></td>${ser.map(s => `<td><b>${s.r.score == null ? "–" : Math.round(s.r.score)}</b> ${stBadge(s.r)}</td>`).join("")}</tr>
+<tr><td>Target life</td>${ser.map(s => `<td>${target(s.d)} y</td>`).join("")}</tr>
+<tr><td>Care h/yr</td>${ser.map(s => `<td>${r1(s.d.comps.reduce((a, c) => a + (+c.hours || 0), 0))}</td>`).join("")}</tr></table></div></div>`;
+};
+
+V.mats = () => `<h2>Materials library</h2><p class="mut">Rough planning numbers you can change. <b>Life</b> = years of normal use before the part is worn out; <b>Repair</b> 0–5; <b>Sustain</b> 0–5; <b>Cost</b> 1–5; <b>Service</b> = years between care jobs.</p>
+<div class="card"><div style="overflow:auto"><table><tr><th>Material</th><th>Group</th><th>Life</th><th>Repair</th><th>Ages</th><th>Sustain</th><th>Cost</th><th>Service</th><th>Hazard</th><th>Care</th><th></th></tr>
+${S.mats.map((m, i) => `<tr><td><input data-set="S:mats.${i}.name" value="${esc(m.name)}"></td><td><select data-set="S:mats.${i}.group">${GROUPS.map(g => `<option${g === m.group ? " selected" : ""}>${g}</option>`).join("")}</select></td>
+<td><input type="number" data-set="S:mats.${i}.life" value="${m.life}"></td><td><input type="number" min="0" max="5" data-set="S:mats.${i}.repair" value="${m.repair}"></td>
+<td><select data-set="S:mats.${i}.aging">${["patina", "neutral", "degrades"].map(a => `<option${a === m.aging ? " selected" : ""}>${a}</option>`).join("")}</select></td>
+<td><input type="number" min="0" max="5" data-set="S:mats.${i}.sustain" value="${m.sustain}"></td><td><input type="number" min="1" max="5" data-set="S:mats.${i}.cost" value="${m.cost}"></td><td><input type="number" min="0" data-set="S:mats.${i}.interval" value="${m.interval}"></td>
+<td><input data-set="S:mats.${i}.hazard" value="${esc(m.hazard)}"></td><td><input data-set="S:mats.${i}.care" value="${esc(m.care)}"></td><td><button class="x" data-act="delM" data-i="${i}">✕</button></td></tr>`).join("")}</table></div>
+<div class="row" style="margin-top:8px"><button data-act="addM">+ Add material</button><button data-act="resetM">Restore starter materials</button></div></div>`;
+
+V.benches = () => `<h2>Benchmarks</h2><p class="mut">A benchmark is a repeatable way to judge whether something is fit to hand down: criteria with weights, gates that must pass, tiers, and reference cases that prove it ranks known items correctly.</p>
+<div class="card row"><button class="pri" data-act="newB">+ New blank benchmark</button><button data-act="addStarter">Add the starter benchmarks again</button><label class="row"><span class="pill" style="cursor:pointer;padding:5px 11px">⬆ Import (.json)</span><input type="file" accept=".json" id="impB" style="display:none"></label></div>
+<div class="grid3">${S.benches.map(b => { const hz = health(b), bad = hz.filter(h => h[0] !== "good").length; return `<div class="card dcard${b.id === S.curB ? " on" : ""}" data-act="openB" data-id="${b.id}">
+<div class="row" style="justify-content:space-between"><b>${esc(b.name)}</b><button class="x" data-act="delB" data-id="${b.id}">✕</button></div>
+<div class="small mut">${esc(b.code)} · v${esc(b.version)} · ${b.crits.length} criteria · ${b.crits.filter(c => c.gate).length} gates · ${(b.refs || []).length} reference cases</div>
+<p class="small">${esc(b.purpose)}</p><span class="st ${bad ? "warn" : "good"}">${bad ? "⚠ " + bad + " health notes" : "✔ Healthy"}</span>
+<div class="row" style="margin-top:8px"><button class="sm" data-act="dupB" data-id="${b.id}">Duplicate</button><button class="sm" data-act="expB" data-id="${b.id}">Export .json</button><button class="sm" data-act="mdB" data-id="${b.id}">Spec .md</button></div></div>`; }).join("")}</div>`;
+
+V.bdesign = () => {
+  const b = curB(); if (!b) return "<p>No benchmark.</p>";
+  const tw = b.crits.reduce((s, c) => s + Math.max(0, +c.weight || 0), 0) || 1;
+  const metricOpts = sel => Object.entries(METRICS).map(([k, v]) => `<option value="${k}"${k === sel ? " selected" : ""}>${esc(v[0])}</option>`).join("");
+  return `<h2>Benchmark designer</h2><div class="grid2"><div class="card form"><h3>About</h3>
+<label><span>Name</span><input data-set="b:name" value="${esc(b.name)}" style="width:60%"></label>
+<label><span>Code</span><input data-set="b:code" value="${esc(b.code)}"></label>
+<label><span>Version</span><span>${esc(b.version)} <button class="sm" data-act="publish">Publish new version</button></span></label>
+<label><span>What question it answers</span></label><textarea data-set="b:purpose">${esc(b.purpose)}</textarea>
+<h4>Tiers (score from)</h4>${b.tiers.map((t, i) => `<div class="row" style="margin:3px 0"><input data-set="b:tiers.${i}.name" value="${esc(t.name)}" style="flex:1"><input type="number" min="0" max="100" data-set="b:tiers.${i}.min" value="${t.min}" style="width:70px"><button class="x" data-act="delT" data-i="${i}">✕</button></div>`).join("")}
+<button class="sm" data-act="addT">+ Tier</button>
+${b.history.length ? `<h4>Versions</h4>${b.history.map((h, i) => `<div class="small row">v${esc(h.version)} · ${esc(h.date)} · ${esc(h.note)} <button class="sm" data-act="restoreV" data-i="${i}">Restore</button></div>`).join("")}` : ""}</div>
+<div class="card"><h3>Weight share</h3>${weightBars(b, tw)}</div></div>
+<div class="card"><h3>Criteria</h3><p class="small mut"><b>Computed</b> = worked out from the design. <b>Judged</b> = a person scores 0–5 against written levels. <b>Yes/no</b> = a checkbox. <b>Test</b> = a physical test protocol's latest result. A <b>gate</b> must reach its minimum or the item drops to the lowest tier.</p>
+${b.crits.map((c, i) => `<div class="crit"><div class="row"><input data-set="b:crits.${i}.name" value="${esc(c.name)}" style="flex:1;min-width:180px;font-weight:600">
+<label>Dimension <select data-set="b:crits.${i}.dim">${DIMS.map(x => `<option${x === c.dim ? " selected" : ""}>${x}</option>`).join("")}</select></label>
+<label>Type <select data-set="b:crits.${i}.type">${[["auto", "Computed"], ["rubric", "Judged 0–5"], ["check", "Yes/no"], ["test", "Test"]].map(([k, v]) => `<option value="${k}"${k === c.type ? " selected" : ""}>${v}</option>`).join("")}</select></label>
+${c.type === "auto" ? `<label>Metric <select data-set="b:crits.${i}.metric"><option value="">— pick —</option>${metricOpts(c.metric)}</select></label>` : ""}
+${c.type === "test" ? `<label>Protocol <select data-set="b:crits.${i}.proto"><option value="">— pick —</option>${S.protos.map(p => `<option value="${p.id}"${p.id === c.proto ? " selected" : ""}>${esc(p.name)}</option>`).join("")}</select></label>` : ""}
+<label>Weight <input type="number" min="0" data-set="b:crits.${i}.weight" value="${c.weight}" style="width:64px"> <span class="small">${pct((+c.weight || 0) / tw)}</span></label>
+<label><input type="checkbox" data-set="b:crits.${i}.gate"${c.gate ? " checked" : ""}>Gate</label>
+${c.gate ? `<label>min <input type="number" min="0" max="100" data-set="b:crits.${i}.gateMinPct" value="${Math.round((+c.gateMin || 0) * 100)}" style="width:60px">%</label>` : ""}
+<button class="x" data-act="upCr" data-i="${i}" title="Move up">↑</button><button class="x" data-act="delCr" data-i="${i}">✕</button></div>
+<input data-set="b:crits.${i}.desc" value="${esc(c.desc)}" placeholder="What it means / how to judge it" style="width:100%;margin-top:5px">
+${c.type === "rubric" ? `<details><summary>Rubric levels (what earns 0…5)</summary>${(c.levels || LV).map((l, j) => `<input data-set="b:crits.${i}.levels.${j}" value="${esc(l)}" style="width:100%;margin-top:3px">`).join("")}</details>` : ""}</div>`).join("")}
+<div class="row"><button class="pri" data-act="addCr">+ Add criterion</button></div></div>
+${aiBox("bench", "e.g. Is anything important missing? Are the weights sensible? Suggest rubric levels.")}`;
+};
+function weightBars(b, tw) {
+  const W = 420, rowH = 22, L = 170, n = b.crits.length, Hh = n * rowH + 6;
+  if (!n) return "<p class='mut'>No criteria yet.</p>";
+  let s = `<svg viewBox="0 0 ${W} ${Hh}" width="100%" style="max-width:${W}px">`;
+  b.crits.forEach((c, i) => { const v = Math.max(0, +c.weight || 0) / tw, w = Math.max(2, (W - L - 50) * v), y = i * rowH + 4;
+    s += `<text x="${L - 6}" y="${y + 12}" text-anchor="end">${esc(c.name.length > 26 ? c.name.slice(0, 25) + "…" : c.name)}</text><rect x="${L}" y="${y + 3}" width="${w}" height="12" rx="3" fill="var(--s1)"/><text x="${L + w + 5}" y="${y + 13}">${pct(v)}</text>
+<rect x="0" y="${y}" width="${W}" height="${rowH}" fill="transparent" ${tipOn(`<b>${esc(c.name)}</b><br>${esc(c.dim)} · weight ${c.weight} (${pct(v)})${c.gate ? "<br>Gate: needs " + pct(c.gateMin) : ""}`)}/>`; });
+  return s + "</svg>";
+}
+
+V.run = () => {
+  const b = curB(); if (!b) return "<p>No benchmark.</p>";
+  const rows = S.designs.map(d => ({ d, r: scoreDesign(b, d) })).sort((x, y) => (y.r.score ?? -1) - (x.r.score ?? -1));
+  return `<h2>Score designs: ${esc(b.name)} ${esc(b.version)}</h2><p class="mut">Computed and test cells fill in by themselves. Pick 0–5 (or yes/no) in the judged cells. The further a cell's shade is from the page color, the higher the score. Hover a cell for why.</p>
+<div class="card" style="overflow:auto"><table><tr><th>#</th><th>Design</th><th>Score</th><th>Tier</th>${b.crits.map(c => `<th title="${esc(c.desc)}" style="min-width:74px">${esc(c.name)}<br><span class="mut" style="font-weight:400">${c.type === "auto" ? "computed" : c.type === "rubric" ? "judged" : c.type === "check" ? "yes/no" : "test"} · w${c.weight}${c.gate ? " · gate" : ""}</span></th>`).join("")}</tr>
+${rows.map(({ d, r }, k) => `<tr><td>${k + 1}</td><td><b>${esc(d.name)}</b><br><span class="small mut">${pct(r.coverage)} scored</span></td><td class="big" style="font-size:22px">${r.score == null ? "–" : Math.round(r.score)}</td><td>${stBadge(r)}</td>
+${b.crits.map(c => { const v = r.vals[c.id], st = heat(v);
+  if (c.type === "rubric") { const m = ((d.manual || {})[b.id] || {})[c.id]; return `<td><select data-set="d@${d.id}:manual.${b.id}.${c.id}" data-num="1" title="${esc((c.levels || LV)[m] || "")}" style="${st}"><option value="">?</option>${[0, 1, 2, 3, 4, 5].map(n => `<option value="${n}"${m !== "" && m != null && +m === n ? " selected" : ""}>${n}</option>`).join("")}</select></td>`; }
+  if (c.type === "check") { const m = ((d.manual || {})[b.id] || {})[c.id]; return `<td><select data-set="d@${d.id}:manual.${b.id}.${c.id}" data-num="1" style="${st}"><option value="">?</option><option value="1"${m === 1 ? " selected" : ""}>Yes</option><option value="0"${m === 0 ? " selected" : ""}>No</option></select></td>`; }
+  const why = c.type === "auto" ? metric(c.metric, d).why : (lastResult(c.proto, d.id) ? "Last result: " + lastResult(c.proto, d.id).result : "Not tested yet: log a result on Test protocols");
+  return `<td><div class="cell" style="${st}" ${tipOn(`<b>${esc(c.name)}</b>: ${pct(v)}<br>${esc(why)}`)}>${pct(v)}</div></td>`; }).join("")}</tr>`).join("")}</table></div>
+<div class="card"><h3>Reading this</h3><p class="small">✔ complete · ◐ provisional (some weight not scored yet; the score is the average of what is scored) · ⚠ a gate isn't checked yet · ✖ failed a gate (tier drops to the lowest whatever the score).</p><button data-act="runCsv">⬇ Results (.csv)</button></div>`;
+};
+
+V.health = () => {
+  const b = curB(); if (!b) return "<p>No benchmark.</p>";
+  return `<h2>Health check: ${esc(b.name)}</h2><p class="mut">Checks the benchmark itself: is it balanced, does it tell items apart, does it count anything twice, does it rank the reference cases right, and does a small change in weights flip the results?</p>
+<div class="card">${health(b).map(h => `<p><span class="st ${h[0]}">${h[1]}</span> ${esc(h[2])}</p>`).join("")}</div>
+<div class="card small mut">Discrimination and redundancy use your designs plus reference cases. Robustness nudges each weight by ±25% and checks whether the design ranking changes.</div>
+${aiBox("bench", "e.g. How would you fix the problems above?")}`;
+};
+
+V.refs = () => {
+  const b = curB(); if (!b) return "<p>No benchmark.</p>";
+  return `<h2>Reference cases: ${esc(b.name)}</h2><p class="mut">Known items with a known answer (a great-grandmother's chest should be an heirloom; a flat-pack shelf shouldn't). Score each 0–5 per criterion. If the benchmark puts them in the wrong tier, the benchmark needs work, not the items.</p>
+<div class="card" style="overflow:auto"><table><tr><th>Reference item</th><th>Expected tier</th>${b.crits.map(c => `<th>${esc(c.name)}</th>`).join("")}<th>Score</th><th>Got</th><th></th></tr>
+${(b.refs || []).map((r, i) => { const res = scoreRef(b, r), ok = res.tier === r.expect; return `<tr><td><input data-set="b:refs.${i}.name" value="${esc(r.name)}" style="min-width:200px"></td>
+<td><select data-set="b:refs.${i}.expect">${b.tiers.map(t => `<option${t.name === r.expect ? " selected" : ""}>${esc(t.name)}</option>`).join("")}</select></td>
+${b.crits.map(c => `<td><input type="number" min="0" max="5" data-num="1" step="0.1" data-set="b:refs.${i}.scores.${c.id}" value="${r.scores[c.id] ?? ""}" style="width:52px"></td>`).join("")}
+<td>${res.score == null ? "–" : Math.round(res.score)}</td><td><span class="st ${ok ? "good" : "bad"}">${ok ? "✔" : "✖"} ${esc(res.tier)}</span></td><td><button class="x" data-act="delR" data-i="${i}">✕</button></td></tr>`; }).join("")}</table>
+<div class="row" style="margin-top:8px"><button class="pri" data-act="addR">+ Reference case</button>${S.designs.length ? `<select id="refFrom">${S.designs.map(d => `<option value="${d.id}">${esc(d.name)}</option>`).join("")}</select><button data-act="refFromD">Copy a design's scores in</button>` : ""}</div></div>`;
+};
+
+V.protos = () => {
+  const p = curP();
+  return `<h2>Test protocols</h2><p class="mut">Physical tests that stand in for decades of use. Write the steps once, then log results for each design; benchmark criteria of type <b>Test</b> use the latest result.</p>
+<div class="grid2"><div class="card"><h3>Protocols</h3>${S.protos.map(x => `<div class="row" style="justify-content:space-between"><button class="${x.id === S.curP ? "pri" : ""}" data-act="openP" data-id="${x.id}" style="flex:1;text-align:left">${esc(x.name)} <span class="small">(${x.results.length})</span></button><button class="x" data-act="delP" data-id="${x.id}">✕</button></div>`).join("")}
+<div class="row" style="margin-top:8px"><button data-act="addP">+ New protocol</button></div></div>
+${p ? `<div class="card form"><h3>${esc(p.name)}</h3>
+<label><span>Name</span><input data-set="p:name" value="${esc(p.name)}" style="width:65%"></label>
+<label><span>Based on</span><input data-set="p:basis" value="${esc(p.basis)}" style="width:65%"></label>
+<label><span>What it shows</span><input data-set="p:purpose" value="${esc(p.purpose)}" style="width:65%"></label>
+<label><span>Equipment</span><input data-set="p:equip" value="${esc(p.equip)}" style="width:65%"></label>
+<h4>Steps</h4><textarea data-set="p:steps" style="min-height:110px">${esc(p.steps)}</textarea>
+<h4>Pass when</h4><textarea data-set="p:pass">${esc(p.pass)}</textarea>
+<button data-act="expP">⬇ Printable test sheet</button></div>` : ""}</div>
+${p ? `<div class="card"><h3>Results log</h3><table><tr><th>Date</th><th>Design</th><th>Result</th><th>Notes / measurements</th><th></th></tr>
+${p.results.map((r, i) => `<tr><td><input type="date" data-set="p:results.${i}.date" value="${esc(r.date)}"></td><td><select data-set="p:results.${i}.design">${S.designs.map(d => `<option value="${d.id}"${d.id === r.design ? " selected" : ""}>${esc(d.name)}</option>`).join("")}</select></td>
+<td><select data-set="p:results.${i}.result">${[["pass", "✔ Pass"], ["partial", "◐ Partial"], ["fail", "✖ Fail"]].map(([k, v]) => `<option value="${k}"${k === r.result ? " selected" : ""}>${v}</option>`).join("")}</select></td><td><input data-set="p:results.${i}.notes" value="${esc(r.notes)}"></td><td><button class="x" data-act="delRes" data-i="${i}">✕</button></td></tr>`).join("")}</table>
+<button style="margin-top:8px" data-act="addRes"${S.designs.length ? "" : " disabled"}>+ Log a result</button></div>` : ""}`;
+};
+
+V.guide = () => `<h2>Guide</h2><div class="grid2"><div class="card"><h3>Heritable item design</h3><ol class="small">
+<li><b>Designs</b>: start from one of ${Object.keys(TEMPLATES).length - 1} templates (furniture, jewelry, watch, quilt, tools, pen, book, toys, instruments, clock, bag, gown, silver, archive box) or blank.</li>
+<li><b>Designer</b>: set how many generations it should serve, list its parts with material, joint, load and whether each part is swappable, repairable or fixed. Tick the design principles. The right side scores it live and lists what to change.</li>
+<li><b>Generations</b>: a wear model shows each part's condition over the years, when the item would fail, and a care plan for each generation.</li>
+<li><b>Story & hand-down</b>: inscription, keepers, letter, and downloadable care card, certificate and materials list.</li>
+<li><b>Compare</b> designs on a radar; edit the <b>Materials</b> library's planning numbers.</li></ol></div>
+<div class="card"><h3>Benchmark design</h3><ol class="small">
+<li><b>Benchmarks</b>: four starters (Heirloom Standard, Repair Score, Century Test, Generations of Kids) or your own; import/export as JSON or a Markdown spec.</li>
+<li><b>Benchmark designer</b>: criteria (computed, judged 0–5 with written levels, yes/no, or physical test), weights, gates, tiers; publish versions with change notes.</li>
+<li><b>Score designs</b>: a heat-map matrix of every design against the benchmark.</li>
+<li><b>Health check</b>: balance, coverage, objectivity, gates, tier spacing, discrimination, double-counting, calibration and robustness.</li>
+<li><b>Reference cases</b>: known-good and known-bad items that prove the benchmark ranks things correctly.</li>
+<li><b>Test protocols</b>: write physical tests and log pass/partial/fail per design.</li></ol>
+<p class="small mut">The lifespans and scores are planning estimates, not guarantees or certifications. Real items vary with use, climate and care.</p></div></div>`;
+
+V.backup = () => `<h2>Backup</h2><div class="card"><p>Everything here (designs, benchmarks, tests, materials) is saved in this tab automatically. Save a backup file to keep a copy or move it to another computer.</p>
+<div class="row"><button class="pri" data-act="backup">⬇ Save backup</button><label class="row"><span class="pill" style="cursor:pointer;padding:5px 11px">⬆ Restore from backup</span><input type="file" accept=".json" id="restoreIn" style="display:none"></label><button data-act="wipe">Start over</button></div></div>`;
+
+// ---------------------------------------------------------------- render & events
+function render() {
+  document.body.dataset.theme = S.theme;
+  if (!V[S.view]) S.view = "designs";
+  nav(); const v = $("#view"), st = v.scrollTop; v.innerHTML = V[S.view](); v.scrollTop = st;
+  const lc = $("#lcr"); if (lc) hookLine(lc);
+}
+function hookLine(rect) {
+  const svg = $("#lc"), d = curD(), sim = simulate(d), xl = $("#lcx");
+  rect.addEventListener("mousemove", e => {
+    const bb = svg.getBoundingClientRect(), sc = 760 / bb.width, px = (e.clientX - bb.left) * sc, L = 40, w = 760 - 40 - 14;
+    const yr = clamp(Math.round((px - L) / w * sim.H), 0, sim.H), x = L + yr / sim.H * w;
+    xl.setAttribute("x1", x); xl.setAttribute("x2", x); xl.setAttribute("visibility", "visible");
+    showTip(`<b>Year ${yr}</b> (${(+d.year || 0) + yr})<br>` + sim.lines.slice(0, 8).map((l, i) => `<span class="sw" style="background:${SER(i)}"></span>${esc(l.c.name)}: ${pct(l.pts[yr])}`).join("<br>") + `<br><b>Whole item: ${pct(sim.overall[yr])}</b>`, e);
+  });
+  rect.addEventListener("mouseleave", () => { xl.setAttribute("visibility", "hidden"); hideTip(); });
+}
+function showTip(html, e) { const t = $("#tip"); t.innerHTML = html; t.style.display = "block"; const x = Math.min(e.clientX + 14, innerWidth - t.offsetWidth - 8), y = Math.min(e.clientY + 14, innerHeight - t.offsetHeight - 8); t.style.left = x + "px"; t.style.top = y + "px"; }
+function hideTip() { $("#tip").style.display = "none"; }
+document.addEventListener("mousemove", e => { if (e.target.closest && e.target.closest("#lcr")) return; const el = e.target.closest && e.target.closest("[data-tip]"); if (el) showTip(el.dataset.tip, e); else hideTip(); });
+
+function rootOf(key) {
+  if (key === "S") return S; if (key === "d") return curD(); if (key === "b") return curB(); if (key === "p") return curP();
+  if (key.startsWith("d@")) return S.designs.find(d => d.id === key.slice(2));
+  return null;
+}
+function setPath(obj, path, val) { const ks = path.split("."); let o = obj; for (let i = 0; i < ks.length - 1; i++) { const k = ks[i]; if (o[k] == null || typeof o[k] !== "object") o[k] = {}; o = o[k]; } o[ks[ks.length - 1]] = val; }
+document.addEventListener("change", e => {
+  const el = e.target;
+  if (el.dataset.pick) { if (el.dataset.pick === "d") S.curD = el.value; else S.curB = el.value; save(); render(); return; }
+  if (el.id === "impD" || el.id === "impB" || el.id === "restoreIn") return readFile(el);
+  if (el.dataset.act === "cmp") { S.cmp = S.cmp.filter(x => x !== el.dataset.id); if (el.checked) { S.cmp.push(el.dataset.id); if (S.cmp.length > 4) { S.cmp.shift(); toast("Up to 4 at a time."); } } save(); render(); return; }
+  const ds = el.dataset.set; if (!ds) return;
+  const ci = ds.indexOf(":"), root = rootOf(ds.slice(0, ci)); let path = ds.slice(ci + 1); if (!root) return;
+  let val = el.type === "checkbox" ? el.checked : el.value;
+  if (el.type === "number" || el.dataset.num) val = val === "" ? (el.dataset.num ? "" : 0) : +val;
+  if (path.endsWith(".gateMinPct")) { path = path.replace(/Pct$/, ""); val = clamp(val / 100, 0, 1); }
+  if (/^refs\.\d+\.scores\./.test(path) && val !== "") val = clamp(val, 0, 5);
+  if (el.type === "number" && /\.(life)$/.test(path)) val = Math.max(1, val);
+  setPath(root, path, val);
+  if (/^crits\.\d+\.type$/.test(path) && val === "rubric") { const c = root.crits[+path.split(".")[1]]; if (!c.levels || c.levels.length < 6) c.levels = LV.slice(); }
+  save(); render();
+});
+function readFile(el) {
+  const f = el.files[0]; if (!f) return; const fr = new FileReader();
+  fr.onload = () => {
+    let v; try { v = JSON.parse(fr.result); } catch (_) { toast("That file isn't JSON."); return; }
+    if (el.id === "impD") { if (!v || v.kind !== "heirloom-design" || !v.design || !Array.isArray(v.design.comps)) return toast("That isn't a design file from this tab.");
+      const d = Object.assign(newDesign("Blank (start empty)"), v.design, { id: "d" + uid() }); (v.materials || []).forEach(m => { if (m && m.id && !S.mats.some(x => x.id === m.id)) S.mats.push(m); }); S.designs.push(d); S.curD = d.id; toast("Design imported."); }
+    if (el.id === "impB") { if (!v || v.kind !== "heirloom-benchmark" || !v.benchmark || !Array.isArray(v.benchmark.crits)) return toast("That isn't a benchmark file from this tab.");
+      const b = Object.assign({ history: [], refs: [], tiers: [{ name: "Fail", min: 0 }] }, v.benchmark, { id: "b" + uid() }); (v.protocols || []).forEach(p => { if (p && p.id && !S.protos.some(x => x.id === p.id)) S.protos.push(Object.assign({ results: [] }, p, { results: [] })); }); S.benches.push(b); S.curB = b.id; toast("Benchmark imported."); }
+    if (el.id === "restoreIn") { if (!v || !Array.isArray(v.designs) || !Array.isArray(v.benches)) return toast("That isn't a backup from this tab."); if (!confirm("Replace everything here with this backup?")) return; S = Object.assign(fresh(), v); toast("Restored."); }
+    save(); render();
+  };
+  fr.readAsText(f);
+}
+const today = () => new Date().toISOString().slice(0, 10);
+function bumpVersion(v) { const p = String(v || "1.0").split("."); p[1] = String((+p[1] || 0) + 1); return p.slice(0, 2).join("."); }
+function benchMd(b) {
+  return `# ${b.name} (${b.code}) v${b.version}\n\n${b.purpose}\n\n## Tiers\n\n${b.tiers.slice().sort((x, y) => x.min - y.min).map(t => `- **${t.name}**: score ${t.min}+`).join("\n")}\n\nFailing any gate puts an item in the lowest tier.\n\n## Criteria\n\n| Criterion | Dimension | How it's scored | Weight | Gate |\n|---|---|---|---|---|\n` +
+    b.crits.map(c => `| ${c.name} | ${c.dim} | ${c.type === "auto" ? "Computed: " + (METRICS[c.metric] || ["?"])[0] : c.type === "test" ? "Test: " + ((S.protos.find(p => p.id === c.proto) || {}).name || "?") : c.type === "check" ? "Yes/no" : "Judged 0–5"} | ${c.weight} | ${c.gate ? "≥ " + pct(c.gateMin) : ""} |`).join("\n") +
+    "\n\n" + b.crits.filter(c => c.type === "rubric").map(c => `### ${c.name}: rubric\n\n${c.desc ? c.desc + "\n\n" : ""}${(c.levels || LV).map(l => "- " + l).join("\n")}`).join("\n\n") +
+    "\n\n" + b.crits.filter(c => c.type === "test").map(c => { const p = S.protos.find(x => x.id === c.proto); return p ? `### Test: ${p.name}\n\n${p.purpose}\n\n**Equipment:** ${p.equip}\n\n${p.steps}\n\n**Pass:** ${p.pass}` : ""; }).join("\n\n") +
+    (b.refs && b.refs.length ? `\n\n## Reference cases\n\n${b.refs.map(r => `- ${r.name}: expected **${r.expect}**, scores **${scoreRef(b, r).tier}**`).join("\n")}` : "") +
+    (b.history.length ? `\n\n## Version history\n\n${b.history.map(h => `- v${h.version} (${h.date}): ${h.note}`).join("\n")}` : "") + "\n\n---\nMade with Heirloom Design Lab in Randis UDS™ by Randy Moore.\n";
+}
+function printable(title, body) {
+  return `<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title><style>body{font:15px/1.5 Georgia,serif;max-width:720px;margin:40px auto;color:#222;padding:0 20px}h1{font-size:26px;border-bottom:2px solid #8d6110;padding-bottom:6px}table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid #ccc;padding:5px;text-align:left}.foot{margin-top:40px;font-size:11px;color:#777}</style></head><body>${body}<p class="foot">Made with Heirloom Design Lab · Randis UDS™ by Randy Moore</p></body></html>`;
+}
+const fname = s => String(s).replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "_").slice(0, 60) || "item";
+
+document.addEventListener("click", e => {
+  const s = e.target.closest("[data-suite]"); if (s) { S.suite = s.dataset.suite; S.view = S.suite === "design" ? "designs" : "benches"; save(); render(); return; }
+  const vw = e.target.closest("[data-view]"); if (vw && !vw.dataset.act) { S.view = vw.dataset.view; if (NAV.design.some(x => x[0] === S.view)) S.suite = "design"; if (NAV.bench.some(x => x[0] === S.view)) S.suite = "bench"; save(); render(); return; }
+  const a = e.target.closest("[data-act]"); if (!a || a.tagName === "INPUT") return;
+  const act = a.dataset.act, d = curD(), b = curB(), p = curP(), i = +a.dataset.i, id = a.dataset.id;
+  const byId = (arr, x) => arr.find(o => o.id === x);
+  switch (act) {
+    case "newD": { const nd = newDesign($("#tplSel").value); S.designs.push(nd); S.curD = nd.id; S.view = "designer"; break; }
+    case "openD": if (e.target.closest("button")) return; S.curD = id; S.view = "designer"; break;
+    case "delD": { const x = byId(S.designs, id); if (!confirm(`Delete "${x.name}"? Its test results go too.`)) return; S.designs = S.designs.filter(o => o.id !== id); S.protos.forEach(pp => pp.results = pp.results.filter(r => r.design !== id)); if (S.curD === id) S.curD = S.designs[0] ? S.designs[0].id : null; break; }
+    case "dupD": { const x = JSON.parse(JSON.stringify(byId(S.designs, id))); x.id = "d" + uid(); x.name += " (copy)"; x.keepers = []; S.designs.push(x); S.curD = x.id; break; }
+    case "expD": { const x = byId(S.designs, id); const ms = [...new Set(x.comps.map(c => c.mat))].map(mat); exportFile(fname(x.name) + ".heirloom.json", JSON.stringify({ kind: "heirloom-design", v: 1, design: x, materials: ms }, null, 1), "application/json"); return; }
+    case "addC": d.comps.push({ id: "k" + uid(), name: "New part", mat: S.mats[0].id, join: "", load: "med", repl: "repairable", std: false, hours: 0 }); break;
+    case "delC": d.comps.splice(i, 1); break;
+    case "addK": d.keepers.push({ name: "", from: new Date().getFullYear(), to: "", note: "" }); break;
+    case "delK": d.keepers.splice(i, 1); break;
+    case "careCard": { const sim = simulate(d);
+      exportFile(fname(d.name) + "_care_card.html", printable("Care card: " + d.name, `<h1>Care card: ${esc(d.name)}</h1><p>${esc(d.purpose)}</p><p>Made ${esc(d.year)}${d.maker ? " by " + esc(d.maker) : ""}. Built to serve about ${d.gens} generations (${target(d)} years).</p>
+<h2>Parts and how to look after them</h2><table><tr><th>Part</th><th>Material</th><th>If it wears</th><th>Care</th></tr>${d.comps.map(c => `<tr><td>${esc(c.name)}</td><td>${esc(mat(c.mat).name)}</td><td>${REPLS[c.repl]}${c.std ? " (standard size)" : ""}</td><td>${esc(mat(c.mat).care)}${mat(c.mat).interval ? ` Every ${mat(c.mat).interval} y.` : ""}</td></tr>`).join("")}</table>
+<h2>Care by generation</h2><ul>${Array.from({ length: d.gens }, (_, g) => { const a0 = g * d.ypg, z = (g + 1) * d.ypg, n = {}; sim.events.filter(ev => ev.y > a0 && ev.y <= z && ev.kind !== "fail").forEach(ev => { const k = ({ service: "care for ", repair: "repair ", replace: "replace " })[ev.kind] + ev.c.name; n[k] = (n[k] || 0) + 1; }); return `<li><b>Generation ${g + 1}</b> (${(+d.year || 0) + a0}–${(+d.year || 0) + z}): ${Object.entries(n).map(([k, v]) => k + (v > 1 ? " ×" + v : "")).join(", ") || "everyday care"}</li>`; }).join("")}</ul>
+${d.markPlace ? `<p>The maker's mark is ${esc(d.markPlace)}.</p>` : ""}`)); return; }
+    case "cert": exportFile(fname(d.name) + "_certificate.html", printable("Certificate: " + d.name, `<h1>Certificate of heritage</h1><p style="font-size:20px">${esc(d.name)}</p><p>${esc(d.purpose)}</p><p>Made ${esc(d.year)}${d.maker ? " by " + esc(d.maker) : ""}.${d.inscription ? ` Inscribed: “${esc(d.inscription)}”.` : ""}</p>
+${b ? (() => { const r = scoreDesign(b, d); return `<p>Assessed with <b>${esc(b.name)} ${esc(b.code)} v${esc(b.version)}</b>: score ${r.score == null ? "–" : Math.round(r.score)}/100, tier <b>${esc(r.tier)}</b> (${esc(statusOf(r)[2])}).</p>`; })() : ""}
+<h2>Keepers</h2><table><tr><th>Name</th><th>From</th><th>To</th><th>Note</th></tr>${d.keepers.map(k => `<tr><td>${esc(k.name)}</td><td>${esc(k.from)}</td><td>${esc(k.to)}</td><td>${esc(k.note)}</td></tr>`).join("")}${Array.from({ length: Math.max(0, (d.spots || 0) - d.keepers.length) }, () => "<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>").join("")}</table>
+${d.story ? `<h2>The story</h2><p>${esc(d.story).replace(/\n/g, "<br>")}</p>` : ""}`)); return;
+    case "bom": exportFile(fname(d.name) + "_materials.csv", "Part,Material,Joint,Load,When it wears,Standard size,Care hours/yr,Estimated life (y)\n" + d.comps.map(c => [c.name, mat(c.mat).name, c.join, LOADS[c.load][0], REPLS[c.repl], c.std ? "yes" : "no", c.hours, Math.round(effLife(c))].map(x => `"${String(x).replace(/"/g, '""')}"`).join(",")).join("\n"), "text/csv"); return;
+    case "addM": S.mats.push({ id: "m_custom_" + uid(), name: "New material", group: "Wood", life: 100, repair: 3, aging: "neutral", hazard: "", sustain: 3, cost: 3, interval: 0, care: "" }); break;
+    case "delM": { const m = S.mats[i]; if (S.designs.some(x => x.comps.some(c => c.mat === m.id))) { toast("A design uses this material."); return; } S.mats.splice(i, 1); break; }
+    case "resetM": if (!confirm("Restore the starter materials? Your edits to them are lost; your own added materials stay.")) return; S.mats = MAT0.map(m => Object.assign({}, m)).concat(S.mats.filter(m => !MAT0.some(x => x.id === m.id))); break;
+    case "ai": { const q = $("#aiQ").value.trim() || (a.dataset.kind === "design" ? "Review this design for how well it will survive being handed down. What should change?" : "Review this benchmark design. What's missing, mis-weighted or hard to judge?");
+      askAI(a.dataset.kind, q, a.dataset.kind === "design" ? designSummary(d) : benchSummary(b)); return; }
+    case "newB": { const nb = { id: "b" + uid(), name: "New benchmark", code: "NB-1", version: "0.1", purpose: "", tiers: [{ name: "Fail", min: 0 }, { name: "Pass", min: 60 }], history: [], refs: [], crits: [] }; S.benches.push(nb); S.curB = nb.id; S.view = "bdesign"; break; }
+    case "addStarter": S.benches.push(...starterBenches()); PROTO0.forEach(pp => { if (!S.protos.some(x => x.id === pp.id)) S.protos.push(JSON.parse(JSON.stringify(pp))); }); toast("Added."); break;
+    case "openB": if (e.target.closest("button")) return; S.curB = id; S.view = "bdesign"; break;
+    case "delB": { if (S.benches.length < 2) { toast("Keep at least one benchmark."); return; } const x = byId(S.benches, id); if (!confirm(`Delete "${x.name}"?`)) return; S.benches = S.benches.filter(o => o.id !== id); if (S.curB === id) S.curB = S.benches[0].id; break; }
+    case "dupB": { const x = JSON.parse(JSON.stringify(byId(S.benches, id))), map = {}; x.id = "b" + uid(); x.name += " (copy)"; x.history = []; x.crits.forEach(c => { const n = "c" + uid(); map[c.id] = n; c.id = n; }); x.refs.forEach(r => { const sc = {}; Object.keys(r.scores).forEach(k => sc[map[k] || k] = r.scores[k]); r.scores = sc; r.id = "r" + uid(); });
+      const old = byId(S.benches, id); S.designs.forEach(dd => { const m = (dd.manual || {})[old.id]; if (m) { const n = {}; Object.keys(m).forEach(k => n[map[k] || k] = m[k]); dd.manual[x.id] = n; } }); S.benches.push(x); S.curB = x.id; break; }
+    case "expB": { const x = byId(S.benches, id); exportFile(fname(x.name) + ".rbench.json", JSON.stringify({ kind: "heirloom-benchmark", v: 1, benchmark: x, protocols: S.protos.filter(pp => x.crits.some(c => c.proto === pp.id)).map(pp => Object.assign({}, pp, { results: [] })) }, null, 1), "application/json"); return; }
+    case "mdB": { const x = byId(S.benches, id); exportFile(fname(x.name) + "_spec.md", benchMd(x), "text/markdown"); return; }
+    case "publish": { const note = prompt("What changed in this version?", ""); if (note === null) return; b.history.push({ version: b.version, date: today(), note: note || "(no note)", crits: JSON.parse(JSON.stringify(b.crits)), tiers: JSON.parse(JSON.stringify(b.tiers)) }); b.version = bumpVersion(b.version); toast("Now v" + b.version + ". The old version is kept below."); break; }
+    case "restoreV": { const h = b.history[i]; if (!confirm(`Put back the criteria and tiers of v${h.version}? The current ones are saved as a version first.`)) return; b.history.push({ version: b.version, date: today(), note: "before restoring v" + h.version, crits: JSON.parse(JSON.stringify(b.crits)), tiers: JSON.parse(JSON.stringify(b.tiers)) }); b.crits = JSON.parse(JSON.stringify(h.crits)); b.tiers = JSON.parse(JSON.stringify(h.tiers)); b.version = bumpVersion(b.version); break; }
+    case "addT": b.tiers.push({ name: "New tier", min: Math.min(100, Math.max(0, ...b.tiers.map(t => +t.min)) + 10) }); break;
+    case "delT": if (b.tiers.length < 2) { toast("Keep at least one tier."); return; } b.tiers.splice(i, 1); break;
+    case "addCr": b.crits.push(C("New criterion", "Durability", "rubric")); break;
+    case "delCr": if (!confirm(`Remove "${b.crits[i].name}"?`)) return; b.crits.splice(i, 1); break;
+    case "upCr": if (i > 0) { const t = b.crits[i]; b.crits[i] = b.crits[i - 1]; b.crits[i - 1] = t; } break;
+    case "runCsv": { const rows = S.designs.map(dd => { const r = scoreDesign(b, dd); return [dd.name, r.score == null ? "" : Math.round(r.score), r.tier, pct(r.coverage), ...b.crits.map(c => r.vals[c.id] == null ? "" : Math.round(r.vals[c.id] * 100))]; });
+      exportFile(fname(b.name) + "_results.csv", [["Design", "Score", "Tier", "Scored", ...b.crits.map(c => c.name)], ...rows].map(r => r.map(x => `"${String(x).replace(/"/g, '""')}"`).join(",")).join("\n"), "text/csv"); return; }
+    case "addR": b.refs = b.refs || []; b.refs.push({ id: "r" + uid(), name: "Known item", expect: b.tiers[0].name, scores: {} }); break;
+    case "delR": b.refs.splice(i, 1); break;
+    case "refFromD": { const dd = byId(S.designs, $("#refFrom").value), sc = {}; b.crits.forEach(c => { const v = critValue(c, dd, b); if (v != null) sc[c.id] = Math.round(v * 50) / 10; }); const r = scoreDesign(b, dd); b.refs = b.refs || []; b.refs.push({ id: "r" + uid(), name: dd.name + " (as reference)", expect: r.tier, scores: sc }); break; }
+    case "openP": S.curP = id; break;
+    case "addP": { const np = { id: "pr_" + uid(), name: "New test", basis: "", purpose: "", equip: "", steps: "1. ", pass: "", results: [] }; S.protos.push(np); S.curP = np.id; break; }
+    case "delP": { if (S.benches.some(x => x.crits.some(c => c.proto === id))) { toast("A benchmark uses this test."); return; } if (!confirm("Delete this protocol and its results?")) return; S.protos = S.protos.filter(x => x.id !== id); if (S.curP === id) S.curP = S.protos[0] ? S.protos[0].id : null; break; }
+    case "expP": exportFile(fname(p.name) + "_test_sheet.html", printable("Test: " + p.name, `<h1>Test: ${esc(p.name)}</h1><p><i>${esc(p.basis)}</i></p><p>${esc(p.purpose)}</p><p><b>Equipment:</b> ${esc(p.equip)}</p><h2>Steps</h2><p>${esc(p.steps).replace(/\n/g, "<br>")}</p><h2>Pass when</h2><p>${esc(p.pass)}</p><h2>Record</h2><table><tr><th>Date</th><th>Item</th><th>Measurements</th><th>Result</th></tr>${"<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>".repeat(8)}</table>`)); return;
+    case "addRes": p.results.push({ date: today(), design: (d || S.designs[0]).id, result: "pass", notes: "" }); break;
+    case "delRes": p.results.splice(i, 1); break;
+    case "backup": exportFile("heirloom_design_lab_backup_" + today() + ".json", JSON.stringify(S), "application/json"); return;
+    case "wipe": if (!confirm("Erase every design, benchmark and result here and start fresh? Save a backup first if unsure.")) return; localStorage.removeItem(LKEY); location.reload(); return;
+    default: return;
+  }
+  save(); render();
+});
+$("#themeBtn").onclick = () => { S.theme = S.theme === "dark" ? "light" : "dark"; save(); render(); };
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+ "name": "Randis Bench Lab",
+ "by": "Randy",
+ "blurb": "Design and run benchmarks: 14 graders, weights, versions, results with 95% ranges, paired compares, a leaderboard, a health check, a sample-size planner and synthetic data generators. Pasted or imported replies work here; running a linked AI needs Randis UDS.",
+ "status": "ok",
+ "real_items": null,
+ "reviews": {
+  "randy": null,
+  "maker": null
+ }
+}

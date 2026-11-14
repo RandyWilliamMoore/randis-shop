@@ -1,0 +1,1761 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Aura — AI Assistant Suite</title>
+<!-- Randis UDS™ by Randy Moore. Original: https://github.com/RandyWilliamMoore/randis-uds · Support: https://ko-fi.com/moorescombinatoricsmatrix -->
+<style>
+:root{--bg:#0f1117;--bg2:#161a23;--bg3:#1f2430;--line:#2c3342;--tx:#e8ecf4;--mut:#8f9ab0;--acc:#7c9cff;--acc2:#4fd1c5;--hot:#ff7ab6;--ok:#5fd38d;--warn:#f5b84a;--bad:#ff6b6b}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font:13px/1.45 "Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--tx);display:flex;flex-direction:column;overflow:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+input,select,textarea{background:var(--bg3);border:1px solid var(--line);border-radius:6px;padding:4px 7px;outline:none;min-width:0}
+input:focus,select:focus,textarea:focus{border-color:var(--acc)}
+textarea{width:100%;resize:vertical;line-height:1.5}
+button{cursor:pointer;background:var(--bg3);border:1px solid var(--line);border-radius:7px;padding:5px 11px;white-space:nowrap}
+button:hover{border-color:var(--acc)}
+button.pri{background:linear-gradient(135deg,#5b7cff,#8a5cff);border-color:transparent;color:#fff;font-weight:600}
+button.go{background:linear-gradient(135deg,#16b38a,#4fd1c5);border-color:transparent;color:#04201a;font-weight:700}
+button.sm{padding:2px 8px;font-size:12px}
+button.bad{color:var(--bad)}
+button.on{border-color:var(--acc);background:#27305a}
+input[type=range]{padding:0;border:0;background:none;accent-color:var(--acc);width:100%}
+input[type=checkbox]{accent-color:var(--acc)}
+input[type=color]{padding:0;width:34px;height:24px;border-radius:5px;cursor:pointer}
+header{display:flex;align-items:center;gap:8px;padding:7px 12px;background:var(--bg2);border-bottom:1px solid var(--line);flex-wrap:wrap}
+header .logo{font-weight:800;font-size:16px;background:linear-gradient(90deg,#7c9cff,#ff7ab6,#4fd1c5);-webkit-background-clip:text;background-clip:text;color:transparent;margin-right:6px}
+header .credit{font-size:11px;color:var(--mut)}
+header .credit a{color:var(--mut)}
+#status{color:var(--mut);margin-left:auto;font-size:12px}
+nav.tabs{display:flex;gap:2px;padding:0 10px;background:var(--bg2);border-bottom:1px solid var(--line);overflow-x:auto}
+nav.tabs button{border:0;border-bottom:2px solid transparent;border-radius:0;background:none;color:var(--mut);padding:8px 12px}
+nav.tabs button.on{color:var(--tx);border-bottom-color:var(--acc);background:none}
+#main{flex:1;min-height:0;display:flex}
+.scroll{overflow:auto}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:0 0 10px}
+.card h3{margin:0 0 8px;font-size:13px;color:var(--acc2);text-transform:uppercase;letter-spacing:.06em}
+.sl{display:grid;grid-template-columns:110px 1fr 42px;align-items:center;gap:8px;margin:3px 0}
+.sk{color:var(--mut);font-size:12px}
+.sv{font-size:11px;color:var(--mut);text-align:right;font-variant-numeric:tabular-nums}
+.si{display:grid;grid-template-columns:110px 1fr;align-items:center;gap:8px;margin:3px 0}
+.ci{display:inline-flex;align-items:center;gap:6px;margin:3px 10px 3px 0;font-size:12px;color:var(--mut)}
+.cb{display:inline-flex;align-items:center;gap:4px;margin:3px 12px 3px 0;font-size:12px}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{padding:3px 9px;border-radius:14px;font-size:12px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.mut{color:var(--mut)}
+.small{font-size:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#263052;border:1px solid var(--acc);padding:8px 14px;border-radius:9px;display:none;z-index:99;max-width:80%;box-shadow:0 8px 30px #0008}
+.vpick{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.vpick select{max-width:340px}
+kbd{background:var(--bg3);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 5px;font-size:11px}
+.list .it{display:flex;gap:8px;align-items:center;padding:6px 8px;border-radius:7px;border:1px solid transparent}
+.list .it:hover{background:var(--bg3)}
+.list .it.on{border-color:var(--acc);background:#1d2440}
+h2{font-size:15px;margin:4px 0 10px}
+p{margin:4px 0 8px}
+a{color:var(--acc)}
+
+#main{display:flex}
+#stagebox{flex:1;position:relative;min-width:0;background:#05070f}
+#stage{position:absolute;inset:0;width:100%;height:100%;cursor:pointer}
+#sub{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);max-width:86%;background:rgba(5,8,20,.72);border:1px solid rgba(124,156,255,.35);padding:8px 14px;border-radius:12px;font-size:16px;text-align:center;transition:opacity .4s;pointer-events:none;backdrop-filter:blur(4px)}
+#panel{width:470px;max-width:52%;display:flex;flex-direction:column;border-left:1px solid var(--line);background:var(--bg)}
+#side-nav{display:flex;flex-wrap:wrap;gap:2px;padding:6px;border-bottom:1px solid var(--line);background:var(--bg2)}
+#side-nav button{border:0;background:none;color:var(--mut);padding:5px 8px;font-size:12px}
+#side-nav button.on{background:var(--bg3);color:var(--tx)}
+#side{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column}
+.chatlog{flex:1;overflow:auto;min-height:120px;padding:4px}
+.msg{margin:6px 0;max-width:92%}
+.msg .who{font-size:11px;color:var(--mut);margin:0 4px 2px}
+.msg .tx{background:var(--bg2);border:1px solid var(--line);padding:7px 10px;border-radius:10px;white-space:pre-wrap;word-wrap:break-word}
+.msg.user{margin-left:auto}
+.msg.user .who{text-align:right}
+.msg.user .tx{background:#26305a;border-color:#3a4a8a}
+.chatbar{display:flex;gap:6px;align-items:flex-end;margin-top:6px}
+.chatbar textarea{flex:1}
+.tmr{display:inline-block;background:var(--bg3);border:1px solid var(--line);border-radius:14px;padding:2px 10px;margin:2px;font-size:12px}
+.pre{white-space:pre-wrap;font-size:11px;background:var(--bg3);padding:8px;border-radius:7px;max-height:260px;overflow:auto}
+#who{display:flex;flex-direction:column;line-height:1.15}
+#aname{font-weight:700}
+#arole{font-size:11px;color:var(--mut)}
+</style>
+</head>
+<body>
+<header><span class="logo">✦ Aura</span><span class="mut">AI Assistant Suite</span><span id="who" style="margin-left:14px"><span id="aname"></span><span id="arole"></span></span>
+<span class="credit">Randis UDS™ by Randy Moore · <a href="https://github.com/RandyWilliamMoore/randis-uds" target="_blank">Original</a> · <a href="https://ko-fi.com/moorescombinatoricsmatrix" target="_blank">Support</a></span><span id="status"></span></header>
+<div id="main"><div id="stagebox"><canvas id="stage"></canvas><div id="sub"></div></div>
+<div id="panel"><div id="side-nav"></div><div id="side"></div></div></div>
+<div id="toast"></div>
+<script>
+/* Randis Voice Engine: a small, self-contained talking-voice synthesizer (formant synthesis, letter-to-sound rules,
+   prosody, ensemble and an effects rack). No downloads, no internet, no recordings of anyone: every voice is made from numbers.
+   Runs in any browser and in Node.js. Voice format: "randis-voice/1".
+   Randis UDS™ by Randy Moore. Original: https://github.com/RandyWilliamMoore/randis-uds · Support: https://ko-fi.com/moorescombinatoricsmatrix */
+(function(G){'use strict';
+var RV={version:'1.0.0',format:'randis-voice/1',
+  credit:'Randis UDS\u2122 by Randy Moore. Original: https://github.com/RandyWilliamMoore/randis-uds \u00b7 Support: https://ko-fi.com/moorescombinatoricsmatrix'};
+
+/* ---------- Voice controls ---------- */
+var P=RV.PARAMS={
+  pitch:{d:120,min:40,max:600,step:1,g:'Source',l:'Base pitch',u:'Hz',h:'How high or low the voice sits. Men ~85-155, women ~165-255, kids 250+.'},
+  wave:{d:'glottal',opts:['glottal','soft','saw','square','sine','buzz','pulse','noise'],g:'Source',l:'Sound source',h:'glottal and soft are a human throat. saw, square, sine, buzz, pulse and noise are synth and robot sources.'},
+  tension:{d:.5,min:0,max:1,step:.01,g:'Source',l:'Vocal tension',h:'Low = soft, relaxed, dark. High = pressed, bright, edgy.'},
+  breath:{d:.08,min:0,max:1,step:.01,g:'Source',l:'Breathiness',h:'Air mixed into the voice.'},
+  whisper:{d:0,min:0,max:1,step:.01,g:'Source',l:'Whisper',h:'1 = all whisper, no voice.'},
+  jitter:{d:.01,min:0,max:.2,step:.001,g:'Source',l:'Jitter',h:'Tiny random pitch wobble per vocal cycle. Higher = rough, old, nervous.'},
+  shimmer:{d:.04,min:0,max:.6,step:.01,g:'Source',l:'Shimmer',h:'Tiny random loudness wobble per cycle. Higher = raspy.'},
+  creak:{d:0,min:0,max:1,step:.01,g:'Source',l:'Vocal fry / creak',h:'Creaky, gravelly low end.'},
+  vibRate:{d:5.5,min:0,max:12,step:.1,g:'Source',l:'Vibrato speed',u:'Hz',h:'How fast the vibrato wobbles.'},
+  vibDepth:{d:0,min:0,max:2,step:.01,g:'Source',l:'Vibrato depth',u:'st',h:'How wide the vibrato is, in semitones.'},
+  tract:{d:1,min:.6,max:1.6,step:.01,g:'Throat & mouth',l:'Head size',h:'Moves all formants. Above 1 = smaller head (child, cartoon). Below 1 = bigger (giant).'},
+  f1:{d:0,min:-300,max:300,step:1,g:'Throat & mouth',l:'Formant 1 shift',u:'Hz',h:'Jaw openness color.'},
+  f2:{d:0,min:-600,max:600,step:1,g:'Throat & mouth',l:'Formant 2 shift',u:'Hz',h:'Tongue front/back color. Up = brighter, down = darker.'},
+  f3:{d:0,min:-800,max:800,step:1,g:'Throat & mouth',l:'Formant 3 shift',u:'Hz',h:'Lip and r-color.'},
+  bw:{d:1,min:.3,max:3,step:.01,g:'Throat & mouth',l:'Formant width',h:'Low = ringing, hollow, metallic. High = muffled, soft.'},
+  nasal:{d:0,min:0,max:1,step:.01,g:'Throat & mouth',l:'Nasality',h:'Talking through the nose.'},
+  precision:{d:.5,min:0,max:1,step:.01,g:'Throat & mouth',l:'Articulation',h:'How crisply it moves between sounds. Low = mumbly, high = crisp.'},
+  fric:{d:1,min:0,max:2,step:.01,g:'Throat & mouth',l:'Consonant strength',h:'Loudness of s, sh, f, t, k and friends.'},
+  sib:{d:1,min:.5,max:1.6,step:.01,g:'Throat & mouth',l:'Sibilance pitch',h:'How high the hiss of s and sh sits.'},
+  rate:{d:1,min:.3,max:3,step:.01,g:'Delivery',l:'Speed',h:'Speaking speed.'},
+  range:{d:.35,min:0,max:1.5,step:.01,g:'Delivery',l:'Expressiveness',h:'How much the pitch moves. 0 = monotone.'},
+  declin:{d:.25,min:0,max:1,step:.01,g:'Delivery',l:'Downdrift',h:'How much pitch falls across a sentence.'},
+  question:{d:.6,min:0,max:1.5,step:.01,g:'Delivery',l:'Question rise',h:'How much the pitch rises at a ?'},
+  stress:{d:.6,min:0,max:1.5,step:.01,g:'Delivery',l:'Word stress',h:'How much important words pop.'},
+  energy:{d:.5,min:0,max:1,step:.01,g:'Delivery',l:'Loud/soft contrast',h:'How much quieter unstressed sounds are.'},
+  pitchRand:{d:.15,min:0,max:1.5,step:.01,g:'Delivery',l:'Melody wander',h:'Random pitch per syllable. High = sing-song or wild.'},
+  quant:{d:0,min:0,max:1,step:.01,g:'Delivery',l:'Robo-tune',h:'Snaps pitch to musical notes. 1 = hard auto-tune.'},
+  commaPause:{d:170,min:0,max:1000,step:5,g:'Delivery',l:'Comma pause',u:'ms',h:'Pause at , ; and dashes.'},
+  stopPause:{d:380,min:0,max:2000,step:5,g:'Delivery',l:'Sentence pause',u:'ms',h:'Pause at . ! and ?'},
+  wordGap:{d:0,min:0,max:400,step:5,g:'Delivery',l:'Word gap',u:'ms',h:'Extra silence between words (robotic, spelled-out feel).'},
+  voices:{d:1,min:1,max:8,step:1,g:'Ensemble',l:'Unison voices',h:'Stack copies of the voice for a choir or crowd.'},
+  detune:{d:12,min:0,max:100,step:1,g:'Ensemble',l:'Unison detune',u:'cents',h:'How far apart the stacked voices are.'},
+  harm1:{d:-12,min:-24,max:24,step:1,g:'Ensemble',l:'Harmony 1 interval',u:'st',h:'A second voice this many semitones away (-12 = octave down).'},
+  harm1Mix:{d:0,min:0,max:1,step:.01,g:'Ensemble',l:'Harmony 1 level'},
+  harm2:{d:7,min:-24,max:24,step:1,g:'Ensemble',l:'Harmony 2 interval',u:'st',h:'7 = a fifth up, 12 = an octave up.'},
+  harm2Mix:{d:0,min:0,max:1,step:.01,g:'Ensemble',l:'Harmony 2 level'},
+  gain:{d:0,min:-24,max:12,step:.5,g:'Output',l:'Loudness',u:'dB',h:'Final volume. Above 0 pushes into a soft limiter.'},
+  sr:{d:24000,opts:[16000,22050,24000,32000,44100,48000],g:'Output',l:'Sample rate',u:'Hz',h:'Higher = brighter and bigger files. 16000 is lo-fi.'}
+};
+RV.GROUPS=['Source','Throat & mouth','Delivery','Ensemble','Output'];
+
+/* ---------- Effects rack ---------- */
+RV.FX={
+  eq:{l:'Equalizer',p:{low:[0,-18,18,.5,'Low (250 Hz)','dB'],mid:[0,-18,18,.5,'Mid','dB'],midF:[1500,300,6000,10,'Mid frequency','Hz'],high:[0,-18,18,.5,'High (5 kHz)','dB']}},
+  filter:{l:'Filter',p:{mode:[['lowpass','highpass','bandpass','notch'],'Type'],freq:[3000,50,12000,10,'Frequency','Hz'],q:[.7,.1,20,.1,'Resonance']}},
+  pitch:{l:'Pitch shifter',p:{semi:[0,-24,24,.1,'Shift','st'],mix:[1,0,1,.01,'Mix']}},
+  ring:{l:'Robot (ring mod)',p:{freq:[60,1,2000,1,'Frequency','Hz'],mix:[.6,0,1,.01,'Mix']}},
+  crush:{l:'Bit crusher',p:{bits:[8,1,16,1,'Bits'],down:[2,1,32,1,'Downsample'],mix:[1,0,1,.01,'Mix']}},
+  drive:{l:'Distortion',p:{amount:[.3,0,1,.01,'Drive'],mix:[1,0,1,.01,'Mix']}},
+  chorus:{l:'Chorus',p:{rate:[.8,.05,8,.01,'Rate','Hz'],depth:[6,.5,25,.1,'Depth','ms'],mix:[.5,0,1,.01,'Mix']}},
+  flanger:{l:'Flanger',p:{rate:[.3,.05,5,.01,'Rate','Hz'],depth:[3,.2,10,.1,'Depth','ms'],fb:[.6,0,.95,.01,'Feedback'],mix:[.5,0,1,.01,'Mix']}},
+  tremolo:{l:'Tremolo',p:{rate:[6,.1,30,.1,'Rate','Hz'],depth:[.5,0,1,.01,'Depth']}},
+  echo:{l:'Echo',p:{time:[250,10,1500,1,'Time','ms'],fb:[.35,0,.95,.01,'Repeats'],mix:[.3,0,1,.01,'Level']}},
+  reverb:{l:'Reverb',p:{size:[.6,0,1,.01,'Room size'],damp:[.4,0,1,.01,'Damping'],mix:[.25,0,1,.01,'Mix']}},
+  radio:{l:'Radio / phone',p:{low:[300,50,2000,10,'Low cut','Hz'],high:[3400,800,8000,10,'High cut','Hz'],grit:[.3,0,1,.01,'Grit'],noise:[.02,0,.2,.001,'Static']}},
+  comp:{l:'Compressor',p:{thresh:[-18,-60,0,.5,'Threshold','dB'],ratio:[4,1,20,.1,'Ratio'],makeup:[6,0,24,.5,'Makeup','dB']}},
+  gain:{l:'Gain',p:{db:[0,-24,24,.5,'Gain','dB']}}
+};
+RV.fxDefaults=function(type){var d={type:type,on:true},p=(RV.FX[type]||{p:{}}).p;for(var k in p){var v=p[k][0];d[k]=Array.isArray(v)?v[0]:v}return d};
+
+/* ---------- Helpers ---------- */
+function rng(seed){var a=seed>>>0||1;return function(){a=(a+0x6D2B79F5)>>>0;var t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296}}
+function hash(s){s=String(s||'');var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+function clamp(v,a,b){return v<a?a:v>b?b:v}
+RV.defaults=function(){var o={};for(var k in P)o[k]=P[k].d;return o};
+RV.newVoice=function(name){return{format:RV.format,name:name||'New voice',version:'1.0',author:'',license:'CC0-1.0',description:'',tags:[],synthetic:true,
+  engine:'forge',params:RV.defaults(),fx:[],dict:{},system:{voice:'',rate:1,pitch:1,volume:1},created:Date.now()}};
+RV.clean=function(v){v=v||{};var o=RV.newVoice(v.name);for(var k in v)if(k!=='params')o[k]=v[k];o.format=RV.format;
+  var src=v.params||{};for(var q in P){var d=P[q],x=src[q];if(d.opts){o.params[q]=d.opts.indexOf(x)>=0?x:(d.opts.indexOf(+x)>=0?+x:d.d)}else{x=+x;o.params[q]=isFinite(x)?clamp(x,d.min,d.max):d.d}}
+  o.fx=(Array.isArray(v.fx)?v.fx:[]).filter(function(f){return f&&RV.FX[f.type]}).map(function(f){return Object.assign(RV.fxDefaults(f.type),f)});
+  o.dict=(v.dict&&typeof v.dict==='object')?v.dict:{};o.system=Object.assign({voice:'',rate:1,pitch:1,volume:1},v.system||{});
+  o.tags=Array.isArray(v.tags)?v.tags:[];return o};
+
+/* ---------- Phonemes (ARPAbet) ---------- */
+var PH={};
+function def(n,t,F,dur,o){PH[n]=Object.assign({t:t,F:F,dur:dur},o||{})}
+def('IY','v',[270,2290,3010],110);def('IH','v',[390,1990,2550],80);def('EH','v',[530,1840,2480],90);def('AE','v',[660,1720,2410],120);
+def('AA','v',[730,1090,2440],120);def('AO','v',[570,840,2410],120);def('UH','v',[440,1020,2240],80);def('UW','v',[300,870,2240],110);
+def('AH','v',[640,1190,2390],85);def('AX','v',[500,1450,2450],55);def('ER','v',[490,1350,1690],110);
+def('EY','d',[480,1720,2520],140,{E:[330,2200,2600]});def('AY','d',[660,1200,2550],160,{E:[400,1900,2600]});
+def('OW','d',[540,1100,2300],140,{E:[450,900,2300]});def('AW','d',[700,1220,2600],160,{E:[450,1000,2300]});
+def('OY','d',[550,960,2400],170,{E:[360,1820,2450]});
+def('L','l',[360,1300,2700],65);def('R','l',[330,1060,1380],70);def('W','l',[290,610,2150],60);def('Y','l',[260,2070,3020],55);
+def('M','n',[480,1270,2130],70);def('N','n',[480,1340,2470],65);def('NG','n',[480,2000,2600],75);
+def('F','f',[340,1100,2080],100,{af:.35,ff:5500,fb:4000});def('TH','f',[320,1290,2540],90,{af:.22,ff:4500,fb:4000});
+def('S','f',[320,1390,2530],110,{af:.9,ff:6200,fb:1600});def('SH','f',[300,1840,2750],110,{af:.85,ff:3000,fb:1400});
+def('HH','h',[500,1500,2500],60);
+def('V','z',[220,1100,2080],65,{av:.55,af:.2,ff:5000,fb:4000});def('DH','z',[270,1290,2540],50,{av:.55,af:.15,ff:4500,fb:4000});
+def('Z','z',[240,1390,2530],80,{av:.45,af:.55,ff:6000,fb:1600});def('ZH','z',[300,1840,2750],75,{av:.45,af:.5,ff:3000,fb:1400});
+def('P','s',[400,1100,2150],80,{burst:.5,ff:1200,fb:2500});def('T','s',[400,1600,2600],75,{burst:.6,ff:4200,fb:3000});
+def('K','s',[300,1990,2850],80,{burst:.6,ff:2300,fb:1600});def('B','b',[200,1100,2150],65,{burst:.3,ff:1200,fb:2500});
+def('D','b',[200,1600,2600],60,{burst:.35,ff:4000,fb:3000});def('G','b',[200,1990,2850],65,{burst:.35,ff:2300,fb:1600});
+def('CH','a',null,0,{parts:['T','SH'],scale:[.55,.6]});def('JH','a',null,0,{parts:['D','ZH'],scale:[.55,.65]});
+RV.PHONEMES=PH;
+RV.PH_EXAMPLES={IY:'see',IH:'sit',EH:'bed',AE:'cat',AA:'father',AO:'law',UH:'book',UW:'blue',AH:'cup',AX:'about',ER:'bird',EY:'day',AY:'my',OW:'go',AW:'now',OY:'boy',
+  L:'let',R:'red',W:'we',Y:'yes',M:'me',N:'no',NG:'sing',F:'fan',TH:'thin',S:'see',SH:'she',HH:'hat',V:'van',DH:'this',Z:'zoo',ZH:'measure',
+  P:'pen',T:'top',K:'cat',B:'bat',D:'dog',G:'go',CH:'chin',JH:'jam'};
+var VIS={AA:'A',AE:'A',AH:'A',AY:'A',AW:'A',AX:'A',EH:'E',EY:'E',IH:'E',IY:'E',Y:'E',AO:'O',OW:'O',OY:'O',UW:'U',UH:'U',W:'U',ER:'R',R:'R',
+  M:'MBP',B:'MBP',P:'MBP',F:'FV',V:'FV',L:'L',TH:'TH',DH:'TH',_:'rest'};
+RV.viseme=function(ph){return VIS[ph]||'etc'};
+
+/* ---------- Letter-to-sound rules (after the US Naval Research Lab rules, 1976) ---------- */
+var RULES_TXT=
+'_|ARE|_|AA R\n_|AR|O|AX R\n|AR|#|EH R\n^|AS|#|EY S\n|A|WA|AX\n|AW||AO\n_:|ANY||EH N IY\n|A|^+#|EY\n#:|ALLY||AX L IY\n_|AL|#|AX L\n_|AGAIN||AX G EH N\n#:|AG|E|IH JH\n|A|^+:#|AE\n_:|A|^+_|EY\n|A|^%|EY\n_|ARR||AX R\n|ARR||AE R\n_:|AR|_|AA R\n|AR|_|ER\n|AR||AA R\n|AIR||EH R\n|AI||EY\n|AY||EY\n|AU||AO\n#:|AL|_|AX L\n#:|ALS|_|AX L Z\n|ALK||AO K\n|AL|^|AO L\n_:|ABLE||EY B AX L\n|ABLE||AX B AX L\n|ANG|+|EY N JH\n|A||AE\n'+
+'_|BE|^#|B IH\n|BEING||B IY IH NG\n_|BOTH|_|B OW TH\n_|BUS|#|B IH Z\n|BUIL||B IH L\n|B||B\n'+
+'_|CH|^|K\n^E|CH||K\n|CH||CH\n_S|CI|#|S AY\n|CI|A|SH\n|CI|O|SH\n|CI|EN|SH\n|C|+|S\n|CK||K\n|COM|%|K AH M\n|C||K\n'+
+'#:|DED|_|D IH D\n.E|D|_|D\n#^:E|D|_|T\n_|DE|^#|D IH\n_|DO|_|D UW\n_|DOES||D AH Z\n_|DOING||D UW IH NG\n_|DOW||D AW\n|DU|A|JH UW\n|D||D\n'+
+'#:|E|_|\n\'^:|E|_|\n_:|E|_|IY\n#|ED|_|D\n#:|E|D_|\n|EV|ER|EH V\n|E|^%|IY\n|ERI|#|IY R IY\n|ERI||EH R IH\n#:|ER|#|ER\n|ER|#|EH R\n|ER||ER\n_|EVEN||IY V EH N\n#:|E|W|\n@|EW||UW\n|EW||Y UW\n|E|O|IY\n#:&|ES|_|IH Z\n#:|E|S_|\n#:|ELY|_|L IY\n#:|EMENT||M EH N T\n|EFUL||F UH L\n|EE||IY\n|EARN||ER N\n_|EAR|^|ER\n|EAD||EH D\n#:|EA|_|IY AX\n|EA|SU|EH\n|EA||IY\n|EIGH||EY\n|EI||IY\n_|EYE||AY\n|EY||IY\n|EU||Y UW\n|E||EH\n'+
+'|FUL||F UH L\n|F||F\n'+
+'|GIV||G IH V\n_|G|I^|G\n|GE|T|G EH\nSU|GGES||G JH EH S\n|GG||G\n_B#|G||G\n|G|+|JH\n|GREAT||G R EY T\n#|GH||\n|G||G\n'+
+'_|HAV||HH AE V\n_|HERE||HH IY R\n_|HOUR||AW ER\n|HOW||HH AW\n|H|#|HH\n|H||\n'+
+'_|IN||IH N\n_|I|_|AY\n|IN|D|AY N\n|IER||IY ER\n#:R|IED||IY D\n|IED|_|AY D\n|IEN||IY EH N\n|IE|T|AY EH\n_:|I|%|AY\n|I|%|IY\n|IE||IY\n|I|^+:#|IH\n|IR|#|AY R\n|IZ|%|AY Z\n|IS|%|AY Z\n|I|D%|AY\n+^|I|^+|IH\n|I|T%|AY\n#^:|I|^+|IH\n|I|^+|AY\n|IR||ER\n|IGH||AY\n|ILD||AY L D\n|IGN|_|AY N\n|IGN|^|AY N\n|IGN|%|AY N\n|IQUE||IY K\n|I||IH\n'+
+'|J||JH\n|BB||B\n|DD||D\n|FF||F\n|MM||M\n|NN||N\n|TT||T\n|ZZ||Z\n|RR||R\n'+
+'_|K|N|\n|K||K\n'+
+'|LO|C#|L OW\nL|L||\n#^:|L|%|AX L\n|LEAD||L IY D\n|L||L\n'+
+'|MOV||M UW V\n|M||M\n'+
+'E|NG|+|N JH\n|NG|R|NG G\n|NG|#|NG G\n|NGL|%|NG G AX L\n|NG||NG\n|NK||NG K\n_|NOW|_|N AW\n|N||N\n'+
+'|OF|_|AX V\n|OROUGH||ER OW\n#:|OR|_|ER\n#:|ORS|_|ER Z\n|OR||AO R\n_|ONE||W AH N\n|OW||OW\n_|OVER||OW V ER\n|OV||AH V\n|O|^%|OW\n|O|^EN|OW\n|O|^I#|OW\n|OL|D|OW L\n|OUGHT||AO T\n|OUGH||AH F\n_|OU||AW\nH|OU|S#|AW\n|OUS||AX S\n|OUR||AO R\n|OULD||UH D\n^|OU|^L|AH\n|OUP||UW P\n|OU||AW\n|OY||OY\n|OING||OW IH NG\n|OI||OY\n|OOR||AO R\n|OOK||UH K\n|OOD||UH D\n|OO||UW\n|O|E|OW\n|O|_|OW\n|OA||OW\n_|ONLY||OW N L IY\n_|ONCE||W AH N S\n|ON\'T||OW N T\nC|O|N|AA\n|O|NG|AO\n_:^|O|N|AH\nI|ON||AX N\n#:|ON|_|AX N\n#^|ON||AX N\n|O|ST_|OW\n|OF|^|AO F\n|OTHER||AH DH ER\n|OSS|_|AO S\n#^:|OM||AH M\n|O||AA\n'+
+'|PH||F\n|PP||P\n|PEOP||P IY P\n|POW||P AW\n|PUT|_|P UH T\n|P||P\n'+
+'|QUAR||K W AO R\n|QU||K W\n|Q||K\n'+
+'_|RE|^#|R IY\n|R||R\n'+
+'|SH||SH\n#|SION||ZH AX N\n|SOME||S AH M\n#|SUR|#|ZH ER\n|SUR|#|SH ER\n#|SU|#|ZH UW\n#|SSU|#|SH UW\n#|SED|_|Z D\n#|S|#|Z\n|SAID||S EH D\n^|SION||SH AX N\n|S|S|\n.|S|_|Z\n#:.E|S|_|Z\n#^:##|S|_|Z\n#^:#|S|_|S\nU|S|_|S\n_:#|S|_|Z\n_|SCH||S K\n|S|C+|\n#|SM||Z M\n#|SN|\'|Z AX N\n|S||S\n'+
+'_|THE|_|DH AX\n|TO|_|T UW\n|THAT|_|DH AE T\n_|THIS|_|DH IH S\n_|THEY||DH EY\n_|THERE||DH EH R\n|THER||DH ER\n|THEIR||DH EH R\n_|THAN|_|DH AE N\n_|THEM|_|DH EH M\n|THESE|_|DH IY Z\n_|THEN||DH EH N\n|THROUGH||TH R UW\n|THOSE||DH OW Z\n|THOUGH|_|DH OW\n_|THUS||DH AH S\n|TH||TH\n#:|TED|_|T IH D\nS|TI|#N|CH\n|TI|O|SH\n|TI|A|SH\n|TIEN||SH AX N\n|TUR|#|CH ER\n|TU|A|CH UW\n_|TWO||T UW\n|T||T\n'+
+'_|UN|I|Y UW N\n_|UN||AH N\n_|UPON||AX P AO N\n@|UR|#|UH R\n|UR|#|Y UH R\n|UR||ER\n|U|^_|AH\n|U|^^|AH\n|UY||AY\n_G|U|#|\nG|U|%|\nG|U|#|W\n#N|U||Y UW\n@|U||UW\n|U||Y UW\n'+
+'|VIEW||V Y UW\n|V||V\n'+
+'_|WERE||W ER\n|WA|S|W AA\n|WA|T|W AA\n|WHERE||W EH R\n|WHAT||W AA T\n|WHOL||HH OW L\n|WHO||HH UW\n|WH||W\n|WAR||W AO R\n|WOR|^|W ER\n|WR||R\n|W||W\n'+
+'|X||K S\n'+
+'|YOUNG||Y AH NG\n_|YOU||Y UW\n_|YES||Y EH S\n_|Y||Y\n#^:|Y|_|IY\n#^:|Y|I|IY\n_:|Y|_|AY\n_:|Y|#|AY\n_:|Y|^+:#|IH\n_:|Y|^#|AY\n|Y||IH\n'+
+'|Z||Z';
+var RULES={};
+RULES_TXT.split('\n').forEach(function(line){if(!line)return;var a=line.split('|');var m=a[1];(RULES[m[0]]=RULES[m[0]]||[]).push({l:a[0],m:m,r:a[2],o:a[3]?a[3].split(' '):[]})});
+var VOW='AEIOUY',CONS='BCDFGHJKLMNPQRSTVWXZ',VOICED='BDVGJLMNRWZ',FRONT='EIY';
+function isLet(c){return !!c&&((c>='A'&&c<='Z')||c==="'")}
+function leftOk(pat,w,i){
+  for(var k=pat.length-1;k>=0;k--){var p=pat[k],c=w[i]||'';
+    if(p==='#'){if(!c||VOW.indexOf(c)<0)return false;while(w[i]&&VOW.indexOf(w[i])>=0)i--}
+    else if(p===':'){while(w[i]&&CONS.indexOf(w[i])>=0)i--}
+    else if(p==='^'){if(!c||CONS.indexOf(c)<0)return false;i--}
+    else if(p==='.'){if(!c||VOICED.indexOf(c)<0)return false;i--}
+    else if(p==='+'){if(!c||FRONT.indexOf(c)<0)return false;i--}
+    else if(p==='&'){if(c&&'SCGZXJ'.indexOf(c)>=0){i--}else if(c==='H'&&w[i-1]&&'CS'.indexOf(w[i-1])>=0){i-=2}else return false}
+    else if(p==='@'){if(c&&'TSRDLZNJ'.indexOf(c)>=0){i--}else if(c==='H'&&w[i-1]&&'TCS'.indexOf(w[i-1])>=0){i-=2}else return false}
+    else if(p==='_'){if(isLet(c))return false;i--}
+    else{if(c!==p)return false;i--}}
+  return true}
+function rightOk(pat,w,i){
+  for(var k=0;k<pat.length;k++){var p=pat[k],c=w[i]||'';
+    if(p==='#'){if(!c||VOW.indexOf(c)<0)return false;while(w[i]&&VOW.indexOf(w[i])>=0)i++}
+    else if(p===':'){while(w[i]&&CONS.indexOf(w[i])>=0)i++}
+    else if(p==='^'){if(!c||CONS.indexOf(c)<0)return false;i++}
+    else if(p==='.'){if(!c||VOICED.indexOf(c)<0)return false;i++}
+    else if(p==='+'){if(!c||FRONT.indexOf(c)<0)return false;i++}
+    else if(p==='%'){var s=w.substr(i,3);if(s==='ING'||s==='ELY'){i+=3}else{s=w.substr(i,2);if(s==='ER'||s==='ES'||s==='ED'){i+=2}else if(c==='E'){i++}else return false}}
+    else if(p==='_'){if(isLet(c))return false;i++}
+    else{if(c!==p)return false;i++}}
+  return true}
+RV.lts=function(word){var w=' '+String(word).toUpperCase().replace(/[^A-Z']/g,'')+' ',i=1,out=[];
+  while(i<w.length-1){var c=w[i],rs=RULES[c],hit=false;
+    if(rs)for(var j=0;j<rs.length;j++){var r=rs[j];if(w.substr(i,r.m.length)===r.m&&leftOk(r.l,w,i-1)&&rightOk(r.r,w,i+r.m.length)){out.push.apply(out,r.o);i+=r.m.length;hit=true;break}}
+    if(!hit)i++}
+  return out};
+
+var DICT_TXT='a:AX|the:DH AX|of:AH V|to:T UW|do:D UW|does:D AH Z|done:D AH N|you:Y UW|your:Y AO R|are:AA R|was:W AA Z|were:W ER|is:IH Z|his:HH IH Z|has:HH AE Z|as:AE Z|'+
+'one:W AH N|two:T UW|once:W AH N S|said:S EH D|says:S EH Z|been:B IH N|have:HH AE V|give:G IH V|live:L IH V|love:L AH V|some:S AH M|come:K AH M|gone:G AO N|move:M UW V|'+
+'who:HH UW|whose:HH UW Z|what:W AH T|where:W EH R|there:DH EH R|their:DH EH R|they:DH EY|eye:AY|i:AY|my:M AY|by:B AY|buy:B AY|why:W AY|hello:HH AH L OW|voice:V OY S|voices:V OY S IH Z|'+
+'randis:R AE N D IH S|uds:Y UW D IY EH S|forge:F AO R JH|ai:EY AY|okay:OW K EY|ok:OW K EY|any:EH N IY|many:M EH N IY|again:AX G EH N|because:B IH K AH Z|door:D AO R|floor:F L AO R|'+
+'four:F AO R|our:AW ER|hour:AW ER|could:K UH D|would:W UH D|should:SH UH D|friend:F R EH N D|friends:F R EH N D Z|people:P IY P AX L|women:W IH M IH N|woman:W UH M AX N|world:W ER L D|'+
+'work:W ER K|word:W ER D|words:W ER D Z|water:W AO T ER|only:OW N L IY|other:AH DH ER|mother:M AH DH ER|brother:B R AH DH ER|today:T AX D EY|tomorrow:T AX M AA R OW|welcome:W EH L K AH M|'+
+'from:F R AH M|want:W AA N T|very:V EH R IY|every:EH V R IY|sure:SH UH R|laugh:L AE F|enough:IH N AH F|through:TH R UW|though:DH OW|thought:TH AO T|great:G R EY T|break:B R EY K|'+
+'heart:HH AA R T|learn:L ER N|machine:M AX SH IY N|robot:R OW B AA T|robots:R OW B AA T S|data:D EY T AX|hi:HH AY|yes:Y EH S|no:N OW|go:G OW|so:S OW|be:B IY|he:HH IY|she:SH IY|we:W IY|me:M IY|'+
+'and:AE N D|for:F AO R|or:AO R|not:N AA T|with:W IH DH|this:DH IH S|that:DH AE T|it:IH T|in:IH N|on:AA N|at:AE T|an:AE N|can:K AE N|will:W IH L|app:AE P|apps:AE P S|'+
+'computer:K AH M P Y UW T ER|music:M Y UW Z IH K|design:D IH Z AY N|studio:S T UW D IY OW|suite:S W IY T|create:K R IY EY T|sound:S AW N D|sounds:S AW N D Z|speech:S P IY CH|speak:S P IY K|'+
+'human:HH Y UW M AX N|future:F Y UW CH ER|beautiful:B Y UW T IH F UH L|quick:K W IH K|brown:B R AW N|fox:F AA K S|jumps:JH AH M P S|over:OW V ER|lazy:L EY Z IY|dog:D AO G|good:G UH D|'+
+'morning:M AO R N IH NG|night:N AY T|thank:TH AE NG K|thanks:TH AE NG K S|please:P L IY Z|know:N OW|new:N UW|news:N UW Z|here:HH IY R|see:S IY|like:L AY K|make:M EY K|time:T AY M|'+
+'take:T EY K|use:Y UW Z|about:AX B AW T|into:IH N T UW|more:M AO R|all:AO L|out:AW T|now:N AW|how:HH AW|day:D EY|way:W EY|these:DH IY Z|those:DH OW Z|think:TH IH NG K|little:L IH T AX L|'+
+'after:AE F T ER|first:F ER S T|also:AO L S OW|well:W EH L|just:JH AH S T|level:L EH V AX L|system:S IH S T AX M|hey:HH EY|duck:D AH K|rubber:R AH B ER|sing:S IH NG|song:S AO NG|'+
+'don\'t:D OW N T|can\'t:K AE N T|won\'t:W OW N T|isn\'t:IH Z AX N T|didn\'t:D IH D AX N T|doesn\'t:D AH Z AX N T|i\'m:AY M|it\'s:IH T S|that\'s:DH AE T S|let\'s:L EH T S|you\'re:Y UH R|'+
+'we\'re:W IY R|they\'re:DH EH R|i\'ll:AY L|you\'ll:Y UW L|i\'ve:AY V|aren\'t:AA R N T|couldn\'t:K UH D AX N T|wouldn\'t:W UH D AX N T|shouldn\'t:SH UH D AX N T|wasn\'t:W AA Z AX N T|'+
+'portable:P AO R T AX B AX L|everyone:EH V R IY W AH N|everything:EH V R IY TH IH NG|universal:Y UW N IH V ER S AX L|wizard:W IH Z ER D|captain:K AE P T AX N|station:S T EY SH AX N|'+
+'listen:L IH S AX N|ready:R EH D IY|hear:HH IY R|year:Y IH R|years:Y IH R Z|player:P L EY ER|game:G EY M|games:G EY M Z|warning:W AO R N IH NG|danger:D EY N JH ER|space:S P EY S|'+
+'magic:M AE JH IH K|dragon:D R AE G AX N|princess:P R IH N S EH S|kingdom:K IH NG D AX M|ancient:EY N SH AX N T|monster:M AA N S T ER|alien:EY L IY AX N|ghost:G OW S T|'+
+'adventure:AE D V EH N CH ER|treasure:T R EH ZH ER|pleasure:P L EH ZH ER|nature:N EY CH ER|picture:P IH K CH ER|engine:EH N JH IH N|online:AA N L AY N|offline:AO F L AY N|happen:HH AE P AX N|happened:HH AE P AX N D|pirate:P AY R AX T|singing:S IH NG IH NG';
+var DICT={};DICT_TXT.split('|').forEach(function(e){var i=e.indexOf(':');DICT[e.slice(0,i)]=e.slice(i+1)});
+RV.DICT=DICT;
+var LETTERS={A:'EY',B:'B IY',C:'S IY',D:'D IY',E:'IY',F:'EH F',G:'JH IY',H:'EY CH',I:'AY',J:'JH EY',K:'K EY',L:'EH L',M:'EH M',N:'EH N',O:'OW',P:'P IY',
+  Q:'K Y UW',R:'AA R',S:'EH S',T:'T IY',U:'Y UW',V:'V IY',W:'D AH B AX L Y UW',X:'EH K S',Y:'W AY',Z:'Z IY'};
+function spell(w){var o=[];w.toUpperCase().replace(/[^A-Z]/g,'').split('').forEach(function(c){o.push.apply(o,LETTERS[c].split(' '))});return o}
+function phList(s){return String(s).toUpperCase().split(/[\s,]+/).filter(function(x){return PH[x]})}
+function wordPh(w,dict){var lw=w.toLowerCase(),u=(dict&&dict[lw])||DICT[lw];if(u)return phList(u);
+  var m=/^(.*)'s$/.exec(lw);if(m&&m[1]){var b=wordPh(m[1],dict),last=b[b.length-1];return b.concat(/^(S|Z|SH|ZH|CH|JH)$/.test(last)?['IH','Z']:/^(P|T|K|F|TH)$/.test(last)?['S']:['Z'])}
+  if(w.length>1&&w.length<=5&&w===w.toUpperCase()&&/[A-Z]/.test(w))return spell(w);
+  if(lw.length>1&&!/[aeiouy]/.test(lw))return spell(w);
+  return RV.lts(lw.replace(/'/g,''))}
+RV.wordPhonemes=function(w,dict){return wordPh(w,dict)};
+
+/* ---------- Text clean-up: numbers, symbols, abbreviations ---------- */
+var ONES='zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen'.split(' ');
+var TENS=',,twenty,thirty,forty,fifty,sixty,seventy,eighty,ninety'.split(',');
+function num(n){if(n<20)return ONES[n];if(n<100)return TENS[Math.floor(n/10)]+(n%10?' '+ONES[n%10]:'');if(n<1000)return ONES[Math.floor(n/100)]+' hundred'+(n%100?' '+num(n%100):'');
+  var big=[[1e9,'billion'],[1e6,'million'],[1e3,'thousand']];for(var i=0;i<3;i++)if(n>=big[i][0])return num(Math.floor(n/big[i][0]))+' '+big[i][1]+(n%big[i][0]?' '+num(n%big[i][0]):'');return ''}
+function numWords(s){var n=parseInt(s,10);if(s.length>12)return s.split('').map(function(d){return ONES[+d]}).join(' ');
+  if(s.length===4&&n>=1100&&n<2100&&!(n>=2000&&n<2010)&&n%100!==0)return num(Math.floor(n/100))+' '+(n%100<10?'oh '+ONES[n%100]:num(n%100));
+  return num(n)}
+function ordinal(w){var m={one:'first',two:'second',three:'third',five:'fifth',eight:'eighth',nine:'ninth',twelve:'twelfth'};var p=w.split(' '),l=p.pop();
+  l=m[l]||(/y$/.test(l)?l.slice(0,-1)+'ieth':l+'th');p.push(l);return p.join(' ')}
+var ABBR={'mr.':'mister','mrs.':'missus','ms.':'miz','dr.':'doctor','st.':'saint','vs.':'versus','etc.':'et cetera','e.g.':'for example','i.e.':'that is','jr.':'junior','sr.':'senior','no.':'number','approx.':'approximately'};
+RV.normalize=function(t){t=String(t);
+  t=t.replace(/\b(mr|mrs|ms|dr|st|vs|etc|jr|sr|no|approx)\.(?=\s)/gi,function(a){return ABBR[a.toLowerCase()]||a}).replace(/\be\.g\./gi,'for example').replace(/\bi\.e\./gi,'that is');
+  t=t.replace(/(\d),(?=\d{3})/g,'$1');
+  t=t.replace(/\$(\d+)(?:\.(\d\d))?/g,function(a,d,c){return d+' dollars'+(c&&+c?' and '+c+' cents':'')});
+  t=t.replace(/(\d+)%/g,'$1 percent').replace(/(\d+)(st|nd|rd|th)\b/gi,function(a,d){return ordinal(numWords(d))});
+  t=t.replace(/(\d+)\.(\d+)/g,function(a,x,y){return numWords(x)+' point '+y.split('').map(function(d){return ONES[+d]}).join(' ')});
+  t=t.replace(/\d+/g,function(d){return ' '+numWords(d)+' '});
+  t=t.replace(/&/g,' and ').replace(/@/g,' at ').replace(/\+/g,' plus ').replace(/=/g,' equals ').replace(/#/g,' number ').replace(/\//g,' slash ');
+  return t};
+
+/* ---------- Markup ---------- */
+var NV={laugh:{ph:['HH','AE','HH','AE','HH','AE'],wh:.45,rate:1.4,semi:3},sigh:{ph:['HH','HH','AA','AA'],wh:.9,rate:.5,semi:-2},hmm:{ph:['M','M','M','M'],wh:0,rate:.6,semi:0},
+  breath:{ph:['HH','HH','HH'],wh:1,rate:.6,semi:0},gasp:{ph:['HH','AA'],wh:1,rate:1.5,semi:4},ahem:{ph:['AX','HH','EH','M'],wh:.2,rate:1,semi:0}};
+function noteHz(s){var m=/^([A-Ga-g])([#b]?)(-?\d)$/.exec(String(s).trim());if(!m){var f=parseFloat(s);return f>20?f:0}
+  var n={C:0,D:2,E:4,F:5,G:7,A:9,B:11}[m[1].toUpperCase()]+(m[2]==='#'?1:m[2]==='b'?-1:0);return 440*Math.pow(2,(n+(+m[3]+1)*12-69)/12)}
+RV.noteHz=noteHz;
+function parse(text){
+  var out=[],st={rate:1,semi:0,note:0,notes:null,wh:0},re=/\[\s*(\/?[a-zA-Z]+)\s*[=:]?\s*([^\]]*)\]|\{([^}]*)\}|\*([^*]+)\*|([^\[\{\*]+)/g,m;
+  function words(chunk,emph){var t=RV.normalize(chunk),tk=t.match(/[A-Za-z]+(?:'[A-Za-z]+)*|[.!?]+|[,;:]|\u2014|--|\s-\s/g)||[];
+    tk.forEach(function(x){if(/^[A-Za-z]/.test(x))out.push({k:'w',text:x,emph:emph,rate:st.rate,semi:st.semi,note:st.note,notes:st.notes,wh:st.wh});
+      else{var kind=/^[,;:]/.test(x)?x:/[?]/.test(x)?'?':/!/.test(x)?'!':/\./.test(x)?'.':',';var last=out[out.length-1];
+        if(last&&last.k==='p'){if(kind!==','&&last.kind===',')last.kind=kind}else out.push({k:'p',kind:kind})}})}
+  while((m=re.exec(text))){
+    if(m[1]){var n=m[1].toLowerCase(),a=(m[2]||'').trim();
+      if(n==='pause'||n==='break'||n==='wait')out.push({k:'gap',ms:clamp(parseFloat(a)||400,0,10000)});
+      else if(n==='pitch'||n==='p')st.semi=clamp(parseFloat(a)||0,-36,36);
+      else if(n==='rate'||n==='speed'||n==='r')st.rate=clamp(parseFloat(a)||1,.2,4);
+      else if(n==='note')st.note=/off|none/i.test(a)?0:noteHz(a);
+      else if(n==='sing')st.notes=a.split(/[\s,]+/).map(noteHz).filter(Boolean);
+      else if(n==='/sing'){st.notes=null}
+      else if(n==='whisper')st.wh=1;else if(n==='/whisper')st.wh=0;
+      else if(n==='reset')st={rate:1,semi:0,note:0,notes:null,wh:0};
+      else if(n==='spell')out.push({k:'w',text:a,ph:spell(a),rate:st.rate,semi:st.semi,note:st.note,notes:st.notes,wh:st.wh});
+      else if(NV[n]){var v=NV[n];out.push({k:'w',text:'['+n+']',ph:v.ph.slice(),nv:true,rate:st.rate*v.rate,semi:st.semi+v.semi,note:0,notes:null,wh:Math.max(st.wh,v.wh)})}}
+    else if(m[3]!==undefined)out.push({k:'w',text:'{'+m[3]+'}',ph:phList(m[3]),rate:st.rate,semi:st.semi,note:st.note,notes:st.notes,wh:st.wh});
+    else if(m[4]!==undefined)words(m[4],true);
+    else if(m[5])words(m[5],false)}
+  return out}
+RV.parse=parse;
+var FUNC={};('a an the of to in on at by for with and or but nor is are was were be been am i you he she it we they me him her us them my your his its our their this that these those '+
+  'do does did have has had will would can could shall should may might must not so as if than then there here from into up out over under about just very').split(' ').forEach(function(w){FUNC[w]=1});
+
+/* ---------- Text to timed segments ---------- */
+function phSeg(ph,ctx,scale){var d=PH[ph];if(!d)return[];var R=ctx.rate,out=[];scale=scale||1;
+  function S(o){return Object.assign({ph:ph,dur:30,F:d.F,av:0,ah:0,af:0,ff:4000,fb:2000,an:0,st:ctx.semi,st2:ctx.semi,amp:1,wh:ctx.wh,vowel:false,stress:0},o)}
+  switch(d.t){
+    case 'v':case 'd':out.push(S({dur:d.dur*scale/R,av:1,E:d.E,vowel:true}));break;
+    case 'l':out.push(S({dur:d.dur*scale/R,av:.75}));break;
+    case 'n':out.push(S({dur:d.dur*scale/R,av:.6,an:1,B:[160,200,250]}));break;
+    case 'f':out.push(S({dur:d.dur*scale/R,af:d.af,ff:d.ff,fb:d.fb,ah:.04}));break;
+    case 'z':out.push(S({dur:d.dur*scale/R,av:d.av,af:d.af,ff:d.ff,fb:d.fb}));break;
+    case 'h':out.push(S({dur:d.dur*scale/R,ah:.6,nextF:true}));break;
+    case 's':case 'b':{var v=d.t==='b';out.push(S({dur:d.dur*.65*scale/R,av:v?.12:0}));out.push(S({dur:9,af:d.burst,ff:d.ff,fb:d.fb,av:v?.3:0}));
+      if(!v)out.push(S({dur:28/Math.sqrt(R),ah:.45,nextF:true}));break}
+    case 'a':d.parts.forEach(function(p,i){out.push.apply(out,phSeg(p,ctx,d.scale[i]))});out.forEach(function(s){s.ph=ph});
+      if(d.parts[0]==='T'||d.parts[0]==='D'){for(var i=out.length-1;i>=0;i--)if(out[i].nextF)out.splice(i,1)}break}
+  return out}
+function pauseSeg(ms){return{ph:'_',dur:ms,F:null,av:0,ah:0,af:0,an:0,st:0,st2:0,amp:1,wh:0,pause:true,pi:-1}}
+function shape(segs,from,to,kind,p,rnd){
+  if(to<=from)return;var R=p.range*12,tot=0,i,s,lastV=-1;
+  for(i=from;i<to;i++)if(segs[i].vowel&&!segs[i].note)lastV=i;
+  if(lastV>=0){segs[lastV].dur*=1.3;for(i=lastV+1;i<to;i++)segs[i].dur*=1.15}
+  for(i=from;i<to;i++)tot+=segs[i].dur;
+  var t=0,lift=kind==='!'?R*.15+1:0;
+  for(i=from;i<to;i++){s=segs[i];var mid=(t+s.dur/2)/tot,base=R*p.declin*(.5-mid)*1.2+lift;t+=s.dur;if(s.note)continue;
+    if(s.vowel){var acc=s.stress?R*.45*p.stress*s.stress:0,rn=(rnd()-.5)*p.pitchRand*R;s.st+=base+acc+rn}else s.st+=base;s.st2=s.st;
+    if(kind==='!')s.amp*=1.1}
+  if(lastV>=0&&!segs[lastV].note){s=segs[lastV];
+    if(kind==='?')s.st2=s.st+R*p.question*1.2+2*p.question;else if(kind===','||kind===';'||kind===':')s.st2=s.st+R*.15;else s.st2=s.st-R*.35;
+    for(i=lastV+1;i<to;i++)segs[i].st=segs[i].st2=s.st2}}
+RV.segments=function(text,V){V=V&&V.params&&V.format?V:RV.clean(V);var p=V.params,dict=V.dict||{},items=parse(text),segs=[],rnd=rng(hash(text)+7),start,pi=0;
+  segs.push(pauseSeg(70));start=segs.length;
+  items.forEach(function(it){
+    if(it.k==='p'){shape(segs,start,segs.length,it.kind,p,rnd);var ms=it.kind==='.'||it.kind==='?'||it.kind==='!'?p.stopPause:(it.kind===';'||it.kind===':')?(p.commaPause+p.stopPause)/2:p.commaPause;
+      if(ms>0)segs.push(pauseSeg(ms/p.rate));start=segs.length;return}
+    if(it.k==='gap'){if(it.ms>0)segs.push(pauseSeg(it.ms));return}
+    var phs=it.ph||wordPh(it.text,dict),content=it.emph||it.nv||!FUNC[it.text.toLowerCase()],stressed=false,ctx={rate:p.rate*it.rate,semi:it.semi,wh:it.wh};
+    phs.forEach(function(ph){var ss=phSeg(ph,ctx);if(!ss.length)return;
+      if(ss[0].vowel){var s=ss[0];
+        if(!stressed&&content&&ph!=='AX'){stressed=true;s.stress=it.emph?2:1;s.dur*=it.emph?1.35:1.15;s.amp=it.emph?1.15:1}else{s.dur*=.85;s.amp=1-p.energy*.4}
+        if(it.notes&&it.notes.length)s.note=it.notes.length>1?it.notes.shift():it.notes[0];else if(it.note)s.note=it.note}
+      ss.forEach(function(s){s.pi=pi;s.word=it.text});pi++;segs.push.apply(segs,ss)});
+    if(p.wordGap>0)segs.push(pauseSeg(p.wordGap/p.rate))});
+  shape(segs,start,segs.length,'.',p,rnd);segs.push(pauseSeg(90));
+  var i,j,prevF=PH.AX.F;
+  for(i=0;i<segs.length;i++){var s=segs[i];
+    if(s.nextF){for(j=i+1;j<segs.length;j++)if(segs[j].F&&(segs[j].av>.3)){s.F=segs[j].F;break}}
+    if(!s.F)s.F=prevF;prevF=s.E||s.F;
+    if(s.note){s.st=s.st2=12*Math.log(s.note/p.pitch)/Math.LN2+s.st}}
+  return segs};
+
+/* ---------- Segments to control tracks (one frame per millisecond) ---------- */
+function smooth(a,tau){if(tau<=.5)return;var k=Math.exp(-1/tau),i,y=a[0];for(i=0;i<a.length;i++){y=k*y+(1-k)*a[i];a[i]=y}y=a[a.length-1];for(i=a.length-1;i>=0;i--){y=k*y+(1-k)*a[i];a[i]=y}}
+function tracks(segs,p){var n=0;segs.forEach(function(s){n+=Math.max(1,Math.round(s.dur))});
+  var T={n:n},K=['f1','f2','f3','b1','b2','b3','av','ah','af','ff','fb','an','st','wh','vw'];K.forEach(function(k){T[k]=new Float32Array(n)});
+  var m=0;segs.forEach(function(s){var d=Math.max(1,Math.round(s.dur)),F=s.F,E=s.E||s.F,B=s.B||[70,100,150];s.t0=m;
+    for(var i=0;i<d;i++,m++){var fr=d>1?i/(d-1):0;
+      T.f1[m]=Math.max(90,(F[0]+(E[0]-F[0])*fr)*p.tract+p.f1);T.f2[m]=Math.max(T.f1[m]+150,(F[1]+(E[1]-F[1])*fr)*p.tract+p.f2);T.f3[m]=Math.max(T.f2[m]+200,(F[2]+(E[2]-F[2])*fr)*p.tract+p.f3);
+      T.b1[m]=B[0];T.b2[m]=B[1];T.b3[m]=B[2];T.av[m]=s.av*s.amp;T.ah[m]=s.ah;T.af[m]=s.af;T.ff[m]=s.ff||4000;T.fb[m]=s.fb||2000;T.an[m]=s.an||0;
+      T.st[m]=s.st+(s.st2-s.st)*fr;T.wh[m]=s.wh||0;T.vw[m]=s.vowel?1:0}s.t1=m});
+  var ft=6+40*(1-p.precision);['f1','f2','f3','b1','b2','b3'].forEach(function(k){smooth(T[k],ft)});
+  ['av','ah','an','wh','vw'].forEach(function(k){smooth(T[k],4)});smooth(T.af,2);smooth(T.ff,6);smooth(T.fb,6);smooth(T.st,28);
+  if(p.quant>0){for(var i=0;i<n;i++){var hz=p.pitch*Math.pow(2,T.st[i]/12),mi=69+12*Math.log(hz/440)/Math.LN2,mi2=mi+(Math.round(mi)-mi)*p.quant;T.st[i]=12*Math.log(440*Math.pow(2,(mi2-69)/12)/p.pitch)/Math.LN2}smooth(T.st,3+10*(1-p.quant))}
+  return T}
+
+/* ---------- The synthesizer ---------- */
+function synthCore(T,p,sr,pmul,seed){
+  var N=T.n,spm=sr/1000,len=Math.ceil(N*spm),out=new Float32Array(len),rnd=rng(seed),nyq=sr*.46,TP=2*Math.PI,dt=1/sr;
+  var ca=new Float64Array(5),cb=new Float64Array(5),cc=new Float64Array(5),y1=new Float64Array(5),y2=new Float64Array(5);
+  var na,nb,nc,ny1=0,ny2=0,fb0,fb2,fa1,fa2,fx1=0,fx2=0,fy1=0,fy2=0;
+  var phase=rnd(),jit=0,shim=1,per=0,uPrev=0,tilt=0,cAmp=1,wave=p.wave;
+  var oq=wave==='soft'?.92:.75-.4*p.tension,tiltK=wave==='soft'?.82:.12+.62*(1-p.tension),vibD=p.vibDepth/12,vibW=TP*p.vibRate,base=p.pitch*pmul;
+  var fr=new Float64Array(5),bw=new Float64Array(5),idx=0;
+  {var r0=Math.exp(-Math.PI*100*dt);nc=-r0*r0;nb=2*r0*Math.cos(TP*Math.min(270*p.tract,nyq)*dt);na=1-nb-nc}
+  for(var m=0;m<N;m++){
+    fr[0]=T.f1[m];fr[1]=T.f2[m];fr[2]=T.f3[m];fr[3]=3550*p.tract;fr[4]=4600*p.tract;bw[0]=T.b1[m];bw[1]=T.b2[m];bw[2]=T.b3[m];bw[3]=250;bw[4]=320;
+    for(var k=0;k<5;k++){if(fr[k]>=nyq){ca[k]=1;cb[k]=0;cc[k]=0;continue}var r=Math.exp(-Math.PI*bw[k]*p.bw*dt);cc[k]=-r*r;cb[k]=2*r*Math.cos(TP*fr[k]*dt);ca[k]=1-cb[k]-cc[k]}
+    {var f=Math.min(T.ff[m]*p.sib,nyq),Q=Math.max(.4,f/Math.max(200,T.fb[m])),w=TP*f/sr,al=Math.sin(w)/(2*Q),a0=1+al;fb0=al/a0;fb2=-al/a0;fa1=-2*Math.cos(w)/a0;fa2=(1-al)/a0}
+    var wh=Math.min(1,p.whisper+T.wh[m]),av=T.av[m]*(1-wh),ah=T.ah[m]+T.av[m]*wh*.9,af=T.af[m]*p.fric,an=T.an[m]+p.nasal*.6*T.vw[m]*T.av[m],stM=Math.pow(2,T.st[m]/12),end=Math.min(len,Math.round((m+1)*spm));
+    for(;idx<end;idx++){
+      var f0=base*stM*(1+jit);if(vibD)f0*=Math.pow(2,vibD*Math.sin(vibW*idx*dt));
+      phase+=f0*dt*(cAmp<1?1-p.creak*.3:1);
+      if(phase>=1){phase-=1;per++;jit=(rnd()*2-1)*p.jitter;shim=1-rnd()*p.shimmer;cAmp=(p.creak>0&&per%2)?1-.75*p.creak:1}
+      var src;
+      switch(wave){case 'saw':src=(1-2*phase)*.5;break;case 'square':src=phase<.5?.35:-.35;break;case 'sine':src=Math.sin(TP*phase)*.6;break;
+        case 'buzz':src=(phase<.06?1:-.064)*.8;break;case 'pulse':src=phase<.25?.5:-.17;break;case 'noise':src=(rnd()*2-1)*.5;break;
+        default:{var tp=oq*.62,tn=oq-tp,u=phase<tp?.5*(1-Math.cos(Math.PI*phase/tp)):phase<oq?Math.cos(.5*Math.PI*(phase-tp)/tn):0;src=(u-uPrev)*(sr/f0)*.18;uPrev=u}}
+      tilt+=(src-tilt)*(1-tiltK);src=tilt;
+      var nz=rnd()*2-1,open=phase<oq?1:.25,x=src*av*shim*cAmp+nz*(ah*.25+p.breath*av*open*.12);
+      for(k=0;k<5;k++){var y=ca[k]*x+cb[k]*y1[k]+cc[k]*y2[k];y2[k]=y1[k];y1[k]=y;x=y}
+      var ns=na*(src*av)+nb*ny1+nc*ny2;ny2=ny1;ny1=ns;
+      var fy=fb0*nz+fb2*fx2-fa1*fy1-fa2*fy2;fx2=fx1;fx1=nz;fy2=fy1;fy1=fy;
+      out[idx]=x+ns*an*.6+fy*af*1.1}}
+  return out}
+
+/* ---------- Effects processing ---------- */
+function biq(type,f,q,g,sr){var A=Math.pow(10,g/40),w=2*Math.PI*Math.min(Math.max(f,10),sr*.49)/sr,cs=Math.cos(w),sn=Math.sin(w),al=sn/(2*q),b0,b1,b2,a0,a1,a2,s;
+  switch(type){case 'lowpass':b0=(1-cs)/2;b1=1-cs;b2=b0;a0=1+al;a1=-2*cs;a2=1-al;break;case 'highpass':b0=(1+cs)/2;b1=-(1+cs);b2=b0;a0=1+al;a1=-2*cs;a2=1-al;break;
+    case 'bandpass':b0=al;b1=0;b2=-al;a0=1+al;a1=-2*cs;a2=1-al;break;case 'notch':b0=1;b1=-2*cs;b2=1;a0=1+al;a1=-2*cs;a2=1-al;break;
+    case 'peak':b0=1+al*A;b1=-2*cs;b2=1-al*A;a0=1+al/A;a1=-2*cs;a2=1-al/A;break;
+    case 'lowshelf':s=2*Math.sqrt(A)*al;b0=A*((A+1)-(A-1)*cs+s);b1=2*A*((A-1)-(A+1)*cs);b2=A*((A+1)-(A-1)*cs-s);a0=(A+1)+(A-1)*cs+s;a1=-2*((A-1)+(A+1)*cs);a2=(A+1)+(A-1)*cs-s;break;
+    default:s=2*Math.sqrt(A)*al;b0=A*((A+1)+(A-1)*cs+s);b1=-2*A*((A-1)+(A+1)*cs);b2=A*((A+1)+(A-1)*cs-s);a0=(A+1)-(A-1)*cs+s;a1=2*((A-1)-(A+1)*cs);a2=(A+1)-(A-1)*cs-s}
+  b0/=a0;b1/=a0;b2/=a0;a1/=a0;a2/=a0;var x1=0,x2=0,z1=0,z2=0;
+  return function(x){var y=b0*x+b1*x1+b2*x2-a1*z1-a2*z2;x2=x1;x1=x;z2=z1;z1=y;return y}}
+function dline(n){var L=n+4,b=new Float32Array(L),w=0;return{push:function(x){b[w]=x;w=(w+1)%L},read:function(d){var r=w-1-d;while(r<0)r+=L;var i=Math.floor(r),f=r-i;return b[i%L]*(1-f)+b[(i+1)%L]*f}}}
+RV.fxProc=function(fx,sr){var q=Object.assign(RV.fxDefaults(fx.type),fx),mx=function(a,b,m){return a*(1-m)+b*m},t=0,w;
+  switch(fx.type){
+    case 'eq':{var e1=biq('lowshelf',250,.707,q.low,sr),e2=biq('peak',q.midF,1,q.mid,sr),e3=biq('highshelf',5000,.707,q.high,sr);return function(x){return e3(e2(e1(x)))}}
+    case 'filter':return biq(q.mode,q.freq,q.q,0,sr);
+    case 'pitch':{var ratio=Math.pow(2,q.semi/12),W=Math.round(sr*.06),L=dline(W*2),ph=0;return function(x){L.push(x);ph+=(1-ratio)/W;ph-=Math.floor(ph);var p2=(ph+.5)%1;
+      return mx(x,L.read(ph*W)*(.5-.5*Math.cos(2*Math.PI*ph))+L.read(p2*W)*(.5-.5*Math.cos(2*Math.PI*p2)),q.mix)}}
+    case 'ring':w=2*Math.PI*q.freq/sr;return function(x){t+=w;if(t>6.283185307)t-=6.283185307;return mx(x,x*Math.sin(t)*1.4,q.mix)};
+    case 'crush':{var lv=Math.pow(2,q.bits-1),c=0,hold=0,dn=Math.max(1,Math.round(q.down));return function(x){if(c++%dn===0)hold=Math.round(x*lv)/lv;return mx(x,hold,q.mix)}}
+    case 'drive':{var kk=1+q.amount*30,nn=Math.tanh(kk)*Math.sqrt(kk);return function(x){return mx(x,Math.tanh(x*kk)/nn,q.mix)}}
+    case 'chorus':{var L2=dline(Math.ceil(sr*.07)),bs=sr*.015,dp=sr*q.depth/2000;w=2*Math.PI*q.rate/sr;return function(x){L2.push(x);t+=w;
+      return mx(x,.5*L2.read(bs+dp*(1+Math.sin(t)))+.5*L2.read(bs+dp*(1+Math.sin(t+2.1))),q.mix)}}
+    case 'flanger':{var L3=dline(Math.ceil(sr*.03)),dp3=sr*q.depth/1000,fbk=0;w=2*Math.PI*q.rate/sr;return function(x){L3.push(x+fbk*q.fb);t+=w;var y=L3.read(1+dp3*(.5+.5*Math.sin(t)));fbk=y;return x*(1-q.mix*.5)+y*q.mix*.5}}
+    case 'tremolo':w=2*Math.PI*q.rate/sr;return function(x){t+=w;return x*(1-q.depth*(.5+.5*Math.sin(t)))};
+    case 'echo':{var ne=Math.max(1,Math.round(sr*q.time/1000)),L4=dline(ne+2);return function(x){var d=L4.read(ne-1);L4.push(x+d*q.fb);return x+d*q.mix}}
+    case 'reverb':{var s=sr/44100,fk=.7+.27*q.size,dm=q.damp*.45;
+      var combs=[1116,1188,1277,1356,1422,1491,1557,1617].map(function(l){return{b:new Float32Array(Math.max(8,Math.round(l*s*(.45+q.size*.75)))),i:0,f:0}});
+      var aps=[556,441,341,225].map(function(l){return{b:new Float32Array(Math.max(4,Math.round(l*s))),i:0}});
+      return function(x){var o=0,inp=x*.12;for(var j=0;j<8;j++){var cb=combs[j],y=cb.b[cb.i];cb.f=y*(1-dm)+cb.f*dm;cb.b[cb.i]=inp+cb.f*fk;cb.i=(cb.i+1)%cb.b.length;o+=y}
+        for(j=0;j<4;j++){var a=aps[j],bo=a.b[a.i];a.b[a.i]=o+bo*.5;o=bo-o;a.i=(a.i+1)%a.b.length}return x*(1-q.mix*.5)+o*q.mix*1.2}}
+    case 'radio':{var h1=biq('highpass',q.low,.8,0,sr),h2=biq('highpass',q.low,.8,0,sr),l1=biq('lowpass',q.high,.8,0,sr),l2=biq('lowpass',q.high,.8,0,sr),kr=1+q.grit*8,nr=Math.tanh(kr),seed=12345;
+      return function(x){seed=(Math.imul(seed,1103515245)+12345)>>>0;var nz=(seed/4294967296*2-1)*q.noise;return l2(l1(h2(h1(Math.tanh(x*kr)/nr+nz))))}}
+    case 'comp':{var env=0,at=Math.exp(-1/(sr*.005)),rl=Math.exp(-1/(sr*.12)),mk=Math.pow(10,q.makeup/20);return function(x){var a=Math.abs(x);env=a>env?at*env+(1-at)*a:rl*env+(1-rl)*a;
+      var db=20*Math.log(env+1e-9)/Math.LN10,g=db>q.thresh?Math.pow(10,(q.thresh-db)*(1-1/q.ratio)/20):1;return x*g*mk}}
+    case 'gain':{var gg=Math.pow(10,q.db/20);return function(x){return x*gg}}}
+  return function(x){return x}};
+function fxTail(list){var t=0;(list||[]).forEach(function(f){if(f.on===false)return;var q=Object.assign(RV.fxDefaults(f.type),f);
+  if(f.type==='echo')t+=q.time/1000*Math.min(12,Math.log(.01)/Math.log(Math.max(.05,q.fb))+1);if(f.type==='reverb')t+=.4+2.2*q.size});return Math.min(t,15)}
+RV.applyFx=function(x,list,sr){list=(list||[]).filter(function(f){return f&&f.on!==false&&RV.FX[f.type]});if(!list.length)return x;
+  var tail=Math.round(fxTail(list)*sr),out=new Float32Array(x.length+tail),procs=list.map(function(f){return RV.fxProc(f,sr)});
+  for(var i=0;i<out.length;i++){var v=i<x.length?x[i]:0;for(var j=0;j<procs.length;j++)v=procs[j](v);out[i]=isFinite(v)?v:0}
+  var e=out.length;while(e>x.length&&Math.abs(out[e-1])<2e-4)e--;return e<out.length?out.slice(0,e):out};
+function peakNorm(x,target){var pk=0;for(var i=0;i<x.length;i++){var a=Math.abs(x[i]);if(a>pk)pk=a}if(pk>0){var g=target/pk;for(i=0;i<x.length;i++)x[i]*=g}return x}
+function dcBlock(x,sr){var R=Math.exp(-2*Math.PI*35/sr),px=0,py=0;for(var i=0;i<x.length;i++){var y=x[i]-px+R*py;px=x[i];py=y;x[i]=y}return x}
+function addInto(a,b,g){for(var i=0;i<a.length&&i<b.length;i++)a[i]+=b[i]*g}
+RV.finish=function(x,gainDb){peakNorm(x,.89);var g=Math.pow(10,(gainDb||0)/20);if(g!==1)for(var i=0;i<x.length;i++){var v=x[i]*g,a=Math.abs(v);x[i]=a>.9?Math.sign(v)*(.9+.09*Math.tanh((a-.9)/.09)):v}return x};
+
+/* ---------- Public: render, speak, timeline, WAV ---------- */
+RV.render=function(text,voice){var V=RV.clean(voice),p=V.params,sr=+p.sr||24000,segs=RV.segments(text,V),T=tracks(segs,p),seed=(hash(text)^hash(V.name))>>>0;
+  var out=synthCore(T,p,sr,1,seed),n=Math.round(p.voices),i;
+  if(n>1){var half=Math.ceil((n-1)/2)||1;for(i=1;i<n;i++){var c=(i%2?1:-1)*Math.ceil(i/2)/half*p.detune;addInto(out,synthCore(T,p,sr,Math.pow(2,c/1200),seed+i*977),.8)}}
+  if(p.harm1Mix>0&&p.harm1)addInto(out,synthCore(T,p,sr,Math.pow(2,p.harm1/12),seed+31),p.harm1Mix*(n>1?1.3:1));
+  if(p.harm2Mix>0&&p.harm2)addInto(out,synthCore(T,p,sr,Math.pow(2,p.harm2/12),seed+57),p.harm2Mix*(n>1?1.3:1));
+  dcBlock(out,sr);peakNorm(out,.5);out=RV.applyFx(out,V.fx,sr);RV.finish(out,p.gain);
+  var f0=new Float32Array(T.n);for(i=0;i<T.n;i++)f0[i]=T.av[i]>.15&&T.wh[i]<.9&&p.whisper<.9?p.pitch*Math.pow(2,T.st[i]/12):0;
+  return{samples:out,sr:sr,segs:segs,f0:f0,duration:out.length/sr}};
+RV.timeline=function(text,voice){var r=Array.isArray(text)?{segs:text}:{segs:RV.segments(text,voice)},V=RV.clean(voice),out=[],t=0,cur=null;
+  r.segs.forEach(function(s){var d=Math.max(1,Math.round(s.dur))/1000,key=s.pi+':'+s.ph;
+    if(cur&&cur.key===key)cur.end=+(t+d).toFixed(3);else{cur={key:key,ph:s.ph,word:s.word||'',start:+t.toFixed(3),end:+(t+d).toFixed(3),viseme:RV.viseme(s.ph)};out.push(cur)}t+=d});
+  out.forEach(function(o){delete o.key});return out};
+RV.phonemes=function(text,voice){var V=RV.clean(voice);return parse(text).filter(function(i){return i.k==='w'}).map(function(i){return{word:i.text,ph:(i.ph||wordPh(i.text,V.dict)).join(' ')}})};
+RV.wav=function(r,sr){var x=r.samples||r;sr=r.sr||sr||24000;var n=x.length,b=new ArrayBuffer(44+n*2),v=new DataView(b);
+  function s(o,t){for(var i=0;i<t.length;i++)v.setUint8(o+i,t.charCodeAt(i))}
+  s(0,'RIFF');v.setUint32(4,36+n*2,true);s(8,'WAVE');s(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,sr,true);
+  v.setUint32(28,sr*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);s(36,'data');v.setUint32(40,n*2,true);
+  for(var i=0;i<n;i++){var q=Math.max(-1,Math.min(1,x[i]));v.setInt16(44+i*2,q<0?q*32768:q*32767,true)}return new Uint8Array(b)};
+var actx=null,playing=null;
+RV.play=function(r){if(typeof window==='undefined')return null;var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return null;actx=actx||new AC();if(actx.state==='suspended')actx.resume();
+  RV.stop();var buf=actx.createBuffer(1,r.samples.length,r.sr);buf.copyToChannel?buf.copyToChannel(r.samples,0):buf.getChannelData(0).set(r.samples);
+  var src=actx.createBufferSource();src.buffer=buf;src.connect(actx.destination);var h={src:src,t0:actx.currentTime,duration:r.duration,ctx:actx};
+  h.ended=new Promise(function(res){src.onended=function(){if(playing===h)playing=null;res()}});src.start();playing=h;return h};
+RV.stop=function(){if(playing){try{playing.src.stop()}catch(e){}playing=null}if(typeof speechSynthesis!=='undefined')try{speechSynthesis.cancel()}catch(e){}};
+RV.playing=function(){return playing};
+RV.speak=function(text,voice){var V=RV.clean(voice);
+  if(V.engine==='system'&&typeof speechSynthesis!=='undefined'){RV.stop();var u=new SpeechSynthesisUtterance(String(text).replace(/\[[^\]]*\]|\{[^}]*\}|\*/g,''));
+    var vs=speechSynthesis.getVoices(),pick=vs.filter(function(x){return x.name===V.system.voice})[0];if(pick)u.voice=pick;u.rate=V.system.rate;u.pitch=V.system.pitch;u.volume=V.system.volume;
+    var h={ended:new Promise(function(res){u.onend=res;u.onerror=res})};speechSynthesis.speak(u);return h}
+  return RV.play(RV.render(text,V))};
+G.RandisVoiceEngine=RV;
+if(typeof module==='object'&&module&&module.exports)module.exports=RV;
+})(typeof globalThis!=='undefined'?globalThis:this);
+</script>
+<script>const PRESETS=[
+ {name:'Warm Narrator',d:'Calm, rich storyteller.',p:{pitch:104,range:.42,tension:.42,tract:.97,rate:.93,breath:.1},fx:[{type:'eq',low:3,high:1},{type:'reverb',size:.3,mix:.12}]},
+ {name:'Bright Guide',d:'Friendly, clear, upbeat helper.',p:{pitch:205,tract:1.16,range:.55,breath:.12,stress:.8,rate:1.03}},
+ {name:'Kid Sidekick',d:'Small, bouncy, eager.',p:{pitch:290,tract:1.32,rate:1.07,range:.7,pitchRand:.3}},
+ {name:'Old Wizard',d:'Ancient, wavering, wise.',p:{pitch:96,jitter:.04,shimmer:.16,creak:.2,vibDepth:.25,vibRate:4.5,rate:.8,tract:.95,breath:.2},fx:[{type:'reverb',size:.6,mix:.22}]},
+ {name:'Mountain Giant',d:'Huge, slow, rumbling.',p:{pitch:55,tract:.7,rate:.72,bw:1.3,creak:.15},fx:[{type:'eq',low:6,high:-4},{type:'reverb',size:.85,mix:.3}]},
+ {name:'Chipmunk',d:'Tiny, fast, squeaky.',p:{pitch:420,tract:1.55,rate:1.4,range:.6}},
+ {name:'Classic Robot',d:'Flat, buzzing, metal box.',p:{wave:'buzz',range:0,quant:1,precision:.9,pitch:110,wordGap:40,jitter:0,shimmer:0},fx:[{type:'ring',freq:50,mix:.5},{type:'crush',bits:8,down:2,mix:.5}]},
+ {name:'Android',d:'Smooth synthetic person.',p:{wave:'saw',range:.25,quant:.7,tension:.7,pitch:150,tract:1.05,jitter:0},fx:[{type:'chorus',mix:.35},{type:'eq',high:2}]},
+ {name:'Alien Envoy',d:'Strange, warbling visitor.',p:{pitch:165,tract:1.38,f2:300,vibRate:9,vibDepth:.6,range:.9},fx:[{type:'ring',freq:220,mix:.35},{type:'flanger',mix:.4}]},
+ {name:'Ghost',d:'Breathy whisper from far away.',p:{whisper:.85,breath:.6,pitch:140,rate:.85},fx:[{type:'echo',time:320,fb:.4,mix:.3},{type:'reverb',size:.9,mix:.45}]},
+ {name:'Radio DJ',d:'Punchy, close, smiling.',p:{pitch:100,tension:.62,range:.65,rate:1.1,stress:.9},fx:[{type:'comp',thresh:-20,ratio:5},{type:'eq',low:4,high:3}]},
+ {name:'Phone Operator',d:'Polite voice through a phone line.',p:{pitch:190,tract:1.12,range:.4},fx:[{type:'radio',grit:.2,noise:.01}]},
+ {name:'Dark Lord',d:'Deep, doubled, menacing.',p:{pitch:62,tract:.78,creak:.4,harm1:-12,harm1Mix:.5,rate:.85},fx:[{type:'drive',amount:.15,mix:.4},{type:'reverb',size:.8,mix:.3}]},
+ {name:'Angel Choir',d:'Many voices in harmony.',p:{pitch:220,tract:1.15,voices:5,detune:18,harm2:7,harm2Mix:.4,vibDepth:.3,rate:.85},fx:[{type:'reverb',size:.95,mix:.45}]},
+ {name:'Swamp Monster',d:'Gurgling, growling beast.',p:{pitch:50,tract:.66,creak:.65,bw:1.7,jitter:.06,rate:.8},fx:[{type:'drive',amount:.5,mix:.6}]},
+ {name:'ASMR Whisper',d:'Soft, close, airy.',p:{whisper:1,breath:.7,rate:.8,fric:1.3,range:.3}},
+ {name:'Sports Announcer',d:'Huge energy, big swings.',p:{pitch:130,range:1.05,rate:1.25,stress:1.2,energy:.9,tension:.75},fx:[{type:'echo',time:180,fb:.25,mix:.2},{type:'reverb',size:.7,mix:.2}]},
+ {name:'Sleepy Bear',d:'Low, slow, drowsy.',p:{pitch:95,range:.15,rate:.7,tension:.2,breath:.3,precision:.25,tract:.9}},
+ {name:'Excited Kid',d:'High, fast, everything is amazing.',p:{pitch:300,tract:1.3,rate:1.25,range:1,stress:1,pitchRand:.4}},
+ {name:'Retro Computer',d:'8-bit beeping terminal.',p:{wave:'square',range:.1,quant:1,sr:16000,precision:.9,jitter:0,shimmer:0},fx:[{type:'crush',bits:6,down:4}]},
+ {name:'Station AI',d:'Calm ship computer in space.',p:{pitch:172,tract:1.1,range:.25,tension:.55,precision:.8,jitter:.003},fx:[{type:'chorus',mix:.25},{type:'eq',high:3},{type:'reverb',size:.5,mix:.18}]},
+ {name:'Salty Pirate',d:'Gravelly, swaggering sailor.',p:{pitch:108,creak:.3,jitter:.03,tract:.92,range:.75,pitchRand:.4},fx:[{type:'drive',amount:.12,mix:.4}]},
+ {name:'Opera Star',d:'Big vibrato and drama.',p:{pitch:235,vibDepth:.65,vibRate:5.8,range:.95,rate:.8,tract:1.1},fx:[{type:'reverb',size:.9,mix:.35}]},
+ {name:'Glitch Bot',d:'Broken, stuttering machine.',p:{wave:'pulse',jitter:.15,pitchRand:1.2,quant:.6},fx:[{type:'ring',freq:600,mix:.3},{type:'crush',bits:5,down:3,mix:.6},{type:'tremolo',rate:14,depth:.5}]},
+ {name:'Forest Elf',d:'Light, airy, musical.',p:{pitch:255,tract:1.25,breath:.25,sib:1.3,vibDepth:.15},fx:[{type:'reverb',size:.7,mix:.28},{type:'chorus',mix:.2}]},
+ {name:'Mountain Dwarf',d:'Stout, gruff, hearty.',p:{pitch:86,tract:.85,creak:.25,bw:1.3,rate:.92,stress:1}},
+ {name:'Randis Duck',d:'The app mascot: nasal and cheerful.',p:{pitch:255,nasal:1,tract:1.4,bw:.55,range:.8,rate:1.15},fx:[{type:'filter',mode:'bandpass',freq:1600,q:.8}]},
+ {name:'Grandma Storyteller',d:'Gentle, warm, a little wavery.',p:{pitch:178,jitter:.03,shimmer:.12,breath:.2,rate:.85,vibDepth:.1,tract:1.08}},
+ {name:'Hissing Villain',d:'Sly, sharp, snake-like.',p:{pitch:118,sib:1.4,fric:1.7,range:.8,whisper:.3,rate:.9}},
+ {name:'News Anchor',d:'Neutral, steady, authoritative.',p:{pitch:115,range:.35,precision:.8,tension:.55,rate:1.02},fx:[{type:'comp',thresh:-16,ratio:3}]},
+ {name:'Underwater Diver',d:'Muffled and wobbly.',p:{pitch:120,vibDepth:.4,vibRate:2},fx:[{type:'filter',mode:'lowpass',freq:800,q:2},{type:'chorus',rate:.4,depth:12,mix:.6}]},
+ {name:'Cave Echo',d:'Shouting in a big cave.',p:{pitch:130,range:.6},fx:[{type:'echo',time:420,fb:.5,mix:.4},{type:'reverb',size:1,mix:.4}]}
+];
+/* Shared helpers for the avatar suites (Assistant, VTuber Studio, VR Avatar Designer).
+   Randis UDS™ by Randy Moore. Original: https://github.com/RandyWilliamMoore/randis-uds · Support: https://ko-fi.com/moorescombinatoricsmatrix */
+'use strict';
+const HOST = window.parent !== window;
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+function h(tag, a, ...kids) {
+  const e = document.createElement(tag);
+  for (const k in a || {}) {
+    const v = a[k]; if (v == null || v === false) continue;
+    if (k === 'class') e.className = v; else if (k === 'style' && typeof v === 'object') Object.assign(e.style, v);
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else if (k === 'html') e.innerHTML = v; else if (k === 'value') e.value = v; else if (k === 'checked') e.checked = !!v;
+    else e.setAttribute(k, v === true ? '' : v);
+  }
+  for (const c of kids.flat(9)) if (c != null && c !== false) e.append(c.nodeType ? c : String(c));
+  return e;
+}
+const clone = o => JSON.parse(JSON.stringify(o));
+const uid = () => Math.random().toString(36).slice(2, 10);
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const lerp = (a, b, t) => a + (b - a) * t;
+const rnd = (a, b) => a + Math.random() * (b - a);
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function toast(t, ms = 2600) { const e = $('#toast'); if (!e) return; e.textContent = t; e.style.display = 'block'; clearTimeout(toast.t); toast.t = setTimeout(() => e.style.display = 'none', ms); }
+function tell(m) { if (HOST) parent.postMessage(m, '*'); }
+
+/* ---------- Color helpers ---------- */
+function hex2rgb(hx) { hx = String(hx || '#000').replace('#', ''); if (hx.length === 3) hx = hx.split('').map(c => c + c).join(''); const n = parseInt(hx, 16) || 0; return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+function rgb2hex(r, g, b) { return '#' + [r, g, b].map(x => clamp(Math.round(x), 0, 255).toString(16).padStart(2, '0')).join(''); }
+function shade(hx, f) { const [r, g, b] = hex2rgb(hx); return f >= 0 ? rgb2hex(r + (255 - r) * f, g + (255 - g) * f, b + (255 - b) * f) : rgb2hex(r * (1 + f), g * (1 + f), b * (1 + f)); }
+function rgba(hx, a) { const [r, g, b] = hex2rgb(hx); return `rgba(${r},${g},${b},${a})`; }
+function mix(a, b, t) { const x = hex2rgb(a), y = hex2rgb(b); return rgb2hex(lerp(x[0], y[0], t), lerp(x[1], y[1], t), lerp(x[2], y[2], t)); }
+
+/* ---------- Saving: the app keeps one JSON per tab ---------- */
+const Store = {
+  data: null, ready: null, _t: 0,
+  load(fallback) {
+    this.ready = new Promise(res => {
+      if (!HOST) { this.data = fallback(); return res(this.data); }
+      const on = e => { if (e.data && e.data.uds === 'store') { window.removeEventListener('message', on); this.data = Object.assign(fallback(), e.data.data && e.data.data.app ? e.data.data.app : {}); res(this.data); } };
+      window.addEventListener('message', on);
+      tell({ uds: 'store-get' });
+      setTimeout(() => { if (!this.data) { this.data = fallback(); res(this.data); } }, 1500);
+    });
+    return this.ready;
+  },
+  save(now) { clearTimeout(this._t); const go = () => tell({ uds: 'store-set', data: { app: this.data } }); if (now) go(); else this._t = setTimeout(go, 600); }
+};
+window.addEventListener('message', e => { if (e.data && e.data.uds === 'store-error') toast('Could not save: ' + e.data.note, 5000); });
+
+/* ---------- Files out and in ---------- */
+function saveFile(name, data, type) {
+  const blob = data instanceof Blob ? data : new Blob([data], { type: type || 'application/octet-stream' });
+  if (HOST) { tell({ uds: 'export-file', name, data: blob }); return; }
+  const a = h('a', { href: URL.createObjectURL(blob), download: name }); document.body.append(a); a.click(); a.remove();
+}
+function pickFile(accept, asText = true) {
+  return new Promise(res => {
+    const i = h('input', { type: 'file', accept, style: { display: 'none' } });
+    i.onchange = () => { const f = i.files[0]; if (!f) return res(null); const r = new FileReader(); r.onload = () => res({ name: f.name, data: r.result, file: f }); asText === 'url' ? r.readAsDataURL(f) : asText ? r.readAsText(f) : r.readAsArrayBuffer(f); };
+    document.body.append(i); i.click(); setTimeout(() => i.remove(), 60000);
+  });
+}
+window.addEventListener('message', e => { if (e.data && e.data.uds === 'saved' && e.data.note) toast(e.data.note); });
+
+/* ---------- The linked AI (through Randis UDS) ---------- */
+const AI = {
+  busy: false,
+  ask(history, persona, onStatus) {
+    return new Promise(res => {
+      if (!HOST) return res({ error: 'Open this tab inside Randis UDS to talk to the linked AI.' });
+      const id = uid();
+      const on = e => {
+        const d = e.data; if (!d || d.uds !== 'avatar' || d.id !== id) return;
+        if (d.done) { window.removeEventListener('message', on); AI.busy = false; res(d.error ? { error: d.error } : { text: d.text || '' }); }
+        else if (onStatus) onStatus(d.status || '', d.text || '');
+      };
+      window.addEventListener('message', on);
+      AI.busy = true;
+      tell({ uds: 'avatar-ask', id, history, persona });
+    });
+  }
+};
+/* Pull [mood:x] and [action:...] tags out of a reply. */
+function parseReply(t) {
+  const moods = [], acts = [];
+  t = String(t || '').replace(/\[mood:\s*([a-z]+)\]/gi, (_, m) => { moods.push(m.toLowerCase()); return ''; })
+    .replace(/\[action:\s*([^\]]+)\]/gi, (_, a) => { acts.push(a.trim()); return ''; }).trim();
+  return { text: t, mood: moods[0] || null, actions: acts };
+}
+function speakable(t) { return String(t).replace(/```[\s\S]*?```/g, ' (code shown on screen) ').replace(/[*_#>`~|]/g, '').replace(/\[[^\]]*\]\([^)]*\)/g, '').replace(/https?:\/\/\S+/g, 'a link').replace(/\s+/g, ' ').trim(); }
+
+/* ---------- Voices: the Randis Voice Engine (from Voice Forge) plus Windows voices ---------- */
+const RV = window.RandisVoiceEngine;
+function presetVoice(name) { const p = (typeof PRESETS !== 'undefined' ? PRESETS : []).find(x => x.name === name); return RV.clean(p ? { name: p.name, params: p.p, fx: p.fx || [] } : { name: name || 'Default' }); }
+const Speech = {
+  /* Live mouth state for avatars: open 0..1, viseme name, and whether talking. */
+  mouth: { open: 0, vis: 'rest', talking: false, word: '' },
+  _tl: null, _t0: 0, _h: null, _sys: false, _ana: null, _buf: null, onWord: null, onEnd: null,
+  stop() { try { RV.stop(); } catch (e) {} this._tl = null; this._sys = false; this.mouth.talking = false; },
+  /* voice: a randis-voice object; engine 'system' uses a Windows voice. Returns a promise that resolves when done. */
+  say(text, voice) {
+    text = speakable(text); if (!text) return Promise.resolve();
+    this.stop();
+    const V = RV.clean(voice);
+    if (V.engine === 'system' && typeof speechSynthesis !== 'undefined') {
+      return new Promise(res => {
+        const u = new SpeechSynthesisUtterance(text);
+        const vs = speechSynthesis.getVoices(), p = vs.find(x => x.name === V.system.voice); if (p) u.voice = p;
+        u.rate = V.system.rate || 1; u.pitch = V.system.pitch || 1; u.volume = V.system.volume == null ? 1 : V.system.volume;
+        this._sys = true; this.mouth.talking = true; this._t0 = performance.now();
+        u.onboundary = ev => { this._lastB = performance.now(); if (ev.name === 'word') { const w = text.slice(ev.charIndex).split(/\s/)[0]; this.mouth.word = w; this.onWord && this.onWord(w); } };
+        const end = () => { this._sys = false; this.mouth.talking = false; this.onEnd && this.onEnd(); res(); };
+        u.onend = end; u.onerror = end;
+        speechSynthesis.speak(u);
+      });
+    }
+    let r; try { r = RV.render(text, V); } catch (e) { console.warn(e); return Promise.resolve(); }
+    this._tl = RV.timeline(r.segs, V);
+    const hnd = RV.play(r); this._h = hnd; this._t0 = hnd ? hnd.ctx.currentTime : 0;
+    this.mouth.talking = true;
+    const done = (hnd ? hnd.ended : Promise.resolve()).then(() => { if (this._h === hnd) { this._tl = null; this.mouth.talking = false; this.onEnd && this.onEnd(); } });
+    return done;
+  },
+  /* Called every frame: updates this.mouth from the timeline, Windows voice, or a microphone. */
+  tick(now) {
+    const m = this.mouth; let target = 0, vis = 'rest';
+    if (this._tl && this._h) {
+      const t = this._h.ctx.currentTime - this._t0;
+      const s = this._tl.find(x => t >= x.start && t < x.end);
+      if (s) { vis = s.viseme; target = { A: 1, E: .7, O: .85, U: .5, R: .45, L: .55, TH: .4, FV: .25, MBP: 0, etc: .45, rest: 0 }[vis] ?? .4; if (s.word && s.word !== m.word) { m.word = s.word; this.onWord && this.onWord(s.word); } }
+    } else if (this._sys) {
+      const k = (now - this._t0) / 1000; target = .25 + .55 * Math.abs(Math.sin(k * 11)) * Math.abs(Math.sin(k * 3.3 + 1)); vis = target > .5 ? 'A' : 'E';
+    } else if (this._ana) {
+      this._ana.getFloatTimeDomainData(this._buf); let e = 0; for (let i = 0; i < this._buf.length; i++) e += this._buf[i] * this._buf[i];
+      const rms = Math.sqrt(e / this._buf.length), g = this.micGain || 1, gate = this.micGate || .015;
+      target = rms * g < gate ? 0 : clamp((rms * g - gate) * 9, 0, 1); vis = target > .6 ? 'A' : target > .3 ? 'E' : target > .05 ? 'U' : 'rest';
+      m.talking = target > .05; m.level = rms * g;
+    }
+    m.open = lerp(m.open, target, .45); m.vis = vis;
+    return m;
+  },
+  async micOn() {
+    try {
+      const st = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const ctx = new (window.AudioContext || window.webkitAudioContext)(); const src = ctx.createMediaStreamSource(st);
+      const an = ctx.createAnalyser(); an.fftSize = 1024; src.connect(an);
+      this._ana = an; this._buf = new Float32Array(an.fftSize); this._mic = { st, ctx }; return true;
+    } catch (e) { toast('The microphone is not available here: ' + (e.message || e.name) + '. In Randis UDS this tab needs "media": true in its meta.json and an app restart.', 7000); return false; }
+  },
+  micOff() { if (this._mic) { this._mic.st.getTracks().forEach(t => t.stop()); this._mic.ctx.close(); } this._mic = null; this._ana = null; }
+};
+function systemVoices() { try { return speechSynthesis.getVoices(); } catch (e) { return []; } }
+if (typeof speechSynthesis !== 'undefined') try { speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = () => { }; } catch (e) {}
+
+/* A voice picker: Voice Forge presets, an imported .rvoice.json, or a Windows voice. state = {kind, name, voice} */
+function voiceOf(sel) {
+  if (!sel) return presetVoice('Bright Guide');
+  if (sel.kind === 'file' && sel.voice) return RV.clean(sel.voice);
+  if (sel.kind === 'system') return RV.clean({ name: sel.name, engine: 'system', system: { voice: sel.name, rate: sel.rate || 1, pitch: sel.pitch || 1, volume: 1 } });
+  return presetVoice(sel.name);
+}
+function voicePicker(sel, onChange) {
+  const box = h('div', { class: 'vpick' });
+  const draw = () => {
+    box.innerHTML = '';
+    const s = h('select', { onchange: () => { const [k, ...n] = s.value.split('|'); const nm = n.join('|'); Object.assign(sel, { kind: k, name: nm }); if (k !== 'file') delete sel.voice; onChange(sel); draw(); } });
+    const g1 = h('optgroup', { label: 'Voice Forge voices (built in)' }); (typeof PRESETS !== 'undefined' ? PRESETS : []).forEach(p => g1.append(h('option', { value: 'preset|' + p.name }, p.name + ' — ' + p.d)));
+    const g2 = h('optgroup', { label: 'Windows voices' }); systemVoices().forEach(v => g2.append(h('option', { value: 'system|' + v.name }, v.name)));
+    s.append(g1); if (g2.children.length) s.append(g2);
+    if (sel.kind === 'file' && sel.voice) s.append(h('optgroup', { label: 'Imported' }, h('option', { value: 'file|' + sel.name }, sel.name)));
+    s.value = (sel.kind || 'preset') + '|' + (sel.name || 'Bright Guide');
+    box.append(s, ' ', h('button', { class: 'sm', title: 'Use a voice you made in the Voice Forge tab (Ship → .rvoice.json)', onclick: async () => {
+      const f = await pickFile('.json,.rvoice.json'); if (!f) return;
+      try { const v = JSON.parse(f.data); if (!v.params && !v.engine) throw 0; Object.assign(sel, { kind: 'file', name: v.name || f.name, voice: v }); onChange(sel); draw(); toast('Voice loaded: ' + (v.name || f.name)); }
+      catch (e) { toast('That file is not a Voice Forge voice (.rvoice.json).'); }
+    } }, 'Import Voice Forge voice…'), ' ', h('button', { class: 'sm', onclick: () => Speech.say('Hello! This is how I sound.', voiceOf(sel)) }, '▶ Test'));
+  };
+  draw();
+  if (typeof speechSynthesis !== 'undefined') speechSynthesis.addEventListener && speechSynthesis.addEventListener('voiceschanged', draw);
+  return box;
+}
+
+/* ---------- Small UI builders ---------- */
+function slider(label, obj, key, min, max, step, onInput, fmt) {
+  const val = h('span', { class: 'sv' }, fmt ? fmt(obj[key]) : String(obj[key]));
+  const r = h('input', { type: 'range', min, max, step: step || 'any', value: obj[key], oninput: () => { obj[key] = +r.value; val.textContent = fmt ? fmt(obj[key]) : (+r.value).toFixed(step >= 1 ? 0 : 2); onInput && onInput(key); } });
+  return h('label', { class: 'sl' }, h('span', { class: 'sk' }, label), r, val);
+}
+function colorIn(label, obj, key, onInput) {
+  const c = h('input', { type: 'color', value: obj[key], oninput: () => { obj[key] = c.value; onInput && onInput(key); } });
+  return h('label', { class: 'ci' }, c, h('span', {}, label));
+}
+function selectIn(label, obj, key, opts, onInput) {
+  const s = h('select', { onchange: () => { obj[key] = isNaN(+s.value) || s.value === '' ? s.value : +s.value; onInput && onInput(key); } }, opts.map(o => Array.isArray(o) ? h('option', { value: o[0] }, o[1]) : h('option', { value: o }, o)));
+  s.value = obj[key];
+  return h('label', { class: 'si' }, h('span', { class: 'sk' }, label), s);
+}
+function checkIn(label, obj, key, onInput) {
+  const c = h('input', { type: 'checkbox', checked: obj[key], onchange: () => { obj[key] = c.checked; onInput && onInput(key); } });
+  return h('label', { class: 'cb' }, c, ' ', label);
+}
+function card(title, ...kids) { return h('div', { class: 'card' }, title ? h('h3', {}, title) : null, ...kids); }
+function chips(list, cur, on) { return h('div', { class: 'chips' }, list.map(x => { const v = Array.isArray(x) ? x[0] : x, l = Array.isArray(x) ? x[1] : x; return h('button', { class: 'chip' + (v === cur ? ' on' : ''), onclick: () => on(v) }, l); })); }
+
+/* Download a canvas as PNG */
+function saveCanvas(cv, name) { cv.toBlob(b => saveFile(name, b, 'image/png'), 'image/png'); }
+/* Record a canvas (and optional audio) to .webm */
+function recorder(cv, fps = 30) {
+  const st = cv.captureStream(fps);
+  const mt = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'].find(t => window.MediaRecorder && MediaRecorder.isTypeSupported(t));
+  if (!mt) return null;
+  const rec = new MediaRecorder(st, { mimeType: mt, videoBitsPerSecond: 6e6 }), parts = [];
+  rec.ondataavailable = e => e.data.size && parts.push(e.data);
+  return { rec, stop: () => new Promise(res => { rec.onstop = () => res(new Blob(parts, { type: 'video/webm' })); rec.stop(); }), start: () => rec.start(250) };
+}
+
+/* Char2D: a procedural, rigged 2D character (bust) drawn on a canvas. Format "randis-char2d/1".
+   Head turn with parallax, blinking, eye look, lip-sync visemes, 16 expressions, spring physics on hair, ears and tails.
+   Randis UDS™ by Randy Moore. Original: https://github.com/RandyWilliamMoore/randis-uds · Support: https://ko-fi.com/moorescombinatoricsmatrix */
+'use strict';
+const Char2D = (() => {
+  const OPT = {
+    faceShape: [['oval', 'Oval'], ['round', 'Round'], ['heart', 'Heart'], ['square', 'Square'], ['long', 'Long']],
+    eyeStyle: [['anime', 'Anime'], ['round', 'Round & big'], ['sharp', 'Sharp'], ['sleepy', 'Sleepy'], ['cat', 'Cat-like'], ['tare', 'Droopy (tare)'], ['dot', 'Simple dots']],
+    pupil: [['round', 'Round'], ['slit', 'Slit (cat/dragon)'], ['heart', 'Heart'], ['star', 'Star'], ['ring', 'Ring'], ['cross', 'Cross'], ['none', 'None (glow)']],
+    mouthStyle: [['soft', 'Soft'], ['cat', 'Cat :3'], ['fang', 'One fang'], ['fangs', 'Two fangs'], ['shark', 'Shark teeth']],
+    nose: [['dot', 'Dot'], ['line', 'Line'], ['shadow', 'Shadow'], ['none', 'None']],
+    hairFront: [['straight', 'Straight bangs'], ['side', 'Side-swept'], ['parted', 'Middle part'], ['spiky', 'Spiky'], ['hime', 'Hime cut'], ['messy', 'Messy'], ['swoop', 'Long swoop'], ['short', 'Short crop'], ['none', 'Forehead (none)']],
+    hairBack: [['long', 'Long'], ['short', 'Short'], ['bob', 'Bob'], ['twintails', 'Twin tails'], ['ponytail', 'Ponytail'], ['wavy', 'Long wavy'], ['spiky', 'Spiky'], ['buns', 'Space buns'], ['drills', 'Drill curls'], ['wolf', 'Wolf cut'], ['none', 'None']],
+    ears: [['human', 'Human'], ['elf', 'Elf'], ['cat', 'Cat'], ['fox', 'Fox'], ['wolf', 'Wolf'], ['bunny', 'Bunny'], ['bear', 'Bear'], ['fins', 'Fins (merfolk)'], ['none', 'Hidden']],
+    horns: [['none', 'None'], ['small', 'Small nubs'], ['demon', 'Demon curl'], ['dragon', 'Dragon'], ['unicorn', 'Unicorn'], ['antlers', 'Antlers'], ['oni', 'Oni']],
+    halo: [['none', 'None'], ['ring', 'Ring'], ['broken', 'Broken ring'], ['spikes', 'Spiked'], ['double', 'Double']],
+    hat: [['none', 'None'], ['beret', 'Beret'], ['witch', 'Witch hat'], ['cap', 'Cap'], ['crown', 'Crown'], ['tiara', 'Tiara'], ['beanie', 'Beanie'], ['catband', 'Cat-ear headband']],
+    glasses: [['none', 'None'], ['round', 'Round'], ['square', 'Square'], ['half', 'Half-rim'], ['visor', 'Cyber visor'], ['heart', 'Heart shades'], ['monocle', 'Monocle']],
+    headphones: [['none', 'None'], ['studio', 'Studio'], ['cat', 'Cat-ear'], ['neck', 'Around neck'], ['mic', 'Headset + mic']],
+    hairAcc: [['none', 'None'], ['bow', 'Bow'], ['clip', 'Star clips'], ['flower', 'Flower'], ['ribbon', 'Ribbons'], ['pins', 'X pins'], ['feather', 'Feather']],
+    outfit: [['hoodie', 'Hoodie'], ['sailor', 'Sailor uniform'], ['suit', 'Suit & tie'], ['kimono', 'Kimono'], ['idol', 'Idol frills'], ['armor', 'Armor'], ['cyber', 'Cyber jacket'], ['turtle', 'Turtleneck'], ['tank', 'Tank top'], ['maid', 'Maid'], ['cloak', 'Hooded cloak'], ['shrine', 'Shrine maiden']],
+    neckAcc: [['none', 'None'], ['choker', 'Choker'], ['bell', 'Bell collar'], ['pendant', 'Pendant'], ['scarf', 'Scarf'], ['bowtie', 'Bow tie']],
+    wings: [['none', 'None'], ['angel', 'Angel'], ['bat', 'Bat'], ['fairy', 'Fairy'], ['mech', 'Mech'], ['butterfly', 'Butterfly']],
+    marks: [['none', 'None'], ['freckles', 'Freckles'], ['stars', 'Star marks'], ['scales', 'Scales'], ['stripes', 'Stripes'], ['tear', 'Tear tattoo'], ['bandage', 'Bandage'], ['whiskers', 'Whiskers']],
+    mole: [['none', 'None'], ['eye', 'Under eye'], ['mouth', 'By mouth']]
+  };
+  const EXPR = ['neutral', 'happy', 'joy', 'sad', 'cry', 'angry', 'surprised', 'smug', 'shy', 'sleepy', 'love', 'stars', 'thinking', 'wink', 'xx', 'dizzy', 'pout'];
+  const EXPR_LABEL = { neutral: '😐 Neutral', happy: '🙂 Happy', joy: '😄 Joy', sad: '😢 Sad', cry: '😭 Crying', angry: '😠 Angry', surprised: '😮 Surprised', smug: '😏 Smug', shy: '😳 Shy', sleepy: '😪 Sleepy', love: '😍 Love', stars: '🤩 Starstruck', thinking: '🤔 Thinking', wink: '😉 Wink', xx: '😣 >_<', dizzy: '😵 Dizzy', pout: '😤 Pout' };
+
+  function defaults() {
+    return {
+      format: 'randis-char2d/1', name: 'New character',
+      skin: '#ffe0cf', skinShade: '#f3b9a4', blush: .35, faceShape: 'oval', faceWidth: 1, chin: 1, neck: 1,
+      eyeStyle: 'anime', eyeSize: 1, eyeSpacing: 1, eyeTilt: 0, eyeY: 0, iris: '#4f7dff', iris2: '#9fe6ff', sclera: '#ffffff', pupil: 'round', highlights: 2, lash: 1, lashColor: '#2a1b2e', heterochromia: false, iris3: '#ff6fae',
+      brow: 1, browColor: '', browY: 0,
+      mouthStyle: 'soft', mouthW: 1, lip: '#d9566e', nose: 'dot',
+      hair: '#6b4bd6', hair2: '#e58bff', hairShine: .6, hairFront: 'side', hairBack: 'long', hairLen: 1, hairVol: 1, ahoge: true, streak: false, streakColor: '#ffffff',
+      ears: 'human', earColor: '', earInner: '#ffb3c8', earSize: 1,
+      horns: 'none', hornColor: '#2b2238', halo: 'none', haloColor: '#ffe27a',
+      hat: 'none', hatColor: '#3a2f55', glasses: 'none', glassColor: '#2b2b38', headphones: 'none', phoneColor: '#ff6fae', hairAcc: 'clip', accColor: '#ffd84a',
+      outfit: 'hoodie', cloth: '#2c2f48', cloth2: '#f4f0ff', clothAcc: '#ff6fae', neckAcc: 'none', neckColor: '#1d1d26',
+      wings: 'none', wingColor: '#ffffff', marks: 'none', markColor: '#ff6fae', mole: 'none',
+      outline: '#2a1b2e', lineW: 1, shading: .6, glow: 0, glowColor: '#7cf',
+      physics: 1, breathe: 1, blinkRate: 1
+    };
+  }
+  function rig() { return { yaw: 0, pitch: 0, roll: 0, bx: 0, by: 0, lookX: 0, lookY: 0, blink: 0, open: 0, vis: 'rest', expr: 'neutral', t: 0, talk: false, bonk: 0, sp: { hx: 0, hv: 0, hy: 0, hyv: 0, ex: 0, ev: 0 }, prevYaw: 0, prevBx: 0, prevBy: 0, nextBlink: 2, blinkT: -1, wink: 0 }; }
+
+  /* Advance animation: blink, breathing, physics. dt in seconds. */
+  function step(c, r, dt) {
+    r.t += dt;
+    if (r.blinkT < 0 && r.t > r.nextBlink && !['joy', 'xx', 'sleepy'].includes(r.expr)) { r.blinkT = 0; r.nextBlink = r.t + (2 + Math.random() * 4) / (c.blinkRate || 1) + (Math.random() < .15 ? -1.6 : 0); }
+    if (r.blinkT >= 0) { r.blinkT += dt; const k = r.blinkT / .16; r.blink = k < .5 ? k * 2 : Math.max(0, 2 - k * 2); if (k >= 1) { r.blinkT = -1; r.blink = 0; } }
+    const sp = r.sp, k = 90 * (c.physics || 1), damp = 7;
+    const drive = (r.yaw - r.prevYaw) / Math.max(dt, .001) * .9 + (r.bx - r.prevBx) / Math.max(dt, .001) * .02 + r.roll * 2;
+    sp.hv += (-k * sp.hx - damp * sp.hv - drive * 6 * (c.physics || 1)) * dt; sp.hx += sp.hv * dt; sp.hx = clamp(sp.hx, -1.4, 1.4);
+    const dby = (r.by - r.prevBy) / Math.max(dt, .001);
+    sp.hyv += (-k * sp.hy - damp * sp.hyv - dby * .05 * (c.physics || 1)) * dt; sp.hy += sp.hyv * dt; sp.hy = clamp(sp.hy, -1, 1);
+    sp.ev += (-140 * sp.ex - 5 * sp.ev - drive * 9) * dt; sp.ex += sp.ev * dt; sp.ex = clamp(sp.ex, -1.2, 1.2);
+    r.prevYaw = r.yaw; r.prevBx = r.bx; r.prevBy = r.by;
+    if (r.bonk > 0) r.bonk = Math.max(0, r.bonk - dt * 2.5);
+  }
+
+  /* ---------- drawing ---------- */
+  let X; // the 2D context while drawing
+  let LW = 3;
+  function P() { X.beginPath(); }
+  function fillStroke(f, s, w) { if (f) { X.fillStyle = f; X.fill(); } if (s) { X.strokeStyle = s; X.lineWidth = (w || 1) * LW; X.lineJoin = 'round'; X.lineCap = 'round'; X.stroke(); } }
+  function ell(x, y, rx, ry, rot = 0) { X.ellipse(x, y, Math.max(.1, rx), Math.max(.1, ry), rot, 0, Math.PI * 2); }
+  function grad(y0, y1, a, b) { const g = X.createLinearGradient(0, y0, 0, y1); g.addColorStop(0, a); g.addColorStop(1, b); return g; }
+  function star(x, y, r, n = 5, inner = .45, rot = -Math.PI / 2) { for (let i = 0; i < n * 2; i++) { const a = rot + i * Math.PI / n, rr = i % 2 ? r * inner : r; i ? X.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr) : X.moveTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); } X.closePath(); }
+  function heart(x, y, s) { X.moveTo(x, y + s * .9); X.bezierCurveTo(x - s * 1.3, y, x - s * .9, y - s * 1, x, y - s * .35); X.bezierCurveTo(x + s * .9, y - s * 1, x + s * 1.3, y, x, y + s * .9); X.closePath(); }
+  /* A tapered lock of hair from root (x0,y0) to tip (x1,y1): width w at the root, bend b (sideways bow). */
+  function lock(x0, y0, x1, y1, w, b, col) {
+    const mx = (x0 + x1) / 2 + b, my = (y0 + y1) / 2;
+    const dx = x1 - x0, dy = y1 - y0, L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L;
+    P(); X.moveTo(x0 + nx * w, y0 + ny * w);
+    X.quadraticCurveTo(mx + nx * w * .6, my + ny * w * .6, x1, y1);
+    X.quadraticCurveTo(mx - nx * w * .6, my - ny * w * .6, x0 - nx * w, y0 - ny * w);
+    X.closePath(); fillStroke(col, OUT(), .8);
+  }
+  let C, R, OUT = () => C.outline;
+
+  function hairGrad(y0, y1) { return grad(y0, y1, C.hair, C.hair2); }
+
+  function faceOutline(fw, ch) {
+    const w = 92 * fw, cy = 100 * ch, sh = C.faceShape;
+    const jaw = { oval: [w * .95, 40, w * .5, cy * .9], round: [w, 50, w * .62, cy * .92], heart: [w * .98, 25, w * .34, cy * .88], square: [w, 62, w * .7, cy * .95], long: [w * .9, 55, w * .45, cy * 1.02] }[sh] || [w * .95, 40, w * .5, cy * .9];
+    P(); X.moveTo(-w, -30);
+    X.bezierCurveTo(-w, -140, w, -140, w, -30);
+    X.bezierCurveTo(w, 0, jaw[0], jaw[1] - 10, jaw[0] * .97, jaw[1]);
+    X.bezierCurveTo(jaw[2] + 20, jaw[3] - 10, 22, cy, 0, cy);
+    X.bezierCurveTo(-22, cy, -jaw[2] - 20, jaw[3] - 10, -jaw[0] * .97, jaw[1]);
+    X.bezierCurveTo(-jaw[0], jaw[1] - 10, -w, 0, -w, -30);
+    X.closePath();
+  }
+
+  /* ---- back layers: wings, back hair, far ear, body ---- */
+  function wings(t) {
+    if (C.wings === 'none') return;
+    const flap = Math.sin(t * 2.2) * .08, col = C.wingColor;
+    for (const s of [-1, 1]) {
+      X.save(); X.translate(s * 70, 210); X.rotate(s * (-.25 + flap)); X.scale(s, 1);
+      if (C.wings === 'angel') { for (let i = 0; i < 5; i++) { P(); ell(70 + i * 32, -60 - i * 26 + i * i * 3, 70 - i * 7, 22, -.5 - i * .12); fillStroke(shade(col, -i * .04), OUT(), .7); } }
+      else if (C.wings === 'bat') { P(); X.moveTo(0, 0); X.lineTo(60, -150); X.lineTo(260, -200); X.quadraticCurveTo(230, -120, 250, -60); X.quadraticCurveTo(200, -80, 180, -20); X.quadraticCurveTo(130, -50, 110, 20); X.quadraticCurveTo(60, -10, 0, 30); X.closePath(); fillStroke(col, OUT(), .9); P(); X.moveTo(60, -150); X.lineTo(180, -20); X.moveTo(60, -150); X.lineTo(250, -60); X.moveTo(60, -150); X.lineTo(110, 20); fillStroke(null, shade(col, -.4), .5); }
+      else if (C.wings === 'fairy' || C.wings === 'butterfly') { X.globalAlpha = C.wings === 'fairy' ? .55 : .95; P(); ell(120, -110, 110, 60, -.6); fillStroke(col, OUT(), .6); P(); ell(100, 10, 70, 38, .4); fillStroke(shade(col, -.15), OUT(), .6); if (C.wings === 'butterfly') { P(); ell(140, -130, 30, 18, -.6); fillStroke(C.clothAcc); P(); ell(110, 15, 18, 11, .4); fillStroke(C.clothAcc); } X.globalAlpha = 1; }
+      else if (C.wings === 'mech') { for (let i = 0; i < 4; i++) { P(); X.moveTo(20, -20 - i * 10); X.lineTo(240 - i * 25, -170 + i * 45); X.lineTo(250 - i * 25, -150 + i * 45); X.lineTo(30, 0 - i * 8); X.closePath(); fillStroke(i % 2 ? shade(col, -.3) : col, OUT(), .7); P(); X.moveTo(240 - i * 25, -170 + i * 45); X.lineTo(250 - i * 25, -150 + i * 45); fillStroke(null, C.glowColor, 2); } }
+      X.restore();
+    }
+  }
+  function backHair(yaw) {
+    const st = C.hairBack, L = C.hairLen, V = C.hairVol, sw = R.sp.hx * 40, sy = R.sp.hy * 12;
+    if (st === 'none') return;
+    X.save(); X.translate(-yaw * 14, 0);
+    const g = hairGrad(-150, 260 * L);
+    if (['long', 'wavy', 'twintails', 'ponytail', 'drills', 'buns'].includes(st)) {
+      const len = st === 'long' || st === 'wavy' || st === 'drills' ? 300 * L : 120;
+      P(); X.moveTo(-108 * V, -50);
+      X.bezierCurveTo(-140 * V, -190, 140 * V, -190, 108 * V, -50);
+      const wv = st === 'wavy' ? 1 : 0;
+      X.bezierCurveTo(130 * V + sw * .5, 60, 150 * V + sw + wv * 30, len * .7, 120 * V + sw, len);
+      for (let i = 4; i >= -4; i--) { const x = i * 28 * V + sw; X.lineTo(x + (i % 2 ? 0 : 6), len - (i % 2 ? 25 : 0) + (wv ? Math.sin(i + R.t) * 6 : 0)); }
+      X.bezierCurveTo(-150 * V + sw - wv * 30, len * .7, -130 * V + sw * .5, 60, -108 * V, -50);
+      X.closePath(); fillStroke(g, OUT(), 1);
+    } else if (st === 'bob' || st === 'short' || st === 'wolf' || st === 'spiky') {
+      const len = st === 'bob' ? 75 * L : st === 'wolf' ? 130 * L : 30 * L;
+      P(); X.moveTo(-104 * V, -50); X.bezierCurveTo(-136 * V, -190, 136 * V, -190, 104 * V, -50);
+      if (st === 'spiky') { for (let i = 0; i <= 8; i++) { const a = -.1 + i / 8 * (Math.PI + .2); X.lineTo(Math.cos(a) * 125 * V + sw * .3, Math.sin(a) * 70 + len + (i % 2 ? 0 : 35)); } }
+      else { X.bezierCurveTo(125 * V + sw * .4, 20, 118 * V + sw, len, 95 * V + sw, len + 20); if (st === 'wolf') { for (let i = 3; i >= -3; i--) X.lineTo(i * 30 * V + sw, len + (i % 2 ? 40 : 10)); } else X.quadraticCurveTo(0, len + 40, -95 * V + sw, len + 20); X.bezierCurveTo(-118 * V + sw, len, -125 * V + sw * .4, 20, -104 * V, -50); }
+      X.closePath(); fillStroke(g, OUT(), 1);
+    }
+    if (st === 'twintails') for (const s of [-1, 1]) { const b = sw * 1.4 + s * 10, ln = 360 * L; P(); X.moveTo(s * 95, -80); X.bezierCurveTo(s * 190 + b * .5, -60, s * 200 + b, ln * .5, s * 150 + b * 1.4, ln); X.lineTo(s * 130 + b * 1.4, ln - 30); X.bezierCurveTo(s * 140 + b, ln * .5, s * 120 + b * .5, -20, s * 80, -50); X.closePath(); fillStroke(hairGrad(-80, ln), OUT(), 1); }
+    if (st === 'ponytail') { const b = sw * 1.6; P(); X.moveTo(-30, -150); X.bezierCurveTo(-80 + b * .3, -200, -150 + b, 80, -60 + b * 1.5, 320 * L); X.bezierCurveTo(10 + b, 120, 40, -100, 30, -150); X.closePath(); fillStroke(hairGrad(-150, 320 * L), OUT(), 1); }
+    if (st === 'drills') for (const s of [-1, 1]) { const b = sw; for (let i = 0; i < 5; i++) { P(); ell(s * 112 + b * i * .2, 40 + i * 42 * L, 30 - i * 3, 24, s * .4); fillStroke(hairGrad(20 + i * 42, 70 + i * 42), OUT(), .8); } }
+    X.restore();
+  }
+  function body(t) {
+    const br = Math.sin(t * 1.6) * 3 * (C.breathe || 1);
+    X.save(); X.translate(0, br * .4);
+    const cl = C.cloth, c2 = C.cloth2, acc = C.clothAcc, o = C.outfit;
+    // neck
+    const nw = 26 * (C.neck || 1);
+    P(); X.moveTo(-nw, 60); X.lineTo(-nw - 2, 160); X.lineTo(nw + 2, 160); X.lineTo(nw, 60); X.closePath(); fillStroke(C.skin, OUT(), .8);
+    P(); X.moveTo(-nw, 85); X.quadraticCurveTo(0, 112, nw, 85); X.lineTo(nw, 60); X.lineTo(-nw, 60); X.closePath(); fillStroke(rgba(C.skinShade, .8));
+    // torso
+    const sh = 158 + br;
+    if (o === 'cloak') { P(); X.moveTo(-60, 120); X.bezierCurveTo(-130, 120, -230, 230, -250, 420); X.lineTo(250, 420); X.bezierCurveTo(230, 230, 130, 120, 60, 120); X.closePath(); fillStroke(grad(120, 420, cl, shade(cl, -.35)), OUT(), 1.1); P(); X.moveTo(-50, 135); X.bezierCurveTo(-140, 60, -150, -170, 0, -180); X.bezierCurveTo(150, -170, 140, 60, 50, 135); fillStroke(null, OUT(), .01); return X.restore(); }
+    P(); X.moveTo(-nw - 6, 140);
+    X.bezierCurveTo(-80, 150, -sh, 160, -sh - 25, 260);
+    X.lineTo(-sh - 45, 420); X.lineTo(sh + 45, 420); X.lineTo(sh + 25, 260);
+    X.bezierCurveTo(sh, 160, 80, 150, nw + 6, 140); X.closePath();
+    const top = o === 'tank' ? C.skin : cl;
+    fillStroke(grad(140, 420, top, shade(top, -.25)), OUT(), 1.1);
+    if (o === 'tank') { P(); X.moveTo(-90, 420); X.lineTo(-80, 230); X.quadraticCurveTo(-60, 150, -55, 150); X.lineTo(-40, 152); X.quadraticCurveTo(-40, 230, 0, 240); X.quadraticCurveTo(40, 230, 40, 152); X.lineTo(55, 150); X.quadraticCurveTo(60, 150, 80, 230); X.lineTo(90, 420); X.closePath(); fillStroke(grad(150, 420, cl, shade(cl, -.25)), OUT(), 1); }
+    if (o === 'hoodie') {
+      P(); X.moveTo(-95, 150); X.bezierCurveTo(-120, 200, -40, 215, 0, 205); X.bezierCurveTo(40, 215, 120, 200, 95, 150); X.bezierCurveTo(60, 170, -60, 170, -95, 150); fillStroke(shade(cl, -.15), OUT(), 1);
+      for (const s of [-1, 1]) { P(); X.moveTo(s * 22, 205); X.quadraticCurveTo(s * 26 + R.sp.hx * 6, 260, s * 20 + R.sp.hx * 10, 300); fillStroke(null, c2, 1.6); P(); ell(s * 20 + R.sp.hx * 10, 304, 4, 6); fillStroke(c2); }
+      P(); X.moveTo(-60, 340); X.lineTo(60, 340); X.lineTo(70, 420); X.lineTo(-70, 420); X.closePath(); fillStroke(rgba('#000', .12), rgba(OUT(), .5), .6);
+      X.font = 'bold 34px Segoe UI'; X.textAlign = 'center'; X.fillStyle = acc; X.fillText('★', 70, 270);
+    }
+    if (o === 'sailor') {
+      P(); X.moveTo(-nw - 4, 140); X.lineTo(-sh + 20, 205); X.lineTo(-90, 270); X.lineTo(0, 300); X.lineTo(90, 270); X.lineTo(sh - 20, 205); X.lineTo(nw + 4, 140); X.lineTo(0, 260); X.closePath(); fillStroke(c2, OUT(), 1);
+      P(); X.moveTo(-sh + 30, 210); X.lineTo(-92, 262); X.moveTo(sh - 30, 210); X.lineTo(92, 262); fillStroke(null, acc, 1.4);
+      P(); X.moveTo(0, 268); X.lineTo(-48, 245); X.lineTo(-50, 290); X.closePath(); X.moveTo(0, 268); X.lineTo(48, 245); X.lineTo(50, 290); X.closePath(); fillStroke(acc, OUT(), .8);
+      P(); X.moveTo(-10, 275); X.lineTo(-30, 340); X.lineTo(-8, 330); X.moveTo(10, 275); X.lineTo(30, 340); X.lineTo(8, 330); fillStroke(acc, OUT(), .8); P(); ell(0, 270, 12, 12); fillStroke(acc, OUT(), .8);
+    }
+    if (o === 'suit' || o === 'maid') {
+      P(); X.moveTo(-nw - 4, 140); X.lineTo(0, 260); X.lineTo(nw + 4, 140); X.closePath(); fillStroke(c2, OUT(), .8);
+      if (o === 'suit') { P(); X.moveTo(0, 165); X.lineTo(-13, 180); X.lineTo(-8, 300); X.lineTo(0, 320); X.lineTo(8, 300); X.lineTo(13, 180); X.closePath(); fillStroke(acc, OUT(), .8); for (const s of [-1, 1]) { P(); X.moveTo(s * (nw + 4), 140); X.lineTo(s * 55, 190); X.lineTo(s * 30, 200); X.lineTo(s * 70, 230); X.lineTo(s * 4, 330); fillStroke(null, OUT(), 1); } }
+      else { P(); X.moveTo(-70, 230); X.lineTo(70, 230); X.lineTo(80, 420); X.lineTo(-80, 420); X.closePath(); fillStroke(c2, OUT(), 1); for (let i = -3; i <= 3; i++) { P(); ell(i * 26, 162 + Math.abs(i) * 4, 14, 9); fillStroke(c2, OUT(), .6); } P(); X.moveTo(0, 175); X.lineTo(-38, 158); X.lineTo(-38, 196); X.closePath(); X.moveTo(0, 175); X.lineTo(38, 158); X.lineTo(38, 196); X.closePath(); fillStroke(acc, OUT(), .8); }
+    }
+    if (o === 'kimono' || o === 'shrine') {
+      P(); X.moveTo(-nw - 10, 138); X.lineTo(60, 330); X.lineTo(90, 330); X.lineTo(-nw + 6, 140); fillStroke(c2, OUT(), .8);
+      P(); X.moveTo(nw + 10, 138); X.lineTo(-30, 260); X.lineTo(-10, 270); X.lineTo(nw - 4, 142); fillStroke(c2, OUT(), .8);
+      P(); X.moveTo(-sh - 35, 330); X.lineTo(sh + 35, 330); X.lineTo(sh + 40, 390); X.lineTo(-sh - 40, 390); X.closePath(); fillStroke(o === 'shrine' ? '#c22f3a' : acc, OUT(), 1);
+      if (o === 'shrine') { for (const s of [-1, 1]) { P(); X.moveTo(s * (sh - 10), 175); X.lineTo(s * (sh + 60), 230); X.lineTo(s * (sh + 50), 420); X.lineTo(s * (sh - 20), 420); X.closePath(); fillStroke('#ffffff', OUT(), 1); } P(); X.moveTo(0, 225); X.lineTo(-28, 210); X.lineTo(-28, 240); X.closePath(); X.moveTo(0, 225); X.lineTo(28, 210); X.lineTo(28, 240); X.closePath(); fillStroke('#c22f3a', OUT(), .7); }
+    }
+    if (o === 'idol') {
+      for (let i = -4; i <= 4; i++) { P(); ell(i * 24, 150 + Math.abs(i) * 6, 16, 12); fillStroke(c2, OUT(), .6); }
+      P(); X.moveTo(0, 180); X.bezierCurveTo(-30, 140, -70, 190, -40, 210); X.lineTo(0, 185); X.bezierCurveTo(30, 140, 70, 190, 40, 210); X.closePath(); fillStroke(acc, OUT(), .9); P(); ell(0, 185, 10, 10); fillStroke(shade(acc, .3), OUT(), .7);
+      for (let i = 0; i < 5; i++) { P(); star(-120 + i * 60, 300 + (i % 2) * 30, 9); fillStroke(shade(acc, .4)); }
+    }
+    if (o === 'armor') {
+      for (const s of [-1, 1]) { P(); X.moveTo(s * 70, 160); X.bezierCurveTo(s * 170, 130, s * 230, 200, s * 220, 280); X.lineTo(s * 130, 250); X.closePath(); fillStroke(grad(140, 280, shade(cl, .35), shade(cl, -.2)), OUT(), 1.1); P(); X.moveTo(s * 110, 175); X.bezierCurveTo(s * 170, 160, s * 205, 210, s * 205, 255); fillStroke(null, acc, 1.4); }
+      P(); X.moveTo(-70, 200); X.lineTo(70, 200); X.lineTo(60, 330); X.lineTo(0, 360); X.lineTo(-60, 330); X.closePath(); fillStroke(grad(200, 360, shade(cl, .4), shade(cl, -.1)), OUT(), 1.1); P(); star(0, 270, 22, 4, .35); fillStroke(acc, OUT(), .8);
+    }
+    if (o === 'cyber') {
+      P(); X.moveTo(-nw - 18, 100); X.lineTo(-nw - 26, 170); X.lineTo(-60, 175); X.lineTo(-30, 230); X.lineTo(0, 240); X.lineTo(30, 230); X.lineTo(60, 175); X.lineTo(nw + 26, 170); X.lineTo(nw + 18, 100); X.lineTo(nw + 4, 120); X.lineTo(-nw - 4, 120); X.closePath(); fillStroke(shade(cl, -.2), OUT(), 1);
+      X.save(); X.shadowColor = acc; X.shadowBlur = 14; P(); X.moveTo(-sh + 10, 250); X.lineTo(-90, 240); X.lineTo(-70, 330); X.moveTo(sh - 10, 250); X.lineTo(90, 240); X.lineTo(70, 330); X.moveTo(-nw - 20, 120); X.lineTo(-nw - 24, 160); X.moveTo(nw + 20, 120); X.lineTo(nw + 24, 160); fillStroke(null, acc, 2); X.restore();
+      P(); X.moveTo(0, 240); X.lineTo(0, 420); fillStroke(null, OUT(), 1);
+    }
+    if (o === 'turtle') { P(); X.moveTo(-nw - 10, 95); X.lineTo(-nw - 12, 160); X.quadraticCurveTo(0, 175, nw + 12, 160); X.lineTo(nw + 10, 95); X.quadraticCurveTo(0, 105, -nw - 10, 95); fillStroke(shade(cl, -.1), OUT(), 1); for (let i = 0; i < 4; i++) { P(); X.moveTo(-nw - 10, 110 + i * 14); X.quadraticCurveTo(0, 120 + i * 14, nw + 10, 110 + i * 14); fillStroke(null, rgba(OUT(), .35), .6); } }
+    // necklace
+    const na = C.neckAcc, nc = C.neckColor;
+    if (na === 'choker' || na === 'bell') { P(); X.moveTo(-nw - 1, 112); X.quadraticCurveTo(0, 126, nw + 1, 112); fillStroke(null, nc, 3.6); if (na === 'bell') { P(); ell(0, 132, 10, 10); fillStroke(C.accColor, OUT(), .8); } else { P(); heart(0, 128, 7); fillStroke(C.clothAcc, OUT(), .5); } }
+    if (na === 'pendant') { P(); X.moveTo(-nw - 4, 120); X.quadraticCurveTo(0, 200, nw + 4, 120); fillStroke(null, nc, .8); P(); X.moveTo(0, 175); X.lineTo(-10, 192); X.lineTo(0, 215); X.lineTo(10, 192); X.closePath(); fillStroke(C.clothAcc, OUT(), .7); }
+    if (na === 'scarf') { P(); X.moveTo(-nw - 30, 110); X.quadraticCurveTo(0, 150, nw + 30, 110); X.lineTo(nw + 34, 150); X.quadraticCurveTo(0, 190, -nw - 34, 150); X.closePath(); fillStroke(nc, OUT(), 1); P(); X.moveTo(20, 150); X.lineTo(30 + R.sp.hx * 25, 280); X.lineTo(70 + R.sp.hx * 25, 270); X.lineTo(50, 150); X.closePath(); fillStroke(shade(nc, -.1), OUT(), 1); }
+    if (na === 'bowtie') { P(); X.moveTo(0, 130); X.lineTo(-24, 118); X.lineTo(-24, 144); X.closePath(); X.moveTo(0, 130); X.lineTo(24, 118); X.lineTo(24, 144); X.closePath(); fillStroke(nc, OUT(), .8); }
+    if (C.headphones === 'neck') { P(); X.moveTo(-70, 130); X.quadraticCurveTo(0, 175, 70, 130); fillStroke(null, C.phoneColor, 4); for (const s of [-1, 1]) { P(); ell(s * 72, 130, 22, 26, s * .3); fillStroke(shade(C.phoneColor, -.2), OUT(), .9); } }
+    X.restore();
+  }
+  function ear(s, yaw) {
+    const e = C.ears, ec = C.earColor || C.hair, sz = C.earSize || 1, w = 92 * C.faceWidth;
+    if (e === 'human' || e === 'elf' || e === 'fins') {
+      X.save(); X.translate(s * (w - 2) - yaw * 10, -8); X.scale(s * (1 - s * yaw * .4), 1);
+      if (e === 'human') { P(); X.moveTo(0, -22); X.bezierCurveTo(26, -32, 26, 20, 2, 22); fillStroke(C.skin, OUT(), .8); }
+      else if (e === 'elf') { P(); X.moveTo(0, -18); X.lineTo(70 * sz, -60 * sz); X.quadraticCurveTo(30, 0, 2, 22); fillStroke(C.skin, OUT(), .8); P(); X.moveTo(6, -10); X.lineTo(50 * sz, -45 * sz); fillStroke(null, rgba(C.skinShade, .9), .8); }
+      else { P(); X.moveTo(0, -25); X.lineTo(55 * sz, -50 * sz); X.lineTo(40 * sz, -15); X.lineTo(60 * sz, 5); X.lineTo(36 * sz, 12); X.lineTo(2, 25); X.closePath(); fillStroke(C.earInner, OUT(), .8); }
+      X.restore(); return;
+    }
+    if (['cat', 'fox', 'wolf', 'bunny', 'bear'].includes(e)) {
+      const flick = R.sp.ex * .25 + (Math.sin(R.t * .7 + s) > .985 ? .25 : 0);
+      X.save(); X.translate(s * 58 - yaw * 22, -118); X.rotate(s * (.35 + flick * s)); X.scale(sz, sz);
+      if (e === 'bunny') { P(); ell(0, -80, 22, 80); fillStroke(ec, OUT(), 1); P(); ell(0, -75, 11, 60); fillStroke(C.earInner); }
+      else if (e === 'bear') { P(); ell(0, -10, 30, 30); fillStroke(ec, OUT(), 1); P(); ell(0, -8, 16, 16); fillStroke(C.earInner); }
+      else { const tall = e === 'fox' ? 85 : e === 'wolf' ? 75 : 60, wd = e === 'fox' ? 40 : 36; P(); X.moveTo(-wd, 10); X.quadraticCurveTo(-wd * .6, -tall * .6, 0, -tall); X.quadraticCurveTo(wd * .6, -tall * .6, wd, 10); X.closePath(); fillStroke(ec, OUT(), 1); P(); X.moveTo(-wd * .55, 6); X.quadraticCurveTo(-wd * .3, -tall * .5, 0, -tall * .78); X.quadraticCurveTo(wd * .3, -tall * .5, wd * .55, 6); X.closePath(); fillStroke(C.earInner); if (e === 'fox') { P(); X.moveTo(-wd * .3, -tall * .7); X.quadraticCurveTo(0, -tall * 1.05, wd * .3, -tall * .7); X.lineTo(0, -tall); fillStroke('#fff'); } }
+      X.restore();
+    }
+  }
+  function horns(yaw) {
+    const hs = C.horns; if (hs === 'none') return; const hc = C.hornColor;
+    for (const s of hs === 'unicorn' ? [0] : [-1, 1]) {
+      X.save(); X.translate(s * 50 - yaw * 18, -115); X.scale(s || 1, 1);
+      if (hs === 'small') { P(); X.moveTo(-10, 5); X.quadraticCurveTo(0, -35, 8, -32); X.quadraticCurveTo(14, -10, 12, 5); fillStroke(hc, OUT(), .9); }
+      if (hs === 'demon') { P(); X.moveTo(-12, 5); X.bezierCurveTo(-10, -60, 60, -70, 50, -20); X.bezierCurveTo(40, -45, 15, -40, 14, 5); X.closePath(); fillStroke(grad(-70, 5, shade(hc, .3), hc), OUT(), .9); }
+      if (hs === 'dragon') { P(); X.moveTo(-12, 5); X.bezierCurveTo(10, -50, 60, -80, 95, -95); X.bezierCurveTo(60, -55, 30, -30, 16, 5); X.closePath(); fillStroke(grad(-95, 5, shade(hc, .3), hc), OUT(), .9); for (let i = 1; i < 4; i++) { P(); X.moveTo(i * 18, -i * 18); X.lineTo(i * 18 + 8, -i * 18 + 8); fillStroke(null, shade(hc, -.4), .6); } }
+      if (hs === 'unicorn') { X.translate(0, -10); P(); X.moveTo(-12, 10); X.lineTo(0, -95); X.lineTo(12, 10); X.closePath(); fillStroke(grad(-95, 10, '#fff', hc), OUT(), .9); for (let i = 0; i < 4; i++) { P(); X.moveTo(-10 + i * 2.5, -i * 22); X.lineTo(10 - i * 2.5, -i * 22 - 14); fillStroke(null, rgba(OUT(), .5), .5); } }
+      if (hs === 'antlers') { P(); X.moveTo(0, 0); X.quadraticCurveTo(15, -60, 50, -100); X.moveTo(12, -40); X.lineTo(50, -50); X.moveTo(25, -70); X.lineTo(10, -100); X.moveTo(40, -88); X.lineTo(70, -95); fillStroke(null, hc, 3.5); }
+      if (hs === 'oni') { P(); X.moveTo(-10, 5); X.quadraticCurveTo(-4, -50, 12, -62); X.quadraticCurveTo(14, -30, 14, 5); X.closePath(); fillStroke(grad(-62, 5, '#fff7c2', hc), OUT(), .9); }
+      X.restore();
+    }
+  }
+  /* ---- face ---- */
+  function eyesFor(expr) {
+    // returns {open, browA, browY, shape} adjustments
+    const E = { neutral: {}, happy: { open: .85, browY: -2 }, joy: { closed: 'happy', browY: -6 }, sad: { open: .8, browA: -.35, browY: -4, droop: 1 }, cry: { closed: 'sad', browA: -.4, tears: 1 }, angry: { open: .75, browA: .45, browY: 6 }, surprised: { open: 1.25, browY: -14, small: 1 },
+      smug: { open: .55, browA: .1, browY: 2, half: 1 }, shy: { open: .8, browA: -.25, blush: 1 }, sleepy: { open: .3, browY: 2 }, love: { heart: 1, open: 1, blush: .6 }, stars: { star: 1, open: 1.1, browY: -8 }, thinking: { open: .8, lookUp: 1, browA: .2, oneBrow: 1 },
+      wink: { wink: 1, browY: -3 }, xx: { closed: 'x', browA: .4 }, dizzy: { spiral: 1, browA: -.2 }, pout: { open: .9, browA: .3, blush: .5 } };
+    return E[expr] || {};
+  }
+  function eye(s, ex, ey, ef, yaw) {
+    const sz = C.eyeSize, st = C.eyeStyle, R0 = R;
+    const wE = (st === 'dot' ? 8 : 25) * sz, hE = (st === 'round' ? 30 : st === 'sharp' ? 19 : st === 'sleepy' ? 18 : st === 'dot' ? 12 : 25) * sz;
+    const persp = 1 - s * yaw * .35;
+    X.save(); X.translate(ex, ey); X.scale(persp, 1); X.rotate(s * (C.eyeTilt || 0) * .3 + (st === 'cat' || st === 'sharp' ? -s * .12 : st === 'tare' ? s * .14 : 0) * -1);
+    let open = (ef.open == null ? 1 : ef.open) * (1 - R0.blink);
+    if (ef.wink && s === 1) open = 0;
+    const lidCol = C.lashColor, irisC = C.heterochromia && s === 1 ? C.iris3 : C.iris;
+    if (ef.closed || open < .08) {
+      P(); const c = ef.closed;
+      if (c === 'x') { X.moveTo(-wE * .8, -10 * s * 0); X.lineTo(wE * .6, -8); X.lineTo(-wE * .8, 8); X.moveTo(wE * .8 * s, -8); }
+      if (c === 'x') { P(); X.moveTo(s * -wE * .8, -12); X.lineTo(s * wE * .7, 0); X.lineTo(s * -wE * .8, 12); fillStroke(null, lidCol, 2.2); }
+      else if (c === 'happy' || ef.wink) { P(); X.moveTo(-wE, 4); X.quadraticCurveTo(0, -hE * .9, wE, 4); fillStroke(null, lidCol, 2.6 * C.lash); }
+      else if (c === 'sad') { P(); X.moveTo(-wE, -2); X.quadraticCurveTo(0, hE * .7, wE, -2); fillStroke(null, lidCol, 2.4 * C.lash); }
+      else { P(); X.moveTo(-wE, 2); X.quadraticCurveTo(0, hE * .4, wE, 2); fillStroke(null, lidCol, 2.4 * C.lash); }
+      X.restore(); return;
+    }
+    if (st === 'dot') { P(); ell(R0.lookX * 4, R0.lookY * 3, wE, hE * open); fillStroke(lidCol); P(); ell(R0.lookX * 4 - 3, R0.lookY * 3 - 4 * open, 3, 3); fillStroke('#fff'); X.restore(); return; }
+    // eye opening shape
+    const top = -hE * open, bot = hE * .8;
+    const shapePath = () => { P(); X.moveTo(-wE, 2); X.bezierCurveTo(-wE * .7, top * 1.1, wE * .7, top * 1.1 - (st === 'cat' ? 6 : 0), wE * (st === 'sharp' || st === 'cat' ? 1.15 : 1), ef.half ? 0 : -2); X.bezierCurveTo(wE * .7, bot, -wE * .7, bot, -wE, 2); X.closePath(); };
+    shapePath(); fillStroke(C.sclera);
+    X.save(); shapePath(); X.clip();
+    const lx = R0.lookX * wE * .45 + (ef.lookUp ? 4 * s : 0), ly = R0.lookY * hE * .3 + (ef.lookUp ? -10 : 0) + (ef.droop ? 4 : 0);
+    const ir = (ef.small ? .72 : 1) * wE * .78, irh = ir * 1.18;
+    if (ef.spiral) { P(); for (let a = 0; a < 18; a += .2) { const rr = a * 1.1; X.lineTo(lx + Math.cos(a + R0.t * 8) * rr, ly + Math.sin(a + R0.t * 8) * rr); } fillStroke(null, irisC, 1.6); }
+    else {
+      P(); ell(lx, ly, ir, irh); const g = X.createLinearGradient(0, ly - irh, 0, ly + irh); g.addColorStop(0, shade(irisC, -.55)); g.addColorStop(.55, irisC); g.addColorStop(1, C.heterochromia && s === 1 ? shade(C.iris3, .5) : C.iris2); fillStroke(g, shade(irisC, -.6), .7);
+      if (ef.heart) { P(); heart(lx, ly + 2, ir * .62); fillStroke('#ff4f8b', '#fff', .6); }
+      else if (ef.star) { P(); star(lx, ly, ir * .72); fillStroke('#ffe45c', '#fff', .6); }
+      else {
+        const pp = C.pupil, pc = shade(irisC, -.8);
+        P(); if (pp === 'round') ell(lx, ly, ir * .42, irh * .42); else if (pp === 'slit') ell(lx, ly, ir * .14, irh * .75); else if (pp === 'heart') heart(lx, ly + 2, ir * .38); else if (pp === 'star') star(lx, ly, ir * .45); else if (pp === 'ring') { ell(lx, ly, ir * .5, irh * .5); X.moveTo(lx + ir * .3, ly); ell(lx, ly, ir * .3, irh * .3); } else if (pp === 'cross') { X.rect(lx - ir * .08, ly - irh * .6, ir * .16, irh * 1.2); X.rect(lx - ir * .6, ly - irh * .08, ir * 1.2, irh * .16); }
+        if (pp !== 'none') { X.fillStyle = pp === 'heart' || pp === 'star' ? shade(irisC, .6) : pc; X.fill('evenodd'); }
+        else { X.save(); X.shadowColor = C.iris2; X.shadowBlur = 12; P(); ell(lx, ly, ir * .35, irh * .35); fillStroke(rgba('#ffffff', .8)); X.restore(); }
+      }
+      // shine
+      if (C.highlights > 0) { P(); ell(lx - ir * .35, ly - irh * .38, ir * .3, irh * .22, -.4); fillStroke('rgba(255,255,255,.95)'); }
+      if (C.highlights > 1) { P(); ell(lx + ir * .38, ly + irh * .42, ir * .14, irh * .12); fillStroke('rgba(255,255,255,.85)'); }
+      if (C.highlights > 2) { P(); star(lx + ir * .3, ly - irh * .45, ir * .16, 4, .35); fillStroke('rgba(255,255,255,.9)'); }
+    }
+    // lid shadow
+    P(); X.rect(-wE * 1.2, top * 1.15 - 10, wE * 2.4, 14 + (ef.half ? 8 : 0)); fillStroke(rgba(shade(C.skinShade, -.2), .35));
+    X.restore();
+    // upper lash
+    P(); X.moveTo(-wE - 2, 3); X.bezierCurveTo(-wE * .7, top * 1.12, wE * .7, top * 1.12 - (st === 'cat' ? 6 : 0), wE * (st === 'sharp' || st === 'cat' ? 1.2 : 1.05), -1);
+    fillStroke(null, lidCol, 3 * C.lash);
+    if (C.lash > .6) { P(); X.moveTo(wE * 1.02, -1); X.lineTo(wE * 1.32, top * .5 - 5); X.moveTo(wE * .9, top * .7); X.lineTo(wE * 1.2, top * 1 - 2); fillStroke(null, lidCol, 1.6 * C.lash); }
+    P(); X.moveTo(-wE * .5, bot * .95); X.quadraticCurveTo(0, bot * 1.08, wE * .6, bot * .9); fillStroke(null, rgba(lidCol, .6), .9);
+    X.restore();
+  }
+  function brows(ef, yaw, fx) {
+    const bc = C.browColor || shade(C.hair, -.25), by = -38 + (C.browY || 0) + (ef.browY || 0);
+    for (const s of [-1, 1]) {
+      const ex = s * 38 * C.eyeSpacing + yaw * 26 + fx, a = (ef.browA || 0) * (ef.oneBrow && s === -1 ? -.5 : 1);
+      X.save(); X.translate(ex, by - (ef.oneBrow && s === 1 ? 6 : 0)); X.rotate(s * a);
+      P(); X.moveTo(-s * 20 * (1 - s * yaw * .3), 2); X.quadraticCurveTo(0, -6, s * 20 * (1 - s * yaw * .3), 0); fillStroke(null, bc, 2.6 * C.brow);
+      X.restore();
+    }
+  }
+  function mouth(ef, mx, my) {
+    const open = R.open, v = R.vis, mw = C.mouthW || 1, ex = R.expr, ms = C.mouthStyle;
+    const wv = { A: 1, E: 1.25, O: .7, U: .5, R: .8, L: 1, TH: 1, FV: 1.05, MBP: 1, etc: 1, rest: 1 }[v] || 1;
+    let w = 16 * mw * wv, hgt = 22 * open;
+    const smile = { happy: 6, joy: 9, love: 7, stars: 8, smug: 4, sad: -6, cry: -8, angry: -5, pout: -3, thinking: -1, shy: 2, wink: 6, xx: -4, dizzy: 0, surprised: 0 }[ex] || 1;
+    X.save(); X.translate(mx, my);
+    if (ex === 'surprised' && hgt < 10) hgt = 12;
+    if (ex === 'joy' && hgt < 8) hgt = 14;
+    if (hgt < 2.5) {
+      if (ms === 'cat' || ex === 'smug' && ms !== 'soft') { P(); X.moveTo(-w, -2); X.quadraticCurveTo(-w * .5, 6, 0, 0); X.quadraticCurveTo(w * .5, 6, w, -2); fillStroke(null, OUT(), 1.5); }
+      else if (ex === 'smug') { P(); X.moveTo(-w, 2); X.quadraticCurveTo(0, 4, w, -5); fillStroke(null, OUT(), 1.6); }
+      else if (ex === 'pout') { P(); ell(0, 0, 5, 4); fillStroke(C.lip, OUT(), 1); }
+      else if (ex === 'xx' || ex === 'dizzy') { P(); X.moveTo(-w, 0); for (let i = 0; i <= 6; i++) X.lineTo(-w + i * w / 3, i % 2 ? -3 : 3); fillStroke(null, OUT(), 1.4); }
+      else { P(); X.moveTo(-w, -smile * .3); X.quadraticCurveTo(0, smile, w, -smile * .3); fillStroke(null, OUT(), 1.6); }
+      if (ms === 'fang' || ms === 'fangs') for (const s of ms === 'fangs' ? [-1, 1] : [1]) { P(); X.moveTo(s * w * .45, 1); X.lineTo(s * w * .55, 9); X.lineTo(s * w * .65, 1); fillStroke('#fff', OUT(), .7); }
+    } else {
+      const round = v === 'O' || v === 'U' || ex === 'surprised';
+      P();
+      if (round) ell(0, hgt * .35, w * .8, hgt * .6 + 2);
+      else { X.moveTo(-w, -smile * .2); X.quadraticCurveTo(0, -3 + smile * .4, w, -smile * .2); X.quadraticCurveTo(w * .8, hgt + smile * .3, 0, hgt + smile * .5); X.quadraticCurveTo(-w * .8, hgt + smile * .3, -w, -smile * .2); X.closePath(); }
+      fillStroke(shade(C.lip, -.45), OUT(), 1.3);
+      X.save(); X.clip();
+      if (ms === 'shark') { P(); for (let i = -3; i <= 3; i++) { X.moveTo(i * w / 3.5 - 3, -4); X.lineTo(i * w / 3.5, 5); X.lineTo(i * w / 3.5 + 3, -4); } fillStroke('#fff'); }
+      else { P(); X.rect(-w, -8, w * 2, 6 + (v === 'FV' || v === 'E' ? 3 : 0)); fillStroke('#fff'); }
+      P(); ell(0, hgt + 2, w * .55, hgt * .4); fillStroke(C.lip);
+      X.restore();
+      if (ms === 'fang' || ms === 'fangs') for (const s of ms === 'fangs' ? [-1, 1] : [1]) { P(); X.moveTo(s * w * .4, -2); X.lineTo(s * w * .5, 7); X.lineTo(s * w * .62, -2); fillStroke('#fff', OUT(), .6); }
+    }
+    X.restore();
+  }
+  function face(yaw, pitch) {
+    const ef = eyesFor(R.expr), fx = yaw * 26, fy = pitch * 14 + (C.eyeY || 0);
+    // shading on the face under the bangs
+    X.save(); faceOutline(C.faceWidth, C.chin); X.clip();
+    P(); X.rect(-150, -150, 300, 70 + 30 * C.hairVol); fillStroke(rgba(C.skinShade, .55 * C.shading));
+    const sg = X.createLinearGradient(-110, 0, 110, 0); sg.addColorStop(0, rgba(C.skinShade, yaw > 0 ? .5 * C.shading : 0)); sg.addColorStop(.35, rgba(C.skinShade, 0)); sg.addColorStop(.65, rgba(C.skinShade, 0)); sg.addColorStop(1, rgba(C.skinShade, yaw < 0 ? .5 * C.shading : 0)); P(); X.rect(-150, -150, 300, 300); fillStroke(sg);
+    // blush and marks
+    const bl = clamp(C.blush + (ef.blush || 0) + (R.expr === 'shy' ? .4 : 0), 0, 1.4);
+    for (const s of [-1, 1]) {
+      const cx = s * 50 + fx * 1.05, cy = 30 + fy;
+      if (bl > 0) { const g = X.createRadialGradient(cx, cy, 0, cx, cy, 26); g.addColorStop(0, rgba('#ff7c94', .55 * bl)); g.addColorStop(1, rgba('#ff7c94', 0)); P(); ell(cx, cy, 30, 16); fillStroke(g); if (bl > .9) for (let i = 0; i < 3; i++) { P(); X.moveTo(cx - 12 + i * 9, cy + 4); X.lineTo(cx - 6 + i * 9, cy - 6); fillStroke(null, rgba('#e2465f', .7), .8); } }
+      const mk = C.marks, mc = C.markColor;
+      if (mk === 'freckles') for (let i = 0; i < 5; i++) { P(); ell(cx - 12 + (i * 7) % 22, cy - 6 + (i * 5) % 10, 1.6, 1.6); fillStroke(rgba(shade(C.skinShade, -.3), .8)); }
+      if (mk === 'stars' && s === 1) { P(); star(cx + 6, cy - 8, 8); fillStroke(mc); }
+      if (mk === 'scales') for (let i = 0; i < 4; i++) { P(); X.arc(s * (80 - i * 4) + fx, 0 + i * 9 + fy, 6, 0, Math.PI); fillStroke(null, mc, .9); }
+      if (mk === 'stripes') for (let i = 0; i < 2; i++) { P(); X.moveTo(s * 92 + fx * .5, 10 + i * 14 + fy); X.lineTo(s * 66 + fx, 14 + i * 12 + fy); fillStroke(null, mc, 2.4); }
+      if (mk === 'whiskers') for (let i = -1; i <= 1; i++) { P(); X.moveTo(s * 40 + fx, 46 + fy + i * 6); X.lineTo(s * 70 + fx, 42 + fy + i * 10); fillStroke(null, rgba(OUT(), .7), .8); }
+      if (mk === 'tear' && s === 1) { P(); X.moveTo(cx - 8, cy - 10); X.quadraticCurveTo(cx - 14, cy, cx - 8, cy + 2); X.quadraticCurveTo(cx - 2, cy, cx - 8, cy - 10); fillStroke(mc); }
+      if (mk === 'bandage' && s === -1) { X.save(); X.translate(cx, cy - 4); X.rotate(-.3); P(); X.rect(-16, -6, 32, 12); fillStroke('#f6e2c8', OUT(), .6); P(); X.rect(-5, -6, 10, 12); fillStroke('#ead2b0'); X.restore(); }
+    }
+    X.restore();
+    // eyes
+    for (const s of [-1, 1]) eye(s, s * 38 * C.eyeSpacing + fx, 0 + fy, ef, yaw);
+    if (C.mole === 'eye') { P(); ell(50 * C.eyeSpacing + fx, 28 + fy, 2, 2); fillStroke(OUT()); }
+    brows(ef, yaw, fx);
+    // nose
+    const nx = yaw * 34, ny = 35 + pitch * 16;
+    if (C.nose === 'dot') { P(); ell(nx, ny, 2.2, 1.6); fillStroke(rgba(shade(C.skinShade, -.25), .9)); }
+    else if (C.nose === 'line') { P(); X.moveTo(nx + 2, ny - 12); X.lineTo(nx - 3, ny + 1); X.lineTo(nx + 2, ny + 2); fillStroke(null, rgba(shade(C.skinShade, -.3), .9), .9); }
+    else if (C.nose === 'shadow') { P(); X.moveTo(nx - 4 - yaw * 5, ny - 14); X.quadraticCurveTo(nx - 7, ny, nx, ny + 2); fillStroke(null, rgba(C.skinShade, .9), 1.4); }
+    mouth(ef, yaw * 30, 62 + pitch * 15);
+    if (C.mole === 'mouth') { P(); ell(22 + yaw * 30, 72 + pitch * 15, 2, 2); fillStroke(OUT()); }
+    // extra expression marks
+    if (ef.tears || R.expr === 'cry') for (const s of [-1, 1]) { const tx = s * 38 * C.eyeSpacing + fx + s * 6, k = (R.t * 1.5) % 1; P(); X.moveTo(tx, 18 + fy); X.quadraticCurveTo(tx + s * 8, 50 + fy, tx + s * 4, 80 + fy); fillStroke(null, 'rgba(120,200,255,.85)', 2.6); P(); ell(tx + s * 4, 30 + fy + k * 60, 4, 6); fillStroke('rgba(150,220,255,.9)'); }
+    if (R.expr === 'angry') { P(); const ax = 70 + fx, ay = -90; for (const a of [0, 1, 2, 3]) { const q = a * Math.PI / 2 + .78; X.moveTo(ax + Math.cos(q) * 4, ay + Math.sin(q) * 4); X.quadraticCurveTo(ax + Math.cos(q + .5) * 10, ay + Math.sin(q + .5) * 10, ax + Math.cos(q) * 13, ay + Math.sin(q) * 13); } fillStroke(null, '#e22', 2.4); }
+    if (R.expr === 'thinking' || R.expr === 'xx') { P(); X.moveTo(-96 + fx * .3, -70); X.quadraticCurveTo(-106 + fx * .3, -48, -96 + fx * .3, -40); X.quadraticCurveTo(-86 + fx * .3, -48, -96 + fx * .3, -70); fillStroke('rgba(150,210,255,.9)', OUT(), .6); }
+  }
+  /* ---- front hair: bangs and side locks ---- */
+  function frontHair(yaw) {
+    const st = C.hairFront, V = C.hairVol, sw = R.sp.hx * 18, sy = R.sp.hy * 6, fx = yaw * 22;
+    const g = hairGrad(-150, 60);
+    // skull cap
+    P(); X.moveTo(-100 * V + fx * .3, -20); X.bezierCurveTo(-118 * V + fx * .3, -175, 118 * V + fx * .3, -175, 100 * V + fx * .3, -20); X.quadraticCurveTo(0 + fx, -95, -100 * V + fx * .3, -20); fillStroke(g, OUT(), 1);
+    // side locks (frame the face)
+    if (st !== 'short') for (const s of [-1, 1]) { const len = (st === 'hime' ? 70 : 100) * (C.hairBack === 'short' || C.hairBack === 'spiky' ? .55 : 1); lock(s * 84 * V + fx * .4, -70, s * 82 * V + fx * .2 + sw * 1.3, len + sy, 18 * V, s * 6, hairGrad(-70, len)); lock(s * 70 * V + fx * .6, -80, s * 64 * V + fx * .4 + sw, len * .75 + sy, 12 * V, s * -4, hairGrad(-80, len)); }
+    if (st === 'hime') for (const s of [-1, 1]) { P(); X.rect(s * 62 * V - 14 + fx * .5 + (s < 0 ? -6 : 0), -60, 26, 140 + sy); fillStroke(hairGrad(-60, 80), OUT(), .9); }
+    const L = (list) => list.forEach(([x0, y0, x1, y1, w, b]) => lock(x0 * V + fx, y0, x1 * V + fx + sw, y1 + sy - 9, w * V * .9, b, g));
+    if (st === 'straight') L([[-70, -110, -66, -28, 18, 0], [-40, -125, -38, -18, 20, 0], [-10, -130, -8, -16, 20, 0], [22, -128, 22, -18, 20, 0], [52, -118, 52, -24, 20, 0], [76, -100, 74, -30, 15, 0]]);
+    if (st === 'side') L([[-80, -110, -78, -20, 16, -4], [-60, -128, -22, -8, 24, -8], [-20, -138, 24, -14, 26, -10], [20, -138, 60, -26, 24, -8], [60, -122, 84, -40, 18, -6], [-20, -138, 76, -60, 14, -18]]);
+    if (st === 'parted') L([[-6, -138, -70, -26, 24, 10], [-10, -136, -40, -12, 20, 6], [6, -138, 70, -26, 24, -10], [10, -136, 40, -12, 20, -6], [-50, -120, -86, -40, 16, 4], [50, -120, 86, -40, 16, -4]]);
+    if (st === 'spiky') L([[-70, -110, -90, -10, 20, -6], [-40, -130, -50, 0, 22, -4], [-8, -138, -6, 6, 22, 0], [24, -134, 40, 0, 22, 4], [56, -118, 88, -12, 20, 6], [-20, -136, -40, -170, 18, 0], [20, -136, 46, -168, 18, 0]]);
+    if (st === 'hime') L([[-60, -120, -60, -24, 22, 0], [-30, -130, -30, -20, 22, 0], [0, -134, 0, -18, 22, 0], [30, -130, 30, -20, 22, 0], [60, -120, 60, -24, 22, 0]]);
+    if (st === 'messy') L([[-80, -100, -92, -10, 16, -8], [-56, -124, -40, -16, 22, 10], [-26, -134, -36, -6, 22, -8], [6, -136, 20, -12, 22, 8], [36, -130, 22, -22, 20, -8], [64, -112, 86, -26, 18, 6], [-10, -138, -30, -60, 14, 12]]);
+    if (st === 'swoop') L([[-40, -130, 30, 10, 40, -20], [0, -136, 70, -10, 30, -14], [40, -126, 92, -30, 20, -8], [-76, -104, -82, -40, 14, 0]]);
+    if (st === 'short') L([[-60, -120, -54, -66, 22, 0], [-26, -132, -20, -60, 22, 0], [10, -134, 14, -62, 22, 0], [44, -126, 50, -64, 22, 0], [72, -106, 80, -60, 16, 0]]);
+    // shine band
+    if (C.hairShine > 0) { X.save(); P(); X.moveTo(-70 + fx * .5, -110); X.quadraticCurveTo(0 + fx, -128, 70 + fx * .5, -110); X.quadraticCurveTo(0 + fx, -116, -70 + fx * .5, -110); fillStroke(rgba('#ffffff', .45 * C.hairShine)); X.restore(); }
+    if (C.streak) lock(30 * V + fx, -134, 60 * V + fx + sw, -20 + sy, 9, -6, C.streakColor);
+    if (C.ahoge) { const a = R.sp.ex * 18 + Math.sin(R.t * 3) * 3; P(); X.moveTo(fx - 4, -140); X.bezierCurveTo(fx + 20 + a, -190, fx + 50 + a * 1.5, -175, fx + 30 + a * 1.4, -160); X.bezierCurveTo(fx + 30 + a, -175, fx + 15, -175, fx + 6, -140); fillStroke(g, OUT(), .8); }
+    if (C.hairBack === 'buns') for (const s of [-1, 1]) { P(); ell(s * 76 + fx * .3, -138, 30, 30); fillStroke(hairGrad(-170, -108), OUT(), 1); P(); X.arc(s * 76 + fx * .3, -138, 20, Math.PI * 1.1, Math.PI * 1.6); fillStroke(null, rgba(OUT(), .5), .6); }
+  }
+  function headwear(yaw) {
+    const fx = yaw * 22, ac = C.accColor;
+    // hair accessories
+    if (C.hairAcc === 'bow') { X.save(); X.translate(62 + fx * .5, -120); X.rotate(.4); P(); X.moveTo(0, 0); X.bezierCurveTo(-40, -30, -40, 30, 0, 0); X.bezierCurveTo(40, -30, 40, 30, 0, 0); fillStroke(ac, OUT(), .9); P(); ell(0, 0, 8, 8); fillStroke(shade(ac, -.2), OUT(), .7); X.restore(); }
+    if (C.hairAcc === 'clip') for (let i = 0; i < 2; i++) { P(); star(-60 + fx * .5 - i * 14, -92 + i * 16, 10); fillStroke(ac, OUT(), .7); }
+    if (C.hairAcc === 'flower') { X.save(); X.translate(-70 + fx * .5, -108); for (let i = 0; i < 5; i++) { P(); ell(Math.cos(i * 1.256) * 11, Math.sin(i * 1.256) * 11, 9, 9); fillStroke(ac, OUT(), .6); } P(); ell(0, 0, 6, 6); fillStroke('#ffd84a'); X.restore(); }
+    if (C.hairAcc === 'ribbon') for (const s of [-1, 1]) { P(); X.moveTo(s * 90 + fx * .3, -70); X.lineTo(s * 108 + R.sp.hx * 20, 20); X.lineTo(s * 94 + R.sp.hx * 20, 14); X.lineTo(s * 82 + fx * .3, -64); fillStroke(ac, OUT(), .7); }
+    if (C.hairAcc === 'pins') for (let i = 0; i < 2; i++) { P(); X.moveTo(-70 + fx * .5 - i * 10, -100 + i * 18); X.lineTo(-40 + fx * .5 - i * 10, -80 + i * 18); X.moveTo(-70 + fx * .5 - i * 10, -80 + i * 18); X.lineTo(-40 + fx * .5 - i * 10, -100 + i * 18); fillStroke(null, ac, 2.2); }
+    if (C.hairAcc === 'feather') { X.save(); X.translate(78 + fx * .4, -110); X.rotate(.6 + R.sp.ex * .2); P(); ell(0, -30, 10, 34); fillStroke(ac, OUT(), .7); P(); X.moveTo(0, 6); X.lineTo(0, -62); fillStroke(null, OUT(), .6); X.restore(); }
+    // glasses
+    const gl = C.glasses, gc = C.glassColor;
+    if (gl !== 'none') {
+      const ex = 38 * C.eyeSpacing, ey = 2 + (C.eyeY || 0);
+      if (gl === 'visor') { X.save(); X.shadowColor = C.glowColor; X.shadowBlur = 18; P(); X.moveTo(-96 + fx * .6, -14 + ey); X.lineTo(96 + fx * .6, -14 + ey); X.lineTo(86 + fx, 20 + ey); X.lineTo(-86 + fx, 20 + ey); X.closePath(); fillStroke(rgba(C.glowColor, .45), gc, 1.6); X.restore(); }
+      else if (gl === 'monocle') { P(); ell(ex + fx, ey, 28, 28); fillStroke(rgba('#bfe8ff', .15), gc, 1.6); P(); X.moveTo(ex + fx + 20, ey + 20); X.quadraticCurveTo(ex + 40, 80, ex + 30, 130); fillStroke(null, '#d4af37', .7); }
+      else { for (const s of [-1, 1]) { P(); const x = s * ex + fx; if (gl === 'round') ell(x, ey, 27, 25); else if (gl === 'heart') heart(x, ey + 4, 24); else if (gl === 'half') { X.moveTo(x - 28, ey - 12); X.lineTo(x + 28, ey - 12); } else X.rect(x - 30, ey - 20, 60, 38); fillStroke(gl === 'heart' ? rgba('#ff3f86', .55) : gl === 'half' ? null : rgba('#bfe8ff', .12), gc, 1.6); } P(); X.moveTo(-ex + 26 + fx, ey - 6); X.quadraticCurveTo(fx, ey - 12, ex - 26 + fx, ey - 6); fillStroke(null, gc, 1.4); }
+    }
+    // headphones
+    const hp = C.headphones, pc = C.phoneColor;
+    if (hp === 'studio' || hp === 'cat' || hp === 'mic') {
+      P(); X.moveTo(-104, -40); X.bezierCurveTo(-120, -200, 120, -200, 104, -40); fillStroke(null, shade(pc, -.3), 5);
+      if (hp === 'cat') for (const s of [-1, 1]) { P(); X.moveTo(s * 50, -148); X.lineTo(s * 76, -196); X.lineTo(s * 92, -130); X.closePath(); fillStroke(pc, OUT(), .9); P(); X.moveTo(s * 60, -148); X.lineTo(s * 75, -178); X.lineTo(s * 84, -140); X.closePath(); fillStroke(shade(pc, .4)); }
+      for (const s of [-1, 1]) { P(); ell(s * 104 - fx * .2, -10, 22, 36); fillStroke(grad(-46, 26, shade(pc, .2), shade(pc, -.2)), OUT(), 1); P(); ell(s * 108 - fx * .2, -10, 10, 22); fillStroke(shade(pc, -.4)); }
+      if (hp === 'mic') { P(); X.moveTo(-110, 10); X.quadraticCurveTo(-90, 80, -30 + fx, 70); fillStroke(null, '#333', 2); P(); ell(-26 + fx, 70, 8, 6); fillStroke('#444', OUT(), .6); }
+    }
+    // hats
+    const ht = C.hat, hc = C.hatColor;
+    if (ht === 'beret') { P(); ell(10 + fx * .4, -132, 110, 40, -.15); fillStroke(hc, OUT(), 1); P(); ell(16 + fx * .4, -168, 6, 8); fillStroke(hc, OUT(), .8); }
+    if (ht === 'witch') { P(); ell(fx * .3, -128, 170, 34); fillStroke(hc, OUT(), 1); P(); X.moveTo(-85 + fx * .3, -135); X.bezierCurveTo(-60, -260, 40, -300, 120 + R.sp.hx * 30, -270); X.bezierCurveTo(60, -250, 70, -200, 85 + fx * .3, -135); X.closePath(); fillStroke(hc, OUT(), 1); P(); X.moveTo(-82 + fx * .3, -150); X.quadraticCurveTo(fx * .3, -165, 82 + fx * .3, -150); fillStroke(null, C.accColor, 6); }
+    if (ht === 'cap') { P(); X.moveTo(-104 + fx * .3, -80); X.bezierCurveTo(-110, -200, 110, -200, 104 + fx * .3, -80); X.closePath(); fillStroke(hc, OUT(), 1); P(); ell(30 + fx * .9, -80, 90, 18, .05); fillStroke(shade(hc, -.2), OUT(), 1); }
+    if (ht === 'beanie') { P(); X.moveTo(-108 + fx * .3, -70); X.bezierCurveTo(-112, -210, 112, -210, 108 + fx * .3, -70); X.closePath(); fillStroke(hc, OUT(), 1); P(); X.rect(-110 + fx * .3, -92, 220, 26); fillStroke(shade(hc, -.15), OUT(), 1); P(); ell(fx * .3, -190, 18, 18); fillStroke(C.accColor, OUT(), .8); }
+    if (ht === 'crown') { P(); X.moveTo(-50 + fx * .5, -140); X.lineTo(-56, -190); X.lineTo(-28, -165); X.lineTo(0, -205); X.lineTo(28, -165); X.lineTo(56, -190); X.lineTo(50 + fx * .5, -140); X.closePath(); fillStroke(grad(-205, -140, '#fff3a1', '#d4a017'), OUT(), 1); P(); ell(0, -158, 7, 7); fillStroke(C.clothAcc); }
+    if (ht === 'tiara') { P(); X.moveTo(-70 + fx * .5, -122); X.quadraticCurveTo(fx * .5, -150, 70 + fx * .5, -122); fillStroke(null, '#e8e8f0', 3); P(); star(fx * .5, -150, 14, 4, .4); fillStroke('#bfe8ff', OUT(), .7); }
+    if (ht === 'catband') for (const s of [-1, 1]) { P(); X.moveTo(s * 40 + fx * .4, -140); X.lineTo(s * 70 + fx * .4, -200); X.lineTo(s * 92 + fx * .4, -120); X.closePath(); fillStroke(hc, OUT(), 1); P(); X.moveTo(s * 52, -140); X.lineTo(s * 70, -180); X.lineTo(s * 82, -130); X.closePath(); fillStroke(C.earInner); }
+  }
+  function haloDraw(t) {
+    const hl = C.halo; if (hl === 'none') return; const y = -205 + Math.sin(t * 1.5) * 5;
+    X.save(); X.shadowColor = C.haloColor; X.shadowBlur = 20;
+    if (hl === 'ring' || hl === 'double') { P(); ell(0, y, 70, 16); fillStroke(null, C.haloColor, 3.4); if (hl === 'double') { P(); ell(0, y - 18, 50, 11); fillStroke(null, C.haloColor, 2.4); } }
+    if (hl === 'broken') { P(); X.ellipse(0, y, 70, 16, 0, .3, 2.6); fillStroke(null, C.haloColor, 3.4); P(); X.ellipse(0, y, 70, 16, 0, 3.0, 5.9); fillStroke(null, C.haloColor, 3.4); }
+    if (hl === 'spikes') { P(); ell(0, y, 64, 14); fillStroke(null, C.haloColor, 3); for (let i = 0; i < 9; i++) { const a = i / 9 * Math.PI * 2 + t * .4; P(); X.moveTo(Math.cos(a) * 64, y + Math.sin(a) * 14); X.lineTo(Math.cos(a) * 84, y + Math.sin(a) * 19 - 10); fillStroke(null, C.haloColor, 2); } }
+    X.restore();
+  }
+
+  /* Draw the character. ctx: canvas 2D; x,y: where the head centre goes; scale: 1 = head about 200px wide. */
+  function draw(ctx, c, r, x, y, scale, opts = {}) {
+    X = ctx; C = c; R = r; LW = (c.lineW == null ? 1 : c.lineW) * 1.6;
+    const yaw = clamp(r.yaw, -1, 1), pitch = clamp(r.pitch, -1, 1);
+    X.save(); X.translate(x + r.bx * scale, y + r.by * scale); X.scale(scale, scale);
+    if (c.glow > 0) { X.shadowColor = c.glowColor; X.shadowBlur = 30 * c.glow; }
+    // body layer (doesn't turn as much)
+    X.save(); X.rotate(r.roll * .25); X.translate(yaw * 8, 0);
+    wings(r.t);
+    X.restore();
+    // head pivot at neck
+    X.save(); X.translate(0, 60); X.rotate(r.roll * .9); X.translate(0, -60);
+    backHair(yaw);
+    X.restore();
+    X.save(); X.rotate(r.roll * .25); X.translate(yaw * 8, 0); body(r.t); X.restore();
+    X.save(); X.translate(0, 60); X.rotate(r.roll); X.translate(0, -60 + pitch * 4); X.translate(yaw * 6, 0);
+    if (r.bonk > 0) { X.translate(0, r.bonk * 10); X.scale(1 + r.bonk * .06, 1 - r.bonk * .1); }
+    X.shadowBlur = 0;
+    ear(yaw > 0 ? -1 : 1, yaw);
+    horns(yaw);
+    faceOutline(c.faceWidth, c.chin); fillStroke(c.skin, OUT(), 1.1);
+    ear(yaw > 0 ? 1 : -1, yaw);
+    face(yaw, pitch);
+    frontHair(yaw);
+    headwear(yaw);
+    haloDraw(r.t);
+    if (r.expr === 'dizzy') for (let i = 0; i < 3; i++) { const a = r.t * 3 + i * 2.1; P(); star(Math.cos(a) * 90, -150 + Math.sin(a) * 18, 10); fillStroke('#ffe45c', OUT(), .6); }
+    if (r.expr === 'love') for (let i = 0; i < 3; i++) { const k = (r.t * .6 + i / 3) % 1; P(); heart(90 + i * 14, -60 - k * 100, 8 * (1 - k * .5)); X.globalAlpha = 1 - k; fillStroke('#ff4f8b'); X.globalAlpha = 1; }
+    if (r.bonk > .3) { for (let i = 0; i < 4; i++) { const a = r.t * 6 + i * 1.57; P(); star(Math.cos(a) * 80, -160 + Math.sin(a) * 15, 9); fillStroke('#ffe45c', OUT(), .5); } }
+    X.restore();
+    X.restore();
+  }
+
+  /* Random character */
+  function random(seedName) {
+    const c = defaults(); const p = a => a[Math.floor(Math.random() * a.length)][0];
+    const hue = () => `hsl(${Math.floor(Math.random() * 360)},${50 + Math.random() * 40}%,${35 + Math.random() * 35}%)`;
+    const hx = () => { const d = document.createElement('canvas').getContext('2d'); d.fillStyle = hue(); return d.fillStyle; };
+    Object.assign(c, {
+      name: seedName || pick(['Nova', 'Mochi', 'Kiri', 'Lumi', 'Rin', 'Sora', 'Yuzu', 'Pip', 'Astra', 'Ember', 'Juno', 'Kai', 'Zephyr', 'Mika', 'Echo', 'Tako', 'Vela', 'Nyx']),
+      skin: pick(['#ffe0cf', '#ffd2b8', '#f1c27d', '#e0ac69', '#c68642', '#8d5524', '#ffe9f0', '#dfe6ff', '#cfe9ff', '#d6f5d6']),
+      faceShape: p(OPT.faceShape), eyeStyle: p(OPT.eyeStyle.slice(0, 6)), eyeSize: rnd(.85, 1.2), iris: hx(), iris2: hx(), pupil: Math.random() < .7 ? 'round' : p(OPT.pupil),
+      hair: hx(), hair2: hx(), hairFront: p(OPT.hairFront.slice(0, 8)), hairBack: p(OPT.hairBack.slice(0, 10)), hairLen: rnd(.8, 1.2), ahoge: Math.random() < .5, streak: Math.random() < .25,
+      ears: Math.random() < .45 ? p(OPT.ears.slice(2, 8)) : pick(['human', 'elf']), horns: Math.random() < .25 ? p(OPT.horns.slice(1)) : 'none', halo: Math.random() < .15 ? p(OPT.halo.slice(1)) : 'none',
+      hat: Math.random() < .25 ? p(OPT.hat.slice(1)) : 'none', glasses: Math.random() < .2 ? p(OPT.glasses.slice(1)) : 'none', headphones: Math.random() < .3 ? p(OPT.headphones.slice(1)) : 'none', hairAcc: p(OPT.hairAcc),
+      outfit: p(OPT.outfit), cloth: hx(), cloth2: '#f4f0ff', clothAcc: hx(), neckAcc: p(OPT.neckAcc), wings: Math.random() < .2 ? p(OPT.wings.slice(1)) : 'none', marks: Math.random() < .3 ? p(OPT.marks.slice(1)) : 'none',
+      mouthStyle: p(OPT.mouthStyle), heterochromia: Math.random() < .12, iris3: hx(), accColor: hx(), phoneColor: hx(), hatColor: hx(), wingColor: Math.random() < .5 ? '#ffffff' : hx(), hornColor: hx()
+    });
+    if (c.ears !== 'human' && c.ears !== 'elf') c.earColor = c.hair;
+    return c;
+  }
+  function clean(c) { const d = defaults(); for (const k in d) if (c && c[k] !== undefined && typeof c[k] === typeof d[k]) d[k] = c[k]; return d; }
+  return { OPT, EXPR, EXPR_LABEL, defaults, rig, step, draw, random, clean };
+})();
+
+/* A compact editor for a Char2D model, grouped */
+function charEditor(c, up) {
+  const O = Char2D.OPT, box = h('div');
+  const grp = (t, ...k) => box.append(card(t, ...k));
+  grp('Face', selectIn('Face shape', c, 'faceShape', O.faceShape, up), slider('Face width', c, 'faceWidth', .85, 1.15, .01, up), slider('Chin', c, 'chin', .85, 1.2, .01, up), h('div', {}, colorIn('Skin', c, 'skin', up), colorIn('Shadow', c, 'skinShade', up), colorIn('Lines', c, 'outline', up)), slider('Blush', c, 'blush', 0, 1, .01, up), selectIn('Nose', c, 'nose', O.nose, up), selectIn('Marks', c, 'marks', O.marks, up), colorIn('Mark color', c, 'markColor', up), selectIn('Beauty mark', c, 'mole', O.mole, up), slider('Line width', c, 'lineW', .3, 2, .01, up), slider('Shading', c, 'shading', 0, 1, .01, up));
+  grp('Eyes', selectIn('Eye style', c, 'eyeStyle', O.eyeStyle, up), slider('Size', c, 'eyeSize', .7, 1.4, .01, up), slider('Spacing', c, 'eyeSpacing', .8, 1.2, .01, up), slider('Tilt', c, 'eyeTilt', -1, 1, .01, up), slider('Height', c, 'eyeY', -12, 12, 1, up), selectIn('Pupil', c, 'pupil', O.pupil, up), slider('Sparkles', c, 'highlights', 0, 3, 1, up), slider('Lashes', c, 'lash', .4, 1.8, .01, up),
+    h('div', {}, colorIn('Iris', c, 'iris', up), colorIn('Iris glow', c, 'iris2', up), colorIn('Whites', c, 'sclera', up), colorIn('Lashes', c, 'lashColor', up)), checkIn('Two-tone eyes (heterochromia)', c, 'heterochromia', up), colorIn('Second eye', c, 'iris3', up), slider('Brows', c, 'brow', 0, 2, .01, up), slider('Brow height', c, 'browY', -12, 12, 1, up));
+  grp('Mouth', selectIn('Mouth', c, 'mouthStyle', O.mouthStyle, up), slider('Width', c, 'mouthW', .6, 1.5, .01, up), colorIn('Inside', c, 'lip', up));
+  grp('Hair', selectIn('Bangs', c, 'hairFront', O.hairFront, up), selectIn('Back', c, 'hairBack', O.hairBack, up), slider('Length', c, 'hairLen', .6, 1.4, .01, up), slider('Volume', c, 'hairVol', .85, 1.2, .01, up), slider('Shine', c, 'hairShine', 0, 1, .01, up), h('div', {}, colorIn('Roots', c, 'hair', up), colorIn('Tips', c, 'hair2', up), colorIn('Streak', c, 'streakColor', up)), checkIn('Ahoge (antenna strand)', c, 'ahoge', up), checkIn('Color streak', c, 'streak', up), slider('Physics', c, 'physics', 0, 2, .01, up));
+  grp('Ears, horns, halo, wings', selectIn('Ears', c, 'ears', O.ears, up), slider('Ear size', c, 'earSize', .6, 1.5, .01, up), h('div', {}, colorIn('Ear fur', c, 'earColor', up), colorIn('Ear inside', c, 'earInner', up)), selectIn('Horns', c, 'horns', O.horns, up), colorIn('Horns', c, 'hornColor', up), selectIn('Halo', c, 'halo', O.halo, up), colorIn('Halo', c, 'haloColor', up), selectIn('Wings', c, 'wings', O.wings, up), colorIn('Wings', c, 'wingColor', up));
+  grp('Accessories', selectIn('Hat', c, 'hat', O.hat, up), colorIn('Hat', c, 'hatColor', up), selectIn('Glasses', c, 'glasses', O.glasses, up), colorIn('Frames', c, 'glassColor', up), selectIn('Headphones', c, 'headphones', O.headphones, up), colorIn('Headphones', c, 'phoneColor', up), selectIn('Hair accessory', c, 'hairAcc', O.hairAcc, up), colorIn('Accessory', c, 'accColor', up), selectIn('Neck', c, 'neckAcc', O.neckAcc, up), colorIn('Neck', c, 'neckColor', up));
+  grp('Outfit', selectIn('Outfit', c, 'outfit', O.outfit, up), h('div', {}, colorIn('Main', c, 'cloth', up), colorIn('Trim', c, 'cloth2', up), colorIn('Accent', c, 'clothAcc', up)), slider('Glow', c, 'glow', 0, 1, .01, up), colorIn('Glow color', c, 'glowColor', up), slider('Breathing', c, 'breathe', 0, 2, .01, up), slider('Blink rate', c, 'blinkRate', .2, 3, .01, up));
+  return box;
+}
+
+/* ====================== Aura: AI Assistant Suite ====================== */
+const VERSION = 'aura-assistant/1';
+const MOODS = ['neutral', 'happy', 'joy', 'sad', 'angry', 'surprised', 'smug', 'shy', 'sleepy', 'love', 'stars', 'thinking', 'wink', 'xx', 'dizzy', 'pout', 'cry'];
+const MOOD_ALIAS = { thinking: 'thinking', happy: 'happy', sad: 'sad', angry: 'angry', surprised: 'surprised', smug: 'smug', shy: 'shy', sleepy: 'sleepy', love: 'love', neutral: 'neutral', excited: 'stars', laugh: 'joy', joy: 'joy', worried: 'sad', confused: 'dizzy', proud: 'smug', playful: 'wink' };
+const TRAITS = [['warmth', 'Warmth', 'cool', 'warm'], ['humor', 'Humor', 'serious', 'playful'], ['formality', 'Formality', 'casual', 'formal'], ['verbosity', 'Talkativeness', 'brief', 'detailed'], ['curiosity', 'Curiosity', 'focused', 'curious'], ['sass', 'Sass', 'gentle', 'sassy'], ['confidence', 'Confidence', 'humble', 'bold'], ['energy', 'Energy', 'calm', 'energetic']];
+const ROLES = ['Personal assistant', 'Study buddy & tutor', 'Coding partner', 'Life coach', 'Creative writing muse', 'Game master', 'Fitness coach', 'Language teacher', 'Ship AI (sci-fi)', 'Butler', 'Best friend', 'Research analyst', 'Therapist-style listener (not a real therapist)', 'Custom'];
+
+function newAssistant(name) {
+  const ch = Char2D.defaults();
+  Object.assign(ch, { name: name || 'Aura', hair: '#5ad1ff', hair2: '#b47cff', iris: '#4fe3ff', iris2: '#d9f7ff', hairFront: 'swoop', hairBack: 'long', outfit: 'cyber', cloth: '#1b2348', clothAcc: '#4fe3ff', ears: 'elf', earSize: .7, hairAcc: 'none', glow: 0, marks: 'none', pupil: 'ring', highlights: 3 });
+  return {
+    id: uid(), name: name || 'Aura', role: 'Personal assistant', userName: '', pronouns: 'they/them',
+    traits: { warmth: .75, humor: .55, formality: .3, verbosity: .4, curiosity: .6, sass: .3, confidence: .65, energy: .55 },
+    backstory: 'A helpful AI who lives inside Randis UDS as a hologram. Loves learning about the person and keeping their day on track.',
+    style: 'Speaks clearly and warmly, uses the person\'s name now and then, keeps answers short unless asked for more.',
+    rules: 'Never pretend to have done something you cannot do. Say so when unsure.',
+    greeting: 'Hi! I\'m {name}. How can I help today?',
+    catch: '', wake: 'Hey {name}',
+    look: { style: 'hologram', tint: '#4fe3ff', tint2: '#b47cff', scan: .6, flicker: .3, particles: .7, projector: true, glitch: .2, bg: 'space', size: 1, alpha: .85 },
+    char: ch, voice: { kind: 'preset', name: 'Bright Guide' }, speak: true, subtitles: true,
+    memory: [], chat: [], notes: [], todos: [], reminders: [], routines: [
+      { id: uid(), name: 'Good morning', phrase: 'good morning', time: '', steps: 'mood: happy\nbriefing\nsay: Have a great day!' },
+      { id: uid(), name: 'Focus time', phrase: 'focus time', time: '', steps: 'say: Starting a 25 minute focus session. I\'ll ping you when it\'s break time.\ntimer: 25m Focus\nmood: thinking' },
+      { id: uid(), name: 'Good night', phrase: 'good night', time: '', steps: 'mood: sleepy\nsay: Good night! Here is what is still on your list.\nlist todos' }
+    ],
+    created: Date.now()
+  };
+}
+const S = { page: 'chat', cur: null, d: null, rig: Char2D.rig(), say: '', thinking: false, timers: [], stopwatch: null, sub: '', subT: 0, ptc: [], alerts: [] };
+function A() { return S.d.list.find(a => a.id === S.d.cur) || S.d.list[0]; }
+function save() { Store.save(); }
+const fill = (t, a) => String(t || '').replace(/\{name\}/g, a.name).replace(/\{user\}/g, a.userName || 'friend');
+
+/* ---------------- Stage: the avatar ---------------- */
+const stage = { cv: null, x: null, off: null, ox: null, w: 0, h: 0, mx: 0, my: 0, last: 0 };
+function stageInit() {
+  stage.cv = $('#stage'); stage.x = stage.cv.getContext('2d');
+  stage.off = document.createElement('canvas'); stage.ox = stage.off.getContext('2d');
+  const fit = () => { const r = stage.cv.parentElement.getBoundingClientRect(); const dpr = Math.min(2, devicePixelRatio || 1); stage.w = r.width; stage.h = r.height; stage.cv.width = r.width * dpr; stage.cv.height = r.height * dpr; stage.off.width = stage.cv.width; stage.off.height = stage.cv.height; stage.dpr = dpr; };
+  new ResizeObserver(fit).observe(stage.cv.parentElement); fit();
+  stage.cv.parentElement.addEventListener('mousemove', e => { const r = stage.cv.getBoundingClientRect(); stage.mx = (e.clientX - r.left) / r.width * 2 - 1; stage.my = (e.clientY - r.top) / r.height * 2 - 1; stage.seen = performance.now(); });
+  stage.cv.addEventListener('click', () => { const a = A(); setMood(pick(['happy', 'wink', 'shy', 'surprised', 'joy'])); bubble(pick(['Hehe, that tickles!', 'Yes?', 'I\'m here!', 'Hi ' + (a.userName || 'there') + '!', 'Need something?']), true); });
+  requestAnimationFrame(frame);
+}
+let moodUntil = 0;
+function setMood(m, secs = 4) { m = MOOD_ALIAS[m] || m; if (!MOODS.includes(m)) return; S.rig.expr = m; moodUntil = performance.now() + secs * 1000; }
+function frame(now) {
+  requestAnimationFrame(frame);
+  const dt = Math.min(.05, (now - (stage.last || now)) / 1000); stage.last = now;
+  const a = A(); if (!a || !stage.w) return;
+  const r = S.rig, L = a.look, m = Speech.tick(now);
+  r.open = m.open; r.vis = m.vis;
+  if (performance.now() > moodUntil && !S.thinking) r.expr = m.talking ? (r.expr === 'neutral' ? 'happy' : r.expr) : 'neutral';
+  if (S.thinking) r.expr = 'thinking';
+  const idle = performance.now() - (stage.seen || 0) > 3000;
+  const tx = idle ? Math.sin(now / 2300) * .25 : stage.mx * .6, ty = idle ? Math.sin(now / 3100) * .15 : stage.my * .4;
+  r.lookX = lerp(r.lookX, clamp(tx * 1.4, -1, 1), .12); r.lookY = lerp(r.lookY, clamp(ty * 1.4, -1, 1), .12);
+  r.yaw = lerp(r.yaw, tx * .5 + (m.talking ? Math.sin(now / 420) * .06 : 0), .06); r.pitch = lerp(r.pitch, ty * .3 + (m.talking ? Math.sin(now / 260) * .05 : 0), .06);
+  r.roll = lerp(r.roll, Math.sin(now / 1900) * .04 + (S.thinking ? .12 : 0), .05); r.by = Math.sin(now / 900) * 4;
+  Char2D.step(a.char, r, dt);
+  const X = stage.x, dpr = stage.dpr, W = stage.w, H = stage.h;
+  X.setTransform(dpr, 0, 0, dpr, 0, 0); X.clearRect(0, 0, W, H);
+  drawBg(X, W, H, L, now);
+  const sc = Math.min(W / 640, H / 820) * (L.size || 1), cx = W / 2, cy = H * .37;
+  if (L.style === 'orb') drawOrb(X, cx, cy, sc, L, r, m, now);
+  else if (L.style === 'bot') drawBot(X, cx, cy, sc, L, r, m, now);
+  else if (L.style === 'wave') drawWave(X, cx, cy, sc, L, r, m, now);
+  else if (L.style === 'character') Char2D.draw(X, a.char, r, cx, cy, sc);
+  else drawHolo(X, cx, cy, sc, L, a, r, now, W, H);
+  // thinking dots / particles
+  if (S.thinking) for (let i = 0; i < 3; i++) { X.fillStyle = rgba(L.tint, .5 + .5 * Math.sin(now / 200 - i)); X.beginPath(); X.arc(cx + 120 * sc + i * 18 * sc, cy - 150 * sc - i * 12 * sc, (5 + i * 2) * sc, 0, 7); X.fill(); }
+  drawAlerts(X, W, H, now);
+  // subtitles
+  const sub = $('#sub'); if (sub) { const show = a.subtitles && S.sub && (m.talking || performance.now() - S.subT < 2500); sub.style.opacity = show ? 1 : 0; if (show && sub.textContent !== S.sub) sub.textContent = S.sub; }
+}
+function drawBg(X, W, H, L, now) {
+  const bg = L.bg;
+  if (bg === 'clear') return;
+  if (bg === 'green') { X.fillStyle = '#00ff00'; X.fillRect(0, 0, W, H); return; }
+  const g = X.createRadialGradient(W / 2, H * .45, 10, W / 2, H * .45, Math.max(W, H) * .7);
+  const base = { space: ['#0d1430', '#03050c'], room: ['#2b2340', '#0f0b18'], sunset: ['#ff9a6b', '#3a1c4a'], mint: ['#123d3a', '#071615'], light: ['#ffffff', '#cdd6ee'] }[bg] || ['#0d1430', '#03050c'];
+  g.addColorStop(0, base[0]); g.addColorStop(1, base[1]); X.fillStyle = g; X.fillRect(0, 0, W, H);
+  if (bg === 'space') { for (let i = 0; i < 80; i++) { const x = (i * 97.3) % W, y = (i * 53.7 + now * .004 * (i % 3 + 1)) % H; X.fillStyle = `rgba(255,255,255,${.2 + (i % 5) / 8})`; X.fillRect(x, y, 1.5, 1.5); } }
+  if (bg === 'room') { X.strokeStyle = 'rgba(180,140,255,.12)'; for (let i = 0; i < 12; i++) { X.beginPath(); X.moveTo(0, H * .7 + i * i * 3); X.lineTo(W, H * .7 + i * i * 3); X.stroke(); } }
+}
+function drawHolo(X, cx, cy, sc, L, a, r, now, W, H) {
+  const O = stage.ox, dpr = stage.dpr;
+  O.setTransform(dpr, 0, 0, dpr, 0, 0); O.clearRect(0, 0, W, H);
+  O.globalCompositeOperation = 'source-over';
+  Char2D.draw(O, a.char, r, cx, cy, sc);
+  // tint it like light
+  O.globalCompositeOperation = 'source-atop';
+  const g = O.createLinearGradient(0, cy - 250 * sc, 0, cy + 400 * sc); g.addColorStop(0, rgba(L.tint2, .55)); g.addColorStop(1, rgba(L.tint, .65));
+  O.fillStyle = g; O.fillRect(0, 0, W, H);
+  // scanlines
+  if (L.scan > 0) { O.fillStyle = rgba('#000000', .35 * L.scan); const off = (now / 40) % 4; for (let y = off; y < H; y += 4) O.fillRect(0, y, W, 1.6); }
+  O.globalCompositeOperation = 'source-over';
+  // projector
+  if (L.projector) {
+    const py = cy + 390 * sc;
+    const cg = X.createLinearGradient(0, py, 0, cy - 260 * sc); cg.addColorStop(0, rgba(L.tint, .28)); cg.addColorStop(1, rgba(L.tint, 0));
+    X.fillStyle = cg; X.beginPath(); X.moveTo(cx - 60 * sc, py); X.lineTo(cx - 230 * sc, cy - 260 * sc); X.lineTo(cx + 230 * sc, cy - 260 * sc); X.lineTo(cx + 60 * sc, py); X.fill();
+    X.fillStyle = '#1a2033'; X.beginPath(); X.ellipse(cx, py + 12 * sc, 120 * sc, 24 * sc, 0, 0, 7); X.fill();
+    X.save(); X.shadowColor = L.tint; X.shadowBlur = 25; X.fillStyle = rgba(L.tint, .8); X.beginPath(); X.ellipse(cx, py, 80 * sc, 12 * sc, 0, 0, 7); X.fill(); X.restore();
+  }
+  const fl = 1 - L.flicker * (Math.random() < .06 ? Math.random() * .6 : Math.random() * .08);
+  X.save(); X.globalAlpha = (L.alpha || .85) * fl;
+  X.filter = 'blur(10px)'; X.globalCompositeOperation = 'lighter'; X.globalAlpha *= .6; X.drawImage(stage.off, 0, 0, W, H);
+  X.filter = 'none'; X.globalAlpha = (L.alpha || .85) * fl; X.globalCompositeOperation = 'source-over';
+  if (L.glitch > 0 && Math.random() < L.glitch * .08) { for (let i = 0; i < 4; i++) { const y = Math.random() * H, hh = 4 + Math.random() * 18, dx = (Math.random() - .5) * 40 * L.glitch; X.drawImage(stage.off, 0, y * dpr, W * dpr, hh * dpr, dx, y, W, hh); } }
+  X.drawImage(stage.off, 0, 0, W, H);
+  X.restore();
+  // particles
+  if (L.particles > 0) {
+    while (S.ptc.length < 60 * L.particles) S.ptc.push({ x: cx + rnd(-200, 200) * sc, y: cy + rnd(100, 400) * sc, v: rnd(.2, 1.2), s: rnd(1, 3), life: rnd(0, 1) });
+    for (const p of S.ptc) { p.y -= p.v * (1 + (Speech.mouth.open * 3)); p.life += .004; if (p.life > 1 || p.y < cy - 300 * sc) { p.y = cy + rnd(200, 400) * sc; p.x = cx + rnd(-200, 200) * sc; p.life = 0; } X.fillStyle = rgba(L.tint, .7 * Math.sin(p.life * Math.PI)); X.fillRect(p.x, p.y, p.s, p.s); }
+  }
+}
+function drawOrb(X, cx, cy, sc, L, r, m, now) {
+  const R0 = 130 * sc * (1 + m.open * .08);
+  X.save(); X.shadowColor = L.tint; X.shadowBlur = 50;
+  const g = X.createRadialGradient(cx - R0 * .3, cy - R0 * .3, R0 * .1, cx, cy, R0); g.addColorStop(0, '#ffffff'); g.addColorStop(.3, L.tint); g.addColorStop(1, rgba(L.tint2, .4));
+  X.fillStyle = g; X.beginPath(); X.arc(cx, cy, R0, 0, 7); X.fill(); X.restore();
+  for (let i = 0; i < 3; i++) { X.strokeStyle = rgba(i % 2 ? L.tint2 : L.tint, .6); X.lineWidth = 2; X.beginPath(); X.ellipse(cx, cy, R0 * (1.3 + i * .18), R0 * .3, now / (2000 + i * 700) + i, 0, 7); X.stroke(); }
+  const ex = r.lookX * 18 * sc, ey = r.lookY * 12 * sc, bl = 1 - r.blink;
+  X.fillStyle = '#0b1530';
+  for (const s of [-1, 1]) { X.beginPath(); if (['happy', 'joy', 'wink', 'love', 'stars'].includes(r.expr)) { X.lineWidth = 7 * sc; X.strokeStyle = '#0b1530'; X.arc(cx + s * 40 * sc + ex, cy - 10 * sc + ey, 20 * sc, Math.PI * 1.15, Math.PI * 1.85); X.stroke(); } else { X.ellipse(cx + s * 40 * sc + ex, cy - 15 * sc + ey, 13 * sc, 22 * sc * bl + .5, 0, 0, 7); X.fill(); } }
+  X.strokeStyle = '#0b1530'; X.lineWidth = 4 * sc; X.beginPath();
+  for (let i = -30; i <= 30; i += 2) { const amp = m.open * 18 * sc * Math.sin(i / 5 + now / 60) * (1 - Math.abs(i) / 34); X.lineTo(cx + i * sc + ex, cy + 40 * sc + ey + amp + (r.expr === 'sad' ? (Math.abs(i) * .2 - 3) * sc : -(Math.abs(i) * .15 - 3) * sc * (r.expr === 'neutral' ? 0 : 1))); }
+  X.stroke();
+}
+function drawBot(X, cx, cy, sc, L, r, m, now) {
+  const w = 280 * sc, hh = 220 * sc;
+  X.save(); X.translate(cx + r.yaw * 20 * sc, cy + r.by * sc); X.rotate(r.roll);
+  X.fillStyle = '#d9dee9'; X.strokeStyle = '#3a4258'; X.lineWidth = 5 * sc;
+  X.beginPath(); X.roundRect(-w / 2, -hh / 2, w, hh, 40 * sc); X.fill(); X.stroke();
+  X.beginPath(); X.moveTo(0, -hh / 2); X.lineTo(0, -hh / 2 - 50 * sc); X.stroke(); X.fillStyle = L.tint; X.beginPath(); X.arc(0, -hh / 2 - 56 * sc, 12 * sc * (1 + m.open * .4), 0, 7); X.fill();
+  X.fillStyle = '#0d1424'; X.beginPath(); X.roundRect(-w / 2 + 22 * sc, -hh / 2 + 22 * sc, w - 44 * sc, hh - 44 * sc, 26 * sc); X.fill();
+  X.shadowColor = L.tint; X.shadowBlur = 16; X.fillStyle = L.tint; X.strokeStyle = L.tint;
+  const ex = r.lookX * 16 * sc, ey = r.lookY * 10 * sc, bl = 1 - r.blink;
+  for (const s of [-1, 1]) { const x = s * 55 * sc + ex, y = -25 * sc + ey;
+    if (r.expr === 'love') { X.beginPath(); X.moveTo(x, y + 18 * sc); X.bezierCurveTo(x - 30 * sc, y, x - 18 * sc, y - 22 * sc, x, y - 8 * sc); X.bezierCurveTo(x + 18 * sc, y - 22 * sc, x + 30 * sc, y, x, y + 18 * sc); X.fill(); }
+    else if (['happy', 'joy', 'wink', 'stars'].includes(r.expr) && !(r.expr === 'wink' && s === -1)) { X.lineWidth = 8 * sc; X.beginPath(); X.arc(x, y + 8 * sc, 18 * sc, Math.PI * 1.1, Math.PI * 1.9); X.stroke(); }
+    else if (r.expr === 'angry') { X.beginPath(); X.moveTo(x - 22 * sc, y - 10 * sc * s); X.lineTo(x + 22 * sc, y + 10 * sc * s); X.lineTo(x + 22 * sc, y + 22 * sc); X.lineTo(x - 22 * sc, y + 22 * sc); X.fill(); }
+    else X.fillRect(x - 16 * sc, y - 22 * sc * bl, 32 * sc, 44 * sc * bl + 2); }
+  const mo = m.open; X.lineWidth = 6 * sc; X.beginPath();
+  if (mo > .08) { X.roundRect(-30 * sc + ex, 40 * sc + ey, 60 * sc, 34 * sc * mo + 4, 8 * sc); X.fill(); }
+  else { const c = r.expr === 'sad' ? -1 : ['happy', 'joy', 'love', 'stars', 'wink'].includes(r.expr) ? 1 : 0; X.moveTo(-28 * sc + ex, 50 * sc + ey); X.quadraticCurveTo(ex, (50 + c * 18) * sc + ey, 28 * sc + ex, 50 * sc + ey); X.stroke(); }
+  X.restore();
+}
+function drawWave(X, cx, cy, sc, L, r, m, now) {
+  const n = 96, R0 = 120 * sc;
+  for (let i = 0; i < n; i++) {
+    const a = i / n * Math.PI * 2, v = .2 + m.open * (.6 + .4 * Math.sin(i * .7 + now / 50)) + .08 * Math.sin(now / 400 + i * .3);
+    X.strokeStyle = mix(L.tint, L.tint2, (Math.sin(a + now / 1000) + 1) / 2); X.lineWidth = 4 * sc;
+    X.beginPath(); X.moveTo(cx + Math.cos(a) * R0, cy + Math.sin(a) * R0); X.lineTo(cx + Math.cos(a) * (R0 + v * 90 * sc), cy + Math.sin(a) * (R0 + v * 90 * sc)); X.stroke();
+  }
+  X.save(); X.shadowColor = L.tint; X.shadowBlur = 40; X.fillStyle = rgba(L.tint, .25); X.beginPath(); X.arc(cx, cy, R0 * .9, 0, 7); X.fill(); X.restore();
+  X.fillStyle = '#fff'; X.font = `600 ${22 * sc}px Segoe UI`; X.textAlign = 'center'; X.fillText(A().name, cx, cy + 8 * sc);
+}
+function drawAlerts(X, W, H, now) {
+  S.alerts = S.alerts.filter(a => now - a.t < 8000);
+  S.alerts.forEach((a, i) => { const k = Math.min(1, (now - a.t) / 300), y = 14 + i * 54; X.globalAlpha = Math.min(k, (8000 - (now - a.t)) / 600); X.fillStyle = 'rgba(20,26,48,.92)'; X.strokeStyle = A().look.tint; X.lineWidth = 2; X.beginPath(); X.roundRect(W - 330, y, 316, 46, 10); X.fill(); X.stroke(); X.fillStyle = '#fff'; X.font = '600 14px Segoe UI'; X.textAlign = 'left'; X.fillText(a.icon + '  ' + a.text.slice(0, 40), W - 316, y + 28); X.globalAlpha = 1; });
+}
+function chime(kind = 'ding') {
+  try {
+    const ctx = chime.c || (chime.c = new (window.AudioContext || window.webkitAudioContext)()); const t = ctx.currentTime;
+    const notes = kind === 'alarm' ? [880, 660, 880, 660, 880] : [660, 990];
+    notes.forEach((f, i) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.value = f; g.gain.setValueAtTime(0, t + i * .18); g.gain.linearRampToValueAtTime(.25, t + i * .18 + .02); g.gain.exponentialRampToValueAtTime(.001, t + i * .18 + .5); o.connect(g).connect(ctx.destination); o.start(t + i * .18); o.stop(t + i * .18 + .55); });
+  } catch (e) {}
+}
+
+/* ---------------- Talking ---------------- */
+function bubble(text, speakIt = true, mood) {
+  const a = A();
+  if (mood) setMood(mood, 6);
+  S.sub = speakable(text).slice(0, 400); S.subT = performance.now();
+  if (speakIt && a.speak) Speech.say(text, voiceOf(a.voice));
+}
+function addMsg(role, text, extra) {
+  const a = A(); a.chat.push(Object.assign({ role, content: text, t: Date.now() }, extra || {}));
+  if (a.chat.length > 400) a.chat.splice(0, a.chat.length - 400);
+  save(); if (S.page === 'chat') drawChat();
+}
+function reply(text, mood) { addMsg('assistant', text); bubble(text, true, mood); }
+
+function personaText(a) {
+  const tr = TRAITS.map(([k, , lo, hi]) => { const v = a.traits[k]; return v > .66 ? 'very ' + hi : v > .4 ? 'somewhat ' + hi : v > .2 ? 'somewhat ' + lo : 'very ' + lo; }).join(', ');
+  const now = new Date();
+  const todos = a.todos.filter(t => !t.done).slice(0, 12).map(t => '- ' + t.text).join('\n') || '(none)';
+  const rem = a.reminders.filter(r => !r.done).slice(0, 8).map(r => '- ' + new Date(r.at).toLocaleString() + ': ' + r.text).join('\n') || '(none)';
+  return `Name: ${a.name}. Role: ${a.role}. Pronouns: ${a.pronouns || 'they/them'}.
+Personality: ${tr}.
+Backstory: ${a.backstory}
+How you speak: ${a.style}${a.catch ? '\nCatchphrase you sometimes use: ' + a.catch : ''}
+Rules: ${a.rules}
+The person: ${a.userName ? 'their name is ' + a.userName : 'name not given yet'}.
+Things you remember about them:\n${a.memory.map(m => '- ' + m.text).join('\n') || '(nothing yet)'}
+Now: ${now.toLocaleString()}.
+Their open to-dos:\n${todos}
+Their reminders:\n${rem}
+You can make things happen in this app by adding tags anywhere in your reply (they are hidden from the person):
+[action:timer 10m Tea] sets a timer; [action:remind 2026-11-10 15:00 | call mom] sets a reminder (use local time, 24h); [action:note text] saves a note; [action:todo text] adds a to-do; [action:done text] ticks off a matching to-do; [action:remember fact] saves a memory about the person.
+Only use an action when the person asks for it or clearly wants it.`;
+}
+
+async function send(text) {
+  text = String(text || '').trim(); if (!text) return;
+  const a = A(); addMsg('user', text);
+  Speech.stop();
+  if (await localSkill(text)) return;
+  const hist = a.chat.filter(m => !m.local).slice(-24).map(m => ({ role: m.role, content: m.content }));
+  if (!HOST) return reply(offlineTalk(text), 'happy');
+  S.thinking = true; status('Thinking…');
+  const r = await AI.ask(hist, personaText(a), st => status(st));
+  S.thinking = false; status('');
+  if (r.error) { addMsg('assistant', '⚠ ' + r.error, { local: true }); bubble(offlineTalk(text), true, 'sad'); return; }
+  const p = parseReply(r.text);
+  for (const act of p.actions) doAction(act);
+  reply(p.text || '…', p.mood || 'happy');
+}
+function status(t) { const e = $('#status'); if (e) e.textContent = t; }
+function offlineTalk(t) {
+  const a = A(), l = t.toLowerCase();
+  if (/^(hi|hello|hey|yo|howdy)\b/.test(l)) return fill(a.greeting, a);
+  if (/how are you/.test(l)) return pick(['Running at full brightness, thanks!', 'Feeling sparkly. You?', 'All systems happy!']);
+  if (/who are you|your name/.test(l)) return `I'm ${a.name}, your ${a.role.toLowerCase()}.`;
+  if (/thank/.test(l)) return pick(['Any time!', 'Happy to help!', 'You got it.']);
+  return `I can do timers, reminders, notes, to-dos, math, unit conversions, dates and routines on my own. For open conversation, link an AI in Randis UDS (the LLM button) and I'll think with it. Type "help" to see what I can do.`;
+}
+
+/* ---------------- Local skills (work with no AI) ---------------- */
+function parseDur(s) { let t = 0; s.replace(/(\d+(?:\.\d+)?)\s*(h|hr|hrs|hours?|m|min|mins|minutes?|s|sec|secs|seconds?)\b/gi, (_, n, u) => { u = u[0].toLowerCase(); t += +n * (u === 'h' ? 3600 : u === 'm' ? 60 : 1); }); return t; }
+function parseWhen(s) {
+  const now = new Date(); let m;
+  if ((m = /in\s+(.+)/i.exec(s)) && parseDur(m[1])) return new Date(Date.now() + parseDur(m[1]) * 1000);
+  if ((m = /(?:at\s+)?(\d{1,2})(?::(\d\d))?\s*(am|pm)?/i.exec(s))) {
+    let hh = +m[1], mm = +(m[2] || 0); if (m[3]) { if (m[3].toLowerCase() === 'pm' && hh < 12) hh += 12; if (m[3].toLowerCase() === 'am' && hh === 12) hh = 0; }
+    const d = new Date(now); if (/tomorrow/i.test(s)) d.setDate(d.getDate() + 1); d.setHours(hh, mm, 0, 0); if (d < now && !/tomorrow/i.test(s)) d.setDate(d.getDate() + 1); return d;
+  }
+  return null;
+}
+const UNITS = { m: 1, meter: 1, meters: 1, km: 1000, cm: .01, mm: .001, mi: 1609.344, mile: 1609.344, miles: 1609.344, ft: .3048, foot: .3048, feet: .3048, in: .0254, inch: .0254, inches: .0254, yd: .9144, yard: .9144, yards: .9144,
+  kg: 1e3, g: 1, gram: 1, grams: 1, lb: 453.592, lbs: 453.592, pound: 453.592, pounds: 453.592, oz: 28.3495, ounce: 28.3495, ounces: 28.3495, stone: 6350.29,
+  l: 1, liter: 1, liters: 1, ml: .001, gal: 3.78541, gallon: 3.78541, gallons: 3.78541, cup: .236588, cups: .236588, qt: .946353, quart: .946353, pt: .473176, pint: .473176, tbsp: .0147868, tsp: .00492892 };
+const UGROUP = u => ['m', 'meter', 'meters', 'km', 'cm', 'mm', 'mi', 'mile', 'miles', 'ft', 'foot', 'feet', 'in', 'inch', 'inches', 'yd', 'yard', 'yards'].includes(u) ? 'len' : ['kg', 'g', 'gram', 'grams', 'lb', 'lbs', 'pound', 'pounds', 'oz', 'ounce', 'ounces', 'stone'].includes(u) ? 'mass' : 'vol';
+function safeMath(e) { e = e.replace(/\^/g, '**').replace(/x/g, '*').replace(/(\d)\s*%/g, '($1/100)'); if (!/^[\d\s+\-*/().,e]*$/.test(e.replace(/\*\*/g, ''))) return null; try { const v = Function('"use strict";return (' + e.replace(/,/g, '') + ')')(); return isFinite(v) ? v : null; } catch (x) { return null; } }
+const JOKES = ['Why did the computer go to the doctor? It had a virus... and too many tabs open.', 'I would tell you a UDP joke, but you might not get it.', 'Why do programmers prefer dark mode? Because light attracts bugs.', 'I asked the hologram if it was real. It said, "I see right through that question."', 'Parallel lines have so much in common. It\'s a shame they\'ll never meet.', 'Why was the math book sad? Too many problems.', 'I\'m reading a book about anti-gravity. I can\'t put it down.'];
+const HELP = `Here's what I can do on my own:
+• "set a timer for 10 minutes" · "stopwatch" · "pomodoro"
+• "remind me in 20 min to stretch" · "remind me at 3pm to call Sam"
+• "note: buy oat milk" · "show my notes"
+• "add milk to my list" · "what's on my list" · "done milk"
+• "remember that my cat is called Pixel" · "what do you remember"
+• "what time is it" · "what's the date" · "days until Dec 25"
+• "15% of 80" · "(3+4)*2" · "convert 5 miles to km" · "72 f to c"
+• "flip a coin" · "roll 2d6" · "pick pizza, tacos, sushi" · "random number 1 to 100"
+• "tell me a joke" · "briefing" · "be happy / be sad" (moods)
+• Your routines by their phrase, like "good morning"
+Anything else goes to the linked AI.`;
+async function localSkill(t) {
+  const a = A(), l = t.toLowerCase().trim(); let m;
+  const say = (x, mood = 'happy') => { addMsg('assistant', x, { local: true }); bubble(x, true, mood); return true; };
+  const rt = a.routines.find(r => r.phrase && l.replace(/[!.?]/g, '') === r.phrase.toLowerCase()); if (rt) { runRoutine(rt); return true; }
+  if (/^(help|what can you do)\b/.test(l)) return say(HELP);
+  if (/^(stop|quiet|shh|be quiet|hush)\b/.test(l)) { Speech.stop(); return say('Okay.', 'shy'); }
+  if (/\bwhat time\b|^time\??$/.test(l)) return say('It\'s ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + '.');
+  if (/what('s| is) (the |today'?s )?date|what day is/.test(l)) return say('Today is ' + new Date().toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) + '.');
+  if ((m = /(?:set )?(?:a )?timer (?:for )?(.+)/.exec(l)) && parseDur(m[1])) { const s = parseDur(m[1]), lab = m[1].replace(/(\d+(?:\.\d+)?)\s*(h|hr|hrs|hours?|m|min|mins|minutes?|s|sec|secs|seconds?)\b/gi, '').replace(/\b(for|and|called|named)\b/g, '').trim(); addTimer(s, lab || 'Timer'); return say(`Timer set for ${fmtDur(s)}${lab ? ' (' + lab + ')' : ''}.`); }
+  if (/^pomodoro/.test(l)) { addTimer(25 * 60, 'Pomodoro focus'); return say('Pomodoro started: 25 minutes of focus. I\'ll call you for a 5 minute break.', 'thinking'); }
+  if (/^stopwatch|start (the )?stopwatch/.test(l)) { S.stopwatch = Date.now(); return say('Stopwatch started. Say "stop stopwatch" to stop it.'); }
+  if (/stop (the )?stopwatch/.test(l)) { if (!S.stopwatch) return say('No stopwatch is running.'); const s = (Date.now() - S.stopwatch) / 1000; S.stopwatch = null; return say('Stopwatch: ' + fmtDur(Math.round(s)) + '.'); }
+  if ((m = /^remind me (.+?) to (.+)$/.exec(l)) || (m = /^remind me to (.+?) ((?:in|at|tomorrow).+)$/.exec(l))) {
+    let when = m[1], what = m[2]; if (/^to /.test(t.toLowerCase().slice(10))) { when = m[2]; what = m[1]; }
+    const d = parseWhen(when); if (!d) return say('When should I remind you? Try "remind me in 10 minutes to stretch" or "remind me at 3pm to call Sam".', 'thinking');
+    a.reminders.push({ id: uid(), at: d.getTime(), text: what, done: false }); save(); return say(`Okay, I'll remind you ${d.toDateString() === new Date().toDateString() ? 'at' : 'on ' + d.toLocaleDateString() + ' at'} ${d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })} to ${what}.`);
+  }
+  if ((m = /^(?:note|take a note|write down)[:,]?\s+(.+)/i.exec(t))) { a.notes.unshift({ id: uid(), text: m[1], t: Date.now() }); save(); return say('Noted!'); }
+  if (/^(show|read|list) (my )?notes/.test(l)) return say(a.notes.length ? 'Your latest notes: ' + a.notes.slice(0, 5).map(n => n.text).join('; ') + '.' : 'You have no notes yet.');
+  if ((m = /^add (.+?) to (?:my |the )?(?:to-?do |shopping )?list$/.exec(l)) || (m = /^(?:todo|to-do)[:,]?\s+(.+)/.exec(l))) { a.todos.push({ id: uid(), text: m[1], done: false, t: Date.now() }); save(); return say(`Added "${m[1]}" to your list.`); }
+  if (/what('s| is) on my (to-?do )?list|^list todos?|my to-?dos/.test(l)) { const o = a.todos.filter(x => !x.done); return say(o.length ? `You have ${o.length}: ` + o.map(x => x.text).join(', ') + '.' : 'Your list is empty. Nice!'); }
+  if ((m = /^(?:done|finished|completed|tick off|check off)\s+(.+)/.exec(l))) { const x = a.todos.find(x => !x.done && x.text.toLowerCase().includes(m[1])); if (!x) return say('I couldn\'t find that on your list.', 'thinking'); x.done = true; save(); return say(`Ticked off "${x.text}". Great job!`, 'joy'); }
+  if ((m = /^remember (?:that )?(.+)/i.exec(t))) { a.memory.push({ id: uid(), text: m[1], t: Date.now() }); save(); return say('Got it, I\'ll remember that.', 'happy'); }
+  if (/what do you (remember|know about me)/.test(l)) return say(a.memory.length ? 'Here\'s what I remember: ' + a.memory.map(x => x.text).join('; ') + '.' : 'Nothing yet! Tell me "remember that ..." and I will.');
+  if ((m = /my name is ([a-z][\w' -]{0,30})/i.exec(t))) { a.userName = m[1].trim(); save(); return say(`Nice to meet you, ${a.userName}!`, 'joy'); }
+  if ((m = /(?:days|how long) (?:until|till) (.+)/.exec(l))) { const d = new Date(m[1].replace(/(\d)(st|nd|rd|th)/, '$1') + (/\d{4}/.test(m[1]) ? '' : ' ' + new Date().getFullYear())); if (isNaN(d)) return false; if (d < new Date()) d.setFullYear(d.getFullYear() + 1); const n = Math.ceil((d - new Date()) / 864e5); return say(`${n} day${n === 1 ? '' : 's'} until ${d.toLocaleDateString([], { month: 'long', day: 'numeric', year: 'numeric' })}.`); }
+  if ((m = /(?:convert )?(-?[\d.]+)\s*°?\s*(f|c|fahrenheit|celsius)\b\s*(?:to|in)\s*°?\s*(f|c|fahrenheit|celsius)\b/.exec(l))) { const v = +m[1], f = m[2][0], to = m[3][0]; const r = f === 'f' && to === 'c' ? (v - 32) * 5 / 9 : f === 'c' && to === 'f' ? v * 9 / 5 + 32 : v; return say(`${v}°${f.toUpperCase()} is ${+r.toFixed(1)}°${to.toUpperCase()}.`); }
+  if ((m = /(?:convert )?(-?[\d.]+)\s*([a-z]+)\s*(?:to|in)\s*([a-z]+)/.exec(l)) && UNITS[m[2]] && UNITS[m[3]] && UGROUP(m[2]) === UGROUP(m[3])) { const r = +m[1] * UNITS[m[2]] / UNITS[m[3]]; return say(`${m[1]} ${m[2]} is ${+r.toPrecision(5)} ${m[3]}.`); }
+  if ((m = /([\d.]+)\s*%\s*of\s*([\d.,]+)/.exec(l))) return say(`${m[1]}% of ${m[2]} is ${+(m[1] * m[2].replace(/,/g, '') / 100).toFixed(4)}.`);
+  if ((m = /^(?:what is |what's |calculate |calc |=)?\s*([\d\s+\-*/().^x%,]+)\??$/.exec(l)) && /\d\s*[+\-*/^x]\s*[\d(]/.test(m[1])) { const v = safeMath(m[1]); if (v != null) return say(`${m[1].trim()} = ${+v.toPrecision(12)}`); }
+  if (/flip a coin|coin flip|heads or tails/.test(l)) return say(Math.random() < .5 ? 'Heads!' : 'Tails!', 'surprised');
+  if ((m = /roll (?:a )?(\d*)d(\d+)/.exec(l)) || (m = /roll (?:a )?(die|dice)/.exec(l))) { const n = +(m[1] && m[1] !== 'die' && m[1] !== 'dice' ? m[1] : 1) || 1, sides = +(m[2] || 6); const rolls = Array.from({ length: Math.min(n, 50) }, () => 1 + Math.floor(Math.random() * sides)); return say(`Rolled ${rolls.join(', ')}${rolls.length > 1 ? ' — total ' + rolls.reduce((a, b) => a + b, 0) : ''}.`, 'stars'); }
+  if ((m = /random number (?:between |from )?(-?\d+) (?:and|to) (-?\d+)/.exec(l))) { const lo = +m[1], hi = +m[2]; return say(String(lo + Math.floor(Math.random() * (hi - lo + 1)))); }
+  if ((m = /^(?:pick|choose)(?: one)?(?: from| between)?:?\s+(.+)/.exec(l)) && /,| or /.test(m[1])) { const o = m[1].split(/,| or /).map(x => x.trim()).filter(Boolean); return say(`I pick... ${pick(o)}!`, 'smug'); }
+  if (/joke/.test(l)) return say(pick(JOKES), 'joy');
+  if (/^(briefing|daily briefing|brief me)/.test(l)) { briefing(); return true; }
+  if ((m = /^(?:be|look|act) (happy|sad|angry|surprised|smug|shy|sleepy|excited|confused|thinking|in love|playful)/.exec(l))) { const mo = m[1] === 'in love' ? 'love' : m[1]; setMood(mo, 8); return say(pick(['Like this?', 'How\'s this?', 'Ta-da!']), mo); }
+  return false;
+}
+function fmtDur(s) { s = Math.round(s); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return [h && h + ' hour' + (h > 1 ? 's' : ''), m && m + ' minute' + (m > 1 ? 's' : ''), x && x + ' second' + (x > 1 ? 's' : '')].filter(Boolean).join(' ') || '0 seconds'; }
+function addTimer(secs, label) { S.timers.push({ id: uid(), end: Date.now() + secs * 1000, label, total: secs }); drawSide(); }
+function briefing() {
+  const a = A(), d = new Date(), hr = d.getHours();
+  const greet = hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening';
+  const o = a.todos.filter(x => !x.done), rem = a.reminders.filter(r => !r.done && r.at - Date.now() < 864e5 && r.at > Date.now());
+  const txt = `${greet}${a.userName ? ', ' + a.userName : ''}! It's ${d.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' })}, ${d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}. ` +
+    (o.length ? `You have ${o.length} thing${o.length > 1 ? 's' : ''} on your list, starting with ${o.slice(0, 3).map(x => x.text).join(', ')}. ` : 'Your to-do list is clear. ') +
+    (rem.length ? `Coming up: ${rem.map(r => r.text + ' at ' + new Date(r.at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })).join('; ')}. ` : '') +
+    pick(['Let\'s make it a good one.', 'You\'ve got this.', 'One step at a time.', 'I\'m here if you need me.']);
+  addMsg('assistant', txt, { local: true }); bubble(txt, true, 'happy');
+}
+async function runRoutine(r) {
+  for (const line of r.steps.split('\n').map(x => x.trim()).filter(Boolean)) {
+    const [k, ...rest] = line.split(':'); const v = rest.join(':').trim(), key = k.trim().toLowerCase();
+    if (key === 'say') { addMsg('assistant', fill(v, A()), { local: true }); bubble(fill(v, A()), true); await waitSpeech(); }
+    else if (key === 'mood') setMood(v, 6);
+    else if (key === 'briefing') { briefing(); await waitSpeech(); }
+    else if (key === 'timer') { const s = parseDur(v); if (s) addTimer(s, v.replace(/^[\d.]+\s*\w+\s*/, '') || r.name); }
+    else if (key === 'note') { A().notes.unshift({ id: uid(), text: v, t: Date.now() }); save(); }
+    else if (key === 'todo') { A().todos.push({ id: uid(), text: v, done: false, t: Date.now() }); save(); }
+    else if (key === 'list todos') { await localSkill('what\'s on my list'); await waitSpeech(); }
+    else if (key === 'ask') { await send(v); await waitSpeech(); }
+    else if (key === 'wait') await new Promise(res => setTimeout(res, (parseDur(v) || 1) * 1000));
+    else if (key === 'chime') chime();
+  }
+}
+function waitSpeech() { return new Promise(res => { const t0 = performance.now(); const c = () => (!Speech.mouth.talking && performance.now() - t0 > 300) || performance.now() - t0 > 60000 ? res() : setTimeout(c, 150); c(); }); }
+function doAction(act) {
+  const a = A(); let m;
+  if ((m = /^timer\s+(.+)/i.exec(act))) { const s = parseDur(m[1]); if (s) addTimer(s, m[1].replace(/^[\d.]+\s*\w+\s*/, '') || 'Timer'); }
+  else if ((m = /^remind\s+(.+?)\s*\|\s*(.+)/i.exec(act))) { const d = new Date(m[1]); if (!isNaN(d)) { a.reminders.push({ id: uid(), at: d.getTime(), text: m[2], done: false }); save(); } }
+  else if ((m = /^note\s+(.+)/i.exec(act))) { a.notes.unshift({ id: uid(), text: m[1], t: Date.now() }); save(); }
+  else if ((m = /^todo\s+(.+)/i.exec(act))) { a.todos.push({ id: uid(), text: m[1], done: false, t: Date.now() }); save(); }
+  else if ((m = /^done\s+(.+)/i.exec(act))) { const x = a.todos.find(x => !x.done && x.text.toLowerCase().includes(m[1].toLowerCase())); if (x) { x.done = true; save(); } }
+  else if ((m = /^remember\s+(.+)/i.exec(act))) { a.memory.push({ id: uid(), text: m[1], t: Date.now() }); save(); }
+  drawSide();
+}
+/* Clock: timers, reminders and scheduled routines */
+setInterval(() => {
+  if (!S.d) return; const a = A(), now = Date.now(); let ch = false;
+  for (const t of S.timers.slice()) if (now >= t.end) { S.timers.splice(S.timers.indexOf(t), 1); chime('alarm'); S.alerts.push({ t: performance.now(), icon: '⏰', text: t.label + ' is done' }); bubble((t.label === 'Pomodoro focus' ? 'Focus session done! Take a five minute break.' : `Time's up${t.label && t.label !== 'Timer' ? ' for ' + t.label : ''}!`), true, 'surprised'); if (t.label === 'Pomodoro focus') addTimer(300, 'Break'); ch = true; }
+  for (const r of a.reminders) if (!r.done && now >= r.at) { r.done = true; chime('alarm'); S.alerts.push({ t: performance.now(), icon: '🔔', text: r.text }); const msg = `Reminder${a.userName ? ', ' + a.userName : ''}: ${r.text}`; addMsg('assistant', msg, { local: true }); bubble(msg, true, 'surprised'); ch = true; }
+  const hm = new Date().toTimeString().slice(0, 5), day = new Date().toDateString();
+  for (const r of a.routines) if (r.time && r.time === hm && r.lastRun !== day) { r.lastRun = day; runRoutine(r); ch = true; }
+  if (ch) save();
+  const tl = $('#timers'); if (tl) tl.innerHTML = S.timers.map(t => `<div class="tmr">⏱ ${esc(t.label)} <b>${fmtClock((t.end - now) / 1000)}</b></div>`).join('') + (S.stopwatch ? `<div class="tmr">⏲ Stopwatch <b>${fmtClock((now - S.stopwatch) / 1000)}</b></div>` : '');
+}, 500);
+function fmtClock(s) { s = Math.max(0, Math.round(s)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(x).padStart(2, '0'); }
+
+/* ---------------- Side panel pages ---------------- */
+const PAGES = [['chat', '💬 Chat'], ['persona', '🧠 Persona'], ['look', '✨ Avatar'], ['voice', '🔊 Voice'], ['memory', '📌 Memory'], ['tasks', '✅ Tasks & notes'], ['routines', '⚙ Routines'], ['ship', '📦 Assistants & export']];
+function drawNav() { const n = $('#side-nav'); n.innerHTML = ''; PAGES.forEach(([k, l]) => n.append(h('button', { class: S.page === k ? 'on' : '', onclick: () => { S.page = k; drawNav(); drawSide(); } }, l))); }
+function drawSide() { const p = $('#side'); if (!p) return; const keep = S.page === 'chat' && $('#chat-in') ? $('#chat-in').value : null; p.innerHTML = ''; (P[S.page] || P.chat)(p); if (keep != null && $('#chat-in')) $('#chat-in').value = keep; }
+function drawChat() { const log = $('#chatlog'); if (!log) return drawSide(); const a = A(); log.innerHTML = ''; a.chat.slice(-120).forEach(m => log.append(h('div', { class: 'msg ' + m.role }, h('div', { class: 'who' }, m.role === 'user' ? (a.userName || 'You') : a.name), h('div', { class: 'tx' }, m.content)))); log.scrollTop = log.scrollHeight; }
+const P = {};
+P.chat = p => {
+  const a = A();
+  p.append(h('div', { id: 'timers' }), h('div', { id: 'chatlog', class: 'chatlog' }));
+  const inp = h('textarea', { id: 'chat-in', rows: 2, placeholder: `Talk to ${a.name}…  (Enter sends · Shift+Enter new line · "help" for skills)`, onkeydown: e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); const v = inp.value; inp.value = ''; send(v); } } });
+  p.append(h('div', { class: 'chatbar' }, inp, h('button', { class: 'pri', onclick: () => { const v = inp.value; inp.value = ''; send(v); } }, 'Send')));
+  p.append(h('div', { class: 'row small', style: { marginTop: '6px' } }, chips(['help', 'briefing', 'what\'s on my list', 'tell me a joke', 'pomodoro', 'what time is it'], null, v => send(v)), h('span', { style: { flex: 1 } }),
+    checkIn('Speak', a, 'speak', save), checkIn('Subtitles', a, 'subtitles', save), h('button', { class: 'sm', onclick: () => Speech.stop() }, '■ Hush'), h('button', { class: 'sm bad', onclick: () => { if (confirm('Clear this chat?')) { a.chat = []; save(); drawChat(); } } }, 'Clear chat')));
+  drawChat();
+  setTimeout(() => inp.focus(), 50);
+};
+P.persona = p => {
+  const a = A(), up = () => { save(); };
+  p.append(card('Who they are',
+    h('div', { class: 'grid2' }, h('label', {}, h('div', { class: 'sk' }, 'Name'), h('input', { value: a.name, oninput: e => { a.name = e.target.value; a.char.name = a.name; header(); up(); } })),
+      h('label', {}, h('div', { class: 'sk' }, 'Role'), h('select', { onchange: e => { a.role = e.target.value; up(); } }, ROLES.map(r => h('option', { selected: r === a.role }, r))))),
+    h('div', { class: 'grid2' }, h('label', {}, h('div', { class: 'sk' }, 'Their pronouns'), h('input', { value: a.pronouns, oninput: e => { a.pronouns = e.target.value; up(); } })),
+      h('label', {}, h('div', { class: 'sk' }, 'What they call you'), h('input', { value: a.userName, placeholder: 'your name', oninput: e => { a.userName = e.target.value; up(); } }))),
+    h('div', { class: 'sk', style: { marginTop: '6px' } }, 'Backstory'), h('textarea', { rows: 3, oninput: e => { a.backstory = e.target.value; up(); } }, a.backstory),
+    h('div', { class: 'sk' }, 'How they talk'), h('textarea', { rows: 2, oninput: e => { a.style = e.target.value; up(); } }, a.style),
+    h('div', { class: 'sk' }, 'Rules they always follow'), h('textarea', { rows: 2, oninput: e => { a.rules = e.target.value; up(); } }, a.rules),
+    h('div', { class: 'grid2' }, h('label', {}, h('div', { class: 'sk' }, 'Greeting ({name}, {user})'), h('input', { value: a.greeting, oninput: e => { a.greeting = e.target.value; up(); } })),
+      h('label', {}, h('div', { class: 'sk' }, 'Catchphrase'), h('input', { value: a.catch, oninput: e => { a.catch = e.target.value; up(); } })))));
+  p.append(card('Personality', TRAITS.map(([k, l, lo, hi]) => slider(`${l}`, a.traits, k, 0, 1, .01, up, v => v < .5 ? lo : hi))));
+  p.append(card('Quick personalities', h('div', { class: 'chips' }, Object.entries(ARCHETYPES).map(([k, v]) => h('button', { class: 'chip', onclick: () => { Object.assign(a.traits, v.t); a.style = v.s; if (v.r) a.role = v.r; save(); drawSide(); toast('Personality: ' + k); } }, k)))));
+  p.append(card('What the AI sees', h('p', { class: 'mut small' }, 'This is sent to the linked AI with each message, so it stays in character and knows your lists.'), h('pre', { class: 'pre' }, personaText(a))));
+};
+const ARCHETYPES = {
+  'Cheerful helper': { t: { warmth: .9, humor: .6, formality: .2, energy: .8, sass: .1 }, s: 'Bubbly and encouraging, uses exclamation points, celebrates small wins.' },
+  'Calm sage': { t: { warmth: .7, humor: .3, formality: .5, energy: .2, verbosity: .5 }, s: 'Speaks slowly and thoughtfully, offers perspective, never rushes.' },
+  'Witty sidekick': { t: { humor: .95, sass: .7, energy: .7, formality: .1 }, s: 'Quick jokes and playful teasing, but always gets the job done.' },
+  'Starship AI': { t: { formality: .8, confidence: .9, warmth: .4, humor: .3 }, s: 'Precise, mission-focused, reports status like a starship computer with a hint of dry humor.', r: 'Ship AI (sci-fi)' },
+  'Proper butler': { t: { formality: .95, warmth: .6, humor: .35, sass: .25 }, s: 'Impeccably polite and dryly witty; addresses the person respectfully.', r: 'Butler' },
+  'Tsundere': { t: { warmth: .4, sass: .9, humor: .6, confidence: .7 }, s: 'Acts annoyed and says "it\'s not like I wanted to help", but clearly cares and helps well.' },
+  'Hype coach': { t: { energy: 1, confidence: 1, warmth: .8, humor: .5 }, s: 'Pumped up, motivational, short punchy sentences.', r: 'Fitness coach' },
+  'Gentle listener': { t: { warmth: 1, sass: 0, energy: .2, curiosity: .8, verbosity: .4 }, s: 'Soft, patient, asks kind questions and reflects feelings back.' }
+};
+P.look = p => {
+  const a = A(), L = a.look, ch = a.char, up = () => save();
+  p.append(card('Style', chips([['hologram', '🔷 Hologram'], ['character', '🎨 Full color'], ['orb', '🔮 Orb'], ['bot', '🤖 Bot'], ['wave', '〰 Waveform']], L.style, v => { L.style = v; up(); drawSide(); }),
+    h('div', { class: 'row', style: { marginTop: '8px' } }, colorIn('Glow', L, 'tint', up), colorIn('Glow 2', L, 'tint2', up), selectIn('Backdrop', L, 'bg', [['space', 'Space'], ['room', 'Room'], ['sunset', 'Sunset'], ['mint', 'Mint'], ['light', 'Light'], ['green', 'Green screen'], ['clear', 'None']], up)),
+    slider('Size', L, 'size', .5, 1.6, .01, up),
+    L.style === 'hologram' ? [slider('See-through', L, 'alpha', .3, 1, .01, up), slider('Scanlines', L, 'scan', 0, 1, .01, up), slider('Flicker', L, 'flicker', 0, 1, .01, up), slider('Glitches', L, 'glitch', 0, 1, .01, up), slider('Particles', L, 'particles', 0, 1, .01, up), checkIn('Projector base', L, 'projector', up)] : null));
+  if (['hologram', 'character'].includes(L.style)) {
+    p.append(card('Character', h('p', { class: 'mut small' }, 'The same character maker as VTuber Studio. Import a model you made there, or shape one here.'),
+      h('div', { class: 'row' }, h('button', { onclick: () => { const n = a.char.name; a.char = Char2D.random(); a.char.name = n; up(); drawSide(); } }, '🎲 Random'), h('button', { onclick: async () => { const f = await pickFile('.json'); if (!f) return; try { const j = JSON.parse(f.data); a.char = Char2D.clean(j.model || j); up(); drawSide(); toast('Character loaded.'); } catch (e) { toast('That is not a character file.'); } } }, 'Import VTuber model…'), h('button', { onclick: () => saveFile((a.name || 'character') + '.char2d.json', JSON.stringify(a.char, null, 1), 'application/json') }, 'Export character'))));
+    p.append(charEditor(ch, up));
+  }
+  p.append(card('Try a mood', h('div', { class: 'chips' }, MOODS.map(m => h('button', { class: 'chip', onclick: () => setMood(m, 5) }, Char2D.EXPR_LABEL[m] || m)))));
+};
+P.voice = p => {
+  const a = A();
+  p.append(card('Voice', h('p', { class: 'mut small' }, 'Pick one of Voice Forge\'s built-in voices, a Windows voice, or import a voice you designed in the Voice Forge tab (Ship → Voice file .rvoice.json). Voice Forge voices move the mouth with real lip-sync shapes.'),
+    voicePicker(a.voice, () => save()), h('div', { class: 'row', style: { marginTop: '8px' } }, checkIn('Speak replies out loud', a, 'speak', save), checkIn('Show subtitles', a, 'subtitles', save))));
+  const t = { s: fill(a.greeting, a) };
+  p.append(card('Say anything', h('textarea', { rows: 3, oninput: e => t.s = e.target.value }, t.s), h('div', { class: 'row' }, h('button', { class: 'pri', onclick: () => bubble(t.s, true, 'happy') }, '▶ Say it'), h('button', { onclick: () => Speech.stop() }, '■ Stop'),
+    h('button', { onclick: () => { const V = voiceOf(a.voice); if (V.engine === 'system') return toast('Windows voices can\'t be saved to a file; pick a Voice Forge voice.'); const r = RV.render(speakable(t.s), V); saveFile((a.name || 'voice') + '.wav', new Blob([RV.wav(r)], { type: 'audio/wav' })); } }, 'Save as WAV'))));
+};
+P.memory = p => {
+  const a = A(); let nv = '';
+  p.append(card('What ' + a.name + ' remembers about you', h('p', { class: 'mut small' }, 'These go to the AI with every message. Say "remember that ..." in chat, or add them here.'),
+    h('div', { class: 'row' }, h('input', { style: { flex: 1 }, placeholder: 'e.g. I\'m allergic to peanuts', oninput: e => nv = e.target.value, onkeydown: e => { if (e.key === 'Enter' && nv.trim()) { a.memory.push({ id: uid(), text: nv.trim(), t: Date.now() }); save(); drawSide(); } } }), h('button', { onclick: () => { if (nv.trim()) { a.memory.push({ id: uid(), text: nv.trim(), t: Date.now() }); save(); drawSide(); } } }, 'Add')),
+    h('div', { class: 'list' }, a.memory.map(m => h('div', { class: 'it' }, h('span', { style: { flex: 1 }, contenteditable: 'true', onblur: e => { m.text = e.target.textContent; save(); } }, m.text), h('span', { class: 'mut small' }, new Date(m.t).toLocaleDateString()), h('button', { class: 'sm bad', onclick: () => { a.memory = a.memory.filter(x => x !== m); save(); drawSide(); } }, '✕'))))));
+  p.append(card('Chat history', h('p', { class: 'mut small' }, `${a.chat.length} messages saved. The last 24 go to the AI as context.`), h('button', { onclick: () => saveFile(a.name + '-chat.md', a.chat.map(m => `**${m.role === 'user' ? (a.userName || 'You') : a.name}** (${new Date(m.t).toLocaleString()}):\n${m.content}\n`).join('\n'), 'text/markdown') }, 'Export chat as Markdown')));
+};
+P.tasks = p => {
+  const a = A(); let nt = '', nn = '', rw = '', rt = '';
+  p.append(card('Timers', h('div', { class: 'row' }, [1, 5, 10, 15, 25, 30, 60].map(m => h('button', { class: 'sm', onclick: () => { addTimer(m * 60, m + ' min'); toast('Timer set'); } }, m + 'm'))), h('div', { class: 'list' }, S.timers.map(t => h('div', { class: 'it' }, '⏱ ' + t.label, h('span', { style: { flex: 1 } }), h('button', { class: 'sm bad', onclick: () => { S.timers = S.timers.filter(x => x !== t); drawSide(); } }, 'Cancel'))))));
+  p.append(card('To-do', h('div', { class: 'row' }, h('input', { style: { flex: 1 }, placeholder: 'Add a to-do', oninput: e => nt = e.target.value, onkeydown: e => { if (e.key === 'Enter' && nt.trim()) { a.todos.push({ id: uid(), text: nt.trim(), done: false, t: Date.now() }); save(); drawSide(); } } })),
+    h('div', { class: 'list' }, a.todos.map(t => h('div', { class: 'it' }, h('input', { type: 'checkbox', checked: t.done, onchange: e => { t.done = e.target.checked; save(); if (t.done) { setMood('joy', 3); chime(); } } }), h('span', { style: { flex: 1, textDecoration: t.done ? 'line-through' : '' } }, t.text), h('button', { class: 'sm bad', onclick: () => { a.todos = a.todos.filter(x => x !== t); save(); drawSide(); } }, '✕')))),
+    a.todos.some(t => t.done) ? h('button', { class: 'sm', onclick: () => { a.todos = a.todos.filter(t => !t.done); save(); drawSide(); } }, 'Clear finished') : null));
+  p.append(card('Reminders', h('div', { class: 'row' }, h('input', { type: 'datetime-local', onchange: e => rw = e.target.value }), h('input', { style: { flex: 1 }, placeholder: 'What to remind you', oninput: e => rt = e.target.value }), h('button', { onclick: () => { const d = new Date(rw); if (isNaN(d) || !rt.trim()) return toast('Pick a time and type what to remind you.'); a.reminders.push({ id: uid(), at: d.getTime(), text: rt.trim(), done: false }); save(); drawSide(); } }, 'Add')),
+    h('div', { class: 'list' }, a.reminders.slice().sort((x, y) => x.at - y.at).map(r => h('div', { class: 'it' }, r.done ? '✔' : '🔔', h('span', { style: { flex: 1, opacity: r.done ? .5 : 1 } }, new Date(r.at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) + ' — ' + r.text), h('button', { class: 'sm bad', onclick: () => { a.reminders = a.reminders.filter(x => x !== r); save(); drawSide(); } }, '✕'))))));
+  p.append(card('Notes', h('div', { class: 'row' }, h('textarea', { rows: 2, placeholder: 'Write a note', oninput: e => nn = e.target.value }), h('button', { onclick: () => { if (nn.trim()) { a.notes.unshift({ id: uid(), text: nn.trim(), t: Date.now() }); save(); drawSide(); } } }, 'Save')),
+    h('div', { class: 'list' }, a.notes.map(n => h('div', { class: 'it' }, h('div', { style: { flex: 1, whiteSpace: 'pre-wrap' }, contenteditable: 'true', onblur: e => { n.text = e.target.innerText; save(); } }, n.text), h('button', { class: 'sm', title: 'Read aloud', onclick: () => bubble(n.text, true) }, '▶'), h('button', { class: 'sm bad', onclick: () => { a.notes = a.notes.filter(x => x !== n); save(); drawSide(); } }, '✕')))),
+    a.notes.length ? h('button', { class: 'sm', onclick: () => saveFile('notes.md', a.notes.map(n => '- ' + n.text).join('\n'), 'text/markdown') }, 'Export notes') : null));
+};
+P.routines = p => {
+  const a = A();
+  p.append(card('Routines', h('p', { class: 'mut small' }, 'A routine runs when you type its phrase, press ▶, or at its daily time. One step per line: ', h('code', {}, 'say: text'), ', ', h('code', {}, 'mood: happy'), ', ', h('code', {}, 'briefing'), ', ', h('code', {}, 'timer: 10m Tea'), ', ', h('code', {}, 'note: text'), ', ', h('code', {}, 'todo: text'), ', ', h('code', {}, 'list todos'), ', ', h('code', {}, 'ask: question for the AI'), ', ', h('code', {}, 'wait: 5s'), ', ', h('code', {}, 'chime')),
+    h('button', { onclick: () => { a.routines.push({ id: uid(), name: 'New routine', phrase: '', time: '', steps: 'say: Hello!' }); save(); drawSide(); } }, '+ New routine')));
+  a.routines.forEach(r => p.append(card(null, h('div', { class: 'row' }, h('input', { value: r.name, style: { fontWeight: 600, flex: 1 }, oninput: e => { r.name = e.target.value; save(); } }), h('button', { class: 'go sm', onclick: () => runRoutine(r) }, '▶ Run'), h('button', { class: 'sm bad', onclick: () => { a.routines = a.routines.filter(x => x !== r); save(); drawSide(); } }, '✕')),
+    h('div', { class: 'grid2', style: { margin: '6px 0' } }, h('label', {}, h('div', { class: 'sk' }, 'Phrase'), h('input', { value: r.phrase, placeholder: 'e.g. good morning', oninput: e => { r.phrase = e.target.value; save(); } })), h('label', {}, h('div', { class: 'sk' }, 'Every day at (optional)'), h('input', { type: 'time', value: r.time, onchange: e => { r.time = e.target.value; save(); } }))),
+    h('textarea', { rows: 4, oninput: e => { r.steps = e.target.value; save(); } }, r.steps))));
+};
+P.ship = p => {
+  p.append(card('Your assistants', h('div', { class: 'list' }, S.d.list.map(x => h('div', { class: 'it' + (x.id === S.d.cur ? ' on' : '') }, h('b', { style: { flex: 1, cursor: 'pointer' }, onclick: () => { S.d.cur = x.id; save(); header(); drawSide(); greet(); } }, x.name), h('span', { class: 'mut small' }, x.role), h('button', { class: 'sm', onclick: () => { const c = clone(x); c.id = uid(); c.name += ' copy'; S.d.list.push(c); save(); drawSide(); } }, 'Copy'), S.d.list.length > 1 ? h('button', { class: 'sm bad', onclick: () => { if (!confirm('Delete ' + x.name + '?')) return; S.d.list = S.d.list.filter(y => y !== x); if (S.d.cur === x.id) S.d.cur = S.d.list[0].id; save(); header(); drawSide(); } }, '✕') : null))),
+    h('div', { class: 'row' }, h('button', { class: 'pri', onclick: () => { const n = newAssistant(pick(['Nova', 'Echo', 'Vega', 'Iris', 'Pixel', 'Juno', 'Atlas', 'Sol'])); n.char = Char2D.random(n.name); n.look.tint = n.char.iris; n.look.tint2 = n.char.hair2; S.d.list.push(n); S.d.cur = n.id; save(); header(); drawSide(); greet(); } }, '+ New assistant'), h('button', { onclick: async () => { const f = await pickFile('.json'); if (!f) return; try { const j = JSON.parse(f.data); if (j.format !== VERSION) throw 0; const n = Object.assign(newAssistant(), j.assistant); n.id = uid(); S.d.list.push(n); S.d.cur = n.id; save(); header(); drawSide(); toast('Imported ' + n.name); } catch (e) { toast('That is not an Aura assistant file.'); } } }, 'Import assistant…'))));
+  const a = A();
+  p.append(card('Export ' + a.name, h('div', { class: 'row' },
+    h('button', { onclick: () => saveFile(a.name + '.assistant.json', JSON.stringify({ format: VERSION, credit: CREDIT, assistant: Object.assign(clone(a), { chat: [] }) }, null, 1), 'application/json') }, 'Assistant file (.json)'),
+    h('button', { onclick: () => exportStandalone(a) }, 'Standalone assistant page (.html)'),
+    h('button', { onclick: () => saveCanvas($('#stage'), a.name + '.png') }, 'Picture (.png)'),
+    h('button', { onclick: recordClip }, '⏺ Record 10s clip (.webm)')),
+    h('p', { class: 'mut small' }, 'The standalone page runs the avatar, voice, timers, reminders, notes, to-dos and routines in any browser, offline. Open-ended chat needs Randis UDS with a linked AI.')));
+  p.append(card('Ideas', h('ul', { class: 'small' }, ['Make a study buddy with the "Study buddy & tutor" role and a pomodoro routine.', 'Give a Starship AI persona a hologram look with heavy scanlines and the Android voice.', 'Design a character in VTuber Studio, export it, then import it here as your assistant\'s body.', 'Make a voice in Voice Forge, export .rvoice.json, then import it in the Voice page.', 'Set the backdrop to Green screen and record clips for videos.'].map(x => h('li', {}, x)))));
+};
+const CREDIT = 'Randis UDS™ by Randy Moore. Original: https://github.com/RandyWilliamMoore/randis-uds · Support: https://ko-fi.com/moorescombinatoricsmatrix';
+function exportStandalone(a) {
+  const data = { cur: a.id, list: [Object.assign(clone(a), { chat: [] })] };
+  let html = '<!doctype html>\n' + document.documentElement.outerHTML;
+  html = html.replace(/<script>\(function\(\)\{[\s\S]*?SOUND[\s\S]*?<\/script>/, '');
+  html = html.replace('<head>', '<head><script>window.EMBED=' + JSON.stringify(data).replace(/</g, '\\u003c') + '<\/script>');
+  saveFile(a.name.replace(/[^\w-]+/g, '_') + '-assistant.html', html, 'text/html');
+}
+async function recordClip() {
+  const r = recorder($('#stage')); if (!r) return toast('Recording is not supported here.');
+  r.start(); toast('Recording 10 seconds…', 10000); setMood('happy', 3); bubble(fill(A().greeting, A()), true);
+  setTimeout(async () => { const b = await r.stop(); saveFile(A().name + '-clip.webm', b, 'video/webm'); }, 10000);
+}
+function header() { const a = A(); $('#aname').textContent = a.name; $('#arole').textContent = a.role; }
+function greet() { setTimeout(() => { const a = A(); setMood('happy', 4); S.sub = fill(a.greeting, a); S.subT = performance.now(); }, 300); }
+
+/* ---------------- Start ---------------- */
+Store.load(() => window.EMBED ? clone(window.EMBED) : { cur: null, list: [] }).then(d => {
+  S.d = d; if (!d.list.length) { const a = newAssistant('Aura'); d.list.push(a); d.cur = a.id; }
+  d.list = d.list.map(x => { const n = Object.assign(newAssistant(), x); n.char = Char2D.clean(x.char); n.look = Object.assign(newAssistant().look, x.look); n.traits = Object.assign(newAssistant().traits, x.traits); return n; });
+  if (!d.list.find(x => x.id === d.cur)) d.cur = d.list[0].id;
+  header(); drawNav(); drawSide(); stageInit(); greet();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') Speech.stop(); });
+</script>
+</body>
+</html>
