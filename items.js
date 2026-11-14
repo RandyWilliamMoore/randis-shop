@@ -427,6 +427,23 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "atelier-fashion-suite",
+  "name": "Atelier: Fashion Suite",
+  "by": "Randy",
+  "blurb": "Fashion design from idea to shelves: 30 aesthetics, moodboards, colour studio, sketchbook, parametric flats, print and repeat studio, knit charts, an 86-fabric library, size charts, pattern drafting with allowances and grading, and a tiled home-print pattern.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/atelier-fashion-suite",
+  "file": "apps/atelier-fashion-suite/item.html",
+  "logo": "apps/atelier-fashion-suite/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "aura-assistant",
   "name": "Aura Assistant",
   "by": "Randy",
