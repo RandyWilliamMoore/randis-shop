@@ -512,6 +512,23 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "free-money-finder",
+  "name": "Free Money Finder",
+  "by": "Randy",
+  "blurb": "Find money you may be owed or can claim: unclaimed property, old refunds and pensions, credits and deductions, grants and incentives for businesses, a tracker with totals, calendar and CSV export, and a scam shield. Not tax or legal advice. The AI grant writer and Ask the AI need Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/free-money-finder",
+  "file": "apps/free-money-finder/item.html",
+  "logo": "apps/free-money-finder/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "heirloom-boxes",
   "name": "Heirloom Boxes",
   "by": "Randy",
@@ -559,6 +576,23 @@ window.ITEMS = [
   "open_with": "randisuds://open?item=apps/heritage",
   "file": "apps/heritage/item.html",
   "logo": "apps/heritage/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "life-tree",
+  "name": "Life Tree",
+  "by": "Randy",
+  "blurb": "A life-planning to-do tree: endless nested checkboxes, folding, zoom, drag to move, status, priority, due dates, repeats with streaks, tags, metrics, wiki notes with [[links]], Today, Cards, Wiki and Done views, undo, export and import. The per-item AI chat needs Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/life-tree",
+  "file": "apps/life-tree/item.html",
+  "logo": "apps/life-tree/logo.svg",
   "video_pic": null
  },
  {
@@ -729,6 +763,23 @@ window.ITEMS = [
   "open_with": "randisuds://open?item=apps/randis-sound-forge",
   "file": "apps/randis-sound-forge/item.html",
   "logo": "apps/randis-sound-forge/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "service-member-helper",
+  "name": "Service Member Helper",
+  "by": "Randy",
+  "blurb": "For service members, veterans and families: 36 plain guides (pay, TSP, VA loan, GI Bill, TRICARE, PCS, DD214 and more), help lines, TSP and VA loan calculators, a transition timeline, document checklist with expiry alerts and a gear list. Not official military advice. Ask the AI needs Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/service-member-helper",
+  "file": "apps/service-member-helper/item.html",
+  "logo": "apps/service-member-helper/logo.svg",
   "video_pic": null
  },
  {

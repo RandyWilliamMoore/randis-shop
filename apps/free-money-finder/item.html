@@ -1,0 +1,731 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Free Money Finder</title>
+<!-- Randis UDS™ by Randy Moore. Original: https://github.com/RandyWilliamMoore/randis-uds · Support: https://ko-fi.com/moorescombinatoricsmatrix -->
+<style>
+:root{--bg:#0e1411;--bg2:#141c17;--bg3:#1d2820;--line:#2f4034;--tx:#e6efe8;--mut:#93a598;--acc:#3ccf7a;--acc2:#e5c75a;--ok:#4fc27e;--warn:#e0a63a;--bad:#e06a5a;--card:#151e18}
+body[data-theme=light]{--bg:#eef3ef;--bg2:#f8fbf8;--bg3:#e1eae3;--line:#bfd0c3;--tx:#18241b;--mut:#56685a;--acc:#1c8a4c;--acc2:#8a6b0c;--card:#fbfdfb}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font:14px/1.45 "Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--tx);display:flex;flex-direction:column;overflow:hidden}
+h2{font-size:21px;margin:0 0 6px}
+h3{font-size:15px;margin:2px 0 6px;color:var(--acc)}
+h4{margin:14px 0 6px;font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
+p{margin:4px 0 8px}
+button,input,select,textarea{font:inherit;color:inherit}
+input,select,textarea{background:var(--bg3);border:1px solid var(--line);border-radius:6px;padding:4px 7px;outline:none;min-width:0}
+input:focus,select:focus,textarea:focus{border-color:var(--acc)}
+input[type=checkbox]{accent-color:var(--acc)}
+textarea{width:100%;resize:vertical;min-height:70px}
+button{cursor:pointer;background:var(--bg3);border:1px solid var(--line);border-radius:6px;padding:4px 10px}
+button:hover{border-color:var(--acc)}
+button.pri{background:var(--acc);color:#08130c;border-color:var(--acc);font-weight:600}
+button.sm{padding:1px 7px;font-size:12px}
+.lnk{color:var(--acc2);cursor:pointer;text-decoration:underline;margin-right:10px;display:inline-block}
+header{display:flex;align-items:center;gap:10px;padding:8px 14px;background:var(--bg2);border-bottom:1px solid var(--line)}
+header .t{font-weight:700;font-size:16px}
+header .sub{color:var(--mut);font-size:12px}
+header .tot{margin-left:auto;font-size:12px;color:var(--mut)}
+header .tot b{color:var(--acc)}
+main{flex:1;display:flex;min-height:0}
+nav{width:210px;background:var(--bg2);border-right:1px solid var(--line);overflow:auto;padding:6px 0;flex-shrink:0}
+nav div{padding:5px 14px;cursor:pointer;color:var(--mut)}
+nav div:hover{color:var(--tx)}
+nav div.on{color:var(--tx);background:var(--bg3);border-left:3px solid var(--acc);padding-left:11px}
+nav .grp{font-size:11px;text-transform:uppercase;letter-spacing:.06em;cursor:default;padding-top:12px;color:var(--mut);opacity:.75}
+nav .n{float:right;font-size:11px;opacity:.7}
+#view{flex:1;overflow:auto;padding:16px 20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px}
+.grid .card{margin:0}
+.it .top{display:flex;gap:8px;align-items:flex-start}
+.it .top h3{flex:1;margin:0}
+.it .val{color:var(--acc2);font-weight:600;font-size:13px;margin:4px 0}
+.it .k{color:var(--mut);font-size:12px;font-weight:600}
+.it .how{font-size:13px}
+.it ol{margin:4px 0 6px 18px;padding:0;font-size:13px}
+.tag{display:inline-block;font-size:11px;border:1px solid var(--line);border-radius:10px;padding:0 7px;margin:0 4px 2px 0;color:var(--mut)}
+.tag.ref{border-color:var(--acc);color:var(--acc)}
+.tag.r0,.tag.r1{border-color:var(--ok);color:var(--ok)}
+.tag.r2{border-color:var(--warn);color:var(--warn)}
+.tag.r3{border-color:var(--bad);color:var(--bad)}
+.tag.chk{border-color:var(--warn);color:var(--warn)}
+.mut{color:var(--mut)}
+.sm{font-size:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:4px 0}
+.chips label{display:inline-flex;gap:5px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:2px 10px;margin:0 6px 6px 0;cursor:pointer;font-size:13px}
+.chips label.on{border-color:var(--acc);background:var(--bg3)}
+.chips input{display:none}
+table{border-collapse:collapse;width:100%}
+th,td{text-align:left;padding:5px 6px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:top}
+th{color:var(--mut);font-weight:600}
+td input,td select{width:100%}
+.stat{display:flex;gap:12px;flex-wrap:wrap;margin:8px 0 14px}
+.stat div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 14px;min-width:150px}
+.stat b{display:block;font-size:20px;color:var(--acc)}
+.stat span{font-size:12px;color:var(--mut)}
+.warnbox{border-left:4px solid var(--warn);background:var(--bg3);padding:8px 12px;border-radius:6px;margin:8px 0;font-size:13px}
+.badbox{border-left:4px solid var(--bad);background:var(--bg3);padding:8px 12px;border-radius:6px;margin:8px 0;font-size:13px}
+.okbox{border-left:4px solid var(--ok);background:var(--bg3);padding:8px 12px;border-radius:6px;margin:8px 0;font-size:13px}
+.aitx{white-space:pre-wrap;background:var(--bg3);border-radius:8px;padding:10px;min-height:60px;font-size:13px}
+#toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--acc);color:#08130c;padding:7px 14px;border-radius:8px;display:none;z-index:9;font-weight:600;max-width:80%}
+.foot{color:var(--mut);font-size:11px;margin-top:20px}
+.saved{color:var(--ok)}
+</style>
+</head>
+<body>
+<header>
+  <span style="font-size:20px">💰</span>
+  <span class="t">Free Money Finder</span>
+  <span class="sub">Unclaimed money · credits that pay you · free stock & bonuses · grants · funding — for people and companies</span>
+  <span class="tot" id="hdrTot"></span>
+  <button class="sm" data-act="theme" title="Light / dark">◐</button>
+</header>
+<main>
+  <nav id="nav"></nav>
+  <div id="view"></div>
+</main>
+<div id="toast"></div>
+<script>
+/* Randis UDS™ by Randy Moore. Original: https://github.com/RandyWilliamMoore/randis-uds · Support: https://ko-fi.com/moorescombinatoricsmatrix */
+"use strict";
+const $ = (s, r) => (r || document).querySelector(s);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const uid = () => Math.random().toString(36).slice(2, 10);
+const inApp = window.parent !== window;
+const tell = m => { try { window.parent.postMessage(m, "*"); } catch (e) {} };
+const money = n => (n < 0 ? "-" : "") + "$" + Math.abs(Math.round(+n || 0)).toLocaleString();
+let toastT; function toast(t, ms) { const e = $("#toast"); e.textContent = t; e.style.display = "block"; clearTimeout(toastT); toastT = setTimeout(() => e.style.display = "none", ms || 3200); }
+
+/* ---------- links ---------- */
+let WEB_ON = false;
+function openLink(url) {
+  if (!inApp) { window.open(url, "_blank", "noopener"); return; }
+  if (WEB_ON) { tell({ uds: "web-pop", url }); return; }
+  try { navigator.clipboard.writeText(url); toast("Link copied – paste it into your browser. (Turn on web for this tab to open links straight from here.)", 5000); }
+  catch (e) { prompt("Copy this link:", url); }
+}
+const L = (label, url) => `<span class="lnk" data-url="${esc(url)}">${esc(label)} ↗</span>`;
+
+/* ---------- the catalogue ----------
+   suite: ind (people) | biz (companies & nonprofits)
+   fit: profile tags that make it a strong match (empty = worth checking for everyone in the suite)
+   risk (strategies only): 1 mainstream · 2 rules matter, get help · 3 audit magnet, pro only
+   chk: true where a rule was due to expire or change around now — confirm before relying on it  */
+const CATS = {
+  unclaimed: { suite: "ind", name: "Unclaimed money", icon: "🔎", blurb: "Money that is already yours and sitting somewhere: old accounts, refunds, pensions, bonds, insurance. Free to claim yourself." },
+  paysyou:   { suite: "ind", name: "Credits that pay you", icon: "🏛", blurb: "Refundable tax credits and government deposits: you can get them back as cash even if you owe no tax at all. This is the legal way the government ends up paying you." },
+  deduct:    { suite: "ind", name: "New deductions 2025–2028", icon: "🧾", blurb: "Deductions added by the 2025 tax law (One Big Beautiful Bill Act). Most run for tax years 2025 through 2028." },
+  invest:    { suite: "ind", name: "Free stock, bonuses & free returns", icon: "📈", blurb: "Sign-up stock, bank bonuses, employer matches and other money handed to you for doing simple things." },
+  strategy:  { suite: "ind", name: "Legal tax strategies", icon: "🧠", blurb: "The real 'loopholes': rules written into the tax code on purpose. Each shows how risky it is. Use a tax pro for anything marked 2 or 3." },
+  benefits:  { suite: "ind", name: "Benefits, aid & school money", icon: "🤝", blurb: "Programs that pay or cover costs: food, health, energy, phone, housing, college grants." },
+  grants:    { suite: "biz", name: "Grants", icon: "🎁", blurb: "Money you don't pay back. Federal grants mostly go to nonprofits, researchers and governments; for-profit companies do best with SBIR, USDA, state and private grants." },
+  bizcredit: { suite: "biz", name: "Business tax credits", icon: "🏭", blurb: "Credits cut tax dollar for dollar; some can be taken against payroll tax even with no profit." },
+  bizdeduct: { suite: "biz", name: "Write-offs & tax structure", icon: "📐", blurb: "Big deductions and structures that lower or delay business tax." },
+  funding:   { suite: "biz", name: "Funding & cheap loans", icon: "🏦", blurb: "Loans, guarantees and investment, from 0% microloans to venture capital." },
+  contracts: { suite: "biz", name: "Government contracts", icon: "📜", blurb: "Governments spend hundreds of billions a year buying from businesses, with set-asides for small firms." },
+  local:     { suite: "biz", name: "State & local incentives", icon: "📍", blurb: "Abatements, job credits, training money and rebates from your state, city and utility." }
+};
+
+const ITEMS = [
+/* ===== Unclaimed money ===== */
+{ id: "u-state", cat: "unclaimed", title: "State unclaimed property", value: "Often $50–$5,000+; 1 in 7 Americans has some",
+  what: "Old bank accounts, final paychecks, utility and rent deposits, insurance payouts, stock dividends, refunds. Companies must hand them to the state after a few years; the state holds them forever.",
+  how: ["Search MissingMoney (covers most states) and your state's own site (via unclaimed.org).", "Search every state you've lived or worked in, every name you've used (maiden name, misspellings, initials), and your business names.", "Search for parents or grandparents who died: heirs can claim.", "Claiming is free. Ignore letters asking for a fee or a cut."],
+  links: [["MissingMoney", "https://www.missingmoney.com/"], ["Your state's site (NAUPA map)", "https://unclaimed.org/"]], fit: [] },
+{ id: "u-treas", cat: "unclaimed", title: "Treasury Hunt: savings bonds & held payments", value: "Savings bonds stop earning after 30 years but stay cashable",
+  what: "Matured US savings bonds nobody cashed (from 1974 on) and Treasury payments that couldn't be delivered.",
+  how: ["Search by Social Security number on Treasury Hunt.", "For a deceased relative's bonds, have their SSN and death certificate.", "Paper bonds you find at home can be cashed at many banks or through TreasuryDirect."],
+  links: [["Treasury Hunt", "https://www.treasurydirect.gov/savings-bonds/treasury-hunt/"]], fit: ["relative"] },
+{ id: "u-irs", cat: "unclaimed", title: "Unclaimed IRS refunds (didn't file)", value: "Average unclaimed refund is often over $700; EITC can make it thousands",
+  what: "If tax was withheld from your pay, or you qualified for refundable credits, and you never filed, the refund is waiting. You only have 3 years from the return's due date to claim it.",
+  how: ["File the missing year's return (old-year forms are on IRS.gov).", "Get your old W-2s with an IRS transcript (Get Transcript).", "Free help: VITA sites prepare back returns too."],
+  links: [["Where's My Refund", "https://www.irs.gov/refunds"], ["Get Transcript", "https://www.irs.gov/individuals/get-transcript"]], fit: ["lowinc"] },
+{ id: "u-pension", cat: "unclaimed", title: "Forgotten pensions (PBGC)", value: "Monthly payments for life, sometimes back-pay",
+  what: "If a past employer's pension plan ended or was taken over, PBGC may owe you or a deceased relative.",
+  how: ["Search PBGC's unclaimed pensions list by name and old employer.", "Also check the Labor Department's Retirement Savings Lost and Found."],
+  links: [["PBGC search", "https://www.pbgc.gov/search-unclaimed-pensions"], ["DOL Lost and Found", "https://lostandfound.dol.gov/"]], fit: ["senior", "relative", "employed"] },
+{ id: "u-401k", cat: "unclaimed", title: "Old 401(k)s from past jobs", value: "Whatever is in it — often thousands",
+  what: "Small balances get moved to IRAs in your name you may not know about.",
+  how: ["Search the National Registry of Unclaimed Retirement Benefits and DOL Lost and Found.", "Call old employers' HR; ask for the plan administrator.", "Roll it into your current plan or an IRA so you can track it."],
+  links: [["National Registry", "https://www.unclaimedretirementbenefits.com/"], ["DOL Lost and Found", "https://lostandfound.dol.gov/"]], fit: ["employed"] },
+{ id: "u-life", cat: "unclaimed", title: "Life insurance & annuities of relatives", value: "Policies are often $10,000+",
+  what: "Many policies are never claimed because the family didn't know they existed.",
+  how: ["Use the free NAIC Life Insurance Policy Locator after a death.", "For veterans, check VA unclaimed insurance funds."],
+  links: [["NAIC Policy Locator", "https://content.naic.org/life-policy-locator"], ["VA unclaimed insurance", "https://www.benefits.va.gov/insurance/unclaimed-liabilities.asp"]], fit: ["relative", "veteran"] },
+{ id: "u-fha", cat: "unclaimed", title: "FHA mortgage insurance refund", value: "Hundreds to a few thousand dollars",
+  what: "If you paid off an FHA loan taken out before Dec 8, 2004, you may be owed part of the up-front mortgage insurance.",
+  how: ["Search HUD's refund lookup by case number or name."],
+  links: [["HUD refund lookup", "https://entp.hud.gov/sfnw/public/"]], fit: ["owner"] },
+{ id: "u-class", cat: "unclaimed", title: "Class actions & FTC refunds", value: "$5 to hundreds per claim; adds up",
+  what: "Companies that settle lawsuits pay people who bought their products — often no receipt needed.",
+  how: ["Check open settlements weekly and file the ones you fit.", "The FTC lists refund programs from its cases.", "Use only the official settlement site named in court papers."],
+  links: [["FTC refunds", "https://www.ftc.gov/enforcement/refunds"], ["Open class actions list", "https://topclassactions.com/category/lawsuit-settlements/open-lawsuit-settlements/"]], fit: [] },
+{ id: "u-ss", cat: "unclaimed", title: "Excess Social Security tax (2+ jobs)", value: "Up to several thousand dollars", ref: true,
+  what: "If you had two or more employers in one year and together they withheld Social Security tax on more than the yearly wage cap, the extra comes back as a credit.",
+  how: ["Add up Social Security tax (W-2 box 4) from all employers.", "If above the cap for that year, claim the excess on Schedule 3."],
+  links: [["IRS: excess SS tax", "https://www.irs.gov/taxtopics/tc608"]], fit: ["employed"] },
+
+/* ===== Credits that pay you ===== */
+{ id: "p-eitc", cat: "paysyou", title: "Earned Income Tax Credit (EITC)", value: "About $650 with no kids up to $8,000+ with 3+ kids", ref: true,
+  what: "The biggest program where the government pays working people. Fully refundable: you get it in cash even if you owe nothing. About 1 in 5 who qualify never claim it.",
+  how: ["You need earned income (a job or self-employment) under the yearly limit.", "Use the IRS EITC Assistant to check.", "Many states add their own EITC on top."],
+  links: [["EITC Assistant", "https://www.irs.gov/credits-deductions/individuals/earned-income-tax-credit/use-the-eitc-assistant"]], fit: ["lowinc", "kids", "selfemp"] },
+{ id: "p-ctc", cat: "paysyou", title: "Child Tax Credit", value: "$2,200 per child under 17; up to $1,700 of it refundable", ref: true,
+  what: "Raised to $2,200 by the 2025 law and indexed to inflation. The refundable part (Additional Child Tax Credit) pays even if you owe no tax, once you earn over $2,500.",
+  how: ["Each child needs a Social Security number.", "Claim on your return; Schedule 8812 figures the refundable part.", "Also check Credit for Other Dependents ($500) for older kids and relatives."],
+  links: [["IRS Child Tax Credit", "https://www.irs.gov/credits-deductions/individuals/child-tax-credit"]], fit: ["kids", "baby"] },
+{ id: "p-trump", cat: "paysyou", title: "Trump Account: $1,000 for newborns", value: "$1,000 deposited by the Treasury", ref: true, chk: true,
+  what: "Children who are US citizens born from 2025 through 2028 can get a one-time $1,000 government deposit into a new child investment account. Parents, employers (up to $2,500 a year tax-free) and others can add more.",
+  how: ["Elect the account for your child with your tax return or the official site.", "Confirm current steps on IRS.gov — the program is new."],
+  links: [["IRS search: Trump accounts", "https://www.irs.gov/site-index-search?search=trump+accounts"]], fit: ["baby"] },
+{ id: "p-aotc", cat: "paysyou", title: "American Opportunity Credit (college)", value: "Up to $2,500 per student; $1,000 of it refundable", ref: true,
+  what: "For the first four years of college. 40% is paid out even if you owe no tax.",
+  how: ["Get Form 1098-T from the school.", "Claim on Form 8863. Pell grant planning can increase it — ask a VITA preparer."],
+  links: [["IRS AOTC", "https://www.irs.gov/credits-deductions/individuals/aotc"]], fit: ["student", "kids"] },
+{ id: "p-ptc", cat: "paysyou", title: "Premium Tax Credit (health insurance)", value: "Can cover most of a marketplace plan", ref: true, chk: true,
+  what: "Pays part of your health insurance premium every month if you buy through the Marketplace. The extra-large subsidies of 2021–2025 were set to end after 2025 unless Congress extended them — check what applies this year.",
+  how: ["Shop at HealthCare.gov or your state's marketplace during open enrollment (or after a life change).", "Estimate income carefully; it's settled on your tax return."],
+  links: [["HealthCare.gov", "https://www.healthcare.gov/"]], fit: ["selfemp", "lowinc"] },
+{ id: "p-savers", cat: "paysyou", title: "Saver's Credit → Saver's Match", value: "Up to $1,000 ($2,000 joint)",
+  what: "Today the Saver's Credit cuts tax by 10–50% of up to $2,000 you put in retirement. From tax year 2027 it becomes the Saver's Match: the government deposits up to $1,000 straight into your retirement account.",
+  how: ["Contribute to a 401(k), IRA or similar.", "Claim on Form 8880 if your income is under the limit."],
+  links: [["IRS Saver's Credit", "https://www.irs.gov/retirement-plans/plan-participant-employee/retirement-savings-contributions-savers-credit"]], fit: ["lowinc", "employed"] },
+{ id: "p-state", cat: "paysyou", title: "State credits & rebates", value: "Varies: hundreds to thousands",
+  what: "Many states have their own EITC, child credit, renter's credit, property tax rebate or homestead credit. Some pay renters and seniors who don't even have to file a federal return.",
+  how: ["Look up your state's credits.", "Search '<your state> renter's credit' and '<your state> property tax rebate'."],
+  links: [["State credits list", "https://www.taxcreditsforworkersandfamilies.org/state-tax-credits/"]], fit: ["renter", "senior", "lowinc", "kids", "owner"] },
+{ id: "p-free", cat: "paysyou", title: "Free tax filing so you keep it all", value: "Saves $100–$400 a year in prep fees",
+  what: "VITA and TCE volunteers prepare returns free for moderate incomes, seniors, disabled people and limited-English speakers. IRS Free File gives free software; MilTax is free for military.",
+  how: ["Find a VITA/TCE site near you (Jan–Apr, some year-round).", "Bring ID, SSN cards, all W-2/1099s and last year's return."],
+  links: [["Find VITA/TCE", "https://www.irs.gov/individuals/free-tax-return-preparation-for-qualifying-taxpayers"], ["IRS Free File", "https://www.irs.gov/filing/irs-free-file-do-your-taxes-for-free"]], fit: [] },
+
+/* ===== New deductions ===== */
+{ id: "d-tips", cat: "deduct", title: "No tax on tips", value: "Deduct up to $25,000 of tips a year (2025–2028)",
+  what: "Workers in jobs that customarily get tips can deduct qualified cash and card tips, whether or not they itemize. Phases out above $150,000 income ($300,000 joint).",
+  how: ["Make sure tips are reported (W-2, 1099 or your own records).", "Claim on the new Schedule 1-A."],
+  links: [["IRS: tips & overtime", "https://www.irs.gov/newsroom/one-big-beautiful-bill-provisions"]], fit: ["tips"] },
+{ id: "d-ot", cat: "deduct", title: "No tax on overtime", value: "Deduct up to $12,500 ($25,000 joint), 2025–2028",
+  what: "Deducts the 'half' part of time-and-a-half overtime required by federal law. Same income phase-out as tips.",
+  how: ["Check the overtime premium shown by your employer.", "Claim on Schedule 1-A."],
+  links: [["IRS: OBBB provisions", "https://www.irs.gov/newsroom/one-big-beautiful-bill-provisions"]], fit: ["overtime"] },
+{ id: "d-car", cat: "deduct", title: "Car loan interest deduction", value: "Deduct up to $10,000 of interest a year (2025–2028)",
+  what: "For a loan on a new car, SUV, van or truck for personal use, bought after 2024, with final assembly in the US. Phases out above $100,000 ($200,000 joint).",
+  how: ["Check the VIN for US final assembly.", "Keep the lender's interest statement; claim on Schedule 1-A."],
+  links: [["IRS: OBBB provisions", "https://www.irs.gov/newsroom/one-big-beautiful-bill-provisions"]], fit: ["carloan"] },
+{ id: "d-senior", cat: "deduct", title: "Senior bonus deduction", value: "Extra $6,000 per person 65+ (2025–2028)",
+  what: "On top of the regular extra standard deduction for age. Phases out above $75,000 ($150,000 joint).",
+  how: ["Automatic if you're 65+ and under the limit — make sure your software applies it."],
+  links: [["IRS: OBBB provisions", "https://www.irs.gov/newsroom/one-big-beautiful-bill-provisions"]], fit: ["senior"] },
+{ id: "d-salt", cat: "deduct", title: "Bigger SALT deduction", value: "Cap raised from $10,000 to $40,000 (2025, then +1% a year)",
+  what: "If you itemize, you can deduct much more state income and property tax. Reduced for incomes over $500,000.",
+  how: ["Compare itemizing against the standard deduction again this year."],
+  links: [["IRS: OBBB provisions", "https://www.irs.gov/newsroom/one-big-beautiful-bill-provisions"]], fit: ["owner"] },
+{ id: "d-char", cat: "deduct", title: "Charity deduction without itemizing", value: "Up to $1,000 ($2,000 joint) from 2026",
+  what: "Cash gifts to qualified charities can be deducted even if you take the standard deduction.",
+  how: ["Keep receipts; gifts to donor-advised funds don't count for this one."],
+  links: [["IRS: OBBB provisions", "https://www.irs.gov/newsroom/one-big-beautiful-bill-provisions"]], fit: [] },
+
+/* ===== Free stock, bonuses ===== */
+{ id: "i-match", cat: "invest", title: "Employer 401(k) match", value: "Often 3–6% of pay — a 50–100% instant return",
+  what: "The best free money most workers leave on the table. If you don't put in enough to get the full match, you lose it.",
+  how: ["Ask HR for the match formula and vesting schedule.", "Set your contribution to at least the full match."],
+  links: [], fit: ["employed"] },
+{ id: "i-hsa", cat: "invest", title: "HSA: employer money + triple tax break", value: "Employer deposits often $500–$1,500; tax-free in, growth and out",
+  what: "With a high-deductible health plan, an HSA is the only account that is never taxed when used for medical costs. Many employers add money for free.",
+  how: ["Pick the HSA-eligible plan at open enrollment if it fits your health needs.", "Invest the balance; keep receipts to reimburse yourself later."],
+  links: [["IRS Pub 969", "https://www.irs.gov/publications/p969"]], fit: ["employed", "selfemp"] },
+{ id: "i-espp", cat: "invest", title: "Employee stock purchase plan (ESPP)", value: "Buy company stock at up to 15% off",
+  what: "Many public companies let staff buy shares at a discount, sometimes off the lower of two prices.",
+  how: ["Enroll in the offering period.", "Selling soon after purchase locks in the discount and limits risk."],
+  links: [], fit: ["employed"] },
+{ id: "i-freestock", cat: "invest", title: "Free stock for opening a brokerage account", value: "Usually $5–$200+ in stock per offer",
+  what: "Several app brokers give a free share or stock credit for opening or funding an account, and for referrals. Offers change monthly.",
+  how: ["Read the terms: how long you must keep the account and any minimum deposit.", "Check that the broker is SIPC-protected and FINRA-registered (BrokerCheck).", "Never move money because of a text or social-media DM."],
+  links: [["FINRA BrokerCheck", "https://brokercheck.finra.org/"], ["Offer tracker (Doctor of Credit)", "https://www.doctorofcredit.com/"]], fit: ["investor"] },
+{ id: "i-bank", cat: "invest", title: "Bank & credit union account bonuses", value: "$100–$500+ per account, often more for business accounts",
+  what: "Banks pay cash to open an account and set up direct deposit for a few months.",
+  how: ["Pick offers with no or avoidable monthly fees.", "Track the deadlines in this tab's Tracker.", "Bonuses are taxable interest (1099-INT)."],
+  links: [["Bank bonus list", "https://www.doctorofcredit.com/best-bank-account-bonuses/"]], fit: [] },
+{ id: "i-cards", cat: "invest", title: "Credit card sign-up bonuses", value: "$200–$1,000+ in cash or points",
+  what: "Real money if you pay in full every month; a trap if you carry a balance.",
+  how: ["Only spend what you'd spend anyway; pay the full balance.", "Watch annual fees."],
+  links: [["CFPB card agreements", "https://www.consumerfinance.gov/credit-cards/agreements/"]], fit: [] },
+{ id: "i-treasury", cat: "invest", title: "Treasury bills, I bonds & high-yield savings", value: "Safe yield; Treasuries skip state income tax",
+  what: "Not free money, but the safest way to make idle cash pay you instead of the bank.",
+  how: ["Buy T-bills or I bonds at TreasuryDirect, or T-bills through a broker.", "Compare against high-yield savings."],
+  links: [["TreasuryDirect", "https://www.treasurydirect.gov/"]], fit: ["investor"] },
+{ id: "i-rebates", cat: "invest", title: "Utility & manufacturer rebates", value: "$25–$1,000+ on appliances, thermostats, heat pumps",
+  what: "Utilities and states still pay rebates for efficient equipment even where federal home energy credits ended after 2025.",
+  how: ["Check your utility's rebate page before you buy.", "Search DSIRE for your state's programs."],
+  links: [["DSIRE incentives", "https://www.dsireusa.org/"]], fit: ["owner", "renter"] },
+
+/* ===== Legal strategies ===== */
+{ id: "s-roth", cat: "strategy", risk: 1, title: "Roth IRA, backdoor Roth & mega backdoor", value: "Growth is never taxed again",
+  what: "Roth money grows and comes out tax-free. High earners can use the 'backdoor' (non-deductible IRA then convert); some 401(k)s allow after-tax contributions converted to Roth (mega backdoor).",
+  how: ["Contribute directly if under the income limit.", "Backdoor: watch the pro-rata rule if you have other IRA money."],
+  links: [["IRS Roth IRAs", "https://www.irs.gov/retirement-plans/roth-iras"]], fit: ["employed", "investor"] },
+{ id: "s-0cg", cat: "strategy", risk: 1, title: "0% capital gains bracket", value: "Sell gains with $0 federal tax",
+  what: "Long-term gains are taxed at 0% while taxable income stays under about $48,000 single / $97,000 joint (2025; a bit higher each year). Retirees and low-income years can 'harvest' gains tax-free and reset the cost basis.",
+  how: ["Estimate taxable income for the year.", "Sell and immediately rebuy (no wash rule for gains) up to the limit."],
+  links: [["IRS capital gains", "https://www.irs.gov/taxtopics/tc409"]], fit: ["investor", "senior", "lowinc"] },
+{ id: "s-tlh", cat: "strategy", risk: 1, title: "Tax-loss harvesting", value: "Offset gains plus $3,000 of other income a year",
+  what: "Selling losers cancels gains; extra losses carry forward forever.",
+  how: ["Don't rebuy the same or a 'substantially identical' investment within 30 days (wash sale)."],
+  links: [["IRS Pub 550", "https://www.irs.gov/publications/p550"]], fit: ["investor"] },
+{ id: "s-529", cat: "strategy", risk: 1, title: "529 plans & 529-to-Roth rollover", value: "Tax-free school money; leftover up to $35,000 can move to a Roth",
+  what: "Many states also give a state tax deduction for 529 deposits. The 2025 law widened what K-12 and job-training costs count.",
+  how: ["Use your state's plan if it gives a deduction.", "Rollover needs the account to be 15+ years old."],
+  links: [["IRS 529", "https://www.irs.gov/newsroom/529-plans-questions-and-answers"]], fit: ["kids", "baby", "student"] },
+{ id: "s-home", cat: "strategy", risk: 1, title: "Home sale exclusion", value: "$250,000 ($500,000 joint) of profit tax-free",
+  what: "If you owned and lived in the home 2 of the last 5 years.",
+  how: ["Keep records of improvements; they raise your basis too."],
+  links: [["IRS Pub 523", "https://www.irs.gov/publications/p523"]], fit: ["owner"] },
+{ id: "s-aug", cat: "strategy", risk: 2, title: "Rent your home 14 days or less (\"Augusta rule\")", value: "Rent received is tax-free",
+  what: "Section 280A(g): renting your home for 14 or fewer days a year isn't taxable income. If your own business rents it for real meetings, the business may deduct fair rent.",
+  how: ["Charge a documented fair-market rate (compare local venues).", "Keep agendas, minutes and invoices. Fake meetings are a common audit target."],
+  links: [["IRS Pub 527", "https://www.irs.gov/publications/p527"]], fit: ["owner", "selfemp"] },
+{ id: "s-kids", cat: "strategy", risk: 2, title: "Hire your kids in your business", value: "Wages up to the standard deduction can be income-tax-free",
+  what: "A sole proprietor (or parent-only partnership) paying children under 18 for real work owes no Social Security/Medicare on those wages. Kids can put the earnings in a Roth IRA.",
+  how: ["Real work, reasonable pay, timesheets, W-2.", "Doesn't work the same way for S- or C-corporations."],
+  links: [["IRS family employees", "https://www.irs.gov/businesses/small-businesses-self-employed/family-help"]], fit: ["selfemp", "kids"] },
+{ id: "s-qcd", cat: "strategy", risk: 1, title: "Giving from your IRA (QCD) & giving stock", value: "Give to charity tax-free from income",
+  what: "At 70½+, send IRA money straight to charity (counts toward required withdrawals, not taxed). At any age, give appreciated stock instead of cash: no capital gains tax and a full deduction if you itemize.",
+  how: ["Your IRA custodian sends the check directly to the charity."],
+  links: [["IRS QCD", "https://www.irs.gov/retirement-plans/retirement-plans-faqs-regarding-iras-distributions-withdrawals"]], fit: ["senior", "investor"] },
+{ id: "s-oz", cat: "strategy", risk: 2, title: "Opportunity Zones", value: "Deferred gains, and no tax on growth after 10 years",
+  what: "Reinvest capital gains into a Qualified Opportunity Fund. Made permanent in 2025 with new rolling zones starting 2027.",
+  how: ["Invest within 180 days of the sale.", "Vet the fund carefully; returns aren't guaranteed."],
+  links: [["IRS Opportunity Zones", "https://www.irs.gov/credits-deductions/businesses/opportunity-zones"]], fit: ["investor"] },
+{ id: "s-1031", cat: "strategy", risk: 2, title: "1031 exchange (real estate)", value: "Defer all gain when swapping investment property",
+  what: "Sell rental or business real estate and buy more; the tax waits. Held until death, heirs get a stepped-up basis.",
+  how: ["Use a qualified intermediary; identify in 45 days, close in 180."],
+  links: [["IRS like-kind", "https://www.irs.gov/businesses/small-businesses-self-employed/like-kind-exchanges-real-estate-tax-tips"]], fit: ["owner", "investor"] },
+{ id: "s-str", cat: "strategy", risk: 3, title: "Short-term rental & real estate pro status", value: "Paper losses can offset wages",
+  what: "Rentals with average stays of 7 days or less where you materially participate, or qualifying as a real estate professional (750+ hours), can let depreciation losses offset other income. Often paired with cost segregation.",
+  how: ["Keep a contemporaneous hours log.", "Use a CPA; this is heavily audited."],
+  links: [["IRS Pub 925", "https://www.irs.gov/publications/p925"]], fit: ["owner", "investor"] },
+
+/* ===== Benefits ===== */
+{ id: "b-finder", cat: "benefits", title: "Benefit finder & 211", value: "Find every program at once",
+  what: "USA.gov's benefit finder asks a few questions and lists federal programs. 211 connects you to local help (rent, utilities, food).",
+  how: ["Run the finder, then call or text 211."],
+  links: [["USA.gov benefit finder", "https://www.usa.gov/benefit-finder"], ["211", "https://www.211.org/"]], fit: [] },
+{ id: "b-snap", cat: "benefits", title: "SNAP & WIC (food)", value: "Hundreds a month for a family",
+  what: "SNAP loads money on an EBT card; WIC covers food and formula for pregnant women and kids under 5.",
+  how: ["Apply through your state agency."],
+  links: [["SNAP state directory", "https://www.fns.usda.gov/snap/state-directory"], ["WIC", "https://www.fns.usda.gov/wic"]], fit: ["lowinc", "kids", "baby"] },
+{ id: "b-health", cat: "benefits", title: "Medicaid, CHIP & Medicare help", value: "Free or low-cost health care; Medicare premium help",
+  what: "Medicaid/CHIP for low income and kids. Medicare Savings Programs and Extra Help can pay Medicare premiums and drug costs for seniors.",
+  how: ["Apply through HealthCare.gov or your state.", "Seniors: ask your state's SHIP counselor (free)."],
+  links: [["Medicaid", "https://www.medicaid.gov/"], ["Medicare Savings Programs", "https://www.medicare.gov/basics/costs/help/medicare-savings-programs"]], fit: ["lowinc", "kids", "senior"] },
+{ id: "b-energy", cat: "benefits", title: "LIHEAP energy help & Lifeline phone", value: "Hundreds off heating/cooling; $9.25+/month off phone or internet",
+  what: "LIHEAP pays heating and cooling bills; Lifeline discounts phone or broadband.",
+  how: ["Apply to LIHEAP through your state; Lifeline through the National Verifier."],
+  links: [["LIHEAP", "https://www.acf.hhs.gov/ocs/programs/liheap"], ["Lifeline", "https://www.lifelinesupport.org/"]], fit: ["lowinc", "renter", "senior"] },
+{ id: "b-pell", cat: "benefits", title: "FAFSA, Pell grants & scholarships", value: "Pell up to about $7,400 a year, free",
+  what: "The FAFSA unlocks Pell grants, state grants, work-study and most school aid. Free scholarship search engines add more. Never pay for a scholarship list.",
+  how: ["File the FAFSA as soon as it opens (Oct 1).", "Search the free CareerOneStop scholarship finder."],
+  links: [["FAFSA", "https://studentaid.gov/h/apply-for-aid/fafsa"], ["Scholarship finder", "https://www.careeronestop.org/toolkit/training/find-scholarships.aspx"]], fit: ["student", "kids"] },
+{ id: "b-vet", cat: "benefits", title: "Veteran benefits", value: "Disability pay, GI Bill, home loan, pension",
+  what: "Disability compensation is tax-free. Many states add property tax breaks for disabled veterans.",
+  how: ["File through VA.gov or a free accredited VSO (never pay to file)."],
+  links: [["VA.gov", "https://www.va.gov/"]], fit: ["veteran"] },
+
+/* ===== Grants ===== */
+{ id: "g-grantsgov", cat: "grants", title: "Grants.gov (all federal grants)", value: "Thousands of programs, $5,000 to millions",
+  what: "Every federal grant is listed here. Most go to nonprofits, schools, tribes and governments; for-profits qualify for a smaller set.",
+  how: ["Register in SAM.gov first (free, can take weeks).", "Filter by eligibility and set saved-search alerts."],
+  links: [["Grants.gov search", "https://www.grants.gov/search-grants"]], fit: ["nonprofit"] },
+{ id: "g-sbir", cat: "grants", title: "SBIR / STTR — America's Seed Fund", value: "Phase I ~$50k–$300k, Phase II up to ~$2M; no equity taken", chk: true,
+  what: "Federal R&D money for US small businesses (under 500 people) building new technology. The best non-dilutive startup funding there is. Program authority lapsed on Oct 1, 2025 pending reauthorization — check current status on SBIR.gov.",
+  how: ["Read agency topics (DoD, NIH, NSF, DOE, NASA, USDA…).", "NSF lets you send a short Project Pitch first.", "Get free help from your state's SBIR support office."],
+  links: [["SBIR.gov", "https://www.sbir.gov/"]], fit: ["rnd", "startup"] },
+{ id: "g-usda", cat: "grants", title: "USDA rural business grants", value: "$10k–$1M+",
+  what: "Rural Business Development Grants, Value-Added Producer Grants for farmers, and REAP for renewable energy and efficiency in rural businesses.",
+  how: ["Call your state USDA Rural Development office before applying."],
+  links: [["USDA RD programs", "https://www.rd.usda.gov/programs-services/business-programs"]], fit: ["rural", "energy"] },
+{ id: "g-private", cat: "grants", title: "Private small-business grants", value: "$1,000–$50,000",
+  what: "Corporate and foundation grants, many for women, minority or veteran owners: Amber Grant, Hello Alice programs, NASE growth grants and others.",
+  how: ["Apply to several; they're contests.", "Never pay an application fee over a few dollars, and never pay a 'processing fee' after winning."],
+  links: [["Amber Grant", "https://ambergrantsforwomen.com/"], ["Hello Alice", "https://helloalice.com/grants/"]], fit: ["women", "minority", "vet", "startup"] },
+{ id: "g-found", cat: "grants", title: "Foundation grants (nonprofits)", value: "Billions a year",
+  what: "Private and community foundations fund nonprofits. Candid's database shows who funds what.",
+  how: ["Use free Candid access at many public libraries.", "Start with your local community foundation."],
+  links: [["Candid", "https://candid.org/"]], fit: ["nonprofit"] },
+{ id: "g-research", cat: "grants", title: "Research agencies: NSF, NIH, DOE", value: "$50k to millions",
+  what: "Beyond SBIR, these fund universities, nonprofits and some companies directly.",
+  how: ["Partner with a university for STTR or subawards."],
+  links: [["NSF funding", "https://www.nsf.gov/funding"], ["NIH grants", "https://grants.nih.gov/"]], fit: ["rnd", "nonprofit"] },
+{ id: "g-train", cat: "grants", title: "Workforce training grants", value: "Often 50–100% of training costs",
+  what: "States and local workforce boards pay to train new and current workers (WIOA, incumbent worker training, apprenticeships).",
+  how: ["Call your local American Job Center's business services team."],
+  links: [["Find an American Job Center", "https://www.careeronestop.org/LocalHelp/AmericanJobCenters/find-american-job-centers.aspx"], ["Apprenticeship.gov", "https://www.apprenticeship.gov/"]], fit: ["employees", "hiring"] },
+
+/* ===== Business credits ===== */
+{ id: "c-rd", cat: "bizcredit", title: "R&D tax credit (§41) + payroll offset", value: "Typically 6–10% of qualified R&D spend; startups can use up to $500,000 a year against payroll tax", ref: true,
+  what: "Covers wages, supplies and contract research for developing new or better products, software or processes — far broader than lab work. Startups with under $5M receipts can apply it to payroll tax even with no profit. Since 2025, domestic R&D costs can again be deducted immediately (§174A).",
+  how: ["Track who worked on what, and the technical uncertainty they solved.", "Claim on Form 6765; elect the payroll offset on a timely filed return."],
+  links: [["IRS R&D credit", "https://www.irs.gov/businesses/research-credit"]], fit: ["rnd", "startup"] },
+{ id: "c-wotc", cat: "bizcredit", title: "Work Opportunity Tax Credit (WOTC)", value: "$1,200–$9,600 per eligible hire", chk: true,
+  what: "For hiring veterans, SNAP recipients, ex-felons, long-term unemployed and others. Was authorized for hires through Dec 31, 2025 — check whether it was extended.",
+  how: ["Have new hires fill Form 8850 on or before the job offer.", "File it with your state workforce agency within 28 days of the start date."],
+  links: [["DOL WOTC", "https://www.dol.gov/agencies/eta/wotc"]], fit: ["hiring", "employees"] },
+{ id: "c-retire", cat: "bizcredit", title: "Start a retirement plan credits", value: "Up to $5,000/yr for 3 years + $500 auto-enroll + up to $1,000 per employee", ref: false,
+  what: "Small employers (up to 100 staff) get most of the cost of starting a 401(k), SIMPLE or SEP paid back, plus a credit for employer contributions.",
+  how: ["Claim on Form 8881."],
+  links: [["IRS startup credit", "https://www.irs.gov/retirement-plans/retirement-plans-startup-costs-tax-credit"]], fit: ["employees"] },
+{ id: "c-health", cat: "bizcredit", title: "Small business health care credit", value: "Up to 50% of premiums you pay (35% for nonprofits)",
+  what: "Under 25 full-time-equivalent staff with average wages under the limit, buying through SHOP. Two consecutive years.",
+  how: ["Form 8941."],
+  links: [["IRS 45R", "https://www.irs.gov/affordable-care-act/employers/small-business-health-care-tax-credit-and-the-shop-marketplace"]], fit: ["employees"] },
+{ id: "c-child", cat: "bizcredit", title: "Employer child care credit (§45F)", value: "From 2026: 40% (50% small business) of costs, up to $500,000 ($600,000 small)",
+  what: "For providing or paying for child care for employees. Greatly expanded by the 2025 law.",
+  how: ["Form 8882."],
+  links: [["IRS Form 8882", "https://www.irs.gov/forms-pubs/about-form-8882"]], fit: ["employees"] },
+{ id: "c-leave", cat: "bizcredit", title: "Paid family & medical leave credit (§45S)", value: "12.5–25% of wages paid during leave",
+  what: "Made permanent in 2025. For written policies giving at least 2 weeks paid leave at 50%+ of pay.",
+  how: ["Write the policy; claim on Form 8994."],
+  links: [["IRS 45S", "https://www.irs.gov/newsroom/employer-tax-credit-for-employee-paid-family-and-medical-leave"]], fit: ["employees"] },
+{ id: "c-access", cat: "bizcredit", title: "Disabled access credit", value: "Up to $5,000 a year",
+  what: "50% of $250–$10,250 spent making your business accessible (ramps, software, interpreters).",
+  how: ["Small businesses: under $1M receipts or 30 staff. Form 8826."],
+  links: [["IRS Form 8826", "https://www.irs.gov/forms-pubs/about-form-8826"]], fit: [] },
+{ id: "c-fuel", cat: "bizcredit", title: "Fuel tax credit (off-highway use)", value: "Federal fuel tax back on fuel used off road",
+  what: "Farm equipment, generators, forklifts and other off-highway business use.",
+  how: ["Form 4136."],
+  links: [["IRS fuel tax credit", "https://www.irs.gov/credits-deductions/businesses/fuel-tax-credit"]], fit: ["rural"] },
+
+/* ===== Write-offs ===== */
+{ id: "w-bonus", cat: "bizdeduct", title: "100% bonus depreciation & Section 179", value: "Deduct the full cost of equipment in year one",
+  what: "The 2025 law made 100% bonus depreciation permanent for property acquired after Jan 19, 2025, and raised Section 179 to $2.5M.",
+  how: ["Time big purchases for years with high profit.", "Vehicles have special limits."],
+  links: [["IRS Pub 946", "https://www.irs.gov/publications/p946"]], fit: [] },
+{ id: "w-qbi", cat: "bizdeduct", title: "20% QBI deduction", value: "Deduct 20% of pass-through profit",
+  what: "Sole props, partnerships and S-corps. Made permanent in 2025.",
+  how: ["Higher earners in service fields hit limits; plan wages and property."],
+  links: [["IRS QBI", "https://www.irs.gov/newsroom/qualified-business-income-deduction"]], fit: ["selfemp"] },
+{ id: "w-scorp", cat: "bizdeduct", title: "S-corporation election", value: "Saves self-employment tax on profit above a reasonable salary",
+  what: "Usually worth it once profit is steady at roughly $50,000–$80,000+. Pay yourself a reasonable salary; the rest comes as distributions without the 15.3% tax.",
+  how: ["Form 2553. Adds payroll and a separate return — get a CPA's numbers first."],
+  links: [["IRS S corporations", "https://www.irs.gov/businesses/small-businesses-self-employed/s-corporations"]], fit: ["selfemp"] },
+{ id: "w-qsbs", cat: "bizdeduct", title: "QSBS (§1202): tax-free startup exit", value: "Up to $15M of gain (or 10× basis) tax-free",
+  what: "Founders and investors in C-corporations with under $75M assets. For stock issued after July 4, 2025: 50% excluded at 3 years, 75% at 4, 100% at 5.",
+  how: ["Incorporate as a C-corp early; keep records of issue dates and asset tests."],
+  links: [["IRC §1202", "https://www.law.cornell.edu/uscode/text/26/1202"]], fit: ["startup"] },
+{ id: "w-solo401k", cat: "bizdeduct", title: "Solo 401(k) / SEP for the self-employed", value: "Shelter up to roughly $70,000+ a year",
+  what: "Put both the 'employee' and 'employer' share away; also lowers income for EITC, ACA and QBI purposes.",
+  how: ["Open by Dec 31 for employee deferrals (SEP can wait until filing)."],
+  links: [["IRS one-participant 401(k)", "https://www.irs.gov/retirement-plans/one-participant-401k-plans"]], fit: ["selfemp"] },
+{ id: "w-home", cat: "bizdeduct", title: "Home office, vehicle & health insurance", value: "Thousands a year for many sole owners",
+  what: "Simplified home office ($5 per sq ft up to 300 sq ft), business miles at the IRS rate, and self-employed health insurance premiums.",
+  how: ["Use a mileage log app; keep receipts."],
+  links: [["IRS home office", "https://www.irs.gov/businesses/small-businesses-self-employed/home-office-deduction"]], fit: ["selfemp"] },
+
+/* ===== Funding ===== */
+{ id: "f-sba", cat: "funding", title: "SBA loans: 7(a), 504, Microloans", value: "Microloans to $50k; 7(a) to $5M; 504 to $5.5M",
+  what: "Government-guaranteed loans with longer terms and lower down payments than normal bank loans.",
+  how: ["Use SBA Lender Match to get contacted by lenders.", "Free help writing the plan from SCORE and Small Business Development Centers."],
+  links: [["SBA Lender Match", "https://www.sba.gov/funding-programs/loans/lender-match"], ["Find SBDC/SCORE", "https://www.sba.gov/local-assistance"]], fit: ["startup"] },
+{ id: "f-kiva", cat: "funding", title: "Kiva 0% loans & CDFIs", value: "Kiva: up to $15,000 at 0%",
+  what: "Kiva crowdfunds 0% loans. Community Development Financial Institutions lend where banks won't.",
+  how: ["Kiva needs friends-and-family lenders first.", "Find a CDFI near you."],
+  links: [["Kiva US", "https://www.kiva.org/borrow"], ["Find a CDFI", "https://www.ofn.org/cdfi-locator/"]], fit: ["startup", "minority", "women"] },
+{ id: "f-crowd", cat: "funding", title: "Crowdfunding (rewards & equity)", value: "Equity crowdfunding up to $5M a year",
+  what: "Kickstarter-style pre-sales, or Regulation Crowdfunding where your customers become investors.",
+  how: ["Use a FINRA-registered funding portal for equity."],
+  links: [["SEC Reg CF", "https://www.sec.gov/resources-small-businesses/exempt-offerings/regulation-crowdfunding"]], fit: ["startup"] },
+{ id: "f-ssbci", cat: "funding", title: "State small business credit & venture programs (SSBCI)", value: "Varies by state",
+  what: "Federal money given to states for loan guarantees, collateral support and venture funds.",
+  how: ["Search your state's SSBCI program."],
+  links: [["Treasury SSBCI", "https://home.treasury.gov/policy-issues/small-business-programs/state-small-business-credit-initiative-ssbci"]], fit: ["startup"] },
+{ id: "f-vc", cat: "funding", title: "Accelerators, pitch contests, angels & VC", value: "$10k–millions (for equity, or free for contests)",
+  what: "Pitch competitions give cash prizes with no strings; accelerators trade cash for a small stake.",
+  how: ["Look for university, city and chamber pitch competitions."],
+  links: [["Y Combinator", "https://www.ycombinator.com/apply"], ["Techstars", "https://www.techstars.com/"]], fit: ["startup", "rnd"] },
+
+/* ===== Contracts ===== */
+{ id: "k-sam", cat: "contracts", title: "SAM.gov registration & opportunities", value: "Federal agencies buy ~$700B+ a year",
+  what: "Register once (free) to bid on federal contracts and receive grants. Search open bids by your NAICS code.",
+  how: ["Registration is free — ignore companies charging for it.", "Set saved searches for your NAICS codes."],
+  links: [["SAM.gov", "https://sam.gov/"]], fit: [] },
+{ id: "k-setaside", cat: "contracts", title: "Small business set-asides & certifications", value: "Contracts only small or certified firms can win",
+  what: "8(a) for disadvantaged owners, WOSB for women-owned, HUBZone for certain areas, and VetCert for veteran-owned (SDVOSB/VOSB).",
+  how: ["Certify on certify.sba.gov / VetCert.", "Free help from APEX Accelerators."],
+  links: [["SBA certifications", "https://www.sba.gov/federal-contracting/contracting-assistance-programs"], ["APEX Accelerators", "https://www.apexaccelerators.us/"]], fit: ["women", "vet", "minority", "rural"] },
+{ id: "k-sub", cat: "contracts", title: "Subcontracting & state/local bids", value: "Easier first wins",
+  what: "Big primes must subcontract to small firms; states, cities, schools and transit agencies run their own bid portals.",
+  how: ["Browse SBA SubNet; register on your state's procurement portal."],
+  links: [["SBA SubNet", "https://www.sba.gov/federal-contracting/contracting-guide/prime-subcontracting/subcontracting-opportunities"]], fit: [] },
+
+/* ===== State & local ===== */
+{ id: "l-econ", cat: "local", title: "State economic development incentives", value: "Cash grants, credits and abatements per job created",
+  what: "States and cities pay businesses to locate, expand or hire: job creation credits, closing funds, property tax abatements, enterprise zones.",
+  how: ["Call your state's economic development agency BEFORE you sign a lease or hire — most incentives must be agreed in advance.", "Ask your city about façade and small-business grants."],
+  links: [["State agency list (SBA)", "https://www.sba.gov/local-assistance"]], fit: ["hiring", "employees"] },
+{ id: "l-rd", cat: "local", title: "State R&D and angel investor credits", value: "Some refundable or sellable for cash",
+  what: "Many states have their own R&D credit; some (e.g., certain states' programs) let startups sell or refund it. Angel-investor credits make you easier to fund.",
+  how: ["Search '<your state> R&D tax credit refundable'."],
+  links: [], fit: ["rnd", "startup"] },
+{ id: "l-util", cat: "local", title: "Utility business rebates & energy programs", value: "Often 30–70% of lighting/HVAC upgrade costs",
+  what: "Federal commercial energy deductions (179D) and new-home credits (45L) end for projects starting after June 30, 2026, but utility and state rebates continue.",
+  how: ["Ask your utility for a free energy audit first."],
+  links: [["DSIRE", "https://www.dsireusa.org/"]], fit: ["energy"] }
+];
+
+/* profile tags */
+const TAGS_IND = [["lowinc", "Income under ~$60k"], ["kids", "Kids at home"], ["baby", "Baby born 2025+"], ["student", "In college / trade school"], ["senior", "65 or older"], ["renter", "Rent my home"], ["owner", "Own a home"], ["veteran", "Veteran / military"], ["employed", "Have an employer"], ["selfemp", "Self-employed / side gig"], ["tips", "Earn tips"], ["overtime", "Work overtime"], ["carloan", "New car loan"], ["investor", "Invest / have savings"], ["relative", "A relative died"], ["moved", "Lived in 2+ states"]];
+const TAGS_BIZ = [["startup", "Startup / under 5 yrs"], ["employees", "Have employees"], ["hiring", "Hiring soon"], ["rnd", "Build tech / R&D"], ["rural", "Rural or farm"], ["women", "Woman-owned"], ["vet", "Veteran-owned"], ["minority", "Minority / disadvantaged owned"], ["nonprofit", "Nonprofit"], ["energy", "Energy / efficiency project"]];
+
+const SCAMS = [
+  ["You never pay to get a government grant.", "Real grants are free to apply for. 'Processing fees', 'grant release fees' and gift-card payments are scams."],
+  ["Governments don't call or DM you about free money.", "No agency phones out of the blue to offer a grant, and the IRS starts contact by mail."],
+  ["Unclaimed property is free to claim yourself.", "'Finders' who write to you take a cut (often 10–35%). You can claim the same money for free at your state's site."],
+  ["'You don't have to pay income tax' is a frivolous argument.", "Sovereign-citizen, 'pure trust' and '861' theories always lose in court and carry a $5,000 penalty per frivolous filing."],
+  ["Beware Employee Retention Credit mills and fake credit promoters.", "Many ERC claims filed through promoters were invalid and must be repaid with penalties. Same for 'self-employed tax credit' ads."],
+  ["Syndicated conservation easements and micro-captive insurance.", "On the IRS 'Dirty Dozen' and listed transactions — very high audit risk."],
+  ["Free stock tips in group chats are pump-and-dumps.", "'Free' stock tied to a WhatsApp/Telegram investing group is a classic setup. Only take sign-up stock from a FINRA-registered broker's own app."],
+  ["Advance-fee loans.", "A lender that wants money up front before releasing a loan is a scam — especially 'guaranteed approval'."],
+  ["Look-alike websites.", "Real government sites end in .gov. Grants.gov, SAM.gov and IRS.gov never charge."]
+];
+const FLAGS = [/gift ?card/i, /wire (the|a)? ?fee|processing fee|release fee|unlock fee|activation fee/i, /guarantee(d)? (approval|grant|money)/i, /act now|within 24 hours|urgent/i, /crypto|bitcoin|usdt/i, /whatsapp|telegram/i, /you (have been|were) (selected|chosen|approved)/i, /federal grant(s)? (department|administration)/i, /pay (only )?(the )?(tax|shipping|fee) (first|upfront|up front)/i, /don'?t tell|keep (this|it) secret/i, /sovereign|strawman|no one has to pay income tax/i, /\bSSN\b|social security number|bank login|password/i];
+
+/* ---------- state ---------- */
+const KEY = "uds-freemoney1";
+const fresh = () => ({ theme: "dark", who: "both", state: "", tags: {}, done: {}, track: [], names: "", states: "", ucheck: {}, grant: { org: "", project: "", amount: "", funder: "", need: "" }, ai: "" });
+let S; try { S = Object.assign(fresh(), JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) { S = fresh(); }
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+let view = "home", q = "";
+const AI = { id: "", status: "", text: "" };
+
+function fitScore(it) {
+  const suiteOk = S.who === "both" || CATS[it.cat].suite === S.who;
+  if (!suiteOk) return -1;
+  if (!it.fit.length) return 0.5;
+  return it.fit.filter(t => S.tags[t]).length;
+}
+function tracked(id) { return S.track.find(t => t.ref === id); }
+
+/* ---------- views ---------- */
+function itemCard(it) {
+  const c = CATS[it.cat], t = tracked(it.id);
+  const risk = it.risk ? `<span class="tag r${it.risk}">${["", "Low risk", "Rules matter", "Audit magnet"][it.risk]}</span>` : "";
+  return `<div class="card it">
+    <div class="top"><h3>${esc(it.title)}</h3>${t ? `<span class="sm saved">✓ tracking</span>` : `<button class="sm" data-track="${it.id}" title="Add to your Tracker">+ Track</button>`}</div>
+    <div>${it.ref ? `<span class="tag ref">Pays even if you owe $0</span>` : ""}${risk}${it.chk ? `<span class="tag chk">Check current status</span>` : ""}<span class="tag">${c.icon} ${esc(c.name)}</span></div>
+    <div class="val">${esc(it.value)}</div>
+    <div class="how">${esc(it.what)}</div>
+    <div class="k" style="margin-top:6px">How to get it</div>
+    <ol>${it.how.map(h => `<li>${esc(h)}</li>`).join("")}</ol>
+    <div>${it.links.map(l => L(l[0], l[1])).join("")}</div>
+  </div>`;
+}
+const V = {};
+V.home = () => {
+  const chips = (list) => list.map(([k, n]) => `<label class="${S.tags[k] ? "on" : ""}"><input type="checkbox" data-tag="${k}" ${S.tags[k] ? "checked" : ""}>${esc(n)}</label>`).join("");
+  const scored = ITEMS.map(it => [fitScore(it), it]).filter(x => x[0] >= 1).sort((a, b) => b[0] - a[0]);
+  const anyTag = Object.values(S.tags).some(Boolean);
+  return `<h2>Find money you're missing</h2>
+  <p class="mut">Pick what fits you. The best matches show below. Everything here is legal, free to claim, and linked to the official source.</p>
+  <div class="card">
+    <div class="row"><b>I'm looking for money for:</b>
+      <select data-bind="who"><option value="both" ${S.who === "both" ? "selected" : ""}>Me and my business</option><option value="ind" ${S.who === "ind" ? "selected" : ""}>Me / my family</option><option value="biz" ${S.who === "biz" ? "selected" : ""}>My business or nonprofit</option></select>
+      <span class="mut sm">State:</span><input data-bind="state" value="${esc(S.state)}" placeholder="e.g. Texas" style="width:130px">
+    </div>
+    ${S.who !== "biz" ? `<h4>About you</h4><div class="chips">${chips(TAGS_IND)}</div>` : ""}
+    ${S.who !== "ind" ? `<h4>About your business</h4><div class="chips">${chips(TAGS_BIZ)}</div>` : ""}
+  </div>
+  <div class="okbox"><b>Start here for everyone:</b> search unclaimed property in every state you've lived in (${L("MissingMoney", "https://www.missingmoney.com/")}) — it takes 5 minutes and is free. Then use the <span class="lnk" data-go="planner">Unclaimed money planner</span>.</div>
+  <h4>${anyTag ? `Your best matches (${scored.length})` : "Pick a few things above to see your matches"}</h4>
+  <div class="grid">${scored.map(x => itemCard(x[1])).join("")}</div>
+  ${anyTag ? `<p class="mut sm">Also browse each section on the left — items for everyone aren't listed as matches.</p>` : ""}
+  ${foot()}`;
+};
+function catView(k) {
+  const c = CATS[k], list = ITEMS.filter(i => i.cat === k);
+  return `<h2>${c.icon} ${esc(c.name)}</h2><p class="mut">${esc(c.blurb)}</p>
+  ${k === "strategy" ? `<div class="warnbox">“Loophole” here means a rule Congress wrote on purpose. Anything marked <b>Rules matter</b> or <b>Audit magnet</b> needs a CPA or enrolled agent. Schemes that promise you'll owe nothing at all are in <span class="lnk" data-go="scams">Scam shield</span>.</div>` : ""}
+  <div class="grid">${list.map(itemCard).join("")}</div>${foot()}`;
+}
+V.search = () => {
+  const s = q.toLowerCase().trim();
+  const list = s ? ITEMS.filter(i => (i.title + " " + i.what + " " + i.value + " " + i.how.join(" ") + " " + CATS[i.cat].name).toLowerCase().includes(s)) : [];
+  return `<h2>Search everything</h2><input id="sq" value="${esc(q)}" placeholder="e.g. tips, college, R&D, veteran, rent…" style="width:100%;max-width:520px;font-size:15px;padding:7px 10px" autofocus>
+  <p class="mut sm">${s ? list.length + " found" : ITEMS.length + " programs, credits and strategies in this tab"}</p><div class="grid">${list.map(itemCard).join("")}</div>`;
+};
+V.planner = () => {
+  const names = S.names.split(/\n|,/).map(x => x.trim()).filter(Boolean);
+  const states = S.states.split(/\n|,/).map(x => x.trim()).filter(Boolean);
+  const rows = [];
+  names.forEach(n => {
+    rows.push([`mm|${n}`, `Search <b>${esc(n)}</b> on MissingMoney (all participating states at once)`, "https://www.missingmoney.com/"]);
+    states.forEach(st => rows.push([`st|${n}|${st}`, `Search <b>${esc(n)}</b> on <b>${esc(st)}</b>'s own unclaimed property site`, "https://unclaimed.org/"]));
+    rows.push([`th|${n}`, `Treasury Hunt for <b>${esc(n)}</b> (needs their SSN)`, "https://www.treasurydirect.gov/savings-bonds/treasury-hunt/"]);
+    rows.push([`pb|${n}`, `PBGC pension search for <b>${esc(n)}</b>`, "https://www.pbgc.gov/search-unclaimed-pensions"]);
+    rows.push([`rg|${n}`, `Retirement registry / DOL Lost and Found for <b>${esc(n)}</b>`, "https://lostandfound.dol.gov/"]);
+  });
+  const done = rows.filter(r => S.ucheck[r[0]]).length;
+  return `<h2>🔎 Unclaimed money planner</h2>
+  <p class="mut">List every name to search (you, spouse, kids, parents and grandparents who died, old business names, maiden names) and every state anyone lived or worked in. You'll get a checklist.</p>
+  <div class="grid"><div class="card"><h3>Names</h3><textarea data-bind="names" placeholder="One per line, e.g.&#10;Jane A Smith&#10;Jane Doe (maiden)&#10;Smith Plumbing LLC">${esc(S.names)}</textarea></div>
+  <div class="card"><h3>States</h3><textarea data-bind="states" placeholder="One per line, e.g.&#10;Ohio&#10;Texas">${esc(S.states)}</textarea></div></div>
+  ${rows.length ? `<div class="card"><h3>Checklist — ${done} of ${rows.length} done</h3><table>${rows.map(r => `<tr><td style="width:30px"><input type="checkbox" data-uc="${esc(r[0])}" ${S.ucheck[r[0]] ? "checked" : ""}></td><td>${r[1]}</td><td>${L("Open", r[2])}</td></tr>`).join("")}</table>
+  <p class="sm mut">Found something? Add it in the <span class="lnk" data-go="tracker">Tracker</span> with the amount so you can follow the claim.</p></div>` : ""}
+  ${foot()}`;
+};
+const STATUSES = ["Idea", "Researching", "Applied", "Approved", "Received", "Denied"];
+V.tracker = () => {
+  const sum = st => S.track.filter(t => st.includes(t.status)).reduce((a, t) => a + (+t.amount || 0), 0);
+  const recv = S.track.reduce((a, t) => a + (+t.got || 0), 0);
+  const soon = S.track.filter(t => t.due && !["Received", "Denied"].includes(t.status)).sort((a, b) => a.due.localeCompare(b.due));
+  return `<h2>📋 Tracker</h2>
+  <p class="mut">Everything you're going after, what it's worth, and when it's due.</p>
+  <div class="stat"><div><b>${money(sum(["Idea", "Researching"]))}</b><span>possible</span></div><div><b>${money(sum(["Applied"]))}</b><span>applied for</span></div><div><b>${money(sum(["Approved"]))}</b><span>approved</span></div><div><b>${money(recv)}</b><span>money received</span></div></div>
+  <div class="row"><button class="pri" data-act="addTrack">+ Add item</button><button data-act="ics" ${soon.length ? "" : "disabled"}>Deadlines to calendar (.ics)</button><button data-act="csv">Export CSV</button></div>
+  <div class="card" style="overflow:auto"><table><tr><th>What</th><th style="width:120px">Status</th><th style="width:100px">Worth $</th><th style="width:100px">Received $</th><th style="width:140px">Deadline</th><th>Notes</th><th style="width:30px"></th></tr>
+  ${S.track.map((t, i) => `<tr><td><input data-tr="${i}|name" value="${esc(t.name)}"></td><td><select data-tr="${i}|status">${STATUSES.map(s => `<option ${t.status === s ? "selected" : ""}>${s}</option>`).join("")}</select></td><td><input type="number" data-tr="${i}|amount" value="${esc(t.amount)}"></td><td><input type="number" data-tr="${i}|got" value="${esc(t.got)}"></td><td><input type="date" data-tr="${i}|due" value="${esc(t.due)}"></td><td><input data-tr="${i}|notes" value="${esc(t.notes)}"></td><td><button class="sm" data-deltr="${i}" title="Remove">✕</button></td></tr>`).join("") || `<tr><td colspan="7" class="mut">Nothing yet. Press “+ Track” on any card, or add your own.</td></tr>`}
+  </table></div>
+  ${soon.length ? `<h4>Coming up</h4>${soon.slice(0, 8).map(t => `<div class="sm">📅 <b>${esc(t.due)}</b> — ${esc(t.name)}</div>`).join("")}` : ""}
+  ${foot()}`;
+};
+V.writer = () => {
+  const g = S.grant;
+  return `<h2>✍️ Grant & application writer</h2>
+  <p class="mut">Fill in what you know; the AI linked in Randis UDS drafts the application sections. Always check the funder's own rules and edit the draft in your own words.</p>
+  <div class="card">
+    <div class="row"><span style="width:150px">Who's applying</span><input data-bind="grant.org" value="${esc(g.org)}" placeholder="Your name, business or nonprofit, what it does" style="flex:1"></div>
+    <div class="row"><span style="width:150px">Funder / program</span><input data-bind="grant.funder" value="${esc(g.funder)}" placeholder="e.g. NSF SBIR Phase I, Amber Grant, city façade grant" style="flex:1"></div>
+    <div class="row"><span style="width:150px">Amount asked</span><input data-bind="grant.amount" value="${esc(g.amount)}" placeholder="$" style="width:160px"></div>
+    <h4>The project</h4><textarea data-bind="grant.project" placeholder="What you'll do with the money, for whom, and by when">${esc(g.project)}</textarea>
+    <h4>The need / why it matters</h4><textarea data-bind="grant.need" placeholder="The problem, who it affects, any numbers you have">${esc(g.need)}</textarea>
+    <div class="row" style="margin-top:8px"><button class="pri" data-act="draft">Draft my application</button><button data-act="fitcheck">Am I eligible? Ask the AI</button><button data-act="budget">Draft a budget</button></div>
+  </div>
+  ${aiBox()}`;
+};
+V.ask = () => `<h2>💬 Ask the AI</h2>
+  <p class="mut">Ask anything: “What credits can a single mom in Ohio with two kids get?”, “Which grants fit a rural bakery?”, “Is the Augusta rule worth it for me?” Your choices from the start page are sent along so answers fit you.</p>
+  <div class="card"><textarea id="aiQ" placeholder="Your question">${esc(S.ai)}</textarea><div class="row"><button class="pri" data-act="ask">Ask</button><span class="mut sm">Uses the AI linked in Randis UDS (the LLM button).</span></div></div>
+  ${aiBox()}
+  <div class="warnbox">AI answers can be out of date or wrong about amounts and deadlines. Confirm with the official link before you act, and use a tax pro for big decisions.</div>`;
+function aiBox() { return AI.id || AI.text ? `<div class="card"><div class="row"><b>Answer</b><span class="mut sm" id="aiSt">${esc(AI.status)}</span><button class="sm" data-act="copyAI" style="margin-left:auto">Copy</button></div><div class="aitx" id="aiTx">${esc(AI.text || "—")}</div></div>` : ""; }
+V.scams = () => `<h2>🛡 Scam shield</h2>
+  <p class="mut">Free money attracts scammers. If anything asks you to pay to receive money, stop.</p>
+  <div class="card"><h3>Check a message</h3><textarea id="scamTx" placeholder="Paste a text, email or ad you got about free money, a grant or a refund"></textarea>
+  <div class="row"><button class="pri" data-act="scan">Check it</button><button data-act="scanAI">Ask the AI too</button></div><div id="scanOut"></div></div>
+  ${SCAMS.map(s => `<div class="badbox"><b>${esc(s[0])}</b><br>${esc(s[1])}</div>`).join("")}
+  <p>${L("Report fraud to the FTC", "https://reportfraud.ftc.gov/")}${L("IRS Dirty Dozen list", "https://www.irs.gov/newsroom/dirty-dozen")}${L("Report a grant scam (HHS OIG)", "https://oig.hhs.gov/fraud/report-fraud/")}</p>`;
+V.about = () => `<h2>ℹ️ About the figures</h2>
+  <div class="card"><p>Amounts and rules here reflect US federal law as of late 2026, including the July 2025 tax law (One Big Beautiful Bill Act). Items marked <span class="tag chk">Check current status</span> were set to expire or change around now.</p>
+  <p>This tab is a finder, not tax or legal advice. Tax figures change every year — confirm on the official site linked on each card, and use a CPA, enrolled agent or free VITA preparer for your return.</p>
+  <p>Things that ended and are <b>not</b> listed as options: federal EV credits (ended Sept 30, 2025), home energy improvement and residential solar credits (ended after 2025), the Affordable Connectivity Program, and the Employee Retention Credit.</p>
+  <p>Not in the US? Ask the AI about your country — most have unclaimed-money registers, refundable family credits and small-business grants.</p></div>
+  <div class="card"><h3>Your data</h3><p class="sm">Everything you type stays in this tab on this PC.</p><div class="row"><button data-act="export">Save a backup</button><label class="sm">Load a backup <input type="file" id="imp" accept=".json"></label><button data-act="wipe">Erase everything</button></div></div>${foot()}`;
+const foot = () => `<div class="foot">Randis UDS™ by Randy Moore · Not tax, legal or investment advice · Verify amounts on the official links</div>`;
+
+function nav() {
+  const count = k => ITEMS.filter(i => i.cat === k).length;
+  const sec = (title, suite) => `<div class="grp">${title}</div>` + Object.keys(CATS).filter(k => CATS[k].suite === suite).map(k => `<div data-go="${k}" class="${view === k ? "on" : ""}">${CATS[k].icon} ${esc(CATS[k].name)}<span class="n">${count(k)}</span></div>`).join("");
+  const it = (k, n) => `<div data-go="${k}" class="${view === k ? "on" : ""}">${n}</div>`;
+  $("#nav").innerHTML = it("home", "⭐ My matches") + it("search", "🔍 Search everything") +
+    (S.who !== "biz" ? sec("For you & family", "ind") : "") + (S.who !== "ind" ? sec("For your business", "biz") : "") +
+    `<div class="grp">Tools</div>` + it("planner", "🔎 Unclaimed money planner") + it("tracker", `📋 Tracker<span class="n">${S.track.length}</span>`) + it("writer", "✍️ Grant writer") + it("ask", "💬 Ask the AI") + it("scams", "🛡 Scam shield") + it("about", "ℹ️ About & backup");
+  const recv = S.track.reduce((a, t) => a + (+t.got || 0), 0), pot = S.track.filter(t => !["Received", "Denied"].includes(t.status)).reduce((a, t) => a + (+t.amount || 0), 0);
+  $("#hdrTot").innerHTML = S.track.length ? `Chasing <b>${money(pot)}</b> · Received <b>${money(recv)}</b>` : "";
+}
+function render() { nav(); document.body.dataset.theme = S.theme; const v = $("#view"), y = v.scrollTop; v.innerHTML = (CATS[view] ? catView(view) : (V[view] || V.home)()); v.scrollTop = y; }
+function renderKeepFocus() {
+  setTimeout(() => {
+    const a = document.activeElement, sel = a && a.dataset && (a.dataset.bind ? `[data-bind="${a.dataset.bind}"]` : a.dataset.tr ? `[data-tr="${a.dataset.tr}"]` : a.id ? "#" + a.id : "");
+    render(); const n = sel && $(sel); if (n) n.focus();
+  }, 0);
+}
+function go(k) { view = k; render(); $("#view").scrollTop = 0; if (k === "search") { const s = $("#sq"); if (s) s.focus(); } }
+function download(name, text, type) {
+  const blob = new Blob([text], { type: type || "application/json" });
+  if (inApp) { tell({ uds: "export-file", name, data: blob }); return; }
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+function set(path, val) { const p = path.split("."); let o = S; while (p.length > 1) o = o[p.shift()]; o[p[0]] = val; }
+function profileSummary() {
+  const tags = [...TAGS_IND, ...TAGS_BIZ].filter(([k]) => S.tags[k]).map(x => x[1]);
+  return `You're helping inside "Free Money Finder", a tab that finds legal free money: unclaimed property, refundable tax credits, government payments, free stock and bonuses, legal tax strategies, grants, funding and contracts, for individuals and businesses. Today is ${new Date().toDateString()}. Use current US rules (including the July 2025 One Big Beautiful Bill Act) unless the person names another country. Give specific programs with official .gov links where possible, rough dollar values, and the next steps. Say clearly when something might have changed or expired, never suggest tax evasion or frivolous 'no tax' theories, and recommend a tax pro for risky strategies. Keep it plain and short.
+The person is looking for money for: ${S.who === "both" ? "themselves and their business" : S.who === "ind" ? "themselves/family" : "their business"}. State: ${S.state || "not given"}. About them: ${tags.join(", ") || "nothing picked yet"}.`;
+}
+function ask(question) {
+  if (!question.trim()) return toast("Type a question first.");
+  if (!inApp) return toast("The AI helper works inside Randis UDS.");
+  AI.id = "fm-" + uid(); AI.status = "Asking…"; AI.text = ""; render();
+  tell({ uds: "planner-ask", id: AI.id, history: [{ role: "user", content: question }], context: profileSummary() });
+}
+function grantPrompt(kind) {
+  const g = S.grant, info = `Applicant: ${g.org || "?"}\nFunder/program: ${g.funder || "?"}\nAmount: ${g.amount || "?"}\nProject: ${g.project || "?"}\nNeed: ${g.need || "?"}`;
+  if (kind === "draft") return `Draft a grant application from these notes. Use the usual sections (summary, need, project description, goals and measurable outcomes, timeline, team, budget summary, sustainability). Mark anything you had to guess with [CHECK]. If the funder has a known format, follow it.\n\n${info}`;
+  if (kind === "fit") return `Based on these notes, is this applicant likely eligible for this funder/program? List the eligibility rules you know, which ones they meet or might not, what to confirm, and 3–5 other programs that fit better or as well.\n\n${info}`;
+  return `Draft a simple line-item budget with a short justification for each line for this application. Keep it within the amount asked and typical rules for this funder (e.g. indirect cost limits).\n\n${info}`;
+}
+function scan(t) {
+  const hits = FLAGS.filter(r => r.test(t)).map(r => (t.match(r) || [""])[0]);
+  const urls = (t.match(/https?:\/\/[^\s)]+/g) || []).filter(u => !/\.gov(\/|$)/i.test(u.replace(/^https?:\/\/([^/]+).*/, "$1") + "/"));
+  if (!t.trim()) return "";
+  if (!hits.length && !urls.length) return `<div class="okbox">No common red flags found. That doesn't prove it's safe: go to the official site yourself (don't use links in the message) and never pay a fee to receive money.</div>`;
+  return `<div class="badbox"><b>Warning signs found:</b><ul>${hits.map(h => `<li>“${esc(h)}”</li>`).join("")}${urls.map(u => `<li>Link isn't a .gov site: ${esc(u)}</li>`).join("")}</ul>Treat this as a likely scam. Don't reply, click, or pay.</div>`;
+}
+function ics() {
+  const z = n => String(n).padStart(2, "0"), now = new Date(), stamp = now.getUTCFullYear() + z(now.getUTCMonth() + 1) + z(now.getUTCDate()) + "T000000Z";
+  const ev = S.track.filter(t => t.due && !["Received", "Denied"].includes(t.status)).map(t => {
+    const d = t.due.replace(/-/g, "");
+    return `BEGIN:VEVENT\r\nUID:${t.id}@freemoney\r\nDTSTAMP:${stamp}\r\nDTSTART;VALUE=DATE:${d}\r\nSUMMARY:Deadline: ${t.name.replace(/[,;\n]/g, " ")}\r\nBEGIN:VALARM\r\nTRIGGER:-P3D\r\nACTION:DISPLAY\r\nDESCRIPTION:Deadline in 3 days\r\nEND:VALARM\r\nEND:VEVENT`;
+  });
+  download("free-money-deadlines.ics", `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Randis UDS//Free Money Finder//EN\r\n${ev.join("\r\n")}\r\nEND:VCALENDAR\r\n`, "text/calendar");
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click", e => {
+  const t = e.target;
+  const u = t.closest("[data-url]"); if (u) return openLink(u.dataset.url);
+  const g = t.closest("[data-go]"); if (g) return go(g.dataset.go);
+  if (t.dataset.track) { const it = ITEMS.find(i => i.id === t.dataset.track); S.track.push({ id: uid(), ref: it.id, name: it.title, status: "Idea", amount: "", got: "", due: "", notes: it.value }); save(); render(); toast("Added to your Tracker."); return; }
+  if (t.dataset.deltr != null) { S.track.splice(+t.dataset.deltr, 1); save(); render(); return; }
+  const act = t.dataset.act; if (!act) return;
+  if (act === "theme") { S.theme = S.theme === "dark" ? "light" : "dark"; save(); render(); }
+  if (act === "addTrack") { S.track.push({ id: uid(), ref: "", name: "New item", status: "Idea", amount: "", got: "", due: "", notes: "" }); save(); render(); }
+  if (act === "csv") { const rows = [["What", "Status", "Worth", "Received", "Deadline", "Notes"], ...S.track.map(t => [t.name, t.status, t.amount, t.got, t.due, t.notes])]; download("free-money-tracker.csv", rows.map(r => r.map(c => `"${String(c == null ? "" : c).replace(/"/g, '""')}"`).join(",")).join("\r\n"), "text/csv"); }
+  if (act === "ics") ics();
+  if (act === "ask") { S.ai = ($("#aiQ") || {}).value || ""; save(); ask(S.ai); }
+  if (act === "draft") ask(grantPrompt("draft"));
+  if (act === "fitcheck") ask(grantPrompt("fit"));
+  if (act === "budget") ask(grantPrompt("budget"));
+  if (act === "copyAI") { try { navigator.clipboard.writeText(AI.text); toast("Copied."); } catch (err) {} }
+  if (act === "scan") $("#scanOut").innerHTML = scan($("#scamTx").value);
+  if (act === "scanAI") { const tx = $("#scamTx").value; if (!tx.trim()) return toast("Paste the message first."); view = "ask"; ask("Is this message a scam? Explain the warning signs and what I should do:\n\n" + tx); }
+  if (act === "export") download("free-money-finder-backup.json", JSON.stringify(S, null, 1));
+  if (act === "wipe") { if (confirm("Erase everything in this tab? Save a backup first if you want to keep it.")) { S = fresh(); save(); render(); } }
+});
+document.addEventListener("change", e => {
+  const t = e.target;
+  if (t.dataset.tag) { S.tags[t.dataset.tag] = t.checked; save(); render(); return; }
+  if (t.dataset.bind) { set(t.dataset.bind, t.value); save(); renderKeepFocus(); return; }
+  if (t.dataset.uc) { S.ucheck[t.dataset.uc] = t.checked; save(); render(); return; }
+  if (t.dataset.tr) { const [i, f] = t.dataset.tr.split("|"); S.track[+i][f] = t.value; save(); renderKeepFocus(); return; }
+  if (t.id === "imp" && t.files[0]) { t.files[0].text().then(x => { try { const d = JSON.parse(x); if (!d || !Array.isArray(d.track)) throw 0; S = Object.assign(fresh(), d); save(); render(); toast("Backup loaded."); } catch (err) { toast("That isn't a backup from this tab."); } }); }
+});
+document.addEventListener("input", e => {
+  if (e.target.id === "sq") { q = e.target.value; clearTimeout(window._sq); window._sq = setTimeout(() => { const pos = e.target.selectionStart; render(); const n = $("#sq"); n.focus(); n.setSelectionRange(pos, pos); }, 200); }
+});
+document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.id === "aiQ" && !e.shiftKey) { e.preventDefault(); $("[data-act=ask]").click(); } });
+window.addEventListener("message", e => {
+  const m = e.data || {};
+  if (m.uds === "web-state") WEB_ON = !!m.on;
+  if (m.uds === "exported") toast(m.note || (m.ok ? "Saved." : "Not saved."));
+  if (m.uds === "planner" && m.id === AI.id) {
+    if (m.done) { AI.status = m.error ? "⚠ " + m.error : ""; AI.text = m.text || AI.text; } else { AI.status = m.status || ""; if (m.text) AI.text = m.text; }
+    const st = $("#aiSt"), tx = $("#aiTx"); if (st) st.textContent = AI.status; if (tx) tx.textContent = AI.text || "—"; else if (m.done) render();
+  }
+});
+if (inApp) tell({ uds: "web-hello" });
+render();
+</script>
+</body>
+</html>

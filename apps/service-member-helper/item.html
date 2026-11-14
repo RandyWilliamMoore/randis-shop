@@ -1,0 +1,778 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Service Member Helper</title>
+<!-- Randis UDS™ by Randy Moore. Original: https://github.com/RandyWilliamMoore/randis-uds · Support: https://ko-fi.com/moorescombinatoricsmatrix -->
+<style>
+:root{--bg:#11140f;--bg2:#181c15;--bg3:#232a1e;--line:#36412e;--tx:#e9eddf;--mut:#9aa48a;--acc:#c9b458;--acc2:#7fae8a;--ok:#5fb37a;--warn:#e0a63a;--bad:#e06a5a;--card:#1a1f16}
+body[data-theme=light]{--bg:#eef0e6;--bg2:#f8f9f2;--bg3:#e2e6d5;--line:#c4cbb0;--tx:#20261a;--mut:#5f6a4f;--acc:#86701a;--acc2:#2f7a4e;--card:#fbfcf6}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font:14px/1.45 "Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--tx);display:flex;flex-direction:column;overflow:hidden}
+h2{font-size:21px;margin:0 0 10px}
+h3{font-size:15px;margin:2px 0 8px;color:var(--acc)}
+h4{margin:12px 0 6px;font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
+button,input,select,textarea{font:inherit;color:inherit}
+input,select,textarea{background:var(--bg3);border:1px solid var(--line);border-radius:6px;padding:4px 7px;outline:none;min-width:0}
+input:focus,select:focus,textarea:focus{border-color:var(--acc)}
+input[type=checkbox]{accent-color:var(--acc)}
+textarea{width:100%;resize:vertical;min-height:60px}
+button{cursor:pointer;background:var(--bg3);border:1px solid var(--line);border-radius:6px;padding:4px 10px}
+button:hover{border-color:var(--acc)}
+button.pri{background:var(--acc);color:#16180f;border-color:var(--acc);font-weight:600}
+button.sm{padding:1px 7px;font-size:12px}
+a,.lnk{color:var(--acc2);cursor:pointer;text-decoration:underline}
+header{display:flex;align-items:center;gap:10px;padding:8px 14px;background:var(--bg2);border-bottom:1px solid var(--line)}
+header .t{font-weight:700;font-size:16px}
+header .sub{color:var(--mut);font-size:12px}
+.crisis{margin-left:auto;background:#5a1f1a;color:#ffe;border-radius:6px;padding:4px 10px;font-size:12px}
+body[data-theme=light] .crisis{background:#f6d6d0;color:#5a1f1a}
+main{flex:1;display:flex;min-height:0}
+nav{width:190px;background:var(--bg2);border-right:1px solid var(--line);overflow:auto;padding:6px 0}
+nav div{padding:6px 14px;cursor:pointer;color:var(--mut)}
+nav div:hover{color:var(--tx)}
+nav div.on{color:var(--tx);background:var(--bg3);border-left:3px solid var(--acc);padding-left:11px}
+nav .grp{font-size:11px;text-transform:uppercase;letter-spacing:.06em;cursor:default;padding-top:12px;color:var(--mut);opacity:.7}
+#view{flex:1;overflow:auto;padding:16px 20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}
+.grid .card{margin:0}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.form{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px 14px}
+.form label{display:flex;flex-direction:column;font-size:12px;color:var(--mut);gap:3px}
+.form label.ck{flex-direction:row;align-items:center;gap:6px;color:var(--tx);font-size:13px}
+.mut{color:var(--mut)}.small{font-size:12px}
+.tag{display:inline-block;font-size:11px;border:1px solid var(--line);border-radius:10px;padding:0 7px;margin:0 3px 3px 0;color:var(--mut)}
+.chip{display:inline-block;border:1px solid var(--line);border-radius:14px;padding:2px 10px;margin:0 4px 4px 0;cursor:pointer;font-size:12px}
+.chip.on{background:var(--acc);color:#16180f;border-color:var(--acc)}
+ul{margin:4px 0;padding-left:20px}li{margin:2px 0}
+table{border-collapse:collapse;width:100%}
+th,td{border-bottom:1px solid var(--line);padding:4px 6px;text-align:left;vertical-align:top}
+th{font-size:12px;color:var(--mut);font-weight:600}
+td input,td select{width:100%}
+.big{font-size:22px;font-weight:700}
+.stat{display:inline-block;margin:0 18px 8px 0}
+.stat .mut{font-size:12px}
+.ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}
+.note{border-left:3px solid var(--warn);padding:6px 10px;background:var(--bg3);border-radius:4px;margin:8px 0;font-size:13px}
+.links{margin-top:6px}.links .lnk{margin-right:12px;font-size:13px;white-space:nowrap}
+.tl{border-left:2px solid var(--line);margin-left:6px;padding-left:14px}
+.tl .it{position:relative;margin-bottom:10px}
+.tl .it:before{content:"";position:absolute;left:-20px;top:5px;width:10px;height:10px;border-radius:50%;background:var(--acc)}
+.tl .it.past:before{background:var(--mut)}
+.tl .d{font-weight:600}
+.ai{white-space:pre-wrap;background:var(--bg3);border-radius:6px;padding:8px;min-height:40px}
+#toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--acc);color:#16180f;padding:7px 14px;border-radius:8px;display:none;max-width:80%;z-index:9}
+.rack{display:flex;flex-wrap:wrap;gap:4px;max-width:330px}
+.rib{flex:0 0 104px;height:30px;border:1px solid var(--line);border-radius:3px;font-size:10px;line-height:1.1;padding:2px 4px;overflow:hidden;background:var(--bg3)}
+</style>
+</head>
+<body>
+<header>
+  <div><div class="t">🎖 Service Member Helper</div><div class="sub">Pay · TSP · VA · TRICARE · base life · records · transition</div></div>
+  <div class="crisis">Need help now? Dial <b>988, press 1</b> · text <b>838255</b></div>
+  <button class="sm" data-act="theme" title="Light / dark">◐</button>
+</header>
+<main><nav id="nav"></nav><div id="view"></div></main>
+<div id="toast"></div>
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const uid = () => Math.random().toString(36).slice(2, 9);
+const inApp = window.parent !== window;
+const tell = m => { try { window.parent.postMessage(m, "*"); } catch (e) {} };
+const money = n => (n < 0 ? "-" : "") + "$" + Math.abs(Math.round(n)).toLocaleString();
+const money2 = n => "$" + (Math.round(n * 100) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+let toastT; function toast(t, ms) { const e = $("#toast"); e.textContent = t; e.style.display = "block"; clearTimeout(toastT); toastT = setTimeout(() => e.style.display = "none", ms || 3200); }
+
+/* ---------- links ---------- */
+let WEB_ON = false;
+function openLink(url) {
+  if (!inApp) { window.open(url, "_blank", "noopener"); return; }
+  if (WEB_ON) { tell({ uds: "web-pop", url }); return; }
+  try { navigator.clipboard.writeText(url); toast("Link copied – paste it into your browser. (Turn on web for this tab to open links straight from here.)", 5000); }
+  catch (e) { prompt("Copy this link:", url); }
+}
+const L = (label, url) => `<span class="lnk" data-url="${esc(url)}">${esc(label)} ↗</span>`;
+
+/* ---------- state ---------- */
+const LKEY = "milhelper1";
+const STATUSES = [["AD", "Active duty"], ["GR", "Guard / Reserve"], ["VET", "Veteran"], ["RET", "Retiree"], ["FAM", "Spouse / family"]];
+const BRANCHES = ["Army", "Navy", "Marine Corps", "Air Force", "Space Force", "Coast Guard"];
+const DEF_DOCS = [
+  ["DD214 (Member-4 copy)", "VET RET"], ["Military ID / CAC", ""], ["DD93 Record of Emergency Data", "AD GR"], ["SGLI beneficiaries (SOES / SGLV 8286)", "AD GR"],
+  ["Current orders (PCS / deployment / ETS)", "AD GR"], ["Last 12 LES", "AD GR"], ["Evaluations (OER/NCOER/FITREP/EPR)", "AD GR"], ["ERB / ORB / SRB / VMET", "AD GR"],
+  ["Service treatment (medical) records", ""], ["Dental records", ""], ["Shot / immunization record", ""], ["VA rating decision letter", "VET RET"],
+  ["VA home loan COE", ""], ["Birth certificates (you + family)", ""], ["Marriage / divorce papers", ""], ["Passport (tourist + no-fee)", ""],
+  ["Power of attorney", ""], ["Will", ""], ["Family Care Plan", "AD GR"], ["Vehicle title / registration / insurance", ""],
+  ["Lease / housing papers", ""], ["Award citations", ""], ["Training & school certificates", ""], ["Joint Services Transcript", ""]
+].map(([name, tags]) => ({ id: uid(), name, tags, have: "", where: "", exp: "", notes: "" }));
+const DEF_ACCTS = [
+  ["milConnect", "https://milconnect.dmdc.osd.mil", "DEERS, SGLI (SOES), DD214 copies, TEB (GI Bill transfer)"],
+  ["MyPay (DFAS)", "https://mypay.dfas.mil", "LES, W-2, TSP elections, allotments"],
+  ["TSP.gov", "https://www.tsp.gov", "Balance, funds, beneficiaries, loans"],
+  ["VA.gov", "https://www.va.gov", "Claims, GI Bill, COE, health (sign in with Login.gov or ID.me)"],
+  ["MHS GENESIS Patient Portal", "https://my.mhsgenesis.health.mil", "Appointments, messages, results"],
+  ["TRICARE", "https://www.tricare.mil", "Plans, enrollment, finding care"],
+  ["Military OneSource", "https://www.militaryonesource.mil", "Counseling, MilTax, library, help"],
+  ["ID card appointments (IDCO)", "https://idco.dmdc.osd.mil", "Book a CAC / ID card appointment"],
+  ["Branch personnel portal", "", "Army IPPS-A · MyNavy Portal · Marine Online · myFSS (AF/SF) · CG Direct Access"],
+  ["Education portal", "", "ArmyIgnitED · Navy VOLED · AFVEC · MarineNet · CG ETQC"],
+  ["Joint Services Transcript", "https://jst.doded.mil", "College credit for training"],
+  ["Move.mil (DPS)", "https://www.move.mil", "PCS household goods"],
+  ["ShopMyExchange", "https://www.shopmyexchange.com", "Exchange online (also honorably discharged veterans)"],
+  ["BENEFEDS (FEDVIP)", "https://www.benefeds.gov", "Retiree dental & vision"]
+].map(([name, url, what]) => ({ id: uid(), name, url, what, have: false, mfa: false, checked: "", notes: "" }));
+const PLACE_KINDS = ["Main gate / Visitor center", "ID card office", "Commissary", "Exchange (PX / BX / NEX / MCX)", "Class Six / package store", "Clinic / sick call", "Pharmacy", "Dental clinic", "Behavioral health", "Chaplain", "Family center (ACS / FFSC / A&FRC / MCCS)", "Finance", "Legal / JAG / notary", "Education center", "Library", "Makerspace", "Arts & crafts center", "Auto skills center", "Wood shop", "Outdoor rec / gear rental", "Gym", "ITT (tickets & travel)", "USO", "CIF (issue / turn-in)", "Clothing sales", "Transportation (TMO)", "Housing office", "DFAC", "Lodging"];
+const newBase = name => ({ id: uid(), name, places: PLACE_KINDS.map(k => ({ id: uid(), kind: k, bldg: "", phone: "", hours: "", notes: "" })) });
+function fresh() {
+  return {
+    theme: "dark",
+    prof: { status: "AD", branch: "Army", rank: "", base: "", sep: "", retiring: false, yos: 3, brs: true, name: "" },
+    docs: DEF_DOCS, accts: DEF_ACCTS, bases: [newBase("My base")], baseCur: 0, gear: [], medals: {}, myAwards: [],
+    tsp: { pay: 3500, trad: 5, roth: 0, bal: 0, yos: 3, years: 20, ret: 7, raise: 3, limit: 24500, brs: true },
+    loan: { price: 350000, down: 0, use: "first", exempt: false, kind: "purchase", rate: 6.25, term: 30, tax: 3600, ins: 1500, hoa: 0, finance: true },
+    g2g: { citizen: false, ad: false, yrs: 0, gt: 0, acft: false, gpa: 0, age: 0, deps: 0 },
+    done: {}, filter: { cat: "all", q: "", mine: true }
+  };
+}
+let S;
+try { S = Object.assign(fresh(), JSON.parse(localStorage.getItem(LKEY) || "null") || {}); } catch (e) { S = fresh(); }
+let saveT; function save() { clearTimeout(saveT); saveT = setTimeout(() => { try { localStorage.setItem(LKEY, JSON.stringify(S)); } catch (e) { toast("Couldn't save – storage full?"); } }, 250); }
+
+/* ---------- guide library ---------- */
+const CATS = [["money", "Pay, TSP & money"], ["va", "VA & benefits"], ["health", "TRICARE, clinic & dental"], ["mh", "Mental health"], ["base", "Base life"], ["gear", "Gear, surplus & medals"], ["records", "Records & DD214"], ["career", "Career & Green to Gold"], ["trans", "Transition"], ["family", "Family"]];
+const G = [
+ { c: "money", s: "AD GR", t: "TSP basics & the Blended Retirement System", b: [
+  "TSP is the military's 401(k). Traditional = tax break now, taxed later. Roth = taxed now, tax-free later (including growth, once rules are met).",
+  "Funds: G (government securities, no losses), F (bonds), C (S&P 500), S (smaller US companies), I (international), and L funds that mix them by target year.",
+  "BRS: DoD puts in an automatic 1% of base pay after 60 days of service (yours after 2 years of service), plus a match of up to 4% more from the start of your 3rd year through 26 years.",
+  "Match = 100% of the first 3% you put in, 50% of the next 2%. Put in at least 5% to get the full 5% from DoD.",
+  "2026 limits: $24,500 of your own money; +$8,000 catch-up at 50+; ages 60–63 can do $11,250 instead. Total with DoD money and tax-free combat-zone pay: $72,000.",
+  "Change your percent in MyPay. Pick funds and beneficiaries on TSP.gov – the TSP does NOT use your SGLI beneficiaries."],
+  l: [["TSP.gov", "https://www.tsp.gov"], ["MyPay", "https://mypay.dfas.mil"]], tool: "tsp" },
+ { c: "money", s: "AD GR", t: "Read your LES (pay stub)", b: [
+  "Check it every month in MyPay: entitlements (base pay, BAH, BAS, special pays), deductions (taxes, SGLI, TSP), allotments, and leave balance.",
+  "BAH depends on duty-station ZIP, rank and whether you have dependents. Check the rate with the BAH calculator.",
+  "Overpayments get taken back later, sometimes all at once. If something looks wrong, go to your finance office early."],
+  l: [["Pay tables (DFAS)", "https://www.dfas.mil/MilitaryMembers/payentitlements/Pay-Tables/"], ["BAH calculator", "https://www.travel.dod.mil/Allowances/Basic-Allowance-for-Housing/BAH-Rate-Lookup/"]] },
+ { c: "money", s: "AD", t: "Meal card, BAS & separate rations", b: [
+  "Enlisted members get BAS (food money). If you live in the barracks you're usually on 'essential station messing': you eat at the DFAC with your meal card/CAC and the BAS is kept back.",
+  "Marrying, moving off post or having a duty schedule that keeps you from the DFAC can qualify you for separate rations (BAS paid in cash). Ask your unit's admin/S1.",
+  "Look at the LES: BAS in entitlements and any meal deduction. Ask finance if it doesn't match your situation."] },
+ { c: "money", s: "AD GR VET", t: "SGLI & VGLI life insurance", b: [
+  "SGLI: up to $500,000, set coverage and beneficiaries in SOES on milConnect. Recheck after marriage, divorce or a new child.",
+  "TSGLI pays for certain traumatic injuries; it's automatic with SGLI.",
+  "VGLI: convert after you leave. Apply within 240 days of separation with no health questions; up to 1 year 120 days with health questions."],
+  l: [["milConnect (SOES)", "https://milconnect.dmdc.osd.mil"], ["VA life insurance", "https://www.va.gov/life-insurance/"]] },
+ { c: "money", s: "AD GR FAM", t: "Money help, debt rules & taxes", b: [
+  "Free help: your base Personal Financial Manager/Counselor, and Military OneSource financial counseling.",
+  "Emergency, interest-free loans or grants: Army Emergency Relief, Navy-Marine Corps Relief Society, Air Force Aid Society (also Space Force), Coast Guard Mutual Assistance.",
+  "SCRA: 6% interest cap on debts from before active duty; break a lease with PCS or 90+ day deployment orders.",
+  "Military Lending Act caps most consumer loans at 36% APR. Avoid payday and car-title lenders near the gate.",
+  "Free tax filing: MilTax through Military OneSource, or the VITA tax center on base."],
+  l: [["Military OneSource", "https://www.militaryonesource.mil"], ["MilTax", "https://www.militaryonesource.mil/financial-legal/taxes/miltax-military-tax-services/"]] },
+
+ { c: "va", s: "AD GR VET RET", t: "VA home loan", b: [
+  "Usually no down payment and no monthly mortgage insurance. A private lender makes the loan; VA guarantees part of it.",
+  "Get your Certificate of Eligibility (COE) on VA.gov or through the lender.",
+  "There's a one-time funding fee unless you get VA disability compensation, are a Purple Heart recipient on active duty, or a qualifying surviving spouse.",
+  "You must live in the home. Entitlement can be used again after you sell and pay off the loan.",
+  "Rough service needed: 90 days in a row in wartime, 181 days peacetime, or 6 years in the Guard/Reserve (or 90 days of Title 10 active duty)."],
+  l: [["VA home loans", "https://www.va.gov/housing-assistance/home-loans/"], ["Request COE", "https://www.va.gov/housing-assistance/home-loans/request-coe-form-26-1880/"], ["Funding fee", "https://www.va.gov/housing-assistance/home-loans/funding-fee-and-closing-costs/"]], tool: "loan" },
+ { c: "va", s: "AD GR VET RET FAM", t: "GI Bill", b: [
+  "Post-9/11 GI Bill (Chapter 33): up to 36 months of school. Your percent depends on active service after 9/10/2001 (100% at 36 months).",
+  "It pays tuition to the school, a monthly housing allowance (based on the school's ZIP; online-only gets half the national average) and up to $1,000/yr for books.",
+  "If your service ended on/after Jan 1, 2013, it doesn't expire.",
+  "Transfer to spouse/children (TEB): needs 6 years served and agreeing to 4 more – and it must be done while you're still serving. Do it in milConnect.",
+  "Other kinds: Montgomery GI Bill (Ch 30), Selected Reserve (Ch 1606), VR&E (Ch 31)."],
+  l: [["VA education", "https://www.va.gov/education/"], ["GI Bill comparison tool", "https://www.va.gov/education/gi-bill-comparison-tool/"]] },
+ { c: "va", s: "AD GR VET RET", t: "VA disability claims", b: [
+  "File an Intent to File first: it holds your start date for a year while you gather evidence.",
+  "Still serving? A Benefits Delivery at Discharge (BDD) claim can be filed 180 to 90 days before you separate, so pay can start right after.",
+  "You'll likely have a C&P exam. Go to it – a missed exam can sink the claim.",
+  "Free, accredited help: Veterans Service Organizations (DAV, VFW, American Legion and others) and county veteran service officers. Don't pay anyone to file your first claim."],
+  l: [["File for disability", "https://www.va.gov/disability/"], ["Intent to File", "https://www.va.gov/resources/your-intent-to-file-a-va-claim/"], ["BDD (pre-discharge)", "https://www.va.gov/disability/how-to-file-claim/when-to-file/pre-discharge-claim/"], ["Find accredited help", "https://www.va.gov/get-help-from-accredited-representative/"]] },
+ { c: "va", s: "VET RET", t: "VA health care & the PACT Act", b: [
+  "Apply on VA.gov (form 10-10EZ). Combat veterans get enhanced eligibility for 10 years after discharge.",
+  "PACT Act: if you were exposed to burn pits, Agent Orange or other toxins, you may qualify for health care and benefits. Ask for a toxic exposure screening.",
+  "VA gives emergency suicidal crisis care free to eligible veterans, including many former members not enrolled in VA care."],
+  l: [["VA health care", "https://www.va.gov/health-care/"], ["PACT Act", "https://www.va.gov/resources/the-pact-act-and-your-va-benefits/"]] },
+ { c: "va", s: "VET RET", t: "Veteran ID & base access for veterans", b: [
+  "Proof options: Veteran Health ID Card (VHIC), Veteran ID Card (VA.gov), DD214, or 'Veteran' on your state driver's license.",
+  "Veterans with a VA disability rating, Purple Heart, former POWs, Medal of Honor recipients and VA-approved caregivers can use commissaries, exchanges and some MWR. Bring a VHIC and a REAL ID to the visitor center.",
+  "All honorably discharged veterans can shop the exchanges online."],
+  l: [["Veteran ID Card", "https://www.va.gov/records/get-veteran-id-cards/"], ["Expanded access info", "https://www.militaryonesource.mil/benefits/expanded-access/"]] },
+ { c: "va", s: "VET RET", t: "Jobs & training: VR&E and more", b: [
+  "Veteran Readiness and Employment (VR&E, Chapter 31): training, school and job help if you have a service-connected rating.",
+  "Personalized Career Planning (Chapter 36): free career and education counseling for recent veterans and dependents.",
+  "Your state veterans affairs office often has its own benefits: tuition, property tax breaks, licenses."],
+  l: [["VR&E", "https://www.va.gov/careers-employment/vocational-rehabilitation/"], ["Chapter 36", "https://www.va.gov/careers-employment/education-and-career-counseling/"]] },
+ { c: "va", s: "VET RET FAM", t: "Survivors & burial", b: [
+  "Survivors may get Dependency and Indemnity Compensation (DIC), GI Bill (Fry / DEA) and TRICARE.",
+  "Veterans can get burial in a national cemetery, a headstone or marker, and a flag. You can ask VA now to confirm eligibility ahead of time (pre-need)."],
+  l: [["Survivor benefits", "https://www.va.gov/family-and-caregiver-benefits/"], ["Burial benefits", "https://www.va.gov/burials-memorials/"]] },
+
+ { c: "health", s: "AD GR RET FAM", t: "TRICARE plans", b: [
+  "Prime: active duty must be in it; families can choose it. You get a primary care manager and referrals.",
+  "Select: see any TRICARE-authorized doctor, no referrals, more cost-sharing.",
+  "Reserve Select / Retired Reserve: premium plans for Guard/Reserve members and gray-area retirees.",
+  "For Life: once you're on Medicare (keep Part B). Young Adult: children 21/23 to 26.",
+  "Changes outside open season need a Qualifying Life Event – you get 90 days. Some separating members get 180 days of TAMP coverage."],
+  l: [["TRICARE plans", "https://www.tricare.mil/Plans"], ["Life events", "https://www.tricare.mil/LifeEvents"]] },
+ { c: "health", s: "AD GR RET FAM VET", t: "Dental", b: [
+  "Active duty: your base dental clinic. Keep your yearly exam current – it's part of readiness.",
+  "Families and Guard/Reserve members: the TRICARE Dental Program (monthly premium).",
+  "Retirees and their families: FEDVIP dental and vision through BENEFEDS.",
+  "Veterans: VA dental is only for some groups (for example, a dental rating, 100% rating, or a one-time visit if you apply within 180 days of discharge and had no dental exam in your last 90 days)."],
+  l: [["TRICARE dental", "https://www.tricare.mil/dental"], ["BENEFEDS / FEDVIP", "https://www.benefeds.gov"], ["VA dental", "https://www.va.gov/health-care/about-va-health-benefits/dental-care/"]] },
+ { c: "health", s: "AD GR RET FAM", t: "Clinic, sick call & the patient portal", b: [
+  "Book appointments, message your team and see results in the MHS GENESIS patient portal.",
+  "Not sure where to go? Military Health System Nurse Advice Line: 1-800-TRICARE (874-2273), option 1, any time.",
+  "Emergency? Go to the nearest emergency room or call 911 – no referral needed.",
+  "Before you leave the service, get copies of your medical and dental records for yourself."],
+  l: [["Patient portal", "https://my.mhsgenesis.health.mil"], ["Find care", "https://www.tricare.mil/FindDoctor"]] },
+
+ { c: "mh", s: "AD GR VET RET FAM", t: "In crisis right now", b: [
+  "Veterans/Military Crisis Line: dial 988 then press 1, text 838255, or chat at veteranscrisisline.net. You don't need to be enrolled in VA.",
+  "Overseas: the website lists local numbers by region.",
+  "Danger right now: call 911 or go to an emergency room."],
+  l: [["Veterans Crisis Line", "https://www.veteranscrisisline.net"]] },
+ { c: "mh", s: "AD GR FAM", t: "Talking to someone (service members & families)", b: [
+  "Military OneSource: free, confidential non-medical counseling – 800-342-9647, any time.",
+  "Military & Family Life Counselors (MFLCs) on base: short-term, no records kept.",
+  "Chaplains: what you tell a chaplain is privileged. You don't need to be religious.",
+  "Behavioral health clinic: you can self-refer or walk in.",
+  "Brandon Act: you can ask your supervisor or commander for a mental health evaluation, without giving a reason, and they must refer you.",
+  "Getting counseling on its own isn't a reason to lose a security clearance."],
+  l: [["Military OneSource", "https://www.militaryonesource.mil"]] },
+ { c: "mh", s: "VET RET FAM", t: "Help for veterans", b: [
+  "Vet Centers: free, confidential counseling for combat veterans, MST survivors and families – 877-927-8387.",
+  "VA mental health: same-day help at many VA medical centers.",
+  "Peer groups: VSOs, Team RWB, Team Rubicon and local vet groups."],
+  l: [["Vet Centers", "https://www.vetcenter.va.gov"], ["VA mental health", "https://www.va.gov/health-care/health-needs-conditions/mental-health/"]] },
+
+ { c: "base", s: "AD GR VET RET FAM", t: "Gate guards, visitors & getting on base", b: [
+  "Have your CAC/ID ready, take off sunglasses, and follow the guard's directions. Expect random vehicle checks.",
+  "Visitors: get a pass at the Visitor Control Center with a REAL ID or passport; they'll run a background check. A sponsor may need to be there.",
+  "Car: current registration, insurance and license. Some bases need you to register the vehicle.",
+  "Gate hours differ – note them in My base."],
+  l: [["MilitaryINSTALLATIONS", "https://installations.militaryonesource.mil"]], tool: "base" },
+ { c: "base", s: "AD GR VET RET FAM", t: "Commissary, exchange (PX/BX/NEX) & Class Six", b: [
+  "Commissary (DeCA): groceries at cost plus a 5% surcharge. Online: Commissary CLICK2GO.",
+  "Exchange: AAFES (PX/BX), NEX, MCX, CGX. No sales tax. Profits fund MWR.",
+  "Class Six / package store: alcohol and tobacco, 21+, run by the exchange or MWR.",
+  "Honorably discharged veterans can shop online. In-store access is for people listed in the veteran access card."],
+  l: [["Commissaries.com", "https://www.commissaries.com"], ["ShopMyExchange", "https://www.shopmyexchange.com"], ["NEX", "https://www.mynavyexchange.com"], ["MCX", "https://www.mymcx.com"], ["CGX", "https://shopcgx.com"]] },
+ { c: "base", s: "AD GR RET FAM", t: "Library, makerspace, craft & auto shops", b: [
+  "MWR library: books, Wi-Fi, study rooms, and free online e-books, courses and exam practice through the Military OneSource digital library.",
+  "Some bases have makerspaces (3D printers, laser cutters, electronics) – often in the library or the arts & crafts center.",
+  "Arts & crafts center: framing, engraving, ceramics, sometimes laser engraving.",
+  "Auto skills center: rent a lift and tools, staff can help. Wood shop: usually needs a safety class first.",
+  "Off-post hackerspaces and makerspaces often give military discounts – ask."],
+  l: [["MWR digital library", "https://www.militaryonesource.mil/resources/mwr-digital-library/"]] },
+ { c: "base", s: "AD GR RET FAM", t: "MWR, outdoor rec & ITT", b: [
+  "Outdoor recreation rents camping gear, boats, trailers and tools cheaply.",
+  "ITT sells discounted tickets for parks, shows and travel.",
+  "Also: gyms, pools, bowling, golf, lodging, child & youth programs."] },
+ { c: "base", s: "AD GR VET RET FAM", t: "USO, Red Cross & Fisher House", b: [
+  "USO centers at bases and airports: lounge, food, Wi-Fi, events, help with travel.",
+  "Red Cross Hero Care Network sends emergency messages to deployed members: 877-272-7337.",
+  "Fisher House: free lodging for families near a military or VA hospital."],
+  l: [["Find a USO", "https://www.uso.org/locations"], ["Red Cross (military)", "https://www.redcross.org/get-help/military-families.html"], ["Fisher House", "https://www.fisherhouse.org"]] },
+
+ { c: "gear", s: "AD GR", t: "Issued gear (CIF) & clothing", b: [
+  "Check everything at issue and keep a copy of your hand receipt. Note shortages before you sign.",
+  "Clean gear before turn-in; lost gear can mean paying for it (statement of charges / financial liability investigation).",
+  "Uniforms: Military Clothing Sales Store; enlisted get a yearly clothing allowance.",
+  "Track it on the Gear page."], tool: "gear" },
+ { c: "gear", s: "AD GR VET RET", t: "Surplus gear", b: [
+  "DLA Disposition Services sells surplus to the public through its sales partners (vehicles and equipment on GovPlanet).",
+  "Army-Navy surplus stores sell commercial and old-stock items.",
+  "Never sell gear that was issued to you – it's government property.",
+  "Some items are export-controlled or must be demilitarized; read the listing."],
+  l: [["DLA Disposition", "https://www.dla.mil/Disposition-Services/"], ["GovPlanet", "https://www.govplanet.com"]] },
+ { c: "gear", s: "VET RET FAM", t: "Medals & ribbons: replacements", b: [
+  "Veterans and next of kin can request replacement medals for free from the National Archives (NPRC) with an SF-180 or eVetRecs.",
+  "Still serving: go through your unit's admin / S1.",
+  "Check DD214 block 13 for your awards. Missing awards can be fixed through your branch's records correction board.",
+  "Wear and precedence rules come from your branch's regulation. See the Medals page."],
+  l: [["Replace medals", "https://www.archives.gov/veterans/replace-medals"]], tool: "medals" },
+
+ { c: "records", s: "AD GR VET RET FAM", t: "DD214: what it is & how to get it", b: [
+  "Your proof of service. The Member-4 copy shows character of service and the narrative reason – you'll need it for most benefits.",
+  "Get copies: milConnect (recent), VA.gov, or the National Archives (eVetRecs / SF-180).",
+  "Many counties will record your DD214 for free so you can get a certified copy later. Ask if it stays private.",
+  "Keep several certified copies with your important papers."],
+  l: [["Request military records", "https://www.archives.gov/veterans/military-service-records"], ["eVetRecs", "https://vetrecs.archives.gov"]] },
+ { c: "records", s: "AD GR", t: "Check your DD214 before you sign", b: [
+  "Check dates, rank, MOS/rate, awards, schools, character of service, separation code and reenlistment code.",
+  "Mistakes are much easier to fix before you leave. Later it takes a DD-215 or a correction board."] },
+ { c: "records", s: "VET", t: "Discharge upgrades & record corrections", b: [
+  "Discharge Review Board (DD-293): within 15 years of discharge.",
+  "Board for Correction of Military/Naval Records (DD-149): for older cases and other record errors.",
+  "Boards must give liberal consideration where PTSD, TBI, MST or other mental health conditions played a part.",
+  "Free legal help: law school clinics and veterans legal groups."],
+  l: [["Discharge upgrade wizard", "https://www.va.gov/discharge-upgrade-instructions/"]] },
+
+ { c: "career", s: "AD", t: "Green to Gold (Army)", b: [
+  "For active-duty enlisted Soldiers to finish a degree through ROTC and commission as an officer.",
+  "Options: Scholarship, Non-Scholarship, Active Duty Option (keep pay, 21–24 months, extra service obligation) and Hip-Pocket (a commander's nomination).",
+  "Key needs: US citizen, 2+ years active duty, GT 110+, pass the ACFT, GPA and age limits (some waivers). Use the checker on the Green to Gold page."],
+  l: [["GoArmy: Green to Gold", "https://www.goarmy.com/careers-and-jobs/find-your-path/army-officers/green-to-gold"]], tool: "g2g" },
+ { c: "career", s: "AD GR", t: "Tuition Assistance, CLEP & credentials", b: [
+  "Tuition Assistance: up to $250 per credit hour; yearly caps differ by branch. Apply before the class starts through your branch's education portal.",
+  "Use TA while serving and save your GI Bill.",
+  "DANTES pays for your first try at CLEP and DSST exams – test out of college classes.",
+  "Joint Services Transcript turns training into college credit. COOL helps you get civilian credentials for your job."],
+  l: [["DANTES", "https://www.dantes.mil"], ["COOL", "https://www.cool.osd.mil"], ["JST", "https://jst.doded.mil"]] },
+
+ { c: "trans", s: "AD GR", t: "TAP & leaving the service", b: [
+  "Start the Transition Assistance Program at least 365 days out (retirees: up to 24 months). Capstone must be done before you leave.",
+  "SkillBridge: up to the last 180 days training or interning with a civilian employer, with your commander's OK.",
+  "Plan terminal leave or sell back leave (there's a career limit of 60 days sold).",
+  "Use the Transition timeline page to get dates for your separation date."],
+  l: [["DoD TAP", "https://www.dodtap.mil"], ["SkillBridge", "https://skillbridge.osd.mil"]], tool: "trans" },
+
+ { c: "family", s: "AD GR RET FAM", t: "DEERS & ID cards", b: [
+  "Family members must be in DEERS to get TRICARE and base access. The sponsor adds them with documents (marriage/birth certificates).",
+  "Book ID card appointments online; walk-ins can wait for hours."],
+  l: [["ID card appointments", "https://idco.dmdc.osd.mil"], ["milConnect", "https://milconnect.dmdc.osd.mil"]] },
+ { c: "family", s: "AD FAM", t: "PCS moves", b: [
+  "Start in Move.mil as soon as you have orders. Book early in summer.",
+  "Doing it yourself (PPM) can pay you for the weight you move – keep weight tickets and receipts.",
+  "Ask finance about advances, temporary lodging (TLE/TLA) and dislocation allowance."],
+  l: [["Move.mil", "https://www.move.mil"], ["Plan My Move", "https://planmymove.militaryonesource.mil"]] },
+ { c: "family", s: "FAM", t: "Spouse jobs, child care & special needs", b: [
+  "MySECO: free career coaching and spouse job programs.",
+  "MilitaryChildCare.com: request base child care.",
+  "EFMP supports families with special medical or education needs, including at PCS time."],
+  l: [["MySECO", "https://myseco.militaryonesource.mil"], ["MilitaryChildCare", "https://www.militarychildcare.com"]] }
+];
+const HOTLINES = [
+  ["Veterans / Military Crisis Line", "988 then press 1 · text 838255", "https://www.veteranscrisisline.net"],
+  ["Military OneSource (24/7)", "800-342-9647", "https://www.militaryonesource.mil"],
+  ["Vet Center Call Center (24/7)", "877-927-8387", "https://www.vetcenter.va.gov"],
+  ["DoD Safe Helpline (sexual assault)", "877-995-5247", "https://www.safehelpline.org"],
+  ["MHS Nurse Advice Line", "800-874-2273, option 1", "https://www.tricare.mil"],
+  ["VA benefits", "800-827-1000", "https://www.va.gov"],
+  ["VA health care", "877-222-8387", "https://www.va.gov/health-care/"],
+  ["GI Bill", "888-442-4551", "https://www.va.gov/education/"],
+  ["VA home loans", "877-827-3702", "https://www.va.gov/housing-assistance/home-loans/"],
+  ["Homeless veterans (24/7)", "877-424-3838", "https://www.va.gov/homeless/"],
+  ["Women Veterans Call Center", "855-829-6636", "https://www.womenshealth.va.gov"],
+  ["VA Caregiver Support", "855-260-3274", "https://www.caregiver.va.gov"],
+  ["Red Cross emergency messages", "877-272-7337", "https://www.redcross.org/get-help/military-families.html"],
+  ["TSP ThriftLine", "877-968-3778", "https://www.tsp.gov"],
+  ["DFAS (pay)", "888-332-7411", "https://www.dfas.mil"]
+];
+const MEDALS = ["Medal of Honor", "Distinguished Service Cross / Navy Cross / Air Force Cross / Coast Guard Cross", "Defense Distinguished Service Medal", "Distinguished Service Medal (branch)", "Silver Star", "Defense Superior Service Medal", "Legion of Merit", "Distinguished Flying Cross", "Soldier's / Navy & Marine Corps / Airman's / Coast Guard Medal", "Bronze Star Medal", "Purple Heart", "Defense Meritorious Service Medal", "Meritorious Service Medal", "Air Medal", "Joint Service Commendation Medal", "Commendation Medal (branch)", "Joint Service Achievement Medal", "Achievement Medal (branch)", "Combat Action Ribbon / Badge", "Prisoner of War Medal", "Good Conduct Medal (branch)", "Reserve Good Conduct / Achievement Medal", "National Defense Service Medal", "Armed Forces Expeditionary Medal", "Vietnam Service Medal", "Southwest Asia Service Medal", "Kosovo Campaign Medal", "Afghanistan Campaign Medal", "Iraq Campaign Medal", "Inherent Resolve Campaign Medal", "Global War on Terrorism Expeditionary Medal", "Global War on Terrorism Service Medal", "Korea Defense Service Medal", "Armed Forces Service Medal", "Humanitarian Service Medal", "Military Outstanding Volunteer Service Medal", "Overseas / Sea Service Ribbon (branch)", "Service / training ribbons (branch)", "Foreign decorations", "NATO Medal", "United Nations Medal", "Kuwait Liberation Medals"];
+
+/* ---------- nav ---------- */
+const PAGES = [
+  ["", "Start"], ["home", "My profile & next steps"], ["guides", "Guides (all topics)"], ["help", "Help lines"],
+  ["", "Tools"], ["tsp", "TSP calculator"], ["loan", "VA loan calculator"], ["trans", "Transition timeline"], ["g2g", "Green to Gold checker"],
+  ["", "My stuff"], ["docs", "Documents checklist"], ["accts", "Military accounts"], ["base", "My base directory"], ["gear", "Gear list"], ["medals", "Medals & ribbons"],
+  ["", "More"], ["ai", "Ask the AI"], ["backup", "Backup & privacy"]
+];
+let view = "home";
+function nav() { $("#nav").innerHTML = PAGES.map(([k, t]) => k ? `<div data-go="${k}" class="${view === k ? "on" : ""}">${esc(t)}</div>` : `<div class="grp">${esc(t)}</div>`).join(""); }
+
+/* ---------- helpers ---------- */
+const P = () => S.prof;
+const forMe = g => !S.filter.mine || g.s.split(" ").includes(P().status);
+function guideCard(g) {
+  const key = g.t;
+  return `<div class="card"><div class="row" style="justify-content:space-between"><h3 style="margin:0">${esc(g.t)}</h3>
+<label class="small mut"><input type="checkbox" data-done="${esc(key)}" ${S.done[key] ? "checked" : ""}> handled</label></div>
+<div>${g.s.split(" ").map(s => `<span class="tag">${esc((STATUSES.find(x => x[0] === s) || [, s])[1])}</span>`).join("")}</div>
+<ul>${g.b.map(x => `<li>${esc(x)}</li>`).join("")}</ul>
+<div class="links">${(g.l || []).map(([a, u]) => L(a, u)).join("")}${g.tool ? `<span class="lnk" data-go="${g.tool}">Open tool →</span>` : ""}</div></div>`;
+}
+function inp(path, type, attrs) {
+  const v = get(path);
+  if (type === "check") return `<input type="checkbox" data-bind="${path}" ${v ? "checked" : ""}>`;
+  return `<input type="${type || "text"}" data-bind="${path}" value="${esc(v)}" ${attrs || ""}>`;
+}
+function sel(path, opts) { const v = get(path); return `<select data-bind="${path}">${opts.map(o => { const [k, t] = Array.isArray(o) ? o : [o, o]; return `<option value="${esc(k)}" ${String(v) === String(k) ? "selected" : ""}>${esc(t)}</option>`; }).join("")}</select>`; }
+function get(path) { return path.split(".").reduce((o, k) => o == null ? o : o[k], S); }
+function set(path, val) { const ks = path.split("."); const last = ks.pop(); const o = ks.reduce((o, k) => o[k], S); o[last] = val; }
+function daysUntil(d) { if (!d) return null; return Math.round((new Date(d + "T00:00") - new Date(new Date().toDateString())) / 864e5); }
+function addDays(d, n) { const x = new Date(d + "T00:00"); x.setDate(x.getDate() + n); return x; }
+function fmtD(x) { return x.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }); }
+function ymd(x) { return x.getFullYear() + String(x.getMonth() + 1).padStart(2, "0") + String(x.getDate()).padStart(2, "0"); }
+
+/* ---------- views ---------- */
+const V = {};
+V.home = () => {
+  const p = P(), steps = nextSteps();
+  return `<h2>My profile & next steps</h2>
+<div class="card"><p class="small mut">This helps the page show what applies to you. It stays on this computer. Don't put your SSN or DoD ID here.</p>
+<div class="form">
+<label>I am ${sel("prof.status", STATUSES)}</label>
+<label>Branch ${sel("prof.branch", BRANCHES)}</label>
+<label>Rank / grade ${inp("prof.rank", "text", 'placeholder="e.g. E-4"')}</label>
+<label>Base / duty station ${inp("prof.base")}</label>
+<label>Years of service ${inp("prof.yos", "number", 'min="0" step="0.5"')}</label>
+<label>Separation / ETS / retirement date ${inp("prof.sep", "date")}</label>
+<label class="ck">${inp("prof.retiring", "check")} Retiring (not just separating)</label>
+<label class="ck">${inp("prof.brs", "check")} I'm in BRS (Blended Retirement)</label>
+</div></div>
+<div class="card"><h3>Suggested next steps</h3>${steps.length ? `<ul>${steps.map(s => `<li>${s}</li>`).join("")}</ul>` : `<p class="mut">Nothing urgent from what you've entered.</p>`}</div>
+<div class="card"><h3>Find anything</h3><div class="row"><input id="homeQ" style="flex:1" placeholder="Try: dental, DD214, class six, makerspace, meal card, VA loan…"><button class="pri" data-act="search">Search</button></div></div>`;
+};
+function nextSteps() {
+  const p = P(), out = [], d = daysUntil(p.sep), st = p.status;
+  const go = (k, t) => `<span class="lnk" data-go="${k}">${t}</span>`;
+  if (st === "AD" || st === "GR") {
+    if (p.brs && S.tsp.trad + S.tsp.roth < 5) out.push(`You're putting ${S.tsp.trad + S.tsp.roth}% in TSP – put in at least 5% to get the full DoD match. ${go("tsp", "TSP calculator")}`);
+    if (p.yos >= 6 && st === "AD") out.push(`With 6+ years you may be able to transfer your GI Bill to family – it must be done while serving (milConnect).`);
+    if (d != null && d >= 0) {
+      if (d <= (p.retiring ? 730 : 365)) out.push(`You're ${d} days from leaving – TAP should already be started. ${go("trans", "See your timeline")}`);
+      if (d <= 180 && d >= 90) out.push(`You're in the BDD window (180–90 days out): file your VA disability claim now.`);
+      if (d < 90) out.push(`Under 90 days out: file an Intent to File with VA if you haven't, and get copies of your medical records.`);
+      if (d <= 180) out.push(`SkillBridge window is open (last 180 days) if your command approves.`);
+    } else if (d == null) out.push(`Add your separation / ETS date to get a transition timeline.`);
+  }
+  if (d != null && d < 0) {
+    const a = -d;
+    if (a <= 240) out.push(`VGLI with no health questions: ${240 - a} days left.`);
+    else if (a <= 485) out.push(`VGLI deadline (with health questions): ${485 - a} days left.`);
+    if (a <= 180) out.push(`VA dental one-time benefit: apply within 180 days of discharge (${180 - a} days left) if you qualify.`);
+    out.push(`Keep certified copies of your DD214. ${go("docs", "Documents checklist")}`);
+  }
+  if (st === "VET") out.push(`Check what you can use on base with a VHIC, and VA health care / PACT Act. ${go("guides", "Guides")}`);
+  const soon = S.docs.filter(x => x.exp && daysUntil(x.exp) != null && daysUntil(x.exp) <= 60);
+  soon.forEach(x => out.push(`<b>${esc(x.name)}</b> ${daysUntil(x.exp) < 0 ? "expired" : "expires in " + daysUntil(x.exp) + " days"}. ${go("docs", "Documents")}`));
+  const noMfa = S.accts.filter(a => a.have && !a.mfa).length;
+  if (noMfa) out.push(`${noMfa} account(s) without two-step sign-in. ${go("accts", "Accounts")}`);
+  return out;
+}
+V.guides = () => {
+  const f = S.filter, q = f.q.trim().toLowerCase();
+  const list = G.filter(g => (f.cat === "all" || g.c === f.cat) && forMe(g) && (!q || (g.t + " " + g.b.join(" ")).toLowerCase().includes(q)));
+  return `<h2>Guides</h2>
+<div class="row" style="margin-bottom:8px"><input id="gq" style="flex:1;min-width:200px" placeholder="Search guides" value="${esc(f.q)}">
+<label class="small"><input type="checkbox" data-bind="filter.mine" ${f.mine ? "checked" : ""}> Only what applies to me (${esc(STATUSES.find(x => x[0] === P().status)[1])})</label></div>
+<div style="margin-bottom:10px"><span class="chip ${f.cat === "all" ? "on" : ""}" data-cat="all">All</span>${CATS.map(([k, t]) => `<span class="chip ${f.cat === k ? "on" : ""}" data-cat="${k}">${esc(t)}</span>`).join("")}</div>
+<p class="small mut">${list.length} guide(s). Rules change – check the linked official page before you act on anything.</p>
+<div class="grid">${list.map(guideCard).join("") || `<p class="mut">Nothing matches. Try "All", or untick "Only what applies to me".</p>`}</div>`;
+};
+V.help = () => `<h2>Help lines</h2>
+<div class="note">In danger right now: call <b>911</b>. Thinking about suicide, or worried about someone: dial <b>988 then press 1</b> or text <b>838255</b>.</div>
+<div class="card"><table><tr><th>Who</th><th>Number</th><th></th></tr>${HOTLINES.map(([a, n, u]) => `<tr><td>${esc(a)}</td><td><b>${esc(n)}</b></td><td>${L("website", u)}</td></tr>`).join("")}</table>
+<p class="small mut">Numbers are US numbers. Check the website for overseas numbers.</p></div>`;
+
+/* TSP */
+function tspCalc() {
+  const t = S.tsp, rows = []; let bal = +t.bal || 0, pay = +t.pay || 0, yos = +t.yos || 0, mine = 0, dod = 0;
+  const youPct = (+t.trad || 0) + (+t.roth || 0);
+  const matchPct = y => !t.brs ? 0 : 1 + (y >= 2 && y < 26 ? Math.min(youPct, 3) + 0.5 * Math.min(Math.max(youPct - 3, 0), 2) : 0);
+  for (let i = 0; i < (+t.years || 0); i++) {
+    const annual = pay * 12, you = Math.min(annual * youPct / 100, +t.limit || 1e12), ag = annual * matchPct(yos) / 100;
+    mine += you; dod += ag;
+    for (let m = 0; m < 12; m++) bal = bal * (1 + (+t.ret || 0) / 1200) + (you + ag) / 12;
+    rows.push({ y: i + 1, yos: yos + 1, bal, you, ag }); pay *= 1 + (+t.raise || 0) / 100; yos++;
+  }
+  return { rows, bal, mine, dod, youPct, nowMatch: matchPct(+t.yos || 0), annual: (+t.pay || 0) * 12 };
+}
+V.tsp = () => {
+  const t = S.tsp, r = tspCalc(), yearYou = r.annual * r.youPct / 100;
+  const msgs = [];
+  if (t.brs && r.youPct < 5) msgs.push(`<span class="warn">You're missing ${money(r.annual * (5 - r.youPct) / 100 * (t.yos >= 2 ? 1 : 0) || 0)}/yr of free DoD match${t.yos < 2 ? " (once your match starts in year 3)" : ""}. Put in at least 5%.</span>`);
+  if (yearYou > t.limit) msgs.push(`<span class="bad">${money(yearYou)}/yr is over the ${money(t.limit)} limit – your contributions will stop early in the year, and with BRS you'd miss match in those months. Spread it out.</span>`);
+  return `<h2>TSP calculator</h2>
+<div class="card"><div class="form">
+<label>Monthly base pay ($) ${inp("tsp.pay", "number", 'min="0"')}</label>
+<label>Traditional % ${inp("tsp.trad", "number", 'min="0" max="100"')}</label>
+<label>Roth % ${inp("tsp.roth", "number", 'min="0" max="100"')}</label>
+<label>Balance now ($) ${inp("tsp.bal", "number", 'min="0"')}</label>
+<label>Years of service now ${inp("tsp.yos", "number", 'min="0"')}</label>
+<label>Years to project ${inp("tsp.years", "number", 'min="1" max="50"')}</label>
+<label>Yearly return guess % ${inp("tsp.ret", "number", 'step="0.5"')}</label>
+<label>Yearly pay raise % ${inp("tsp.raise", "number", 'step="0.5"')}</label>
+<label>Your yearly limit ($) ${inp("tsp.limit", "number")}</label>
+<label class="ck">${inp("tsp.brs", "check")} BRS (DoD 1% + match)</label></div>
+<p class="small mut">2026 limit: $24,500 (+$8,000 at 50+, or $11,250 at 60–63). Pay tables: ${L("DFAS", "https://www.dfas.mil/MilitaryMembers/payentitlements/Pay-Tables/")}</p></div>
+<div class="card">
+<div class="stat"><div class="mut">You put in now</div><div class="big">${money(yearYou / 12)}/mo</div></div>
+<div class="stat"><div class="mut">DoD puts in now</div><div class="big">${money(r.annual * r.nowMatch / 1200)}/mo</div><div class="small mut">${r.nowMatch}% of base pay</div></div>
+<div class="stat"><div class="mut">In ${t.years} years</div><div class="big ok">${money(r.bal)}</div></div>
+<div class="stat"><div class="mut">Your money / DoD money</div><div class="big">${money(r.mine)} / ${money(r.dod)}</div></div>
+${msgs.map(m => `<p>${m}</p>`).join("")}
+${chart(r.rows)}
+<p class="small mut">A guess, not a promise: returns vary, and this doesn't count inflation, fees or taxes. Matching runs from the start of year 3 through year 26; the automatic 1% is yours after 2 years.</p></div>`;
+};
+function chart(rows) {
+  if (!rows.length) return "";
+  const W = 640, H = 180, max = Math.max(...rows.map(r => r.bal), 1);
+  const pts = rows.map((r, i) => `${30 + i * (W - 40) / Math.max(rows.length - 1, 1)},${H - 20 - r.bal / max * (H - 35)}`).join(" ");
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:${W}px;height:auto"><line x1="30" y1="${H - 20}" x2="${W - 10}" y2="${H - 20}" stroke="var(--line)"/>
+<polyline points="${pts}" fill="none" stroke="var(--acc)" stroke-width="2.5"/><text x="32" y="14" fill="var(--mut)" font-size="11">${money(max)}</text>
+<text x="30" y="${H - 4}" fill="var(--mut)" font-size="11">year 1</text><text x="${W - 60}" y="${H - 4}" fill="var(--mut)" font-size="11">year ${rows.length}</text></svg>`;
+}
+
+/* VA loan */
+function feePct(l) {
+  if (l.exempt) return 0;
+  if (l.kind === "irrrl" || l.kind === "assume") return 0.5;
+  if (l.kind === "cashout") return l.use === "first" ? 2.15 : 3.3;
+  const d = +l.down || 0;
+  if (d >= 10) return 1.25; if (d >= 5) return 1.5;
+  return l.use === "first" ? 2.15 : 3.3;
+}
+V.loan = () => {
+  const l = S.loan, price = +l.price || 0, downAmt = price * (+l.down || 0) / 100, base = price - downAmt, fp = feePct(l), fee = base * fp / 100;
+  const loan = base + (l.finance ? fee : 0), n = (+l.term || 30) * 12, i = (+l.rate || 0) / 1200;
+  const pi = i ? loan * i / (1 - Math.pow(1 + i, -n)) : loan / n, other = ((+l.tax || 0) + (+l.ins || 0)) / 12 + (+l.hoa || 0);
+  return `<h2>VA loan calculator</h2>
+<div class="card"><div class="form">
+<label>${l.kind === "purchase" ? "Home price" : "Loan amount"} ($) ${inp("loan.price", "number")}</label>
+<label>Down payment % ${inp("loan.down", "number", 'min="0" max="100"')}</label>
+<label>Loan type ${sel("loan.kind", [["purchase", "Purchase / build"], ["cashout", "Cash-out refinance"], ["irrrl", "IRRRL (rate-lowering refi)"], ["assume", "Assumption"]])}</label>
+<label>Use ${sel("loan.use", [["first", "First use"], ["later", "Used before"]])}</label>
+<label>Interest rate % ${inp("loan.rate", "number", 'step="0.125"')}</label>
+<label>Term (years) ${sel("loan.term", [30, 25, 20, 15])}</label>
+<label>Property tax / year ($) ${inp("loan.tax", "number")}</label>
+<label>Home insurance / year ($) ${inp("loan.ins", "number")}</label>
+<label>HOA / month ($) ${inp("loan.hoa", "number")}</label>
+<label class="ck">${inp("loan.exempt", "check")} Exempt from funding fee (VA disability pay, Purple Heart on active duty, etc.)</label>
+<label class="ck">${inp("loan.finance", "check")} Roll the funding fee into the loan</label></div></div>
+<div class="card">
+<div class="stat"><div class="mut">Funding fee</div><div class="big">${fp}% = ${money(fee)}</div></div>
+<div class="stat"><div class="mut">Loan amount</div><div class="big">${money(loan)}</div></div>
+<div class="stat"><div class="mut">Principal & interest</div><div class="big">${money2(pi)}/mo</div></div>
+<div class="stat"><div class="mut">Total with tax, insurance, HOA</div><div class="big ok">${money2(pi + other)}/mo</div></div>
+<div class="stat"><div class="mut">Cash at closing (down${l.finance ? "" : " + fee"})</div><div class="big">${money(downAmt + (l.finance ? 0 : fee))}</div><div class="small mut">plus closing costs</div></div>
+<p class="small mut">Fee rates are VA's current table (purchase: 2.15% first use / 3.3% after under 5% down, 1.5% at 5%+, 1.25% at 10%+; IRRRL 0.5%). Lenders also check debt-to-income and VA "residual income". ${L("VA funding fee", "https://www.va.gov/housing-assistance/home-loans/funding-fee-and-closing-costs/")}</p></div>`;
+};
+
+/* Transition timeline */
+function milestones() {
+  const p = P(); if (!p.sep) return [];
+  const R = p.retiring;
+  const M = [
+    [R ? -730 : -365, "Start TAP: initial counseling & pre-separation counseling" + (R ? " (retirees can start 24 months out)" : " (no later than 365 days out)")],
+    [-365, "Transfer GI Bill to family now if you want to (must still be serving; may add service time)"],
+    [-300, "Start a résumé, translate your job (O*NET / COOL), get a JST"],
+    [-180, "SkillBridge window opens (with command approval)"],
+    [-180, "BDD window opens: file VA disability claim (needs 90+ days left)"],
+    [-120, "Book separation physical (SHPE) and dental exam"],
+    [-90, "TAP Capstone due · BDD window closes · file Intent to File if not filing BDD"],
+    [-60, "Schedule household goods move (Move.mil), clear housing"],
+    [-30, "Get copies of medical/dental records, last evals, orders, awards"],
+    [-14, "Turn in CIF gear, final out with finance"],
+    [-1, "Review your DD214 line by line before signing"],
+    [0, "Separation date"],
+    [0, "Check TRICARE: TAMP (180 days if you qualify), CHCBP, or VA care"],
+    [180, "TAMP ends (if you had it) · last day to apply for one-time VA dental"],
+    [240, "VGLI: last day with no health questions"],
+    [485, "VGLI: final deadline (1 year 120 days)"],
+    [R ? 365 : 180, "Usual limit to use your final move / ship household goods (" + (R ? "retirees: 1 year" : "separatees: about 180 days") + ") – confirm with transportation"],
+    [3650, "Enhanced VA health care eligibility for combat veterans ends (10 years)"]
+  ];
+  return M.map(([d, t]) => ({ d, t, date: addDays(p.sep, d) })).sort((a, b) => a.d - b.d);
+}
+V.trans = () => {
+  const p = P(), ms = milestones(), now = new Date();
+  return `<h2>Transition timeline</h2>
+<div class="card"><div class="form"><label>Separation / retirement date ${inp("prof.sep", "date")}</label><label class="ck">${inp("prof.retiring", "check")} Retiring</label></div>
+${p.sep ? `<p class="small mut">${daysUntil(p.sep) >= 0 ? daysUntil(p.sep) + " days to go." : -daysUntil(p.sep) + " days since separation."} Dates are typical; your branch and orders win.</p>` : ""}</div>
+${ms.length ? `<div class="card"><div class="tl">${ms.map(m => `<div class="it ${m.date < now ? "past" : ""}"><div class="d">${fmtD(m.date)} <span class="mut small">(${m.d === 0 ? "day 0" : (m.d > 0 ? "+" : "") + m.d + " days"})</span></div><div>${esc(m.t)}</div></div>`).join("")}</div>
+<button data-act="ics">Save as calendar file (.ics)</button></div>` : `<p class="mut">Enter your date above.</p>`}
+<div class="card"><h3>Learn more</h3>${L("DoD TAP", "https://www.dodtap.mil")} ${L("SkillBridge", "https://skillbridge.osd.mil")} ${L("BDD claims", "https://www.va.gov/disability/how-to-file-claim/when-to-file/pre-discharge-claim/")}</div>`;
+};
+function exportIcs() {
+  const ms = milestones(); if (!ms.length) return;
+  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Randis UDS//Service Member Helper//EN"];
+  ms.forEach((m, i) => { lines.push("BEGIN:VEVENT", "UID:" + ymd(m.date) + "-" + i + "@milhelper", "DTSTAMP:" + ymd(new Date()) + "T000000Z", "DTSTART;VALUE=DATE:" + ymd(m.date), "SUMMARY:" + m.t.replace(/[,;]/g, " "), "END:VEVENT"); });
+  lines.push("END:VCALENDAR");
+  download("transition-timeline.ics", lines.join("\r\n"), "text/calendar");
+}
+
+/* Green to Gold */
+V.g2g = () => {
+  const g = S.g2g;
+  const C = [
+    [g.ad, "Active-duty enlisted Soldier", false],
+    [g.citizen, "US citizen", false],
+    [+g.yrs >= 2, "At least 2 years of active duty before applying", false],
+    [+g.gt >= 110, "GT score 110 or higher", false],
+    [g.acft, "Pass the ACFT", false],
+    [+g.gpa >= 2.5, "GPA 2.5+ (high school or college, whichever is latest)", true],
+    [+g.age > 0 && +g.age < 31, "Under 31 at commissioning", true],
+    [+g.deps <= 3, "No more than 3 dependents including spouse", true]
+  ];
+  return `<h2>Green to Gold checker (Army)</h2>
+<div class="card"><div class="form">
+<label class="ck">${inp("g2g.ad", "check")} I'm active-duty enlisted</label>
+<label class="ck">${inp("g2g.citizen", "check")} US citizen</label>
+<label class="ck">${inp("g2g.acft", "check")} I pass the ACFT</label>
+<label>Years of active duty ${inp("g2g.yrs", "number", 'step="0.5"')}</label>
+<label>GT score ${inp("g2g.gt", "number")}</label>
+<label>GPA ${inp("g2g.gpa", "number", 'step="0.01"')}</label>
+<label>Age at planned commissioning ${inp("g2g.age", "number")}</label>
+<label>Dependents (incl. spouse) ${inp("g2g.deps", "number")}</label></div></div>
+<div class="card"><h3>Check</h3><table>${C.map(([ok, t, w]) => `<tr><td class="${ok ? "ok" : w ? "warn" : "bad"}">${ok ? "✓" : w ? "waiver?" : "✗"}</td><td>${esc(t)}</td></tr>`).join("")}</table>
+<p class="small mut">GT under 110? Retake the AFCT (Army Personnel Testing). Limits and waivers change each year – read the current Cadet Command booklet.</p></div>
+<div class="grid">
+<div class="card"><h3>Scholarship</h3>2–4 year ROTC scholarship. You leave active duty to go to school full-time as a cadet; scholarship pays tuition or room & board plus a stipend.</div>
+<div class="card"><h3>Active Duty Option (ADO)</h3>Stay on active duty with your pay and allowances for up to 24 months while you finish a degree. You pay for school (no Tuition Assistance; GI Bill may help) and take on an extra service obligation.</div>
+<div class="card"><h3>Non-Scholarship</h3>Leave active duty, join ROTC, use your GI Bill. Commission when you graduate.</div>
+<div class="card"><h3>Hip-Pocket</h3>A scholarship given by nomination from a general officer in your chain of command.</div>
+</div>
+<div class="card" style="margin-top:12px"><h3>Steps</h3><ol><li>Talk to your commander and your career counselor.</li><li>Pick schools and call each school's ROTC department (Professor of Military Science) – they interview you.</li><li>Get transcripts, SAT/ACT if asked, letters of recommendation, ACFT and height/weight, and a physical (DoDMERB).</li><li>Apply through your My GoArmy account before the deadline.</li></ol>
+${L("GoArmy: Green to Gold", "https://www.goarmy.com/careers-and-jobs/find-your-path/army-officers/green-to-gold")}
+<h4>Other branches</h4><p class="small">Navy: STA-21 · Marine Corps: MECEP · Air & Space Force: SOAR and ASCP (Airman Scholarship & Commissioning) · Coast Guard: Pre-Commissioning Program for Enlisted Personnel (PPEP) · Every branch: OCS/OTS and warrant officer programs. Ask your career counselor.</p></div>`;
+};
+
+/* Docs */
+V.docs = () => {
+  const n = S.docs.length, have = S.docs.filter(d => d.have === "yes").length;
+  return `<h2>Documents checklist</h2>
+<div class="note">Track <b>where</b> your papers are, not the papers themselves. Don't type SSNs, DoD IDs, account numbers or passwords here. Keep originals in a fire safe; keep scans encrypted.</div>
+<div class="card"><p>${have} of ${n} in hand. ${S.docs.filter(d => d.have === "need").length} still needed.</p>
+<table><tr><th>Document</th><th style="width:105px">Status</th><th>Where it's kept</th><th style="width:140px">Expires</th><th>Notes</th><th></th></tr>
+${S.docs.map((d, i) => { const e = daysUntil(d.exp); return `<tr><td>${esc(d.name)}</td>
+<td>${sel(`docs.${i}.have`, [["", "–"], ["yes", "Have it"], ["need", "Need it"], ["na", "Not for me"]])}</td>
+<td>${inp(`docs.${i}.where`, "text", 'placeholder="e.g. fire safe, red folder"')}</td>
+<td>${inp(`docs.${i}.exp`, "date")}${e != null && e <= 60 ? `<div class="small ${e < 0 ? "bad" : "warn"}">${e < 0 ? "expired" : e + " days"}</div>` : ""}</td>
+<td>${inp(`docs.${i}.notes`)}</td><td><button class="sm" data-del="docs" data-i="${i}">✕</button></td></tr>`; }).join("")}</table>
+<div class="row" style="margin-top:8px"><input id="newDoc" placeholder="Add a document"><button data-act="addDoc">Add</button></div></div>`;
+};
+/* Accounts */
+V.accts = () => `<h2>Military accounts</h2>
+<div class="note"><b>Never store passwords here.</b> Use a password manager. Turn on two-step sign-in everywhere you can. DS Logon is being phased out – switch to Login.gov or ID.me where a site offers it.</div>
+<div class="card"><table><tr><th>Account</th><th>What it's for</th><th>Have</th><th>2-step</th><th style="width:140px">Last checked</th><th>Notes</th><th></th></tr>
+${S.accts.map((a, i) => `<tr><td>${a.url ? L(a.name, a.url) : esc(a.name)}</td><td class="small">${esc(a.what)}</td>
+<td>${inp(`accts.${i}.have`, "check")}</td><td>${inp(`accts.${i}.mfa`, "check")}</td><td>${inp(`accts.${i}.checked`, "date")}</td><td>${inp(`accts.${i}.notes`)}</td>
+<td><button class="sm" data-del="accts" data-i="${i}">✕</button></td></tr>`).join("")}</table>
+<div class="row" style="margin-top:8px"><input id="newAcName" placeholder="Name"><input id="newAcUrl" placeholder="https://… (optional)" style="flex:1"><button data-act="addAcct">Add</button></div></div>`;
+/* Base */
+V.base = () => {
+  const b = S.bases[S.baseCur] || S.bases[0];
+  return `<h2>My base directory</h2>
+<div class="card"><div class="row">Base: <select id="baseSel">${S.bases.map((x, i) => `<option value="${i}" ${i === S.baseCur ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select>
+<input data-bind="bases.${S.baseCur}.name" value="${esc(b.name)}" title="Rename"><button data-act="addBase">+ Another base</button>
+${S.bases.length > 1 ? `<button data-act="delBase">Delete this base</button>` : ""}
+${L("Look it up on MilitaryINSTALLATIONS", "https://installations.militaryonesource.mil")}</div>
+<p class="small mut">Fill in buildings, phones and hours from the installation site, your base app or the newcomer brief. Hours change on holidays and training days.</p></div>
+<div class="card"><table><tr><th>Place</th><th style="width:90px">Building</th><th style="width:140px">Phone</th><th>Hours</th><th>Notes</th><th></th></tr>
+${b.places.map((p, i) => `<tr><td>${inp(`bases.${S.baseCur}.places.${i}.kind`)}</td><td>${inp(`bases.${S.baseCur}.places.${i}.bldg`)}</td><td>${inp(`bases.${S.baseCur}.places.${i}.phone`)}</td><td>${inp(`bases.${S.baseCur}.places.${i}.hours`, "text", 'placeholder="Mon–Fri 0800–1600"')}</td><td>${inp(`bases.${S.baseCur}.places.${i}.notes`)}</td><td><button class="sm" data-delp="${i}">✕</button></td></tr>`).join("")}</table>
+<div class="row" style="margin-top:8px"><button data-act="addPlace">+ Add place</button><button data-act="printBase">Print / save card</button></div></div>`;
+};
+/* Gear */
+V.gear = () => {
+  const tot = S.gear.reduce((s, g) => s + (+g.qty || 0) * (+g.val || 0), 0);
+  return `<h2>Gear list</h2>
+<div class="card"><p class="small mut">Issued gear, gear you bought, surplus finds and tools. Mark issued items so you know what must go back at turn-in.</p>
+<table><tr><th>Item</th><th style="width:120px">NSN / size</th><th style="width:60px">Qty</th><th style="width:120px">Source</th><th style="width:120px">Status</th><th style="width:90px">Value $</th><th>Notes</th><th></th></tr>
+${S.gear.map((g, i) => `<tr><td>${inp(`gear.${i}.name`)}</td><td>${inp(`gear.${i}.nsn`)}</td><td>${inp(`gear.${i}.qty`, "number")}</td>
+<td>${sel(`gear.${i}.src`, ["Issued (CIF)", "Bought", "Surplus", "Gift", "Other"])}</td><td>${sel(`gear.${i}.st`, ["Have it", "Must turn in", "Turned in", "Lost / damaged", "Sold"])}</td>
+<td>${inp(`gear.${i}.val`, "number")}</td><td>${inp(`gear.${i}.notes`)}</td><td><button class="sm" data-del="gear" data-i="${i}">✕</button></td></tr>`).join("")}</table>
+<div class="row" style="margin-top:8px"><button data-act="addGear">+ Add item</button><button data-act="gearCsv">Export CSV</button>
+<span class="mut">${S.gear.length} items · ${S.gear.filter(g => g.st === "Must turn in").length} to turn in · value ${money(tot)}</span></div></div>`;
+};
+/* Medals */
+V.medals = () => {
+  const mine = MEDALS.filter(m => S.medals[m]);
+  return `<h2>Medals & ribbons</h2>
+<div class="grid"><div class="card"><h3>Tick what you have</h3><p class="small mut">Listed in a common US order of precedence. Your branch's regulation is final (Army AR 600-8-22, Navy/USMC SECNAVINST 1650.1, Air & Space Force DAFMAN 36-2806, Coast Guard COMDTINST M1650.25). Unit awards and badges are placed by branch rules.</p>
+${MEDALS.map(m => `<div><label><input type="checkbox" data-medal="${esc(m)}" ${S.medals[m] ? "checked" : ""}> ${esc(m)}</label>${S.medals[m] ? ` <input style="width:60px" data-medaldev="${esc(m)}" value="${esc(S.medals[m].dev || "")}" placeholder="devices" title="Oak leaf clusters, stars, numerals…">` : ""}</div>`).join("")}</div>
+<div class="card"><h3>My rack (highest first)</h3>${mine.length ? `<div class="rack">${mine.map(m => `<div class="rib" title="${esc(m)}">${esc(m)}${S.medals[m].dev ? " · " + esc(S.medals[m].dev) : ""}</div>`).join("")}</div>` : `<p class="mut">Tick awards on the left.</p>`}
+<h4>Get replacements</h4><p class="small">Veterans and next of kin: free from the National Archives. Serving: your unit admin / S1.</p>${L("Replace medals", "https://www.archives.gov/veterans/replace-medals")}
+<h4>Citations & notes</h4>${S.myAwards.map((a, i) => `<div class="row" style="margin-bottom:4px">${inp(`myAwards.${i}.name`, "text", 'placeholder="Award"')}${inp(`myAwards.${i}.date`, "date")}${inp(`myAwards.${i}.notes`, "text", 'placeholder="Orders #, where citation is kept"')}<button class="sm" data-del="myAwards" data-i="${i}">✕</button></div>`).join("")}
+<button data-act="addAward">+ Add</button></div></div>`;
+};
+/* AI */
+const AI = { id: "", status: "", text: "" };
+function profileSummary() {
+  const p = P();
+  return `Person: ${STATUSES.find(x => x[0] === p.status)[1]}, ${p.branch}${p.rank ? ", " + p.rank : ""}, ${p.yos} years of service${p.base ? ", at " + p.base : ""}${p.sep ? ", separation date " + p.sep + (p.retiring ? " (retiring)" : "") : ""}, BRS: ${p.brs ? "yes" : "no"}.
+TSP: ${S.tsp.trad}% traditional, ${S.tsp.roth}% Roth.
+Docs still needed: ${S.docs.filter(d => d.have === "need").map(d => d.name).join(", ") || "none listed"}.
+Answer plainly for a US service member or veteran. Say when a rule may have changed and name the official source to check. Don't invent phone numbers or form numbers.`;
+}
+V.ai = () => `<h2>Ask the AI</h2>
+<div class="card"><p class="small mut">Uses the AI linked in Randis UDS. It sees only your question and this short summary (no documents, accounts or base details):</p>
+<div class="ai small" style="margin-bottom:8px">${esc(profileSummary())}</div>
+<div class="row"><input id="aiQ" style="flex:1" placeholder="e.g. Should I do Roth or traditional TSP? How do I get a meal card?"><button class="pri" data-act="ai">Ask</button></div>
+<p class="small mut" id="aiSt">${esc(AI.status)}</p><div class="ai" id="aiTx">${esc(AI.text || "—")}</div>
+<p class="small mut">AI can be wrong. Check money, legal and medical answers with finance, legal, your doctor or a VSO.</p></div>`;
+/* Backup */
+V.backup = () => `<h2>Backup & privacy</h2>
+<div class="card"><p>Everything here is saved only on this computer, inside this tab. Nothing is sent anywhere unless you use "Ask the AI".</p>
+<div class="row"><button data-act="export">Export backup (.json)</button><label class="lnk">Import backup<input type="file" id="imp" accept=".json" style="display:none"></label><button data-act="wipe">Erase everything</button></div>
+<p class="small mut">This page is information, not legal, financial or medical advice. It is not a government site.</p></div>`;
+
+/* ---------- render & events ---------- */
+function render() { nav(); document.body.dataset.theme = S.theme; const y = $("#view").scrollTop; $("#view").innerHTML = (V[view] || V.home)(); $("#view").scrollTop = y; }
+function go(k) { view = k; render(); $("#view").scrollTop = 0; }
+function download(name, text, type) {
+  const blob = new Blob([text], { type: type || "application/json" });
+  if (inApp) { tell({ uds: "export-file", name, data: blob }); return; }
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+document.addEventListener("click", e => {
+  const t = e.target;
+  const u = t.closest("[data-url]"); if (u) return openLink(u.dataset.url);
+  const g = t.closest("[data-go]"); if (g) return go(g.dataset.go);
+  const c = t.closest("[data-cat]"); if (c) { S.filter.cat = c.dataset.cat; save(); return render(); }
+  const d = t.closest("[data-del]"); if (d) { S[d.dataset.del].splice(+d.dataset.i, 1); save(); return render(); }
+  const dp = t.closest("[data-delp]"); if (dp) { S.bases[S.baseCur].places.splice(+dp.dataset.delp, 1); save(); return render(); }
+  const a = t.closest("[data-act]"); if (!a) return;
+  const act = a.dataset.act;
+  if (act === "theme") { S.theme = S.theme === "dark" ? "light" : "dark"; save(); render(); }
+  if (act === "search") { S.filter.q = $("#homeQ").value; S.filter.cat = "all"; S.filter.mine = false; save(); go("guides"); }
+  if (act === "addDoc") { const v = $("#newDoc").value.trim(); if (v) { S.docs.push({ id: uid(), name: v, tags: "", have: "", where: "", exp: "", notes: "" }); save(); render(); } }
+  if (act === "addAcct") { const n = $("#newAcName").value.trim(), url = $("#newAcUrl").value.trim(); if (n) { if (url && !/^https:\/\//i.test(url)) return toast("Links must start with https://"); S.accts.push({ id: uid(), name: n, url, what: "", have: true, mfa: false, checked: "", notes: "" }); save(); render(); } }
+  if (act === "addBase") { S.bases.push(newBase("Base " + (S.bases.length + 1))); S.baseCur = S.bases.length - 1; save(); render(); }
+  if (act === "delBase") { if (confirm("Delete " + S.bases[S.baseCur].name + " and all its entries?")) { S.bases.splice(S.baseCur, 1); S.baseCur = 0; save(); render(); } }
+  if (act === "addPlace") { S.bases[S.baseCur].places.push({ id: uid(), kind: "", bldg: "", phone: "", hours: "", notes: "" }); save(); render(); }
+  if (act === "printBase") printBase();
+  if (act === "addGear") { S.gear.push({ id: uid(), name: "", nsn: "", qty: 1, src: "Issued (CIF)", st: "Have it", val: "", notes: "" }); save(); render(); }
+  if (act === "gearCsv") { const q = v => '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"'; download("gear.csv", ["Item,NSN/size,Qty,Source,Status,Value,Notes", ...S.gear.map(g => [g.name, g.nsn, g.qty, g.src, g.st, g.val, g.notes].map(q).join(","))].join("\r\n"), "text/csv"); }
+  if (act === "addAward") { S.myAwards.push({ name: "", date: "", notes: "" }); save(); render(); }
+  if (act === "ics") exportIcs();
+  if (act === "ai") askAI();
+  if (act === "export") download("service-member-helper-backup.json", JSON.stringify(S, null, 1));
+  if (act === "wipe") { if (confirm("Erase everything in this tab? Export a backup first if you want to keep it.")) { S = fresh(); save(); render(); } }
+});
+document.addEventListener("change", e => {
+  const t = e.target;
+  if (t.dataset.bind) { set(t.dataset.bind, t.type === "checkbox" ? t.checked : t.type === "number" ? (t.value === "" ? "" : +t.value) : t.value); save(); render(); return; }
+  if (t.dataset.done != null) { S.done[t.dataset.done] = t.checked; save(); return; }
+  if (t.dataset.medal) { if (t.checked) S.medals[t.dataset.medal] = { dev: "" }; else delete S.medals[t.dataset.medal]; save(); render(); return; }
+  if (t.dataset.medaldev) { if (S.medals[t.dataset.medaldev]) S.medals[t.dataset.medaldev].dev = t.value; save(); render(); return; }
+  if (t.id === "baseSel") { S.baseCur = +t.value; save(); render(); }
+  if (t.id === "imp" && t.files[0]) { t.files[0].text().then(x => { try { const d = JSON.parse(x); if (!d || !d.prof) throw 0; S = Object.assign(fresh(), d); save(); render(); toast("Backup loaded."); } catch (err) { toast("That isn't a backup from this tab."); } }); }
+});
+document.addEventListener("input", e => { if (e.target.id === "gq") { S.filter.q = e.target.value; save(); clearTimeout(window._gq); window._gq = setTimeout(() => { const pos = e.target.selectionStart; render(); const n = $("#gq"); n.focus(); n.setSelectionRange(pos, pos); }, 250); } });
+document.addEventListener("keydown", e => { if (e.key === "Enter") { if (e.target.id === "homeQ") $("[data-act=search]").click(); if (e.target.id === "aiQ") askAI(); } });
+function printBase() {
+  const b = S.bases[S.baseCur], rows = b.places.filter(p => p.bldg || p.phone || p.hours || p.notes);
+  const html = `<!doctype html><meta charset="utf-8"><title>${esc(b.name)}</title><style>body{font:13px Segoe UI,sans-serif}td,th{border-bottom:1px solid #ccc;padding:3px 6px;text-align:left}</style><h2>${esc(b.name)}</h2><table><tr><th>Place</th><th>Bldg</th><th>Phone</th><th>Hours</th><th>Notes</th></tr>${rows.map(p => `<tr><td>${esc(p.kind)}</td><td>${esc(p.bldg)}</td><td>${esc(p.phone)}</td><td>${esc(p.hours)}</td><td>${esc(p.notes)}</td></tr>`).join("")}</table><p style="font-size:10px;color:#777">Randis UDS™ by Randy Moore</p>`;
+  download(b.name.replace(/[^\w -]/g, "") + " directory.html", html, "text/html");
+}
+function askAI() {
+  const q = ($("#aiQ") || {}).value || ""; if (!q.trim()) return toast("Type a question first.");
+  if (!inApp) return toast("The AI helper works inside Randis UDS.");
+  AI.id = "mil-" + uid(); AI.status = "Asking…"; AI.text = ""; render();
+  tell({ uds: "planner-ask", id: AI.id, history: [{ role: "user", content: q }], context: profileSummary() });
+}
+window.addEventListener("message", e => {
+  const m = e.data || {};
+  if (m.uds === "web-state") WEB_ON = !!m.on;
+  if (m.uds === "exported") toast(m.note || (m.ok ? "Saved." : "Not saved."));
+  if (m.uds === "planner" && m.id === AI.id) {
+    if (m.done) { AI.status = m.error ? "⚠ " + m.error : ""; AI.text = m.text || AI.text; } else { AI.status = m.status || ""; if (m.text) AI.text = m.text; }
+    const st = $("#aiSt"), tx = $("#aiTx"); if (st) st.textContent = AI.status; if (tx) tx.textContent = AI.text || "—";
+  }
+});
+if (inApp) tell({ uds: "web-hello" });
+render();
+</script>
+</body>
+</html>
