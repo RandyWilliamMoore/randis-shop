@@ -546,6 +546,23 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "game-emulator-suite",
+  "name": "Game Emulator Suite",
+  "by": "Randy",
+  "blurb": "Play retro games you own: an offline emulator for 13 systems that runs inside the app, a built-in CHIP-8 emulator, links to the best web emulators (EmulatorJS, v86, PCjs, Infinite Mac, DOS Zone, Internet Archive) and tips per system. No games included; bring your own files.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/game-emulator-suite",
+  "file": "apps/game-emulator-suite/item.html",
+  "logo": "apps/game-emulator-suite/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "heirloom-boxes",
   "name": "Heirloom Boxes",
   "by": "Randy",
@@ -614,6 +631,23 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "media-network",
+  "name": "Media Network",
+  "by": "Randy",
+  "blurb": "Run your own AI media network: a news wire and assignment desk, an AI newsroom for articles, newsletters and threads, a podcast studio, a video and newscast studio with captions, fact-checking against sources, and publishing to Discord, Mastodon, Bluesky, WordPress and more. AI and publishing parts need Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/media-network",
+  "file": "apps/media-network/item.html",
+  "logo": "apps/media-network/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "mintworks-exchange",
   "name": "Mintworks Exchange",
   "by": "Randy",
@@ -678,6 +712,23 @@ window.ITEMS = [
   "open_with": "randisuds://open?item=apps/notepad",
   "file": "apps/notepad/item.html",
   "logo": "apps/notepad/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "omnisight-xint-suite",
+  "name": "Omnisight xINT Suite",
+  "by": "Randy",
+  "blurb": "A lawful open-source research workbench: cases and entities, a pivot launcher for 228 public sources, username, email, header and image labs (EXIF, hashes, ELA), geo and time tools, a link graph, timeline, analysis of competing hypotheses, an evidence locker with hashes and a report builder, plus radio and mesh tools.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/omnisight-xint-suite",
+  "file": "apps/omnisight-xint-suite/item.html",
+  "logo": "apps/omnisight-xint-suite/logo.svg",
   "video_pic": null
  },
  {

@@ -1,0 +1,11 @@
+{
+ "name": "Media Network",
+ "by": "Randy",
+ "blurb": "Run your own AI media network: a news wire and assignment desk, an AI newsroom for articles, newsletters and threads, a podcast studio, a video and newscast studio with captions, fact-checking against sources, and publishing to Discord, Mastodon, Bluesky, WordPress and more. AI and publishing parts need Randis UDS.",
+ "status": "ok",
+ "real_items": null,
+ "reviews": {
+  "randy": null,
+  "maker": null
+ }
+}

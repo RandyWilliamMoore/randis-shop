@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Game Emulator Suite</title>
+<style>
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:#1b1c20;color:#e6e6e6;font:14px/1.45 "Segoe UI",system-ui,sans-serif;display:flex;flex-direction:column}
+header{display:flex;align-items:center;gap:6px;padding:8px 12px;background:#141518;border-bottom:1px solid #30323a}
+header h1{font-size:16px;margin:0 14px 0 0}
+.sub{background:#24262c;border:1px solid #393c46;color:#ddd;padding:6px 12px;border-radius:7px 7px 0 0;cursor:pointer;font:inherit}
+.sub.on{background:#3a5bd9;border-color:#3a5bd9;color:#fff}
+.view{flex:1;min-height:0;display:none}
+.view.on{display:flex}
+#suites aside{width:270px;overflow:auto;border-right:1px solid #30323a;padding:10px;background:#18191d}
+.card{background:#24262c;border:1px solid #33363f;border-radius:8px;padding:8px 10px;margin-bottom:8px;cursor:pointer}
+.card:hover{border-color:#5b74e0}.card.on{border-color:#3a5bd9;background:#262c44}
+.card b{display:block}.card small{color:#aab}
+#suites section{flex:1;display:flex;flex-direction:column;min-width:0}
+.nav{display:flex;gap:6px;padding:6px 8px;border-bottom:1px solid #30323a;align-items:center}
+.nav button,.btn{background:#2c2f37;border:1px solid #444856;color:#eee;border-radius:6px;padding:4px 10px;cursor:pointer;font:inherit}
+.nav button:disabled{opacity:.4;cursor:default}
+#addr{flex:1;color:#9ab;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px}
+#webarea{flex:1;position:relative;background:#0f1013}
+#webnote{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:30px;color:#bbc}
+#webnote>div{max-width:520px}
+.warn{color:#f0c060}
+#offline{flex-direction:column}
+#emuarea{flex:1;position:relative;background:#0f1013}
+#emunote{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:30px;color:#bbc}
+#emunote>div{max-width:520px}
+#chip8{gap:14px;padding:14px;overflow:auto;align-items:flex-start;flex-wrap:wrap}
+#screen{background:#000;image-rendering:pixelated;border:2px solid #333;border-radius:4px;width:640px;height:320px}
+.panel{background:#24262c;border:1px solid #33363f;border-radius:8px;padding:12px;width:300px}
+.panel h3{margin:0 0 8px;font-size:14px}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:center}
+.keys{display:grid;grid-template-columns:repeat(4,44px);gap:5px}
+.keys button{height:40px;background:#2c2f37;border:1px solid #444856;color:#eee;border-radius:6px;font:bold 14px monospace;cursor:pointer}
+.keys button.down{background:#3a5bd9}
+.keys button small{display:block;font:10px sans-serif;color:#99a}
+select,input[type=range]{background:#2c2f37;color:#eee;border:1px solid #444856;border-radius:6px;padding:3px}
+#c8status{font-size:12px;color:#9ab;margin-top:6px}
+#help{padding:18px 24px;overflow:auto}
+#help.on{display:block}
+#help>div{max-width:820px}
+#help h2{font-size:16px;margin:18px 0 6px}
+table{border-collapse:collapse;width:100%}td,th{border:1px solid #33363f;padding:5px 8px;text-align:left;vertical-align:top}th{background:#24262c}
+code{background:#2c2f37;padding:1px 5px;border-radius:4px}
+</style></head>
+<body>
+<header>
+  <h1>🕹️ Game Emulator Suite</h1>
+  <button class="sub on" data-v="offline">🎮 Offline emulator</button>
+  <button class="sub" data-v="suites">🌐 Emulator suites</button>
+  <button class="sub" data-v="chip8">👾 CHIP-8 (built in)</button>
+  <button class="sub" data-v="help">📖 Systems &amp; tips</button>
+</header>
+
+<div class="view on" id="offline">
+  <div id="emuarea"><div id="emunote"><div id="emumsg">Starting the emulator…</div></div></div>
+</div>
+
+<div class="view" id="suites">
+  <aside id="list"></aside>
+  <section>
+    <div class="nav">
+      <button id="back" disabled title="Back">←</button>
+      <button id="fwd" disabled title="Forward">→</button>
+      <button id="reload" title="Reload">⟳</button>
+      <span id="addr">Pick an emulator on the left.</span>
+      <button id="pop" title="Open in your normal web browser">Open outside ↗</button>
+    </div>
+    <div id="webarea"><div id="webnote"><div id="webmsg">Pick an emulator on the left.</div></div></div>
+  </section>
+</div>
+
+<div class="view" id="chip8">
+  <canvas id="screen" width="64" height="32" tabindex="0"></canvas>
+  <div class="panel">
+    <h3>CHIP-8 player: runs right here, no internet</h3>
+    <div class="row">
+      <select id="demo"><option value="ball">Demo: bouncing ball</option><option value="keys">Demo: keypad tester</option></select>
+      <button class="btn" id="loadDemo">Load demo</button>
+    </div>
+    <div class="row"><button class="btn" id="pick">📂 Open a .ch8 file…</button><input type="file" id="file" accept=".ch8,.c8,.rom,.bin" hidden></div>
+    <div class="row">
+      <button class="btn" id="run">⏸ Pause</button><button class="btn" id="reset">↺ Reset</button>
+      <label>Speed <input type="range" id="speed" min="2" max="40" value="12"></label>
+    </div>
+    <div class="row">
+      <label><input type="checkbox" id="qShift"> Old shift (VY)</label>
+      <label><input type="checkbox" id="qMem"> Old load/store (I moves)</label>
+    </div>
+    <div class="row"><label><input type="checkbox" id="sound" checked> Beep</label>
+      <select id="color"><option value="#33ff66">Green</option><option value="#ffb000">Amber</option><option value="#ffffff">White</option><option value="#7fd4ff">Blue</option></select></div>
+    <div class="keys" id="pad"></div>
+    <div id="c8status">Load a demo or open a file.</div>
+  </div>
+</div>
+
+<div class="view" id="help"><div>
+  <h2>What's in here</h2>
+  <p><b>🎮 Offline emulator</b> is EmulatorJS, kept inside this app. It plays NES, SNES, Game Boy / Color / Advance, Genesis / Master System / Game Gear, N64, DS, PlayStation, PC Engine, Atari 2600 / 7800 / Lynx and arcade games. It needs no internet and no switch. Pick a system, choose your game file and play. Saves stay on this computer.</p>
+  <p><b>🌐 Emulator suites</b> shows ready-made emulator websites inside this tab. Each one runs in its own browser view, kept apart from the app. To use it, turn on this tab's <b>Web view</b> switch at the top. <b>👾 CHIP-8</b> is a small emulator built into this page. It works offline and needs no switch.</p>
+  <h2>Which suite for which system</h2>
+  <table>
+    <tr><th>System</th><th>Try</th></tr>
+    <tr><td>NES, SNES, Game Boy / Color / Advance, Genesis, Master System, Game Gear, N64, DS, PS1, PC Engine, Atari, arcade</td><td><b>🎮 Offline emulator</b> first; or RetroArch Web, webretro, EmulatorJS online</td></tr>
+    <tr><td>MS-DOS games</td><td>DOS Zone, Internet Archive</td></tr>
+    <tr><td>Old PCs: DOS, Windows 3.x/9x, early Linux</td><td>v86, PCjs</td></tr>
+    <tr><td>Classic Macintosh</td><td>Infinite Mac</td></tr>
+    <tr><td>Arcade and console classics, legally hosted</td><td>Internet Archive Software Library</td></tr>
+    <tr><td>CHIP-8 homebrew</td><td>The built-in CHIP-8 tab, or the CHIP-8 Archive</td></tr>
+  </table>
+  <h2>Games (ROMs)</h2>
+  <p>Use games you own and copied yourself, free homebrew, or games whose makers let you share them. The emulator suites let you drag a file in or pick one from your computer. Your files go into that site's own browser view. They don't get uploaded to this app.</p>
+  <h2>CHIP-8 keys</h2>
+  <p>The 16 CHIP-8 keys are <code>1 2 3 4</code> / <code>Q W E R</code> / <code>A S D F</code> / <code>Z X C V</code> on your keyboard, or click the pad. Click the screen first so the page gets your keys. If a game acts oddly, try the two "Old" switches. Older games expect them.</p>
+</div></div>
+
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+let view = "offline";
+document.querySelectorAll(".sub").forEach(b => b.onclick = () => {
+  view = b.dataset.v;
+  document.querySelectorAll(".sub").forEach(x => x.classList.toggle("on", x === b));
+  ["offline", "suites", "chip8", "help"].forEach(v => $("#" + v).classList.toggle("on", v === view));
+  sendPane();
+});
+
+// ---------- ready-made emulator suites, shown through the app's Web view ----------
+const SUITES = [
+  { n: "RetroArch Web Player", u: "https://web.libretro.com/", d: "The official RetroArch in a browser. Many consoles, load your own games." },
+  { n: "webretro", u: "https://binbashbanana.github.io/webretro/", d: "RetroArch cores: NES, SNES, GB/GBA, Genesis, N64, PS1 and more. Drag a game in." },
+  { n: "EmulatorJS", u: "https://demo.emulatorjs.org/", d: "Friendly emulator front end (RetroArch cores), save states, gamepad support." },
+  { n: "Internet Archive Software Library", u: "https://archive.org/details/softwarelibrary", d: "Thousands of classic arcade, console and DOS games, legally hosted, play in the page." },
+  { n: "DOS Zone", u: "https://dos.zone/", d: "MS-DOS games in the browser (js-dos)." },
+  { n: "v86", u: "https://copy.sh/v86/", d: "A whole x86 PC: DOS, Windows 9x, Linux, FreeDOS." },
+  { n: "PCjs", u: "https://www.pcjs.org/", d: "Faithful IBM PC and other vintage machines with their original software." },
+  { n: "Infinite Mac", u: "https://infinitemac.org/", d: "Classic Mac OS, System 1 through Mac OS 9, with games preinstalled." },
+  { n: "CHIP-8 Archive", u: "https://johnearnest.github.io/chip8Archive/", d: "Free CHIP-8 homebrew games. Download one and open it in the CHIP-8 tab." }
+];
+let webOn = false, cur = null;
+const P = m => window.parent.postMessage(m, "*");
+function renderList() {
+  const box = $("#list"); box.textContent = "";
+  for (const s of SUITES) {
+    const c = document.createElement("div");
+    c.className = "card" + (cur === s ? " on" : "");
+    const b = document.createElement("b"), sm = document.createElement("small");
+    b.textContent = s.n; sm.textContent = s.d; c.append(b, sm);
+    c.onclick = () => openSuite(s);
+    box.append(c);
+  }
+}
+function note(html) { $("#webmsg").innerHTML = html; $("#webnote").style.display = html ? "flex" : "none"; }
+function rect() { const r = $("#webarea").getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; }
+function openSuite(s) {
+  cur = s; renderList();
+  $("#addr").textContent = s.u;
+  if (!webOn) return showOff();
+  note("");
+  P({ uds: "web", id: "emu", url: s.u, rect: rect(), show: view === "suites" });
+}
+function sendPane() {
+  sendEmu();
+  if (!webOn || !cur) return;
+  P({ uds: "web", id: "emu", rect: rect(), show: view === "suites" });
+}
+
+// ---------- the offline emulator: the app shows its own EmulatorJS player over #emuarea ----------
+let emuState = "off";   // off, asking, on, failed
+function emuRect() { const r = $("#emuarea").getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; }
+function sendEmu() {
+  if (view === "offline" && (emuState === "off" || emuState === "failed")) {
+    emuState = "asking"; $("#emumsg").textContent = "Starting the emulator…";
+    P({ uds: "emu", id: "main", open: true, rect: emuRect(), show: true });
+    setTimeout(() => { if (emuState === "asking") { emuState = "failed"; $("#emumsg").innerHTML = "The emulator didn't answer. <b>Close Randis UDS and open it again</b>, then come back to this tab."; } }, 15000);
+    return;
+  }
+  if (emuState === "on" || emuState === "asking") P({ uds: "emu", id: "main", rect: emuRect(), show: view === "offline" });
+}
+window.addEventListener("message", e => {
+  const d = e.data || {};
+  if (d.uds === "emu-ready") { emuState = "on"; $("#emumsg").textContent = "Loading…"; sendEmu(); }
+  if (d.uds === "emu-error") { emuState = "failed"; $("#emumsg").textContent = d.note || "The emulator couldn't start."; }
+});
+sendEmu();
+function showOff() {
+  note("<div><p class='warn'><b>Web view is off for this tab.</b></p><p>Turn on the <b>Web view</b> switch at the top of this tab, then pick an emulator. The emulator runs in its own browser view, kept apart from the app.</p><p>The 👾 CHIP-8 tab works without it.</p></div>");
+}
+window.addEventListener("message", e => {
+  const d = e.data || {};
+  if (d.uds === "web-state") {
+    webOn = !!d.on;
+    if (!webOn) showOff();
+    else if (cur) openSuite(cur); else note("Pick an emulator on the left.");
+  }
+  if (d.uds === "web-url" && d.id === "emu") {
+    $("#addr").textContent = d.url || "";
+    $("#back").disabled = !d.back; $("#fwd").disabled = !d.fwd;
+  }
+  if (d.uds === "web-refused") note("<span class='warn'>That address is not allowed.</span>");
+});
+$("#back").onclick = () => P({ uds: "web", id: "emu", nav: "back" });
+$("#fwd").onclick = () => P({ uds: "web", id: "emu", nav: "forward" });
+$("#reload").onclick = () => { if (cur && webOn) P({ uds: "web", id: "emu", url: cur.u, reload: true }); };
+$("#pop").onclick = () => { if (!cur) return; const a = $("#addr").textContent; P({ uds: "web-pop", url: a.startsWith("http") ? a : cur.u }); };
+window.addEventListener("resize", sendPane);
+renderList();
+P({ uds: "web-hello" });
+setTimeout(() => { if (!webOn) showOff(); }, 800);
+
+// ---------- CHIP-8 emulator ----------
+const FONT = [0xF0,0x90,0x90,0x90,0xF0,0x20,0x60,0x20,0x20,0x70,0xF0,0x10,0xF0,0x80,0xF0,0xF0,0x10,0xF0,0x10,0xF0,
+  0x90,0x90,0xF0,0x10,0x10,0xF0,0x80,0xF0,0x10,0xF0,0xF0,0x80,0xF0,0x90,0xF0,0xF0,0x10,0x20,0x40,0x40,0xF0,0x90,0xF0,0x90,0xF0,
+  0xF0,0x90,0xF0,0x10,0xF0,0xF0,0x90,0xF0,0x90,0x90,0xE0,0x90,0xE0,0x90,0xE0,0xF0,0x80,0x80,0x80,0xF0,0xE0,0x90,0x90,0x90,0xE0,
+  0xF0,0x80,0xF0,0x80,0xF0,0xF0,0x80,0xF0,0x80,0x80];
+const KEYMAP = { "1":1,"2":2,"3":3,"4":0xC,"q":4,"w":5,"e":6,"r":0xD,"a":7,"s":8,"d":9,"f":0xE,"z":0xA,"x":0,"c":0xB,"v":0xF };
+const c8 = { mem: new Uint8Array(4096), V: new Uint8Array(16), I: 0, pc: 0x200, stack: [], dt: 0, st: 0,
+  gfx: new Uint8Array(64 * 32), keys: new Array(16).fill(false), wait: -1, rom: null, running: false, dirty: true };
+const ctx = $("#screen").getContext("2d");
+function c8reset() {
+  c8.mem.fill(0); c8.mem.set(FONT, 0x50); if (c8.rom) c8.mem.set(c8.rom.slice(0, 4096 - 0x200), 0x200);
+  c8.V.fill(0); c8.I = 0; c8.pc = 0x200; c8.stack = []; c8.dt = c8.st = 0; c8.gfx.fill(0); c8.wait = -1; c8.dirty = true;
+}
+function c8load(bytes, name) {
+  c8.rom = bytes; c8reset(); c8.running = true; $("#run").textContent = "⏸ Pause";
+  $("#c8status").textContent = "Playing " + name + " (" + bytes.length + " bytes)."; $("#screen").focus();
+}
+function c8step() {
+  if (c8.wait >= 0) return;
+  const m = c8.mem, V = c8.V, op = (m[c8.pc] << 8) | m[c8.pc + 1];
+  c8.pc = (c8.pc + 2) & 0xFFF;
+  const x = (op >> 8) & 15, y = (op >> 4) & 15, n = op & 15, kk = op & 255, nnn = op & 0xFFF;
+  switch (op >> 12) {
+    case 0: if (op === 0x00E0) { c8.gfx.fill(0); c8.dirty = true; } else if (op === 0x00EE) c8.pc = c8.stack.length ? c8.stack.pop() : 0x200; break;
+    case 1: c8.pc = nnn; break;
+    case 2: c8.stack.push(c8.pc); if (c8.stack.length > 32) c8.stack.shift(); c8.pc = nnn; break;
+    case 3: if (V[x] === kk) c8.pc += 2; break;
+    case 4: if (V[x] !== kk) c8.pc += 2; break;
+    case 5: if (V[x] === V[y]) c8.pc += 2; break;
+    case 6: V[x] = kk; break;
+    case 7: V[x] = (V[x] + kk) & 255; break;
+    case 8: {
+      let f, s;
+      switch (n) {
+        case 0: V[x] = V[y]; break;
+        case 1: V[x] |= V[y]; V[15] = 0; break;
+        case 2: V[x] &= V[y]; V[15] = 0; break;
+        case 3: V[x] ^= V[y]; V[15] = 0; break;
+        case 4: s = V[x] + V[y]; V[x] = s & 255; V[15] = s > 255 ? 1 : 0; break;
+        case 5: f = V[x] >= V[y] ? 1 : 0; V[x] = (V[x] - V[y]) & 255; V[15] = f; break;
+        case 6: s = $("#qShift").checked ? V[y] : V[x]; f = s & 1; V[x] = s >> 1; V[15] = f; break;
+        case 7: f = V[y] >= V[x] ? 1 : 0; V[x] = (V[y] - V[x]) & 255; V[15] = f; break;
+        case 0xE: s = $("#qShift").checked ? V[y] : V[x]; f = s >> 7; V[x] = (s << 1) & 255; V[15] = f; break;
+      }
+      break;
+    }
+    case 9: if (V[x] !== V[y]) c8.pc += 2; break;
+    case 0xA: c8.I = nnn; break;
+    case 0xB: c8.pc = (nnn + V[0]) & 0xFFF; break;
+    case 0xC: V[x] = (Math.random() * 256 | 0) & kk; break;
+    case 0xD: {
+      const px = V[x] & 63, py = V[y] & 31; V[15] = 0;
+      for (let r = 0; r < n; r++) {
+        if (py + r > 31) break;
+        const row = m[(c8.I + r) & 0xFFF];
+        for (let b = 0; b < 8; b++) {
+          if (px + b > 63) break;
+          if (row & (0x80 >> b)) { const i = (py + r) * 64 + px + b; if (c8.gfx[i]) V[15] = 1; c8.gfx[i] ^= 1; }
+        }
+      }
+      c8.dirty = true; break;
+    }
+    case 0xE: if (kk === 0x9E && c8.keys[V[x] & 15]) c8.pc += 2; else if (kk === 0xA1 && !c8.keys[V[x] & 15]) c8.pc += 2; break;
+    case 0xF:
+      switch (kk) {
+        case 0x07: V[x] = c8.dt; break;
+        case 0x0A: c8.wait = x; break;
+        case 0x15: c8.dt = V[x]; break;
+        case 0x18: c8.st = V[x]; break;
+        case 0x1E: c8.I = (c8.I + V[x]) & 0xFFF; break;
+        case 0x29: c8.I = 0x50 + (V[x] & 15) * 5; break;
+        case 0x33: m[c8.I] = V[x] / 100 | 0; m[(c8.I + 1) & 0xFFF] = (V[x] / 10 | 0) % 10; m[(c8.I + 2) & 0xFFF] = V[x] % 10; break;
+        case 0x55: for (let i = 0; i <= x; i++) m[(c8.I + i) & 0xFFF] = V[i]; if ($("#qMem").checked) c8.I = (c8.I + x + 1) & 0xFFF; break;
+        case 0x65: for (let i = 0; i <= x; i++) V[i] = m[(c8.I + i) & 0xFFF]; if ($("#qMem").checked) c8.I = (c8.I + x + 1) & 0xFFF; break;
+      }
+  }
+}
+function c8draw() {
+  if (!c8.dirty) return; c8.dirty = false;
+  ctx.fillStyle = "#000"; ctx.fillRect(0, 0, 64, 32); ctx.fillStyle = $("#color").value;
+  for (let i = 0; i < 2048; i++) if (c8.gfx[i]) ctx.fillRect(i & 63, i >> 6, 1, 1);
+}
+let ac = null, osc = null;
+function beep(on) {
+  on = on && $("#sound").checked;
+  if (on && !osc) {
+    try { ac = ac || new AudioContext(); osc = ac.createOscillator(); const g = ac.createGain(); g.gain.value = 0.06; osc.type = "square"; osc.frequency.value = 440; osc.connect(g).connect(ac.destination); osc.start(); } catch (e) { osc = null; }
+  } else if (!on && osc) { try { osc.stop(); } catch (e) {} osc = null; }
+}
+function frame() {
+  if (c8.running && c8.rom) {
+    const n = +$("#speed").value;
+    for (let i = 0; i < n; i++) c8step();
+    if (c8.dt) c8.dt--;
+    if (c8.st) c8.st--;
+    beep(c8.st > 0);
+    c8draw();
+  } else beep(false);
+}
+setInterval(frame, 1000 / 60);   // CHIP-8 timers tick 60 times a second
+function keyEvt(k, down) {
+  c8.keys[k] = down;
+  const b = document.querySelector('.keys button[data-k="' + k + '"]'); if (b) b.classList.toggle("down", down);
+  if (!down && c8.wait >= 0) { c8.V[c8.wait] = k; c8.wait = -1; }
+}
+document.addEventListener("keydown", e => {
+  if (view !== "chip8" || e.ctrlKey || e.altKey || e.repeat) return;
+  const k = KEYMAP[e.key.toLowerCase()]; if (k !== undefined) { e.preventDefault(); keyEvt(k, true); }
+});
+document.addEventListener("keyup", e => { const k = KEYMAP[e.key.toLowerCase()]; if (k !== undefined && c8.keys[k]) keyEvt(k, false); });
+const PAD = [[1, "1"], [2, "2"], [3, "3"], [0xC, "4"], [4, "Q"], [5, "W"], [6, "E"], [0xD, "R"], [7, "A"], [8, "S"], [9, "D"], [0xE, "F"], [0xA, "Z"], [0, "X"], [0xB, "C"], [0xF, "V"]];
+for (const [k, label] of PAD) {
+  const b = document.createElement("button"); b.dataset.k = k;
+  b.innerHTML = k.toString(16).toUpperCase() + "<small>" + label + "</small>";
+  b.onpointerdown = () => keyEvt(k, true);
+  b.onpointerup = b.onpointerleave = () => { if (c8.keys[k]) keyEvt(k, false); };
+  $("#pad").append(b);
+}
+// Two small original demo programs, written here as CHIP-8 instructions.
+function words(w) { const b = []; for (const v of w) b.push(v >> 8, v & 255); return b; }
+const DEMOS = {
+  ball: () => words([
+    0x600A, 0x6105, 0x6201, 0x6301, 0xA230, 0xD012,          // 200: x=10 y=5 dx=1 dy=1, I = ball, draw
+    0x6402, 0xF415, 0xF407, 0x3400, 0x1210,                   // 20C: wait 2 ticks
+    0xD012, 0x8024, 0x8134,                                   // 216: erase, move
+    0x4000, 0x6201, 0x403E, 0x62FF, 0x4100, 0x6301, 0x411E, 0x63FF,  // 21C: bounce off the edges
+    0xD012, 0x120C,                                           // 22C: draw, loop
+    0xC0C0]),                                                 // 230: the 2x2 ball
+  keys: () => words([0x00E0, 0xF60A, 0x00E0, 0xF629, 0x671C, 0x680C, 0xD785, 0x1202])  // wait for a key, show its digit
+};
+$("#loadDemo").onclick = () => c8load(new Uint8Array(DEMOS[$("#demo").value]()), $("#demo").selectedOptions[0].text);
+$("#pick").onclick = () => $("#file").click();
+$("#file").onchange = async e => { const f = e.target.files[0]; if (!f) return; c8load(new Uint8Array(await f.arrayBuffer()), f.name); e.target.value = ""; };
+$("#run").onclick = () => { if (!c8.rom) return; c8.running = !c8.running; $("#run").textContent = c8.running ? "⏸ Pause" : "▶ Play"; };
+$("#reset").onclick = () => { if (c8.rom) { c8reset(); c8.running = true; $("#run").textContent = "⏸ Pause"; } };
+$("#color").onchange = () => { c8.dirty = true; c8draw(); };
+</script>
+</body></html>

@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+<!-- Randis UDS™ by Randy Moore. Original: https://github.com/RandyWilliamMoore/randis-uds · Support: https://ko-fi.com/moorescombinatoricsmatrix -->
+<html lang="en"><head><meta charset="utf-8"><title>Randis Media Network</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#0d1117;--pn:#161b22;--pn2:#1c2330;--ln:#2a3342;--tx:#e6edf3;--mu:#8b98a9;--ac:#e5484d;--ac2:#3b82f6;--ok:#2fbf71;--wa:#f5a524;--rad:10px}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font:14px/1.45 "Segoe UI",system-ui,sans-serif}
+a{color:#7cb7ff}button,select,input,textarea{font:inherit;color:inherit}
+button{background:var(--pn2);border:1px solid var(--ln);border-radius:8px;padding:6px 11px;cursor:pointer;white-space:nowrap}
+button:hover{border-color:#4b5a70;background:#222b3a}button.p{background:var(--ac);border-color:var(--ac);color:#fff;font-weight:600}
+button.b{background:var(--ac2);border-color:var(--ac2);color:#fff}button.s{padding:3px 8px;font-size:12px}button:disabled{opacity:.45;cursor:default}
+input,select,textarea{background:#0b0f15;border:1px solid var(--ln);border-radius:8px;padding:6px 8px;width:100%}
+textarea{resize:vertical;min-height:70px}input[type=checkbox],input[type=radio]{width:auto}input[type=range]{padding:0}
+label{display:block;font-size:12px;color:var(--mu);margin:8px 0 3px}
+#top{height:50px;display:flex;align-items:center;gap:12px;padding:0 14px;background:linear-gradient(90deg,#1a0f12,#111826);border-bottom:1px solid var(--ln)}
+#top .logo{font-weight:800;font-size:18px;letter-spacing:.3px;display:flex;align-items:center;gap:8px}
+#top .logo i{font-style:normal;background:var(--ac);color:#fff;border-radius:6px;padding:2px 7px;font-size:13px}
+#top .credit{font-size:11px;color:var(--mu)}#top .sp{flex:1}
+.onair{background:#3a0d10;color:#ff6b6b;border:1px solid #6b1c22;border-radius:6px;padding:3px 8px;font-size:12px;font-weight:700}
+.onair.live{background:var(--ac);color:#fff;animation:pulse 1.6s infinite}@keyframes pulse{50%{opacity:.6}}
+#ticker{height:26px;overflow:hidden;background:#000;border-bottom:1px solid var(--ln);white-space:nowrap;font-size:13px;position:relative}
+#ticker span{display:inline-block;padding-left:100%;animation:crawl 60s linear infinite;line-height:26px}
+#ticker b{color:var(--ac);margin:0 8px}@keyframes crawl{to{transform:translateX(-100%)}}
+#wrap{display:flex;height:calc(100% - 76px)}
+#nav{width:196px;background:var(--pn);border-right:1px solid var(--ln);overflow:auto;padding:8px 0}
+#nav h4{margin:12px 14px 4px;font-size:11px;color:var(--mu);text-transform:uppercase;letter-spacing:1px}
+#nav a{display:flex;gap:8px;align-items:center;padding:7px 14px;color:var(--tx);text-decoration:none;cursor:pointer;border-left:3px solid transparent}
+#nav a:hover{background:#1f2633}#nav a.on{background:#24161a;border-left-color:var(--ac)}#nav a .n{margin-left:auto;font-size:11px;color:var(--mu)}
+#view{flex:1;overflow:auto;padding:18px 22px 60px}
+h1{font-size:22px;margin:0 0 4px}h2{font-size:17px;margin:18px 0 8px}h3{font-size:15px;margin:12px 0 6px}
+.sub{color:var(--mu);margin:0 0 14px}.mu{color:var(--mu)}.sm{font-size:12px}.r{text-align:right}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.row>.f{flex:1}.gap{height:10px}
+.grid{display:grid;gap:12px}.g2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.card{background:var(--pn);border:1px solid var(--ln);border-radius:var(--rad);padding:14px}
+.card.hi{border-color:#5a2a30}.stat{font-size:26px;font-weight:800}.stat+div{color:var(--mu);font-size:12px}
+.tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:20px;background:#253045;color:#b9c7da;margin:1px 3px 1px 0}
+.k-article{background:#1e3a5f}.k-news{background:#5f1e25}.k-podcast{background:#3d1e5f}.k-video{background:#5f3b1e}.k-newscast{background:#5f1e4b}.k-newsletter{background:#1e5f45}.k-brief{background:#2c4a1e}.k-social{background:#1e505f}
+.st-pitch{background:#333}.st-draft{background:#3b3b17}.st-edit{background:#173b3b}.st-factcheck{background:#3b2417}.st-approved{background:#17402a}.st-scheduled{background:#1f2f57}.st-published{background:#1d5a33}
+table{width:100%;border-collapse:collapse}td,th{padding:6px 8px;border-bottom:1px solid var(--ln);text-align:left;vertical-align:top}th{color:var(--mu);font-weight:600;font-size:12px}
+.board{display:grid;grid-template-columns:repeat(7,minmax(170px,1fr));gap:10px;overflow:auto}
+.col{background:var(--pn);border:1px solid var(--ln);border-radius:var(--rad);padding:8px;min-height:300px}
+.col h3{margin:2px 4px 8px;font-size:13px;display:flex;justify-content:space-between}
+.pc{background:var(--pn2);border:1px solid var(--ln);border-radius:8px;padding:8px;margin-bottom:8px;cursor:pointer}.pc:hover{border-color:var(--ac)}
+.pc .t{font-weight:600;font-size:13px;margin:3px 0}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--ln);margin:10px 0 14px;flex-wrap:wrap}
+.tabs a{padding:7px 12px;cursor:pointer;border-radius:8px 8px 0 0;color:var(--mu)}.tabs a.on{background:var(--pn);color:var(--tx);border:1px solid var(--ln);border-bottom-color:var(--pn);margin-bottom:-1px}
+.md{line-height:1.6}.md h1,.md h2,.md h3{margin:14px 0 6px}.md blockquote{border-left:3px solid var(--ac);margin:8px 0;padding:2px 12px;color:#c9d4e2}
+.md img{max-width:100%}.preview{background:#fff;color:#111;border-radius:8px;padding:20px 26px;max-height:640px;overflow:auto}.preview a{color:#0645ad}
+.ed{min-height:420px;font-family:Consolas,monospace;font-size:13px;line-height:1.5}
+.log{font-family:Consolas,monospace;font-size:12px;background:#07090d;border:1px solid var(--ln);border-radius:8px;padding:8px;max-height:220px;overflow:auto;white-space:pre-wrap}
+.pill{display:inline-flex;gap:6px;align-items:center;padding:4px 10px;border:1px solid var(--ln);border-radius:20px;background:var(--pn2);margin:3px;cursor:pointer;user-select:none}
+.pill.on{background:#2a1a1e;border-color:var(--ac)}
+.cover{width:100%;aspect-ratio:16/9;border-radius:8px;overflow:hidden;background:#000;display:flex;align-items:center;justify-content:center}
+.cover svg,.cover img{width:100%;height:100%}
+#toast{position:fixed;right:18px;bottom:18px;display:flex;flex-direction:column;gap:6px;z-index:50}
+#toast div{background:#1f2937;border:1px solid var(--ln);border-left:4px solid var(--ac2);padding:9px 13px;border-radius:8px;max-width:420px;box-shadow:0 6px 20px #0008}
+#toast div.err{border-left-color:var(--ac)}#toast div.ok{border-left-color:var(--ok)}
+.busy{display:inline-block;width:12px;height:12px;border:2px solid #fff4;border-top-color:#fff;border-radius:50%;animation:spin 1s linear infinite;vertical-align:-2px}@keyframes spin{to{transform:rotate(360deg)}}
+.modal{position:fixed;inset:0;background:#000a;display:flex;align-items:center;justify-content:center;z-index:40}
+.modal>div{background:var(--pn);border:1px solid var(--ln);border-radius:12px;padding:18px;width:min(720px,94vw);max-height:90vh;overflow:auto}
+.wi{display:flex;gap:10px;padding:8px;border-bottom:1px solid var(--ln)}.wi:hover{background:#151b25}.wi .t{font-weight:600}
+canvas.vid{width:100%;max-width:880px;background:#000;border-radius:8px;display:block}
+.line{display:grid;grid-template-columns:130px 1fr 70px;gap:8px;align-items:start;margin-bottom:6px}
+.warn{background:#3a2a0d;border:1px solid #6b4e1c;color:#ffd58a;border-radius:8px;padding:8px 12px;margin:8px 0}
+.okb{background:#0d3a22;border:1px solid #1c6b40;color:#a6f0c6;border-radius:8px;padding:8px 12px;margin:8px 0}
+.empty{color:var(--mu);text-align:center;padding:30px}
+</style></head><body>
+<div id="top">
+ <div class="logo"><span id="nlogo">📡</span><span id="nname">Randis Media Network</span><i>AI</i></div>
+ <div class="credit">Randis UDS™ by Randy Moore · <a href="https://github.com/RandyWilliamMoore/randis-uds" target="_blank">original</a> · <a href="https://ko-fi.com/moorescombinatoricsmatrix" target="_blank">support</a></div>
+ <div class="sp"></div>
+ <span id="aiState" class="sm mu"></span>
+ <span id="onair" class="onair" title="Autopilot">● OFF AIR</span>
+</div>
+<div id="ticker"><span id="tick">Welcome to your network.</span></div>
+<div id="wrap"><nav id="nav"></nav><main id="view"></main></div>
+<div id="toast"></div>
+<script>
+"use strict";
+// ======================= core: state, bridge, AI, helpers =======================
+const KEY = "rmn1";
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-3);
+const now = () => Date.now();
+const fmtT = t => t ? new Date(t).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "";
+const fmtD = s => { s = Math.round(s || 0); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
+const slug = s => String(s || "").toLowerCase().normalize("NFKD").replace(/[^\w\s-]/g, "").trim().replace(/[\s_-]+/g, "-").slice(0, 70) || "item";
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+const KINDS = {
+  article: { name: "Article", icon: "📰", desc: "Long-form written story" },
+  news: { name: "News report", icon: "🗞️", desc: "Hard news, inverted pyramid, sourced" },
+  brief: { name: "Brief", icon: "⚡", desc: "Short news item, 120-200 words" },
+  podcast: { name: "Podcast episode", icon: "🎙️", desc: "Hosted audio show with script and voices" },
+  video: { name: "Video story", icon: "🎬", desc: "Narrated video with scenes, captions, lower thirds" },
+  newscast: { name: "Newscast", icon: "📺", desc: "Anchored bulletin of several stories (video + audio)" },
+  newsletter: { name: "Newsletter", icon: "✉️", desc: "Email edition rounding up stories" },
+  social: { name: "Social thread", icon: "💬", desc: "Posts for social platforms" }
+};
+const STATUSES = ["pitch", "draft", "edit", "factcheck", "approved", "scheduled", "published"];
+const STATUS_NAME = { pitch: "Pitch", draft: "Draft", edit: "Editing", factcheck: "Fact-check", approved: "Approved", scheduled: "Scheduled", published: "Published" };
+
+const DEFAULT_FEEDS = {
+  World: ["https://feeds.bbci.co.uk/news/world/rss.xml", "https://feeds.npr.org/1004/rss.xml", "https://www.aljazeera.com/xml/rss/all.xml", "https://www.theguardian.com/world/rss"],
+  US: ["https://feeds.npr.org/1003/rss.xml", "https://rss.nytimes.com/services/xml/rss/nyt/US.xml"],
+  Tech: ["https://feeds.arstechnica.com/arstechnica/index", "https://www.theverge.com/rss/index.xml", "https://hnrss.org/frontpage"],
+  Science: ["https://www.sciencedaily.com/rss/top/science.xml", "https://www.nasa.gov/news-release/feed/", "https://feeds.npr.org/1007/rss.xml"],
+  Business: ["https://feeds.npr.org/1006/rss.xml", "https://feeds.bbci.co.uk/news/business/rss.xml"],
+  Health: ["https://feeds.npr.org/1128/rss.xml", "https://www.sciencedaily.com/rss/health_medicine.xml"],
+  Culture: ["https://feeds.npr.org/1008/rss.xml", "https://www.theguardian.com/culture/rss"],
+  Sports: ["https://feeds.bbci.co.uk/sport/rss.xml"]
+};
+
+function defaults() {
+  const desks = Object.keys(DEFAULT_FEEDS).map(n => ({ id: uid(), name: n, feeds: DEFAULT_FEEDS[n].slice(), topics: [] }));
+  desks.push({ id: uid(), name: "Opinion", feeds: [], topics: [] });
+  return {
+    v: 1,
+    net: { name: "Randis Media Network", short: "RMN", logo: "📡", color: "#e5484d", color2: "#0f172a", tagline: "News, stories and shows, made with AI and checked by people.",
+      disclosure: "Made with AI assistance by Randis Media Network. Sources linked; corrections welcome.", discloseOn: true,
+      language: "English", audience: "general readers", siteUrl: "", contact: "" },
+    style: { voice: "Clear, fair, warm and precise. Plain words. Short paragraphs. Active voice.", rules: "Attribute every fact to its source.\nNo invented quotes, numbers or names.\nLabel opinion, analysis and satire.\nPut a correction note on any fixed error.\nNo hate, harassment or medical/financial advice presented as fact.", banned: "allegedly, shocking, you won't believe" },
+    desks,
+    staff: [
+      { id: uid(), name: "Ava Lin", role: "anchor", beat: "World", voice: "", rate: 0, style: "Calm, authoritative evening-news anchor.", look: { skin: "#d9a066", hair: "#1b1b1b", suit: "#1e3a5f" } },
+      { id: uid(), name: "Marcus Hale", role: "host", beat: "Tech", voice: "", rate: 1, style: "Curious, witty podcast host who explains things simply.", look: { skin: "#8d5524", hair: "#111", suit: "#3d1e5f" } },
+      { id: uid(), name: "Priya Nair", role: "host", beat: "Science", voice: "", rate: 0, style: "Enthusiastic science communicator, asks the follow-up questions.", look: { skin: "#c68642", hair: "#2b1a0f", suit: "#1e5f45" } },
+      { id: uid(), name: "Tom Reyes", role: "reporter", beat: "Business", voice: "", rate: 0, style: "Numbers-first business reporter, skeptical and fair.", look: { skin: "#e0ac69", hair: "#4a3020", suit: "#333" } },
+      { id: uid(), name: "The Editor", role: "editor", beat: "All", voice: "", rate: 0, style: "Strict, fair copy editor and fact-checker.", look: { skin: "#f1c27d", hair: "#777", suit: "#222" } }
+    ],
+    shows: [
+      { id: uid(), kind: "podcast", name: "The Daily Signal", desc: "The day's biggest stories in 10 minutes.", hosts: [], art: "🎙️", category: "News", explicit: false, intro: "bright" },
+      { id: uid(), kind: "video", name: "Network Now", desc: "Short video news, explained.", hosts: [], art: "📺", category: "News", intro: "news" }
+    ],
+    pieces: [], wire: { items: [], fetched: 0, picked: [] }, log: [], corrections: [],
+    rules: [], outletsOn: {}, shareOn: { x: true, facebook: true, linkedin: true, reddit: true },
+    site: { theme: "classic", built: 0, published: 0 }, autopilot: false, lastAuto: 0
+  };
+}
+let S;
+function load() {
+  try { S = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) { S = null; }
+  if (!S || S.v !== 1) S = defaults();
+  const d = defaults();
+  for (const k of Object.keys(d)) if (S[k] === undefined) S[k] = d[k];
+  S.net = Object.assign(d.net, S.net); S.style = Object.assign(d.style, S.style);
+}
+let saveT = 0;
+function save() {
+  clearTimeout(saveT);
+  saveT = setTimeout(() => {
+    try { localStorage.setItem(KEY, JSON.stringify(S)); }
+    catch (e) {
+      S.log = S.log.slice(-200); S.wire.items = S.wire.items.slice(0, 150);
+      try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e2) { toast("Saving failed: storage full. Export a backup and delete old pieces.", "err"); }
+    }
+  }, 150);
+}
+function logIt(kind, text, extra) { S.log.push(Object.assign({ t: now(), kind, text }, extra || {})); if (S.log.length > 1500) S.log.splice(0, S.log.length - 1500); save(); }
+
+function toast(msg, cls) {
+  const d = document.createElement("div"); d.className = cls || ""; d.textContent = msg; $("#toast").appendChild(d);
+  setTimeout(() => d.remove(), cls === "err" ? 9000 : 4500);
+}
+
+// ---- the app bridge: {uds:"media", id, op, args} -> {uds:"media", id, r}
+const PEND = {};
+let BRIDGE = window.parent !== window;
+window.addEventListener("message", e => {
+  const d = e.data;
+  if (!d || d.uds !== "media" || !PEND[d.id]) return;
+  PEND[d.id](d.r || {}); delete PEND[d.id];
+});
+function call(op, args, timeoutMs) {
+  if (window.MOCK) return window.MOCK(op, args || {});
+  if (!BRIDGE) return Promise.resolve({ error: "Open this inside Randis UDS to use the app's engine." });
+  return new Promise(res => {
+    const id = uid(); PEND[id] = res;
+    window.parent.postMessage({ uds: "media", id, op, args: args || {} }, "*");
+    setTimeout(() => { if (PEND[id]) { delete PEND[id]; res({ error: "The app didn't answer. If you just updated, close Randis UDS and open it again." }); } }, timeoutMs || 900000);
+  });
+}
+
+// ---- the AI newsroom
+let AI_BUSY = 0;
+function aiState() { const el = $("#aiState"); if (el) el.innerHTML = AI_BUSY ? `<span class="busy"></span> AI working (${AI_BUSY})` : ""; }
+function styleBrief() {
+  return `NETWORK: ${S.net.name} (${S.net.short}). Tagline: ${S.net.tagline}\nLanguage: ${S.net.language}. Audience: ${S.net.audience}.\n` +
+    `HOUSE VOICE: ${S.style.voice}\nRULES:\n${S.style.rules}\nAVOID WORDS: ${S.style.banned}`;
+}
+async function ai(prompt, opts) {
+  opts = opts || {};
+  AI_BUSY++; aiState();
+  try {
+    const r = await call("ask", { text: prompt, system: styleBrief() + (opts.system ? "\n" + opts.system : ""), max: opts.max || 6000 });
+    if (r.error) throw new Error(r.error);
+    let p;
+    for (;;) {
+      await sleep(700);
+      p = await call("poll", { job: r.job });
+      if (p.error) throw new Error(p.error);
+      if (opts.onText) opts.onText(p.text || "");
+      if (p.done) break;
+    }
+    if (p.error) throw new Error(p.error);
+    return p.text || "";
+  } finally { AI_BUSY--; aiState(); }
+}
+function parseJSON(text) {
+  let t = String(text || "");
+  const m = t.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (m) t = m[1];
+  const a = t.indexOf("{"), b = t.lastIndexOf("}"), a2 = t.indexOf("[");
+  if (a2 >= 0 && (a < 0 || a2 < a)) { const e2 = t.lastIndexOf("]"); return JSON.parse(t.slice(a2, e2 + 1)); }
+  if (a < 0) throw new Error("The AI didn't answer in JSON.");
+  return JSON.parse(t.slice(a, b + 1));
+}
+async function aiJSON(prompt, shape, opts) {
+  const text = await ai(prompt + "\n\nReply with ONLY JSON in one ```json block, this shape:\n" + shape, opts);
+  try { return parseJSON(text); }
+  catch (e) {
+    const fix = await ai("This should be valid JSON but isn't. Return it fixed, ONLY the JSON in one ```json block:\n" + text.slice(0, 30000), { max: opts && opts.max });
+    return parseJSON(fix);
+  }
+}
+
+// ---- markdown (small, safe: escapes first)
+function md(src) {
+  const inl = s => esc(s)
+    .replace(/!\[([^\]]*)\]\((https?:[^)\s]+)\)/g, '<img alt="$1" src="$2">')
+    .replace(/\[([^\]]+)\]\((https?:[^)\s]+|mailto:[^)\s]+|[\w./#-]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>").replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>")
+    .replace(/`([^`]+)`/g, "<code>$1</code>");
+  const lines = String(src || "").replace(/\r/g, "").split("\n"); let out = "", list = null, para = [];
+  const flush = () => { if (para.length) { out += "<p>" + inl(para.join(" ")) + "</p>\n"; para = []; } };
+  const endList = () => { if (list) { out += `</${list}>\n`; list = null; } };
+  for (const ln of lines) {
+    let m;
+    if (!ln.trim()) { flush(); endList(); continue; }
+    if ((m = ln.match(/^(#{1,4})\s+(.*)/))) { flush(); endList(); const n = m[1].length + 1; out += `<h${n}>${inl(m[2])}</h${n}>\n`; continue; }
+    if ((m = ln.match(/^>\s?(.*)/))) { flush(); endList(); out += `<blockquote>${inl(m[1])}</blockquote>\n`; continue; }
+    if (/^(-{3,}|\*{3,})$/.test(ln.trim())) { flush(); endList(); out += "<hr>\n"; continue; }
+    if ((m = ln.match(/^\s*[-*•]\s+(.*)/))) { flush(); if (list !== "ul") { endList(); out += "<ul>"; list = "ul"; } out += `<li>${inl(m[1])}</li>`; continue; }
+    if ((m = ln.match(/^\s*\d+[.)]\s+(.*)/))) { flush(); if (list !== "ol") { endList(); out += "<ol>"; list = "ol"; } out += `<li>${inl(m[1])}</li>`; continue; }
+    endList(); para.push(ln.trim());
+  }
+  flush(); endList();
+  return out;
+}
+const plain = s => String(s || "").replace(/!\[[^\]]*\]\([^)]*\)/g, "").replace(/\[([^\]]+)\]\([^)]*\)/g, "$1").replace(/[#>*_`]/g, "").replace(/\n{2,}/g, "\n").trim();
+const words = s => (String(s || "").match(/\S+/g) || []).length;
+
+// ---- files to/from the engine
+const b64 = buf => { let s = "", u = new Uint8Array(buf); for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(s); };
+async function putFile(name, blob, onProg) {
+  const buf = await blob.arrayBuffer(), CH = 3 * 1024 * 1024;
+  for (let i = 0; i < buf.byteLength || i === 0; i += CH) {
+    const r = await call("put_part", { name, b64: b64(buf.slice(i, i + CH)), first: i === 0, last: i + CH >= buf.byteLength });
+    if (r.error) throw new Error(r.error);
+    if (onProg) onProg(Math.min(1, (i + CH) / buf.byteLength));
+    if (i + CH >= buf.byteLength) break;
+  }
+  return name;
+}
+async function getFile(name) {
+  const parts = []; let start = 0, total = 1, mime = "application/octet-stream";
+  while (start < total) {
+    const r = await call("get_file", { name, start, size: 4000000 });
+    if (r.error) throw new Error(r.error);
+    total = r.total; mime = r.mime;
+    const bin = atob(r.b64), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+    parts.push(u); start += u.length; if (!u.length) break;
+  }
+  return new Blob(parts, { type: mime });
+}
+const URLS = {};
+async function fileURL(name) { if (!URLS[name]) URLS[name] = URL.createObjectURL(await getFile(name)); return URLS[name]; }
+function forgetURL(name) { if (URLS[name]) { URL.revokeObjectURL(URLS[name]); delete URLS[name]; } }
+function download(name, data, type) {
+  const blob = data instanceof Blob ? data : new Blob([data], { type: type || "text/plain" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+}
+function modal(html, onReady) {
+  const m = document.createElement("div"); m.className = "modal"; m.innerHTML = `<div>${html}</div>`;
+  m.addEventListener("click", e => { if (e.target === m || e.target.dataset.close !== undefined) m.remove(); });
+  document.body.appendChild(m); if (onReady) onReady(m.firstChild, () => m.remove()); return m;
+}
+const piece = id => S.pieces.find(p => p.id === id);
+const staff = id => S.staff.find(p => p.id === id);
+const desk = id => S.desks.find(d => d.id === id);
+// ======================= navigation, control room, wire, newsroom, editor =======================
+const NAV = [
+  ["Network", [["home", "📡", "Control room"], ["wire", "🛰️", "Wire & assignments"], ["board", "🗂️", "Newsroom board"], ["new", "➕", "Create"]]],
+  ["Studios", [["write", "✍️", "Writers' room"], ["pod", "🎙️", "Podcast studio"], ["video", "🎬", "Video & newscast"]]],
+  ["Distribution", [["publish", "🚀", "Publish center"], ["outlets", "🔌", "Outlets"], ["site", "🌐", "Network website"], ["auto", "🤖", "Autopilot & schedule"]]],
+  ["Organization", [["staff", "🧑‍💼", "AI staff & shows"], ["standards", "⚖️", "Standards & corrections"], ["log", "📈", "Log & reach"], ["settings", "⚙️", "Settings & tools"]]]
+];
+let PAGE = "home", CUR = null, ETAB = "write", ENG = null;
+function nav() {
+  const cnt = { board: S.pieces.filter(p => p.status !== "published").length, wire: S.wire.items.length };
+  $("#nav").innerHTML = NAV.map(([g, items]) => `<h4>${g}</h4>` + items.map(([id, ic, n]) =>
+    `<a data-go="${id}" class="${PAGE === id ? "on" : ""}">${ic} ${n}${cnt[id] ? `<span class="n">${cnt[id]}</span>` : ""}</a>`).join("")).join("");
+  $("#nlogo").textContent = S.net.logo; $("#nname").textContent = S.net.name;
+  const heads = S.pieces.filter(p => p.status === "published").slice(-12).reverse().map(p => p.title);
+  const wire = S.wire.items.slice(0, 8).map(w => w.title);
+  $("#tick").innerHTML = (heads.length ? heads : wire.length ? wire : [S.net.tagline]).map(h => `<b>●</b>${esc(h)}`).join(" ");
+  const oa = $("#onair"); oa.className = "onair" + (S.autopilot ? " live" : ""); oa.textContent = S.autopilot ? "● ON AIR · autopilot" : "● OFF AIR";
+}
+function go(p, id) {
+  PAGE = p; if (id !== undefined) CUR = id;
+  nav();
+  const v = $("#view");
+  try { v.innerHTML = (PAGES[p] || PAGES.home)(); if (AFTER[p]) AFTER[p](); }
+  catch (e) { console.error(e); v.innerHTML = `<div class="warn">This page hit an error: ${esc(e.message)}</div>`; }
+  v.scrollTop = 0;
+}
+function rerender() { const v = $("#view"), y = v.scrollTop; go(PAGE); v.scrollTop = y; }
+const PAGES = {}, AFTER = {}, ACT = {};
+
+document.addEventListener("click", e => {
+  const g = e.target.closest("[data-go]"); if (g) { go(g.dataset.go, g.dataset.id); return; }
+  const a = e.target.closest("[data-act]");
+  if (a && ACT[a.dataset.act]) { e.preventDefault(); Promise.resolve(ACT[a.dataset.act](a.dataset.arg, a, e)).catch(err => { console.error(err); toast(err.message || String(err), "err"); }); }
+});
+document.addEventListener("change", e => {
+  const b = e.target.closest("[data-bind]"); if (!b) return;
+  const path = b.dataset.bind.split("."); let o = path[0] === "P" ? piece(CUR) : S; if (path[0] === "P" || path[0] === "S") path.shift();
+  for (let i = 0; i < path.length - 1; i++) o = o[path[i]] = o[path[i]] || {};
+  o[path[path.length - 1]] = b.type === "checkbox" ? b.checked : b.type === "number" || b.type === "range" ? +b.value : b.value;
+  if (path[0] !== "body") { const p = piece(CUR); if (p && b.dataset.bind.startsWith("P.")) p.updated = now(); }
+  save(); if (b.dataset.re !== undefined) rerender(); else nav();
+});
+
+const kindTag = k => `<span class="tag k-${k}">${KINDS[k] ? KINDS[k].icon + " " + KINDS[k].name : k}</span>`;
+const stTag = s => `<span class="tag st-${s}">${STATUS_NAME[s] || s}</span>`;
+const byName = id => (staff(id) || {}).name || "Newsroom";
+
+// ---------- control room
+PAGES.home = () => {
+  const by = s => S.pieces.filter(p => p.status === s).length;
+  const pub = S.log.filter(l => l.kind === "push" && l.ok);
+  const today = S.pieces.filter(p => p.created > now() - 864e5).length;
+  const recent = S.pieces.slice().sort((a, b) => b.updated - a.updated).slice(0, 8);
+  const sched = S.pieces.filter(p => p.status === "scheduled").sort((a, b) => a.scheduledAt - b.scheduledAt).slice(0, 6);
+  return `<h1>${esc(S.net.logo)} ${esc(S.net.name)} control room</h1><p class="sub">${esc(S.net.tagline)}</p>
+  <div class="grid g4">
+   <div class="card"><div class="stat">${S.pieces.length}</div><div>pieces in the network (${today} today)</div></div>
+   <div class="card"><div class="stat">${by("published")}</div><div>published</div></div>
+   <div class="card"><div class="stat">${by("draft") + by("edit") + by("factcheck") + by("pitch")}</div><div>in the pipeline</div></div>
+   <div class="card"><div class="stat">${pub.length}</div><div>posts sent to outlets</div></div>
+  </div>
+  <h2>Make something now</h2>
+  <div class="grid g4">${Object.entries(KINDS).map(([k, v]) => `<div class="card" style="cursor:pointer" data-act="quick" data-arg="${k}"><div style="font-size:26px">${v.icon}</div><b>${v.name}</b><div class="mu sm">${v.desc}</div></div>`).join("")}</div>
+  <div class="grid g2" style="margin-top:14px">
+   <div class="card"><h3>Latest work</h3>${recent.length ? `<table>${recent.map(p => `<tr><td>${kindTag(p.kind)}</td><td><a data-go="edit" data-id="${p.id}">${esc(p.title || "Untitled")}</a></td><td>${stTag(p.status)}</td></tr>`).join("")}</table>` : `<div class="empty">Nothing yet. Pull the wire or make something above.</div>`}</div>
+   <div class="card"><h3>Coming up</h3>${sched.length ? `<table>${sched.map(p => `<tr><td>${fmtT(p.scheduledAt)}</td><td><a data-go="edit" data-id="${p.id}">${esc(p.title)}</a></td></tr>`).join("")}</table>` : `<div class="empty">Nothing scheduled.</div>`}
+    <h3>Autopilot</h3><p class="mu sm">${S.autopilot ? `On. ${S.rules.filter(r => r.on).length} rule(s) run while this tab is open.` : "Off. Rules in Autopilot & schedule make and queue pieces on their own."}</p>
+    <button data-go="auto">Open autopilot</button> <button data-act="pullWire">🛰️ Pull the wire now</button></div>
+  </div>
+  <div class="card" style="margin-top:14px"><h3>How it works</h3><ol class="sm mu" style="margin:0;padding-left:18px">
+   <li><b>Wire</b> reads real news feeds you pick. The AI assignment desk suggests stories from them.</li>
+   <li><b>Studios</b>: the linked AI writes articles, reports and scripts; Windows voices read them; the video studio films a newscast with an anchor, lower thirds and captions.</li>
+   <li><b>Fact-check</b> compares the draft with its sources before anything leaves.</li>
+   <li><b>Publish</b> sends it to your outlets (Discord, Telegram, Mastodon, Bluesky, WordPress, Ghost, dev.to, newsletters, webhooks for anything else) and your own network website with RSS and a podcast feed.</li></ol></div>`;
+};
+ACT.quick = k => newPiece(k);
+
+// ---------- the wire
+PAGES.wire = () => {
+  const items = S.wire.items, pick = new Set(S.wire.picked || []);
+  const flt = S.wire.filter || "";
+  const shown = items.filter(w => !flt || w.desk === flt);
+  return `<h1>🛰️ Wire & assignments</h1><p class="sub">Real headlines from the feeds on each desk. Tick stories, then have the AI cover them. Every piece links back to its sources.</p>
+  <div class="row"><button class="p" data-act="pullWire">Pull the wire</button>
+   <input id="gq" placeholder="Search the news for a topic (Google News)…" style="max-width:340px"><button data-act="topicSearch">Search</button>
+   <select id="wflt" data-bind="S.wire.filter" data-re style="max-width:170px"><option value="">All desks</option>${S.desks.map(d => `<option ${flt === d.name ? "selected" : ""}>${esc(d.name)}</option>`).join("")}</select>
+   <span class="mu sm">${S.wire.fetched ? "Pulled " + fmtT(S.wire.fetched) : "Not pulled yet"} · ${items.length} items</span></div>
+  <div class="card" style="margin:12px 0"><div class="row"><b>${pick.size} picked</b>
+   <select id="wkind" style="max-width:180px">${Object.entries(KINDS).map(([k, v]) => `<option value="${k}" ${k === "news" ? "selected" : ""}>${v.icon} ${v.name}</option>`).join("")}</select>
+   <select id="wby" style="max-width:170px">${S.staff.map(s => `<option value="${s.id}">${esc(s.name)} (${s.role})</option>`).join("")}</select>
+   <button class="b" data-act="coverPicked" ${pick.size ? "" : "disabled"}>Cover picked stories</button>
+   <button data-act="eachPicked" ${pick.size ? "" : "disabled"}>One piece per story</button>
+   <button data-act="assignDesk">🧠 AI assignment desk</button><button data-act="clearPick">Clear</button></div>
+   <div id="assign"></div></div>
+  ${shown.length ? shown.slice(0, 300).map(w => `<div class="wi"><input type="checkbox" data-act="pickW" data-arg="${w.id}" ${pick.has(w.id) ? "checked" : ""}>
+   <div class="f"><div class="t">${esc(w.title)}</div><div class="sm mu">${esc(w.outlet)} · ${esc(w.desk)} · ${esc(w.date || "")} · <a href="${esc(w.link)}" data-act="openUrl" data-arg="${esc(w.link)}">source</a></div>
+   <div class="sm">${esc((w.summary || "").slice(0, 300))}</div></div></div>`).join("") : `<div class="empty">Press “Pull the wire” to read your desks' feeds (Desks are in AI staff & shows).</div>`}`;
+};
+ACT.openUrl = u => call("open", { url: u }).then(r => r.error && toast(r.error, "err"));
+ACT.pickW = (id, el) => { const s = new Set(S.wire.picked || []); el.checked ? s.add(id) : s.delete(id); S.wire.picked = [...s]; save(); rerender(); };
+ACT.clearPick = () => { S.wire.picked = []; save(); rerender(); };
+async function fetchFeeds(list) {
+  const got = [];
+  await Promise.all(list.map(async ([deskName, url]) => {
+    const r = await call("feed", { url });
+    if (r.error) { logIt("wire", `Feed failed: ${url}: ${r.error}`); return; }
+    for (const it of r.items || []) if (it.title && it.link) got.push({ id: "w" + slug(it.link).slice(-30) + it.title.length, title: it.title, link: it.link, date: it.date, summary: it.summary, desk: deskName, outlet: r.title || new URL(url).hostname });
+  }));
+  return got;
+}
+ACT.pullWire = async () => {
+  const list = []; S.desks.forEach(d => d.feeds.forEach(f => list.push([d.name, f])));
+  if (!list.length) return toast("No feeds on any desk yet.", "err");
+  toast(`Reading ${list.length} feeds…`);
+  const got = await fetchFeeds(list);
+  const seen = new Set(), merged = [];
+  for (const w of got.concat(S.wire.items)) { const k = w.title.toLowerCase().slice(0, 80); if (!seen.has(k)) { seen.add(k); merged.push(w); } }
+  merged.sort((a, b) => (Date.parse(b.date) || 0) - (Date.parse(a.date) || 0));
+  S.wire.items = merged.slice(0, 400); S.wire.fetched = now(); save();
+  logIt("wire", `Pulled ${got.length} items from ${list.length} feeds`);
+  toast(`${got.length} wire items.`, "ok"); if (PAGE === "wire") rerender(); else nav();
+  return got.length;
+};
+ACT.topicSearch = async () => {
+  const q = ($("#gq") || {}).value || ""; if (!q.trim()) return;
+  const got = await fetchFeeds([["Search: " + q, "https://news.google.com/rss/search?q=" + encodeURIComponent(q) + "&hl=en-US&gl=US&ceid=US:en"]]);
+  S.wire.items = got.concat(S.wire.items).slice(0, 400); S.wire.picked = got.slice(0, 5).map(w => w.id); save(); rerender();
+  toast(`${got.length} stories about “${q}”; top 5 picked.`, "ok");
+};
+const srcOf = w => ({ title: w.title, link: w.link, outlet: w.outlet, date: w.date, summary: w.summary });
+ACT.coverPicked = async () => {
+  const items = S.wire.items.filter(w => (S.wire.picked || []).includes(w.id));
+  const p = newPiece($("#wkind").value, { sources: items.map(srcOf), byline: $("#wby").value, deskName: items[0] && items[0].desk, silent: true });
+  S.wire.picked = []; save(); go("edit", p.id); await generate(p);
+};
+ACT.eachPicked = async () => {
+  const items = S.wire.items.filter(w => (S.wire.picked || []).includes(w.id)), kind = $("#wkind").value, by = $("#wby").value;
+  S.wire.picked = []; save();
+  const ps = items.map(w => newPiece(kind, { sources: [srcOf(w)], byline: by, deskName: w.desk, silent: true }));
+  go("board"); toast(`Writing ${ps.length} pieces…`);
+  for (const p of ps) { try { await generate(p); } catch (e) { toast(e.message, "err"); } if (PAGE === "board") rerender(); }
+};
+ACT.assignDesk = async () => {
+  const items = S.wire.items.slice(0, 120); if (!items.length) return toast("Pull the wire first.", "err");
+  $("#assign").innerHTML = `<p class="mu"><span class="busy"></span> The editor is reading ${items.length} headlines…</p>`;
+  const list = items.map((w, i) => `${i}. [${w.desk}] ${w.title} (${w.outlet})`).join("\n");
+  const r = await aiJSON(`You are the assignment editor. From these wire headlines, pick the 6 most newsworthy, distinct stories for our audience and suggest how to cover each. Merge duplicates (list all their numbers).\n\n${list}`,
+    `{"picks":[{"items":[0,3],"angle":"one sentence","kind":"news|article|brief|podcast|video|newscast","why":"short"}]}`);
+  S.wire.suggest = (r.picks || []).slice(0, 10).map(p => ({ ids: (p.items || []).map(i => items[i] && items[i].id).filter(Boolean), angle: p.angle, kind: KINDS[p.kind] ? p.kind : "news", why: p.why }));
+  save(); showAssign();
+};
+function showAssign() {
+  const el = $("#assign"); if (!el || !S.wire.suggest) return;
+  el.innerHTML = `<h3>Assignment desk suggests</h3>` + S.wire.suggest.map((s, i) => {
+    const its = s.ids.map(id => S.wire.items.find(w => w.id === id)).filter(Boolean);
+    return `<div class="wi"><div class="f"><b>${kindTag(s.kind)} ${esc(s.angle)}</b><div class="sm mu">${esc(s.why || "")}</div><div class="sm">${its.map(w => "• " + esc(w.title)).join("<br>")}</div></div><button class="s b" data-act="takeAssign" data-arg="${i}">Assign</button></div>`;
+  }).join("") + `<button data-act="takeAllAssign">Assign all</button>`;
+}
+AFTER.wire = showAssign;
+async function takeAssign(i) {
+  const s = S.wire.suggest[i]; if (!s) return;
+  const its = s.ids.map(id => S.wire.items.find(w => w.id === id)).filter(Boolean);
+  const p = newPiece(s.kind, { sources: its.map(srcOf), angle: s.angle, deskName: its[0] && its[0].desk, silent: true });
+  return p;
+}
+ACT.takeAssign = async i => { const p = await takeAssign(+i); go("edit", p.id); await generate(p); };
+ACT.takeAllAssign = async () => {
+  const ps = []; for (let i = 0; i < S.wire.suggest.length; i++) ps.push(await takeAssign(i));
+  go("board"); for (const p of ps) { try { await generate(p); } catch (e) { toast(e.message, "err"); } if (PAGE === "board") rerender(); }
+};
+
+// ---------- pieces
+function newPiece(kind, o) {
+  o = o || {};
+  const d = S.desks.find(x => x.name === o.deskName) || S.desks[0];
+  const p = { id: uid(), kind, title: o.title || "", dek: "", body: "", angle: o.angle || o.topic || "", sources: o.sources || [], tags: [], deskId: d && d.id,
+    byline: o.byline || defaultBy(kind, d), status: "pitch", created: now(), updated: now(), lines: [], scenes: [], social: {}, seo: {}, files: {}, published: [], revs: [], showId: o.showId || "",
+    length: kind === "brief" ? "short" : kind === "article" ? "long" : "medium", vertical: false };
+  if (kind === "podcast" || kind === "video" || kind === "newscast") { const sh = S.shows.find(s => s.kind === (kind === "podcast" ? "podcast" : "video")); if (sh) p.showId = sh.id; }
+  S.pieces.push(p); save();
+  if (!o.silent) go("edit", p.id);
+  return p;
+}
+function defaultBy(kind, d) {
+  const role = kind === "podcast" ? "host" : kind === "newscast" || kind === "video" ? "anchor" : "reporter";
+  const m = S.staff.find(s => s.role === role && d && (s.beat === d.name)) || S.staff.find(s => s.role === role) || S.staff[0];
+  return m && m.id;
+}
+function hostsOf(p) {
+  const sh = S.shows.find(s => s.id === p.showId);
+  let ids = sh && sh.hosts && sh.hosts.length ? sh.hosts : [];
+  if (!ids.length) ids = [p.byline].concat(S.staff.filter(s => s.role === (p.kind === "podcast" ? "host" : "anchor") && s.id !== p.byline).map(s => s.id).slice(0, p.kind === "podcast" ? 1 : 0));
+  return ids.map(staff).filter(Boolean);
+}
+function srcBlock(p) {
+  if (!p.sources.length) return "SOURCES: none given. Write an evergreen explainer, analysis or opinion piece (labeled as such), with no claims of breaking events.";
+  return "SOURCES (report only what these say; cite each by outlet and link):\n" + p.sources.map((s, i) => `[${i + 1}] ${s.title} — ${s.outlet} ${s.date || ""}\n${s.link}\n${(s.summary || "").slice(0, 900)}`).join("\n\n");
+}
+const LEN = { short: "150-250 words", medium: "500-800 words", long: "1000-1500 words" };
+const SOCIAL_SHAPE = `"social":{"x":"<=260 chars","bluesky":"<=280 chars","mastodon":"<=450 chars","threads":"<=450","linkedin":"2-4 short paragraphs","facebook":"2-3 sentences","instagram":"caption with hashtags","tiktok":"caption with hashtags","youtube_title":"<=90 chars","youtube_desc":"2 paragraphs + sources"}`;
+async function generate(p, extra) {
+  const by = staff(p.byline) || {}, dk = desk(p.deskId) || {};
+  const head = `DESK: ${dk.name || "General"}. BYLINE: ${by.name || "Staff"} (${by.style || ""}).\n${p.angle ? "ANGLE / TOPIC: " + p.angle + "\n" : ""}${p.title ? "WORKING TITLE: " + p.title + "\n" : ""}${extra ? "EDITOR'S NOTE: " + extra + "\n" : ""}\n${srcBlock(p)}`;
+  p.status = "draft"; save();
+  if (["article", "news", "brief", "newsletter", "social"].includes(p.kind)) {
+    const what = { article: `a feature article (${LEN[p.length] || LEN.long}) with subheads, context, why it matters`, news: `a hard-news report (${LEN[p.length] || LEN.medium}) in inverted pyramid: lede, nut graf, key facts, background, what's next`,
+      brief: `a news brief (${LEN.short})`, newsletter: "a newsletter edition: friendly intro, 3-6 sections (one per story) with a headline, 2-4 sentences each and a link, and a sign-off", social: "a social media thread of 4-8 posts (numbered, each under 270 characters) in body_markdown" }[p.kind];
+    const r = await aiJSON(`Write ${what}.\n${head}\n\nIn body_markdown, end with a "Sources" list of markdown links. Don't repeat the title in the body.`,
+      `{"title":"","dek":"one-sentence standfirst","body_markdown":"","tags":["3-6 tags"],"seo":{"metaTitle":"<=60 chars","metaDesc":"<=155 chars","keywords":[]},${SOCIAL_SHAPE}}`, { max: 9000 });
+    applyText(p, r);
+  } else if (p.kind === "podcast") {
+    const hosts = hostsOf(p), sh = S.shows.find(s => s.id === p.showId) || {};
+    const r = await aiJSON(`Write a podcast episode script for the show "${sh.name || "our podcast"}" (${sh.desc || ""}). Hosts: ${hosts.map(h => `${h.name} (${h.style})`).join("; ")}.
+Length: about ${p.length === "short" ? "4" : p.length === "long" ? "18" : "9"} minutes spoken (~150 words a minute). Natural conversation, cold open, intro, segments, a takeaway and outro with the network name. Spoken words only (no stage directions, no sound cues), each line one speaker. Mention sources by name aloud.
+${head}`, `{"title":"episode title","dek":"one sentence","lines":[{"who":"exact host name","text":"spoken line"}],"chapters":[{"title":"","line":0}],"show_notes_markdown":"summary, bullet points, sources as links","tags":[],${SOCIAL_SHAPE}}`, { max: 14000 });
+    applyText(p, Object.assign({}, r, { body_markdown: r.show_notes_markdown }));
+    p.lines = (r.lines || []).filter(l => l && l.text).map(l => { const h = hosts.find(x => x.name.toLowerCase() === String(l.who || "").toLowerCase()) || hosts[0] || {}; return { who: h.id, text: String(l.text) }; });
+    p.chapters = r.chapters || []; p.files.audio = ""; p.files.mp3 = "";
+  } else {
+    const hosts = hostsOf(p), anchor = hosts[0] || by;
+    const many = p.kind === "newscast";
+    const r = await aiJSON(`Plan a ${many ? "TV-style newscast bulletin covering each source story in turn" : "short explainer news video"} for ${S.net.name}. Anchor/narrator: ${anchor.name} (${anchor.style}).
+About ${p.length === "short" ? "45-60 seconds" : p.length === "long" ? "4-5 minutes" : "2 minutes"} of narration in total. Each scene has the words spoken over it (narration) and short on-screen text.
+Scene types: "title" (opening), "anchor" (anchor on desk speaking), "story" (headline + 1-2 line text), "bullets" (2-4 short bullets), "quote" (a short real quote from the sources only, with who said it), "stat" (one number from the sources + label), "outro". Use "lower" for a lower-third label (name/place/topic).
+${head}`, `{"title":"","dek":"","scenes":[{"type":"title|anchor|story|bullets|quote|stat|outro","heading":"","text":"","bullets":[],"stat":"","who":"","lower":"","narration":"words spoken"}],"body_markdown":"a written version of the story with sources as links","tags":[],${SOCIAL_SHAPE}}`, { max: 12000 });
+    applyText(p, r);
+    p.scenes = (r.scenes || []).map(s => Object.assign({ type: "story", heading: "", text: "", bullets: [], stat: "", who: "", lower: "", narration: "" }, s, { id: uid() }));
+    p.files.video = ""; p.files.audio = "";
+  }
+  if (!p.cover) p.cover = autoCover(p);
+  p.status = "edit"; p.updated = now(); save();
+  logIt("make", `${KINDS[p.kind].name}: ${p.title}`);
+  if (PAGE === "edit" && CUR === p.id) rerender(); else nav();
+  return p;
+}
+function applyText(p, r) {
+  if (p.body) { p.revs.push({ t: now(), title: p.title, body: p.body }); p.revs = p.revs.slice(-12); }
+  p.title = String(r.title || p.title || "Untitled").slice(0, 200); p.dek = String(r.dek || ""); p.body = String(r.body_markdown || p.body || "");
+  p.tags = (r.tags || []).map(String).slice(0, 8); p.seo = Object.assign({ slug: slug(p.title) }, r.seo || {}); p.social = Object.assign({}, p.social, r.social || {});
+}
+
+// ---------- board
+PAGES.board = () => {
+  const f = S.boardKind || "";
+  return `<h1>🗂️ Newsroom board</h1><p class="sub">Every piece moves left to right: pitch → draft → editing → fact-check → approved → scheduled → published.</p>
+  <div class="row" style="margin-bottom:10px"><select data-bind="S.boardKind" data-re style="max-width:200px"><option value="">All kinds</option>${Object.entries(KINDS).map(([k, v]) => `<option value="${k}" ${f === k ? "selected" : ""}>${v.icon} ${v.name}</option>`).join("")}</select>
+  <button data-go="new">➕ New piece</button></div>
+  <div class="board">${STATUSES.map(st => { const ps = S.pieces.filter(p => p.status === st && (!f || p.kind === f)).sort((a, b) => b.updated - a.updated);
+    return `<div class="col"><h3>${STATUS_NAME[st]}<span class="mu">${ps.length}</span></h3>${ps.slice(0, 60).map(p => `<div class="pc" data-go="edit" data-id="${p.id}">${kindTag(p.kind)}<div class="t">${esc(p.title || "(writing…)")}</div><div class="sm mu">${esc(byName(p.byline))} · ${fmtT(st === "scheduled" ? p.scheduledAt : p.updated)}</div></div>`).join("")}</div>`; }).join("")}</div>`;
+};
+
+// ---------- create
+PAGES.new = () => `<h1>➕ Create</h1><p class="sub">Give a topic (or leave it to the wire). The AI writes it in your house style; you edit, check and publish.</p>
+ <div class="card"><label>What to make</label><div>${Object.entries(KINDS).map(([k, v], i) => `<label class="pill ${i === 0 ? "on" : ""}" style="display:inline-flex"><input type="radio" name="nk" value="${k}" ${i === 0 ? "checked" : ""} onchange="$$('.pill').forEach(x=>x.classList.toggle('on',x.querySelector('input').checked))"> ${v.icon} ${v.name}</label>`).join("")}</div>
+ <label>Topic, angle or brief</label><textarea id="ntopic" placeholder="e.g. What the new Mars sample plan means, explained for teenagers"></textarea>
+ <div class="grid g4"><div><label>Desk</label><select id="ndesk">${S.desks.map(d => `<option value="${esc(d.name)}">${esc(d.name)}</option>`).join("")}</select></div>
+ <div><label>Byline / anchor / host</label><select id="nby">${S.staff.map(s => `<option value="${s.id}">${esc(s.name)} (${s.role})</option>`).join("")}</select></div>
+ <div><label>Length</label><select id="nlen"><option value="short">Short</option><option value="medium" selected>Medium</option><option value="long">Long</option></select></div>
+ <div><label>Ground it in live news</label><select id="ngr"><option value="search">Search the news for the topic</option><option value="none">No sources (explainer/opinion)</option></select></div></div>
+ <div class="gap"></div><button class="p" data-act="create">Make it with AI</button> <button data-act="createBlank">Blank piece</button></div>`;
+ACT.create = async () => {
+  const kind = ($("input[name=nk]:checked") || {}).value || "article", topic = $("#ntopic").value.trim();
+  if (!topic) return toast("Give it a topic.", "err");
+  let sources = [];
+  if ($("#ngr").value === "search") {
+    toast("Searching the news…");
+    sources = (await fetchFeeds([["Search", "https://news.google.com/rss/search?q=" + encodeURIComponent(topic) + "&hl=en-US&gl=US&ceid=US:en"]])).slice(0, kind === "newscast" || kind === "newsletter" ? 6 : 4).map(srcOf);
+    if (!sources.length) toast("No news found; writing it as an explainer.");
+  }
+  const p = newPiece(kind, { topic, deskName: $("#ndesk").value, byline: $("#nby").value, sources, silent: true });
+  p.length = $("#nlen").value; save(); go("edit", p.id); await generate(p);
+};
+ACT.createBlank = () => { const kind = ($("input[name=nk]:checked") || {}).value || "article"; const p = newPiece(kind, { topic: $("#ntopic").value, deskName: $("#ndesk").value, byline: $("#nby").value, silent: true }); p.status = "draft"; p.title = "Untitled"; go("edit", p.id); };
+
+// ---------- writers' room (list of written pieces)
+PAGES.write = () => {
+  const ps = S.pieces.filter(p => ["article", "news", "brief", "newsletter", "social"].includes(p.kind)).sort((a, b) => b.updated - a.updated);
+  return `<h1>✍️ Writers' room</h1><p class="sub">Articles, news reports, briefs, newsletters and social threads.</p>
+  <div class="row"><button class="p" data-act="quick" data-arg="article">📰 New article</button><button data-act="quick" data-arg="news">🗞️ News report</button><button data-act="quick" data-arg="brief">⚡ Brief</button><button data-act="newsletterRound">✉️ Newsletter from this week's stories</button></div>
+  <div class="gap"></div>${pieceTable(ps)}`;
+};
+function pieceTable(ps) {
+  if (!ps.length) return `<div class="empty">Nothing here yet.</div>`;
+  return `<table><tr><th>Kind</th><th>Title</th><th>By</th><th>Words</th><th>Status</th><th>Updated</th><th></th></tr>${ps.map(p => `<tr><td>${kindTag(p.kind)}</td><td><a data-go="edit" data-id="${p.id}">${esc(p.title || "Untitled")}</a><div class="sm mu">${esc(p.dek || "")}</div></td><td>${esc(byName(p.byline))}</td><td>${words(p.body)}</td><td>${stTag(p.status)}</td><td class="sm">${fmtT(p.updated)}</td><td><button class="s" data-act="delPiece" data-arg="${p.id}">🗑</button></td></tr>`).join("")}</table>`;
+}
+ACT.delPiece = id => { const p = piece(id); if (!p || !confirm(`Delete “${p.title}”? Its audio/video files stay in the files folder.`)) return; S.pieces = S.pieces.filter(x => x.id !== id); save(); if (PAGE === "edit") go("board"); else rerender(); };
+ACT.newsletterRound = async () => {
+  const week = S.pieces.filter(p => p.status === "published" && p.kind !== "newsletter" && p.updated > now() - 7 * 864e5);
+  if (!week.length) return toast("Nothing published this week yet.", "err");
+  const p = newPiece("newsletter", { title: `${S.net.name} weekly`, silent: true, sources: week.map(x => ({ title: x.title, link: pieceUrl(x), outlet: S.net.name, summary: x.dek + " " + plain(x.body).slice(0, 500) })) });
+  go("edit", p.id); await generate(p, "This is our own weekly roundup of our published stories; link each one.");
+};
+
+// ---------- the editor
+PAGES.edit = () => {
+  const p = piece(CUR); if (!p) return `<div class="empty">That piece is gone. <a data-go="board">Back to the board</a></div>`;
+  const tabs = [["write", "✍️ Write"], ["sources", `📎 Sources (${p.sources.length})`], ["check", "✅ Fact-check"], ["media", p.kind === "podcast" ? "🎙️ Audio" : p.kind === "video" || p.kind === "newscast" ? "🎬 Video" : "🖼️ Art & audio"], ["social", "💬 Social & SEO"], ["pub", "🚀 Publish"]];
+  return `<div class="row"><a data-go="board" class="sm">← Board</a>${kindTag(p.kind)}${stTag(p.status)}<span class="sm mu">by ${esc(byName(p.byline))} · updated ${fmtT(p.updated)}</span></div>
+  <h1 style="margin-top:8px">${esc(p.title || "(untitled)")}</h1><p class="sub">${esc(p.dek || "")}</p>
+  <div class="row"><span class="sm mu">Move to</span>${STATUSES.map(s => `<button class="s ${p.status === s ? "b" : ""}" data-act="setStatus" data-arg="${s}">${STATUS_NAME[s]}</button>`).join("")}<span class="f"></span><button class="s" data-act="delPiece" data-arg="${p.id}">🗑 Delete</button></div>
+  <div class="tabs">${tabs.map(([k, n]) => `<a class="${ETAB === k ? "on" : ""}" data-act="etab" data-arg="${k}">${n}</a>`).join("")}</div>
+  <div id="etab">${(ETABS[ETAB] || ETABS.write)(p)}</div>`;
+};
+AFTER.edit = () => { const p = piece(CUR); if (p && ETAFTER[ETAB]) ETAFTER[ETAB](p); };
+ACT.etab = k => { ETAB = k; rerender(); };
+ACT.setStatus = s => { const p = piece(CUR); if (s === "published" && p.status !== "published" && !confirm("Mark as published without sending it anywhere? (Use the Publish tab to send it.)")) return; p.status = s; p.updated = now(); save(); rerender(); };
+const ETABS = {}, ETAFTER = {};
+ETABS.write = p => `<div class="grid g2">
+ <div><label>Title</label><input data-bind="P.title" data-re value="${esc(p.title)}"><label>Standfirst (dek)</label><input data-bind="P.dek" value="${esc(p.dek)}">
+ <div class="grid g3"><div><label>Desk</label><select data-bind="P.deskId">${S.desks.map(d => `<option value="${d.id}" ${p.deskId === d.id ? "selected" : ""}>${esc(d.name)}</option>`).join("")}</select></div>
+ <div><label>Byline</label><select data-bind="P.byline">${S.staff.map(s => `<option value="${s.id}" ${p.byline === s.id ? "selected" : ""}>${esc(s.name)}</option>`).join("")}</select></div>
+ <div><label>Length</label><select data-bind="P.length">${["short", "medium", "long"].map(l => `<option ${p.length === l ? "selected" : ""}>${l}</option>`).join("")}</select></div></div>
+ <label>Topic / angle</label><input data-bind="P.angle" value="${esc(p.angle)}">
+ <label>Body (Markdown) · ${words(p.body)} words · ~${Math.max(1, Math.round(words(p.body) / 230))} min read</label><textarea id="body" class="ed" data-bind="P.body">${esc(p.body)}</textarea>
+ <label>Tags (comma separated)</label><input id="tags" value="${esc((p.tags || []).join(", "))}" onchange="piece(CUR).tags=this.value.split(',').map(s=>s.trim()).filter(Boolean);save()"></div>
+ <div><div class="card"><b>AI desk</b><div class="row" style="margin-top:8px">
+  <button class="p" data-act="regen">${p.body || p.lines.length || p.scenes.length ? "↻ Rewrite from scratch" : "✨ Write it"}</button>
+  <button data-act="aiEdit" data-arg="edit">Copy-edit</button><button data-act="aiEdit" data-arg="tighten">Tighten</button><button data-act="aiEdit" data-arg="expand">Expand</button>
+  <button data-act="aiEdit" data-arg="simple">Simpler words</button><button data-act="heads">Headline options</button><button data-act="translate">Translate…</button></div>
+  <label>Ask the editor for a change</label><div class="row"><input id="ask" class="f" placeholder="e.g. add a section on what readers can do"><button data-act="aiEdit" data-arg="custom">Do it</button></div>
+  <div id="aiout"></div></div>
+  <div class="gap"></div><div class="preview md" id="prev">${previewHTML(p)}</div>
+  ${p.revs.length ? `<label>Earlier versions</label>${p.revs.slice().reverse().map((r, i) => `<button class="s" data-act="rev" data-arg="${p.revs.length - 1 - i}">${fmtT(r.t)}</button>`).join(" ")}` : ""}</div></div>`;
+ETAFTER.write = p => { const b = $("#body"); if (b) b.addEventListener("input", () => { p.body = b.value; p.updated = now(); save(); $("#prev").innerHTML = previewHTML(p); }); };
+function previewHTML(p) {
+  return `<h1 style="margin-top:0">${esc(p.title)}</h1>${p.dek ? `<p><em>${esc(p.dek)}</em></p>` : ""}<p style="color:#666;font-size:13px">By ${esc(byName(p.byline))} · ${esc(S.net.name)}</p>${md(p.body)}${S.net.discloseOn ? `<p style="color:#777;font-size:12px"><em>${esc(S.net.disclosure)}</em></p>` : ""}`;
+}
+ACT.regen = async () => { const p = piece(CUR); if ((p.body || p.lines.length) && !confirm("Write it again from scratch? The current text goes into Earlier versions.")) return; await generate(p); };
+ACT.rev = i => { const p = piece(CUR), r = p.revs[+i]; if (!r) return; p.revs.push({ t: now(), title: p.title, body: p.body }); p.title = r.title; p.body = r.body; save(); rerender(); };
+const EDIT_ASK = { edit: "Copy-edit for grammar, clarity, house style and AP-style consistency. Keep facts and length.", tighten: "Tighten it by about 30% without losing facts or sources.", expand: "Expand it by about 50% with more context and background from the sources only (no new facts).", simple: "Rewrite in simpler words (about a 12-year-old reading level) keeping every fact." };
+ACT.aiEdit = async k => {
+  const p = piece(CUR), ask = k === "custom" ? ($("#ask").value || "").trim() : EDIT_ASK[k]; if (!ask) return;
+  $("#aiout").innerHTML = `<p class="mu"><span class="busy"></span> Editing…</p>`;
+  const r = await aiJSON(`${ask}\n\nTITLE: ${p.title}\nDEK: ${p.dek}\nBODY (markdown):\n${p.body}\n\n${srcBlock(p)}`, `{"title":"","dek":"","body_markdown":"","change_note":"what you changed"}`, { max: 9000 });
+  p.revs.push({ t: now(), title: p.title, body: p.body }); p.revs = p.revs.slice(-12);
+  p.title = r.title || p.title; p.dek = r.dek || p.dek; p.body = r.body_markdown || p.body; p.updated = now(); save(); rerender();
+  toast(r.change_note || "Edited.", "ok");
+};
+ACT.heads = async () => {
+  const p = piece(CUR); $("#aiout").innerHTML = `<p class="mu"><span class="busy"></span> Thinking of headlines…</p>`;
+  const r = await aiJSON(`Suggest 8 accurate, non-clickbait headlines for this story, in different styles (straight news, explanatory, question, SEO, short social).\n\n${p.title}\n${plain(p.body).slice(0, 4000)}`, `{"headlines":["..."]}`);
+  $("#aiout").innerHTML = (r.headlines || []).map(h => `<div class="row" style="margin:4px 0"><span class="f">${esc(h)}</span><button class="s" data-act="useHead" data-arg="${esc(h)}">Use</button></div>`).join("");
+};
+ACT.useHead = h => { const p = piece(CUR); p.title = h; p.seo.slug = slug(h); save(); rerender(); };
+ACT.translate = async () => {
+  const lang = prompt("Translate into which language? A copy is made as a new piece.", "Spanish"); if (!lang) return;
+  const p = piece(CUR);
+  const r = await aiJSON(`Translate this piece into ${lang}. Keep markdown, links and meaning exactly.\n\nTITLE: ${p.title}\nDEK: ${p.dek}\nBODY:\n${p.body}`, `{"title":"","dek":"","body_markdown":""}`, { max: 10000 });
+  const q = JSON.parse(JSON.stringify(p)); Object.assign(q, { id: uid(), title: r.title, dek: r.dek, body: r.body_markdown, status: "edit", created: now(), updated: now(), published: [], revs: [], lang });
+  q.seo = { slug: slug(r.title) + "-" + slug(lang).slice(0, 5) }; S.pieces.push(q); save(); go("edit", q.id); toast(`Made a ${lang} copy.`, "ok");
+};
+
+// ---------- sources
+ETABS.sources = p => `<p class="mu">What this piece is based on. The AI is told to report only what these say and to link them.</p>
+ ${p.sources.map((s, i) => `<div class="wi"><div class="f"><div class="t">[${i + 1}] ${esc(s.title)}</div><div class="sm mu">${esc(s.outlet || "")} · ${esc(s.date || "")} · <a data-act="openUrl" data-arg="${esc(s.link)}">${esc(s.link)}</a></div><div class="sm">${esc((s.summary || "").slice(0, 400))}</div></div><button class="s" data-act="dropSrc" data-arg="${i}">Remove</button></div>`).join("") || `<div class="empty">No sources: this piece is treated as an explainer/opinion.</div>`}
+ <h3>Add a source</h3><div class="grid g3"><input id="sT" placeholder="Title"><input id="sL" placeholder="https://link"><input id="sO" placeholder="Outlet"></div>
+ <textarea id="sS" placeholder="Key facts from it (paste a summary or notes)"></textarea><div class="row"><button data-act="addSrc">Add source</button>
+ <input id="sQ" placeholder="or search the news…" style="max-width:300px"><button data-act="srcSearch">Search & add top 3</button></div>`;
+ACT.dropSrc = i => { piece(CUR).sources.splice(+i, 1); save(); rerender(); };
+ACT.addSrc = () => { const l = $("#sL").value.trim(); if (!$("#sT").value.trim()) return toast("Give the source a title.", "err"); piece(CUR).sources.push({ title: $("#sT").value.trim(), link: l, outlet: $("#sO").value.trim(), summary: $("#sS").value.trim(), date: "" }); save(); rerender(); };
+ACT.srcSearch = async () => { const q = $("#sQ").value.trim(); if (!q) return; const got = await fetchFeeds([["Search", "https://news.google.com/rss/search?q=" + encodeURIComponent(q) + "&hl=en-US&gl=US&ceid=US:en"]]); piece(CUR).sources.push(...got.slice(0, 3).map(srcOf)); save(); rerender(); };
+
+// ---------- fact-check
+ETABS.check = p => {
+  const fc = p.factcheck;
+  return `<p class="mu">The editor reads the piece against its sources and lists every claim: supported, not in the sources, or contradicted. Approve only when it's clean.</p>
+  <button class="p" data-act="factcheck">Run fact-check</button> ${fc ? `<span class="tag ${fc.verdict === "pass" ? "st-published" : "st-factcheck"}">${esc(fc.verdict)}</span> <span class="sm mu">${fmtT(fc.t)}</span>` : ""}
+  ${fc ? `<div class="${fc.verdict === "pass" ? "okb" : "warn"}">${esc(fc.summary || "")}</div><table><tr><th>Claim</th><th>Status</th><th>Note / fix</th></tr>${(fc.claims || []).map(c => `<tr><td>${esc(c.claim)}</td><td><span class="tag ${c.status === "supported" ? "st-published" : c.status === "opinion" ? "st-edit" : "st-factcheck"}">${esc(c.status)}</span></td><td class="sm">${esc(c.note || "")}${c.source ? " [" + esc(c.source) + "]" : ""}</td></tr>`).join("")}</table>
+  ${(fc.claims || []).some(c => c.status !== "supported" && c.status !== "opinion") ? `<button data-act="fixClaims">✨ Fix the flagged claims</button>` : ""}` : ""}
+  <h3>Other checks</h3><button data-act="aiCheck" data-arg="bias">Balance & fairness</button> <button data-act="aiCheck" data-arg="legal">Legal risk (defamation, privacy, copyright)</button> <button data-act="aiCheck" data-arg="readability">Readability</button><div id="chk"></div>`;
+};
+function pieceText(p) { return p.kind === "podcast" ? p.lines.map(l => `${byName(l.who)}: ${l.text}`).join("\n") : (p.kind === "video" || p.kind === "newscast") ? p.scenes.map(s => [s.heading, s.text, (s.bullets || []).join("; "), s.stat, s.narration].filter(Boolean).join(" | ")).join("\n") + "\n\n" + p.body : p.body; }
+async function factcheck(p) {
+  const r = await aiJSON(`Fact-check this ${KINDS[p.kind].name} against its sources. List every factual claim (names, numbers, dates, events, quotes). status: supported (in a source), unsupported (not in any source), contradicted (a source says otherwise) or opinion (clearly labeled view). verdict is pass only if nothing is unsupported or contradicted.\n\nTITLE: ${p.title}\n${pieceText(p).slice(0, 30000)}\n\n${srcBlock(p)}`,
+    `{"verdict":"pass|fix","summary":"one or two sentences","claims":[{"claim":"","status":"supported|unsupported|contradicted|opinion","source":"[n] or empty","note":"why / how to fix"}]}`, { max: 7000 });
+  p.factcheck = Object.assign({ t: now() }, r); if (r.verdict === "pass" && ["edit", "factcheck", "draft"].includes(p.status)) p.status = "approved"; else if (p.status === "edit" || p.status === "draft") p.status = "factcheck";
+  save(); return r;
+}
+ACT.factcheck = async () => { const p = piece(CUR); $("#etab").insertAdjacentHTML("afterbegin", `<p class="mu"><span class="busy"></span> Checking every claim…</p>`); await factcheck(p); rerender(); };
+ACT.fixClaims = async () => {
+  const p = piece(CUR), bad = (p.factcheck.claims || []).filter(c => c.status !== "supported" && c.status !== "opinion");
+  const r = await aiJSON(`Fix these flagged claims in the piece: remove or correct them so every fact is backed by the sources. Keep everything else.\nFLAGGED:\n${bad.map(c => "- " + c.claim + " (" + c.status + ": " + c.note + ")").join("\n")}\n\nBODY:\n${p.body}\n\n${srcBlock(p)}`, `{"body_markdown":""}`, { max: 9000 });
+  p.revs.push({ t: now(), title: p.title, body: p.body }); p.body = r.body_markdown || p.body; p.factcheck = null; save(); toast("Fixed; run the fact-check again.", "ok"); rerender();
+};
+ACT.aiCheck = async k => {
+  const p = piece(CUR); $("#chk").innerHTML = `<p class="mu"><span class="busy"></span> Reading…</p>`;
+  const ask = { bias: "Review for balance and fairness: missing perspectives, loaded words, framing. Give concrete fixes.", legal: "Review for legal risk in US/UK media law terms: defamation, privacy, copyright (long quotes), contempt, ads/endorsement disclosure. Not legal advice; flag what a lawyer should look at.", readability: "Give a readability review: grade level, long sentences, jargon, structure; with concrete fixes." }[k];
+  const t = await ai(`${ask}\n\nTITLE: ${p.title}\n${pieceText(p).slice(0, 30000)}`);
+  $("#chk").innerHTML = `<div class="card md">${md(t)}</div>`;
+};
+
+// ---------- social & SEO
+const SOC = [["x", "X / Twitter", 280], ["bluesky", "Bluesky", 300], ["mastodon", "Mastodon", 500], ["threads", "Threads", 500], ["linkedin", "LinkedIn", 3000], ["facebook", "Facebook", 5000], ["instagram", "Instagram caption", 2200], ["tiktok", "TikTok caption", 2200], ["youtube_title", "YouTube title", 100], ["youtube_desc", "YouTube description", 5000]];
+ETABS.social = p => `<div class="grid g2"><div>${SOC.map(([k, n, max]) => `<label>${n} <span class="mu">${(p.social[k] || "").length}/${max}</span></label><textarea data-bind="P.social.${k}" rows="${max > 600 ? 4 : 2}">${esc(p.social[k] || "")}</textarea>`).join("")}
+ <div class="gap"></div><button class="b" data-act="aiSocial">✨ Write all social posts</button></div>
+ <div><div class="card"><h3>SEO</h3><label>URL slug</label><input data-bind="P.seo.slug" value="${esc(p.seo.slug || slug(p.title))}">
+ <label>Meta title (${(p.seo.metaTitle || "").length}/60)</label><input data-bind="P.seo.metaTitle" value="${esc(p.seo.metaTitle || "")}">
+ <label>Meta description (${(p.seo.metaDesc || "").length}/155)</label><textarea data-bind="P.seo.metaDesc" rows="2">${esc(p.seo.metaDesc || "")}</textarea>
+ <label>Keywords</label><input value="${esc((p.seo.keywords || []).join(", "))}" onchange="piece(CUR).seo.keywords=this.value.split(',').map(s=>s.trim()).filter(Boolean);save()">
+ <h3>Search preview</h3><div style="background:#fff;color:#222;padding:10px;border-radius:8px"><div style="color:#1a0dab;font-size:17px">${esc(p.seo.metaTitle || p.title)}</div><div style="color:#006621;font-size:12px">${esc(pieceUrl(p))}</div><div style="font-size:13px">${esc(p.seo.metaDesc || p.dek)}</div></div></div></div></div>`;
+ACT.aiSocial = async () => {
+  const p = piece(CUR); toast("Writing social posts…");
+  const r = await aiJSON(`Write social posts and SEO for this piece. Accurate, no clickbait, include 1-3 relevant hashtags where they fit. Don't include the link (it's added automatically).\n\nTITLE: ${p.title}\nDEK: ${p.dek}\n${plain(pieceText(p)).slice(0, 6000)}`, `{${SOCIAL_SHAPE},"seo":{"metaTitle":"","metaDesc":"","keywords":[]}}`);
+  p.social = Object.assign({}, p.social, r.social || {}); p.seo = Object.assign(p.seo, r.seo || {}); save(); rerender();
+};
+// ======================= art, voices, audio, podcast studio =======================
+// ---- cover art: a branded SVG card, or an AI-drawn SVG illustration under it
+function wrapText(t, max) { const w = String(t || "").split(/\s+/), out = []; let l = ""; for (const x of w) { if ((l + " " + x).trim().length > max) { if (l) out.push(l); l = x; } else l = (l + " " + x).trim(); } if (l) out.push(l); return out; }
+function autoCover(p, art) {
+  const W = 1280, H = 720, c1 = S.net.color, c2 = S.net.color2, k = KINDS[p.kind] || KINDS.article;
+  const lines = wrapText(p.title || "Untitled", 30).slice(0, 4), fs = lines.length > 3 ? 62 : 72;
+  const dk = (desk(p.deskId) || {}).name || "";
+  const bg = art ? `<g opacity="0.55">${art}</g><rect width="${W}" height="${H}" fill="url(#sh)"/>` : `<rect width="${W}" height="${H}" fill="url(#g)"/>${[...Array(9)].map((_, i) => `<circle cx="${(i * 197 + (p.id.charCodeAt(0) || 3) * 13) % W}" cy="${(i * 131 + 90) % H}" r="${60 + (i * 37) % 160}" fill="${i % 2 ? c1 : "#fff"}" opacity="${0.04 + (i % 3) * 0.02}"/>`).join("")}`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c2}"/><stop offset="1" stop-color="${shade(c1, -0.55)}"/></linearGradient><linearGradient id="sh" x1="0" y1="0" x2="0" y2="1"><stop offset="0.3" stop-color="#000" stop-opacity="0.1"/><stop offset="1" stop-color="#000" stop-opacity="0.85"/></linearGradient></defs>
+${bg}<rect x="0" y="0" width="${W}" height="10" fill="${c1}"/><rect x="60" y="70" rx="8" width="${40 + (k.name.length + dk.length) * 17}" height="50" fill="${c1}"/><text x="80" y="105" font-family="Segoe UI,Arial" font-size="28" font-weight="800" fill="#fff">${esc(k.name.toUpperCase())}${dk ? " · " + esc(dk.toUpperCase()) : ""}</text>
+${lines.map((l, i) => `<text x="60" y="${H - 120 - (lines.length - 1 - i) * (fs + 10)}" font-family="Segoe UI,Arial" font-size="${fs}" font-weight="800" fill="#fff">${esc(l)}</text>`).join("")}
+<text x="60" y="${H - 50}" font-family="Segoe UI,Arial" font-size="28" fill="#ffffffcc">${esc(S.net.logo)} ${esc(S.net.name)}</text></svg>`;
+}
+function shade(hex, f) { const n = parseInt(String(hex).slice(1), 16) || 0; let r = n >> 16, g = (n >> 8) & 255, b = n & 255; const t = f < 0 ? 0 : 255, a = Math.abs(f); r = Math.round((t - r) * a + r); g = Math.round((t - g) * a + g); b = Math.round((t - b) * a + b); return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1); }
+function cleanSVG(s) {
+  s = String(s || ""); const a = s.indexOf("<svg"), b = s.lastIndexOf("</svg>"); if (a < 0 || b < 0) throw new Error("The AI didn't draw an SVG.");
+  s = s.slice(a, b + 6);
+  const doc = new DOMParser().parseFromString(s, "image/svg+xml"), root = doc.documentElement;
+  if (root.nodeName !== "svg") throw new Error("That SVG didn't parse.");
+  root.querySelectorAll("script,foreignObject,iframe,image,use,a,style").forEach(n => n.remove());
+  root.querySelectorAll("*").forEach(n => [...n.attributes].forEach(at => { if (/^on/i.test(at.name) || /href/i.test(at.name) || /url\((?!#)/i.test(at.value)) n.removeAttribute(at.name); }));
+  return [...root.childNodes].map(n => new XMLSerializer().serializeToString(n)).join("");
+}
+async function aiArt(p) {
+  const t = await ai(`Draw an editorial illustration for this story as one SVG, viewBox="0 0 1280 720". Abstract or symbolic shapes, flat modern style, rich colors that work with ${S.net.color}. NO text, NO letters, NO real people's faces, NO logos. Under 9000 characters. Reply with only the SVG in one \`\`\`svg block.\n\nSTORY: ${p.title}. ${p.dek}`, { max: 6000 });
+  p.art = cleanSVG(t.replace(/```svg|```/g, "")); p.cover = autoCover(p, p.art); p.files.cover = ""; save();
+}
+async function svgToPng(svg, w, h) {
+  const img = new Image(); const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
+  await new Promise((res, rej) => { img.onload = res; img.onerror = () => rej(new Error("Couldn't draw the cover.")); img.src = url; });
+  const c = document.createElement("canvas"); c.width = w || 1280; c.height = h || 720; c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+  return new Promise(r => c.toBlob(r, "image/png"));
+}
+async function coverFile(p) {
+  if (p.files.cover) return p.files.cover;
+  const name = `cover-${p.id}.png`; await putFile(name, await svgToPng(p.cover || autoCover(p))); p.files.cover = name; save(); return name;
+}
+async function squareArt(show) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1400" width="1400" height="1400"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${S.net.color2}"/><stop offset="1" stop-color="${S.net.color}"/></linearGradient></defs><rect width="1400" height="1400" fill="url(#g)"/><text x="700" y="640" text-anchor="middle" font-size="420" font-family="Segoe UI Emoji,Arial">${esc(show.art || "🎙️")}</text>${wrapText(show.name, 16).slice(0, 2).map((l, i) => `<text x="700" y="${930 + i * 130}" text-anchor="middle" font-family="Segoe UI,Arial" font-weight="800" font-size="120" fill="#fff">${esc(l)}</text>`).join("")}<text x="700" y="1290" text-anchor="middle" font-family="Segoe UI,Arial" font-size="56" fill="#ffffffcc">${esc(S.net.name)}</text></svg>`;
+  return { svg, png: await svgToPng(svg, 1400, 1400) };
+}
+
+// ---- voices
+let VOICES = null;
+async function voices() { if (VOICES) return VOICES; const r = await call("voices"); VOICES = r.voices || []; return VOICES; }
+function voiceOf(st, i) { if (st && st.voice) return st.voice; const v = VOICES || []; if (!v.length) return ""; const want = /female|woman/i.test((st && st.gender) || "") ? "Female" : ""; return (v[(i || 0) % v.length] || {}).name || ""; }
+
+// ---- WAV helpers (22050 Hz, 16-bit, mono: the same as the Windows voices are recorded at)
+const SR = 22050;
+function wavBlob(f32) {
+  const n = f32.length, buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf), w = (o, s) => [...s].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+  w(0, "RIFF"); v.setUint32(4, 36 + n * 2, true); w(8, "WAVE"); w(12, "fmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, SR, true); v.setUint32(28, SR * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, "data"); v.setUint32(40, n * 2, true);
+  for (let i = 0; i < n; i++) v.setInt16(44 + i * 2, clamp(f32[i], -1, 1) * 32767, true);
+  return new Blob([buf], { type: "audio/wav" });
+}
+const JINGLES = { news: "News stinger", bright: "Bright arpeggio", calm: "Calm pad", tech: "Tech pulse", none: "No music" };
+async function jingle(style, secs) {
+  if (style === "none") return null;
+  secs = secs || 4; const ctx = new OfflineAudioContext(1, Math.ceil(SR * secs), SR), out = ctx.createGain(); out.gain.value = 0.5; out.connect(ctx.destination);
+  const tone = (f, t, d, type, vol) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = type || "sine"; o.frequency.value = f; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol || 0.3, t + 0.02); g.gain.exponentialRampToValueAtTime(0.001, t + d); o.connect(g); g.connect(out); o.start(t); o.stop(t + d + 0.05); };
+  const hz = m => 440 * Math.pow(2, (m - 69) / 12);
+  if (style === "news") { [[0, [50, 62]], [0.45, [50, 62]], [0.9, [53, 65, 69]], [1.6, [55, 67, 71, 74]]].forEach(([t, ns]) => ns.forEach(n => { tone(hz(n), t, 1.4, "sawtooth", 0.12); tone(hz(n - 12), t, 0.5, "triangle", 0.3); })); tone(hz(86), 1.6, 1.8, "sine", 0.15); }
+  else if (style === "bright") { [60, 64, 67, 72, 76, 79, 84].forEach((n, i) => tone(hz(n), i * 0.18, 0.9, "triangle", 0.25)); [60, 67, 76].forEach(n => tone(hz(n), 1.3, 2.4, "sine", 0.18)); }
+  else if (style === "tech") { for (let i = 0; i < 12; i++) tone(hz(i % 4 === 3 ? 69 : 57), i * 0.22, 0.18, "square", 0.12); [57, 64, 69].forEach(n => tone(hz(n), 2.7, 1.2, "sawtooth", 0.08)); }
+  else { [48, 55, 60, 64].forEach(n => tone(hz(n), 0, secs - 0.2, "sine", 0.14)); [72, 76].forEach((n, i) => tone(hz(n), 0.8 + i * 0.7, 2, "sine", 0.08)); }
+  const r = await ctx.startRendering(); return r.getChannelData(0);
+}
+async function jingleFile(style, tag) {
+  const d = await jingle(style); if (!d) return null;
+  const name = `jingle-${style}-${tag}.wav`; await putFile(name, wavBlob(d)); return name;
+}
+function needEngine(r) { if (r && r.error) throw new Error(r.error); return r; }
+
+// ---- rendering speech
+async function speakLines(p, prog) {
+  await voices();
+  const hosts = hostsOf(p);
+  for (let i = 0; i < p.lines.length; i++) {
+    const l = p.lines[i], st = staff(l.who) || hosts[0] || {};
+    if (l.file && l.said === l.text + "|" + voiceOf(st, hosts.indexOf(st))) continue;
+    if (prog) prog(`Voicing line ${i + 1} of ${p.lines.length} (${st.name || "host"})…`, i / p.lines.length);
+    const v = voiceOf(st, Math.max(0, hosts.indexOf(st)));
+    const r = needEngine(await call("tts", { text: l.text, voice: v, rate: st.rate || 0, name: `l-${p.id}-${i}.wav` }));
+    l.file = r.file; l.secs = r.seconds; l.said = l.text + "|" + v; save();
+  }
+}
+async function mixEpisode(p, prog) {
+  await speakLines(p, prog);
+  const sh = S.shows.find(s => s.id === p.showId) || {}, style = sh.intro || "bright";
+  if (prog) prog("Adding the intro and outro music…", 0.95);
+  const j = await jingleFile(style, "a");
+  const files = [j, ...p.lines.map(l => l.file), j].filter(Boolean);
+  const r = needEngine(await call("join", { files, out: `episode-${p.id}.wav`, gap: 300 }));
+  forgetURL(r.file); p.files.audio = r.file; p.files.mp3 = ""; p.audioSecs = r.seconds;
+  let t = j ? 4.3 : 0; p.lines.forEach(l => { l.at = t; t += (l.secs || 0) + 0.3; });
+  p.chapterTimes = (p.chapters || []).map(c => ({ title: c.title, at: (p.lines[c.line] || {}).at || 0 }));
+  const mp3 = await call("convert", { file: r.file, fmt: "mp3" });
+  if (!mp3.error) { p.files.mp3 = mp3.file; forgetURL(mp3.file); }
+  save(); logIt("audio", `Episode audio: ${p.title} (${fmtD(r.seconds)})`);
+  return r;
+}
+async function narrateArticle(p, prog) {
+  await voices();
+  const st = staff(p.byline) || {}, v = voiceOf(st, 0);
+  const paras = [p.title + ". " + (p.dek || "")].concat(plain(p.body.replace(/\n#+\s*Sources[\s\S]*$/i, "")).split(/\n+/).filter(x => x.trim()));
+  const files = [];
+  for (let i = 0; i < paras.length; i += 4) {
+    if (prog) prog(`Reading part ${i / 4 + 1} of ${Math.ceil(paras.length / 4)}…`, i / paras.length);
+    const r = needEngine(await call("tts", { text: paras.slice(i, i + 4).join("\n\n") + (i + 4 >= paras.length && S.net.discloseOn ? "\n\n" + S.net.disclosure : ""), voice: v, rate: st.rate || 0, name: `n-${p.id}-${i}.wav` }));
+    files.push(r.file);
+  }
+  const r = needEngine(await call("join", { files, out: `narration-${p.id}.wav`, gap: 500 }));
+  forgetURL(r.file); p.files.audio = r.file; p.audioSecs = r.seconds;
+  const mp3 = await call("convert", { file: r.file, fmt: "mp3" }); p.files.mp3 = mp3.error ? "" : mp3.file;
+  save(); return r;
+}
+
+// ---- the editor's media tab for written pieces and podcasts (video lives in p5)
+ETABS.media = p => {
+  if (p.kind === "video" || p.kind === "newscast") return videoTab(p);
+  const audio = p.files.mp3 || p.files.audio;
+  return `<div class="grid g2"><div><h3>Cover art</h3><div class="cover" id="cov">${p.cover || autoCover(p)}</div>
+   <div class="row" style="margin-top:8px"><button data-act="artAI">🎨 AI illustration</button><button data-act="artPlain">Plain branded card</button><button data-act="artPng">⬇ PNG</button></div></div>
+   <div>${p.kind === "podcast" ? podcastPanel(p) : `<h3>Listen version</h3><p class="mu sm">A Windows voice reads the article (the byline's voice; set voices in AI staff). Good for an audio edition or the podcast feed.</p>
+   <button class="p" data-act="narrate">🔊 Make audio narration</button> <span id="aprog" class="sm mu"></span>
+   ${audio ? `<div class="gap"></div><audio controls id="aud" style="width:100%"></audio><div class="sm mu">${fmtD(p.audioSecs)} · ${esc(audio)}</div><button class="s" data-act="saveAs" data-arg="${esc(audio)}">⬇ Save audio</button>` : ""}`}</div></div>`;
+};
+ETAFTER.media = async p => {
+  if (p.kind === "video" || p.kind === "newscast") return videoAfter(p);
+  const a = $("#aud"), f = p.files.mp3 || p.files.audio;
+  if (a && f) try { a.src = await fileURL(f); } catch (e) { a.replaceWith(Object.assign(document.createElement("div"), { className: "warn", textContent: e.message })); }
+};
+ACT.artAI = async () => { const p = piece(CUR); $("#cov").innerHTML = `<span class="busy"></span>`; try { await aiArt(p); } finally { rerender(); } };
+ACT.artPlain = () => { const p = piece(CUR); p.art = ""; p.cover = autoCover(p); p.files.cover = ""; save(); rerender(); };
+ACT.artPng = async () => { const p = piece(CUR); download(slug(p.title) + ".png", await svgToPng(p.cover || autoCover(p))); };
+ACT.saveAs = n => call("save_as", { name: n }).then(r => r.error ? toast(r.error, "err") : r.path && toast("Saved to " + r.path, "ok"));
+ACT.narrate = async () => { const p = piece(CUR); await narrateArticle(p, t => { const e = $("#aprog"); if (e) e.textContent = t; }); toast("Narration ready.", "ok"); rerender(); };
+function podcastPanel(p) {
+  const hosts = hostsOf(p), audio = p.files.mp3 || p.files.audio, sh = S.shows.find(s => s.id === p.showId);
+  return `<h3>Episode</h3><div class="row"><label style="margin:0">Show</label><select data-bind="P.showId" data-re style="max-width:220px">${S.shows.filter(s => s.kind === "podcast").map(s => `<option value="${s.id}" ${p.showId === s.id ? "selected" : ""}>${esc(s.name)}</option>`).join("")}</select>
+   <span class="mu sm">Hosts: ${hosts.map(h => esc(h.name)).join(", ")}</span></div>
+   <div class="row" style="margin:10px 0"><button class="p" data-act="mixEp">🎚️ Record the episode</button><span id="aprog" class="sm mu"></span></div>
+   ${audio ? `<audio controls id="aud" style="width:100%"></audio><div class="sm mu">${fmtD(p.audioSecs)} · ${esc(audio)} ${sh ? "· intro: " + JINGLES[sh.intro || "bright"] : ""}</div>
+   <div class="row"><button class="s" data-act="saveAs" data-arg="${esc(audio)}">⬇ Save audio</button><button class="s" data-act="audiogram">🎞️ Make audiogram video (MP4, needs ffmpeg)</button>${p.files.gram ? `<button class="s" data-act="saveAs" data-arg="${esc(p.files.gram)}">⬇ audiogram</button>` : ""}</div>` : ""}
+   ${(p.chapterTimes || []).length ? `<h3>Chapters</h3>${p.chapterTimes.map(c => `<div class="sm">${fmtD(c.at)} ${esc(c.title)}</div>`).join("")}` : ""}
+   <h3>Script <span class="mu sm">${p.lines.length} lines · ~${fmtD(words(p.lines.map(l => l.text).join(" ")) / 2.5)}</span></h3>
+   ${p.lines.map((l, i) => `<div class="line"><select onchange="piece(CUR).lines[${i}].who=this.value;save()">${hosts.concat(S.staff.filter(s => !hosts.includes(s))).map(h => `<option value="${h.id}" ${l.who === h.id ? "selected" : ""}>${esc(h.name)}</option>`).join("")}</select>
+   <textarea rows="2" onchange="piece(CUR).lines[${i}].text=this.value;save()">${esc(l.text)}</textarea><div><button class="s" data-act="hearLine" data-arg="${i}">▶</button><button class="s" data-act="dropLine" data-arg="${i}">✕</button></div></div>`).join("")}
+   <button class="s" data-act="addLine">+ line</button>`;
+}
+ACT.mixEp = async () => { const p = piece(CUR); if (!p.lines.length) return toast("Write the script first (Write tab).", "err"); await mixEpisode(p, t => { const e = $("#aprog"); if (e) e.textContent = t; }); toast("Episode recorded.", "ok"); rerender(); };
+ACT.hearLine = async i => { const p = piece(CUR); await speakLines(p); const a = new Audio(await fileURL(p.lines[+i].file)); a.play(); };
+ACT.dropLine = i => { piece(CUR).lines.splice(+i, 1); save(); rerender(); };
+ACT.addLine = () => { const p = piece(CUR); p.lines.push({ who: (hostsOf(p)[0] || {}).id, text: "" }); save(); rerender(); };
+ACT.audiogram = async () => {
+  const p = piece(CUR); toast("Making the audiogram…");
+  const img = await coverFile(p);
+  const r = needEngine(await call("convert", { file: p.files.mp3 || p.files.audio, fmt: "mp4", extra: { image: img } }));
+  p.files.gram = r.file; save(); toast("Audiogram ready.", "ok"); rerender();
+};
+
+// ---- podcast studio page
+PAGES.pod = () => {
+  const eps = S.pieces.filter(p => p.kind === "podcast").sort((a, b) => b.updated - a.updated);
+  return `<h1>🎙️ Podcast studio</h1><p class="sub">AI hosts write and talk through the news in real Windows voices. Episodes go to your network website's podcast feed (podcast.xml), which Apple Podcasts, Spotify, YouTube Music and every podcast app can subscribe to.</p>
+  <div class="grid g3">${S.shows.filter(s => s.kind === "podcast").map(s => `<div class="card"><div style="font-size:32px">${esc(s.art)}</div><b>${esc(s.name)}</b><div class="sm mu">${esc(s.desc)}</div><div class="sm">${eps.filter(e => e.showId === s.id).length} episodes · hosts: ${(s.hosts || []).map(h => esc(byName(h))).join(", ") || "auto"}</div>
+   <div class="row" style="margin-top:8px"><button class="s p" data-act="epNew" data-arg="${s.id}">New episode</button><button class="s" data-act="epFromPub" data-arg="${s.id}">From latest stories</button><button class="s" data-go="staff">Edit show</button></div></div>`).join("")}</div>
+  <h2>Episodes</h2>${pieceTable(eps)}`;
+};
+ACT.epNew = async sid => { const t = prompt("What's the episode about?"); if (!t) return; const p = newPiece("podcast", { topic: t, showId: sid, silent: true }); p.showId = sid; p.byline = (hostsOf(p)[0] || {}).id || p.byline; go("edit", p.id); await generate(p); };
+ACT.epFromPub = async sid => {
+  const src = S.pieces.filter(p => p.status === "published" && p.kind !== "podcast").slice(-5);
+  const srcs = src.length ? src.map(x => ({ title: x.title, link: pieceUrl(x), outlet: S.net.name, summary: x.dek + " " + plain(x.body).slice(0, 700) })) : S.wire.items.slice(0, 5).map(srcOf);
+  if (!srcs.length) return toast("Publish something or pull the wire first.", "err");
+  const p = newPiece("podcast", { topic: "Today's top stories", showId: sid, sources: srcs, silent: true }); p.showId = sid; go("edit", p.id); await generate(p);
+};
+// ======================= video & newscast: scenes, narration, a canvas studio, recording =======================
+const SCENE_TYPES = ["title", "anchor", "story", "bullets", "quote", "stat", "outro"];
+function videoTab(p) {
+  const a = hostsOf(p)[0] || staff(p.byline) || {};
+  return `<div class="grid g2"><div>
+   <canvas id="vc" class="vid" width="${p.vertical ? 720 : 1280}" height="${p.vertical ? 1280 : 720}" style="${p.vertical ? "max-width:360px" : ""}"></canvas>
+   <div class="row" style="margin-top:8px"><button class="p" data-act="vVoice">🎙️ Voice the scenes</button><button data-act="vPlay">▶ Preview</button><button data-act="vStop">■ Stop</button>
+    <button class="b" data-act="vRecord">⏺ Record video</button><span id="vprog" class="sm mu"></span></div>
+   <div class="row sm" style="margin-top:6px"><label class="pill ${p.vertical ? "on" : ""}" style="display:inline-flex"><input type="checkbox" data-bind="P.vertical" data-re ${p.vertical ? "checked" : ""}> Vertical 9:16 (Shorts/TikTok/Reels)</label>
+    <label class="pill ${p.noCaps ? "" : "on"}" style="display:inline-flex"><input type="checkbox" onchange="piece(CUR).noCaps=!this.checked;save()" ${p.noCaps ? "" : "checked"}> Captions</label>
+    <label class="pill ${p.noTicker ? "" : "on"}" style="display:inline-flex"><input type="checkbox" onchange="piece(CUR).noTicker=!this.checked;save()" ${p.noTicker ? "" : "checked"}> Ticker</label>
+    <span class="mu">Anchor: ${esc(a.name || "—")}</span></div>
+   ${p.files.video ? `<h3>Finished video</h3><video id="vout" controls style="width:100%;max-width:${p.vertical ? 360 : 880}px;border-radius:8px"></video><div class="sm mu">${esc(p.files.mp4 || p.files.video)} · ${fmtD(p.videoSecs)}</div>
+    <div class="row"><button class="s" data-act="saveAs" data-arg="${esc(p.files.mp4 || p.files.video)}">⬇ Save video</button>${p.files.mp4 ? "" : `<button class="s" data-act="vMp4">Make MP4 (ffmpeg)</button>`}<button class="s" data-act="vSrt">⬇ Captions .srt</button></div>` : ""}
+  </div><div><h3>Scenes <span class="mu sm">${p.scenes.length} · ~${fmtD(p.scenes.reduce((s, x) => s + (x.secs || words(x.narration) / 2.6) + 0.6, 0))}</span></h3>
+   ${p.scenes.map((s, i) => `<div class="card" style="padding:8px;margin-bottom:6px"><div class="row"><b>${i + 1}</b><select onchange="piece(CUR).scenes[${i}].type=this.value;save();vDraw()" style="max-width:110px">${SCENE_TYPES.map(t => `<option ${s.type === t ? "selected" : ""}>${t}</option>`).join("")}</select>
+    <input class="f" placeholder="Heading" value="${esc(s.heading)}" onchange="piece(CUR).scenes[${i}].heading=this.value;save();vDraw()"><button class="s" data-act="vSeek" data-arg="${i}">👁</button><button class="s" data-act="vUp" data-arg="${i}">↑</button><button class="s" data-act="vDel" data-arg="${i}">✕</button></div>
+    ${s.type === "bullets" ? `<input placeholder="bullets; separated; by semicolons" value="${esc((s.bullets || []).join("; "))}" onchange="piece(CUR).scenes[${i}].bullets=this.value.split(';').map(x=>x.trim()).filter(Boolean);save();vDraw()">` : `<input placeholder="${s.type === "stat" ? "Label" : s.type === "quote" ? "Quote text" : "On-screen text"}" value="${esc(s.text)}" onchange="piece(CUR).scenes[${i}].text=this.value;save();vDraw()">`}
+    ${s.type === "stat" ? `<input placeholder="Number e.g. 42%" value="${esc(s.stat)}" onchange="piece(CUR).scenes[${i}].stat=this.value;save();vDraw()">` : ""}${s.type === "quote" ? `<input placeholder="Who said it" value="${esc(s.who)}" onchange="piece(CUR).scenes[${i}].who=this.value;save();vDraw()">` : ""}
+    <input placeholder="Lower third" value="${esc(s.lower)}" onchange="piece(CUR).scenes[${i}].lower=this.value;save();vDraw()">
+    <textarea rows="2" placeholder="Narration (spoken)" onchange="piece(CUR).scenes[${i}].narration=this.value;save()">${esc(s.narration)}</textarea><span class="sm mu">${s.file ? "voiced · " + fmtD(s.secs) : "not voiced yet"}</span></div>`).join("")}
+   <button class="s" data-act="vAdd">+ scene</button></div></div>`;
+}
+let VS = null;   // the studio's live state: images, audio buffers, playing flag
+async function videoAfter(p) {
+  VS = { p, cover: null, logo: null, t: 0, playing: false };
+  try { VS.cover = await loadImg(p.cover || autoCover(p)); } catch (e) { }
+  vDraw();
+  const v = $("#vout"); if (v && (p.files.mp4 || p.files.video)) try { v.src = await fileURL(p.files.mp4 || p.files.video); } catch (e) { }
+}
+function loadImg(svg) { return new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" })); }); }
+function timeline(p) {
+  let t = 0; const out = [];
+  p.scenes.forEach((s, i) => { const d = Math.max(2.5, (s.secs || words(s.narration) / 2.6 || 3)) + 0.6; out.push({ s, i, start: t, end: t + d, dur: d }); t += d; });
+  return { scenes: out, total: t };
+}
+function vDraw(t) { if (!VS || !$("#vc")) return; const c = $("#vc"); drawFrame(c.getContext("2d"), c.width, c.height, t == null ? VS.t : t, VS.p, 0); }
+ACT.vSeek = i => { const tl = timeline(piece(CUR)); VS.t = tl.scenes[+i].start + 1.2; vDraw(); };
+ACT.vUp = i => { i = +i; const p = piece(CUR); if (i > 0) { [p.scenes[i - 1], p.scenes[i]] = [p.scenes[i], p.scenes[i - 1]]; save(); rerender(); } };
+ACT.vDel = i => { piece(CUR).scenes.splice(+i, 1); save(); rerender(); };
+ACT.vAdd = () => { piece(CUR).scenes.push({ id: uid(), type: "story", heading: "", text: "", bullets: [], stat: "", who: "", lower: "", narration: "" }); save(); rerender(); };
+
+// ---- drawing
+function drawAnchor(g, x, y, s, look, mouth, t) {
+  look = look || {}; g.save(); g.translate(x, y); g.scale(s, s);
+  g.fillStyle = look.suit || "#1e3a5f"; g.beginPath(); g.moveTo(-150, 260); g.quadraticCurveTo(-140, 120, 0, 105); g.quadraticCurveTo(140, 120, 150, 260); g.fill();
+  g.fillStyle = "#fff"; g.beginPath(); g.moveTo(-30, 112); g.lineTo(0, 175); g.lineTo(30, 112); g.fill();
+  g.fillStyle = S.net.color; g.beginPath(); g.moveTo(-8, 125); g.lineTo(8, 125); g.lineTo(12, 200); g.lineTo(0, 215); g.lineTo(-12, 200); g.fill();
+  g.fillStyle = look.skin || "#d9a066"; g.fillRect(-22, 75, 44, 40);
+  g.beginPath(); g.ellipse(0, 10, 62, 78, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = look.hair || "#222"; g.beginPath(); g.ellipse(0, -30, 66, 48, 0, Math.PI, Math.PI * 2); g.fill(); g.fillRect(-66, -32, 14, 50); g.fillRect(52, -32, 14, 50);
+  const blink = (t % 4.2) < 0.13; g.fillStyle = "#1a1a1a";
+  if (blink) { g.fillRect(-32, 0, 20, 3); g.fillRect(12, 0, 20, 3); } else { g.beginPath(); g.arc(-22, 2, 6, 0, 7); g.arc(22, 2, 6, 0, 7); g.fill(); }
+  g.strokeStyle = "#0006"; g.lineWidth = 3; g.beginPath(); g.moveTo(-34, -14); g.lineTo(-12, -16); g.moveTo(12, -16); g.lineTo(34, -14); g.stroke();
+  g.fillStyle = "#7a2b2b"; g.beginPath(); g.ellipse(0, 46, 16, 2 + mouth * 12, 0, 0, Math.PI * 2); g.fill();
+  g.restore();
+}
+function fitText(g, text, maxW, size, weight, maxLines) {
+  let s = size; let lines;
+  for (; s > 14; s -= 2) { g.font = `${weight || 700} ${s}px Segoe UI, Arial`; lines = wrapPx(g, text, maxW); if (lines.length <= (maxLines || 3)) break; }
+  return { size: s, lines: lines.slice(0, maxLines || 3) };
+}
+function wrapPx(g, text, maxW) { const w = String(text || "").split(/\s+/), out = []; let l = ""; for (const x of w) { const tr = (l + " " + x).trim(); if (g.measureText(tr).width > maxW && l) { out.push(l); l = x; } else l = tr; } if (l) out.push(l); return out; }
+function drawFrame(g, W, H, t, p, level) {
+  const tl = timeline(p), cur = tl.scenes.find(x => t >= x.start && t < x.end) || tl.scenes[tl.scenes.length - 1];
+  const V = H > W, u = Math.min(W, H) / 720, c1 = S.net.color, c2 = S.net.color2;
+  const gr = g.createLinearGradient(0, 0, W, H); gr.addColorStop(0, c2); gr.addColorStop(1, shade(c1, -0.6)); g.fillStyle = gr; g.fillRect(0, 0, W, H);
+  g.globalAlpha = 0.07; g.strokeStyle = "#fff"; g.lineWidth = 1;
+  for (let i = -1; i < 22; i++) { const x = ((i * 90 + t * 25) % (W + 90)) - 45; g.beginPath(); g.moveTo(x, 0); g.lineTo(x - H * 0.4, H); g.stroke(); }
+  g.globalAlpha = 1;
+  if (!cur) { g.fillStyle = "#fff"; g.font = `700 ${30 * u}px Segoe UI`; g.fillText("Add scenes to start", 40 * u, H / 2); return; }
+  const s = cur.s, lt = t - cur.start, ein = clamp(lt / 0.6, 0, 1), ease = 1 - Math.pow(1 - ein, 3), pad = 50 * u;
+  const cover = VS && VS.cover;
+  const look = (hostsOf(p)[0] || staff(p.byline) || {}).look;
+  g.save(); g.globalAlpha = ease;
+  if (s.type === "title" || s.type === "outro") {
+    if (cover) { g.globalAlpha = 0.35 * ease; const k = 1 + lt * 0.015; g.drawImage(cover, -W * (k - 1) / 2, -H * (k - 1) / 2, W * k, (W * k) * 9 / 16 > H * k ? (W * k) * 9 / 16 : H * k); g.globalAlpha = ease; }
+    g.fillStyle = c1; g.fillRect(pad, H * 0.42 - 60 * u, (W - pad * 2) * ease, 8 * u);
+    const f = fitText(g, s.type === "outro" ? (s.heading || S.net.name) : (s.heading || p.title), W - pad * 2, 64 * u, 800, 3);
+    g.fillStyle = "#fff"; f.lines.forEach((l, i) => g.fillText(l, pad, H * 0.42 + i * f.size * 1.15));
+    g.font = `400 ${26 * u}px Segoe UI`; g.fillStyle = "#ffffffcc";
+    wrapPx(g, s.type === "outro" ? (s.text || (S.net.siteUrl ? "More at " + S.net.siteUrl : S.net.tagline)) : (s.text || p.dek), W - pad * 2).slice(0, 3).forEach((l, i) => g.fillText(l, pad, H * 0.42 + f.lines.length * f.size * 1.15 + 20 * u + i * 34 * u));
+    if (s.type === "outro" && S.net.discloseOn) { g.font = `400 ${16 * u}px Segoe UI`; g.fillStyle = "#ffffff99"; wrapPx(g, S.net.disclosure, W - pad * 2).slice(0, 2).forEach((l, i) => g.fillText(l, pad, H - 120 * u + i * 22 * u)); }
+  } else if (s.type === "anchor") {
+    if (cover) { const bw = V ? W - pad * 2 : W * 0.42, bh = bw * 9 / 16, bx = V ? pad : pad, by = V ? 150 * u : 120 * u; g.fillStyle = "#000"; g.fillRect(bx - 6 * u, by - 6 * u, bw + 12 * u, bh + 12 * u); g.drawImage(cover, bx, by, bw, bh); g.fillStyle = c1; g.fillRect(bx - 6 * u, by + bh + 6 * u, bw + 12 * u, 6 * u);
+      if (s.heading) { g.font = `700 ${24 * u}px Segoe UI`; g.fillStyle = "#fff"; wrapPx(g, s.heading, bw).slice(0, 2).forEach((l, i) => g.fillText(l, bx, by + bh + 44 * u + i * 30 * u)); } }
+    const ax = V ? W / 2 : W * 0.74, ay = V ? H * 0.55 : H * 0.36;
+    drawAnchor(g, ax, ay, (V ? 1.5 : 1.25) * u, look, level, t);
+    g.fillStyle = "#2a2f3a"; g.fillRect(V ? 0 : W * 0.5, ay + 250 * u, V ? W : W * 0.5, H); g.fillStyle = c1; g.fillRect(V ? 0 : W * 0.5, ay + 250 * u, V ? W : W * 0.5, 5 * u);
+  } else {
+    const split = !V && cover && s.type !== "stat";
+    if (cover) { const k = 1.05 + lt * 0.01, cw = split ? W * 0.45 : W, ch = split ? cw * 9 / 16 : H; g.save(); g.globalAlpha = split ? ease : 0.18 * ease; g.drawImage(cover, split ? W - cw - pad + (1 - k) * cw / 2 : -(k - 1) * W / 2, split ? H * 0.22 : 0, cw * k, ch * k); g.restore(); }
+    const tw = split ? W * 0.47 - pad : W - pad * 2, ty = V ? H * 0.22 : H * 0.24;
+    const hf = fitText(g, s.heading || "", tw, 46 * u, 800, 3); g.fillStyle = "#fff"; hf.lines.forEach((l, i) => g.fillText(l, pad, ty + i * hf.size * 1.15));
+    let y = ty + hf.lines.length * hf.size * 1.15 + 24 * u;
+    if (s.heading) { g.fillStyle = c1; g.fillRect(pad, ty + hf.lines.length * hf.size * 1.15 - hf.size * 0.6, 80 * u * ease, 6 * u); y += 10 * u; }
+    if (s.type === "bullets") (s.bullets || []).forEach((b, i) => { const a = clamp((lt - 0.5 - i * 0.9) / 0.5, 0, 1); if (!a) return; g.globalAlpha = a; g.fillStyle = c1; g.fillRect(pad, y - 20 * u, 12 * u, 12 * u); g.fillStyle = "#fff"; g.font = `600 ${30 * u}px Segoe UI`; const ls = wrapPx(g, b, tw - 40 * u).slice(0, 2); ls.forEach((l, j) => g.fillText(l, pad + 30 * u, y + j * 36 * u)); y += ls.length * 36 * u + 22 * u; g.globalAlpha = ease; });
+    else if (s.type === "quote") { g.font = `800 ${120 * u}px Georgia`; g.fillStyle = c1; g.fillText("“", pad - 10 * u, y + 60 * u); const f = fitText(g, s.text, tw - 20 * u, 38 * u, 500, 5); g.font = `italic 500 ${f.size}px Georgia`; g.fillStyle = "#fff"; f.lines.forEach((l, i) => g.fillText(l, pad + 20 * u, y + 70 * u + i * f.size * 1.3)); g.font = `700 ${24 * u}px Segoe UI`; g.fillStyle = "#ffffffcc"; g.fillText("— " + (s.who || ""), pad + 20 * u, y + 100 * u + f.lines.length * f.size * 1.3); }
+    else if (s.type === "stat") { const m = String(s.stat || "").match(/^([^\d-]*)(-?[\d,.]+)(.*)$/); let shown = s.stat || ""; if (m) { const n = parseFloat(m[2].replace(/,/g, "")), k = clamp(lt / 1.5, 0, 1); const dec = (m[2].split(".")[1] || "").length; shown = m[1] + (n * (1 - Math.pow(1 - k, 3))).toLocaleString(undefined, { minimumFractionDigits: dec, maximumFractionDigits: dec }) + m[3]; }
+      const f = fitText(g, shown, W - pad * 2, 150 * u, 900, 1); g.fillStyle = c1; g.fillText(f.lines[0] || "", pad, y + f.size * 0.9); g.font = `600 ${32 * u}px Segoe UI`; g.fillStyle = "#fff"; wrapPx(g, s.text, W - pad * 2).slice(0, 3).forEach((l, i) => g.fillText(l, pad, y + f.size + 30 * u + i * 40 * u)); }
+    else { g.font = `400 ${30 * u}px Segoe UI`; g.fillStyle = "#e8eef6"; wrapPx(g, s.text, tw).slice(0, 6).forEach((l, i) => g.fillText(l, pad, y + i * 40 * u)); }
+  }
+  g.restore();
+  // lower third
+  if (s.lower && lt > 0.8) { const a = clamp((lt - 0.8) / 0.4, 0, 1), ly = H - (V ? 330 : 175) * u; g.font = `700 ${26 * u}px Segoe UI`; const w = Math.min(W - pad * 2, g.measureText(s.lower).width + 50 * u) * a;
+    g.fillStyle = c1; g.fillRect(pad, ly, 10 * u, 50 * u); g.fillStyle = "#fffffff0"; g.fillRect(pad + 10 * u, ly, w, 50 * u); g.save(); g.beginPath(); g.rect(pad + 10 * u, ly, w, 50 * u); g.clip(); g.fillStyle = "#111"; g.fillText(s.lower, pad + 30 * u, ly + 34 * u); g.restore(); }
+  // network bug, clock, live badge
+  g.font = `800 ${22 * u}px Segoe UI`; g.fillStyle = "#ffffffdd"; g.fillText(`${S.net.logo} ${S.net.short}`, pad * 0.6, 44 * u);
+  if (p.kind === "newscast") { const bw = 66 * u; g.fillStyle = Math.floor(t * 1.2) % 2 ? c1 : shade(c1, -0.2); g.fillRect(W - bw - pad * 0.6, 22 * u, bw, 30 * u); g.fillStyle = "#fff"; g.font = `800 ${18 * u}px Segoe UI`; g.fillText("NEWS", W - bw - pad * 0.6 + 10 * u, 44 * u); }
+  // ticker
+  if (!p.noTicker) { const th = 40 * u, ty = H - th; g.fillStyle = "#000000d0"; g.fillRect(0, ty, W, th); g.fillStyle = c1; g.fillRect(0, ty, 130 * u, th); g.fillStyle = "#fff"; g.font = `800 ${18 * u}px Segoe UI`; g.fillText(S.net.short + " NEWS", 12 * u, ty + 26 * u);
+    const heads = (S.pieces.filter(x => x.status === "published" && x.id !== p.id).map(x => x.title).slice(-6).concat(S.wire.items.slice(0, 4).map(w => w.title)).join("   ●   ")) || S.net.tagline;
+    g.save(); g.beginPath(); g.rect(130 * u, ty, W, th); g.clip(); g.font = `600 ${19 * u}px Segoe UI`; const tw = g.measureText(heads).width + W; g.fillText(heads, W - ((t * 90 * u) % tw), ty + 27 * u); g.restore(); }
+  // captions
+  if (!p.noCaps && s.narration) { const words_ = s.narration.split(/\s+/), dur = Math.max(1, (s.secs || cur.dur - 0.6)), per = dur / words_.length, idx = Math.floor(clamp(lt - 0.3, 0, dur) / per), chunk = Math.floor(idx / 8) * 8;
+    const line = words_.slice(chunk, chunk + 8).join(" "); g.font = `600 ${24 * u}px Segoe UI`; const w = g.measureText(line).width, cy = H - (p.noTicker ? 40 : 90) * u - (V ? 120 * u : 0);
+    if (line) { g.fillStyle = "#000000b0"; g.fillRect((W - w) / 2 - 12 * u, cy - 28 * u, w + 24 * u, 38 * u); g.fillStyle = "#fff"; g.fillText(line, (W - w) / 2, cy); } }
+}
+
+// ---- voicing, preview, recording
+async function voiceScenes(p, prog) {
+  await voices(); const a = hostsOf(p)[0] || staff(p.byline) || {}, v = voiceOf(a, 0);
+  for (let i = 0; i < p.scenes.length; i++) {
+    const s = p.scenes[i]; if (!s.narration || (s.file && s.said === s.narration + "|" + v)) continue;
+    if (prog) prog(`Voicing scene ${i + 1} of ${p.scenes.length}…`);
+    const r = needEngine(await call("tts", { text: s.narration, voice: v, rate: a.rate || 0, name: `s-${p.id}-${s.id || i}.wav` }));
+    s.file = r.file; s.secs = r.seconds; s.said = s.narration + "|" + v; save();
+  }
+}
+async function sceneBuffers(p, ac) {
+  const bufs = [];
+  for (const s of p.scenes) bufs.push(s.file ? await ac.decodeAudioData(await (await getFile(s.file)).arrayBuffer()) : null);
+  const sh = S.shows.find(x => x.id === p.showId) || {}, jd = await jingle(p.kind === "newscast" ? "news" : (sh.intro || "news"), 4);
+  let jb = null; if (jd) { jb = ac.createBuffer(1, jd.length, SR); jb.copyToChannel(jd, 0); }
+  return { bufs, jb };
+}
+function vProg(t) { const e = $("#vprog"); if (e) e.textContent = t; }
+ACT.vVoice = async () => { const p = piece(CUR); await voiceScenes(p, vProg); vProg("All scenes voiced."); rerender(); };
+ACT.vStop = () => { if (VS) VS.stop = true; };
+ACT.vPlay = () => playVideo(false);
+ACT.vRecord = () => playVideo(true);
+async function playVideo(record) {
+  const p = piece(CUR); if (!p.scenes.length) return toast("No scenes yet: write it first.", "err");
+  if (VS && VS.playing) return;
+  await voiceScenes(p, vProg);
+  const c = $("#vc"), g = c.getContext("2d"), ac = new AudioContext(), dest = ac.createMediaStreamDestination(), an = ac.createAnalyser(); an.fftSize = 512;
+  const mix = ac.createGain(); mix.connect(an); an.connect(ac.destination); mix.connect(dest);
+  vProg("Loading audio…"); const { bufs, jb } = await sceneBuffers(p, ac);
+  const tl = timeline(p), t0 = ac.currentTime + 0.3;
+  if (jb) { const src = ac.createBufferSource(), gg = ac.createGain(); gg.gain.value = 0.55; src.buffer = jb; src.connect(gg); gg.connect(mix); src.start(t0); }
+  tl.scenes.forEach((x, i) => { if (!bufs[i]) return; const src = ac.createBufferSource(); src.buffer = bufs[i]; src.connect(mix); src.start(t0 + x.start + 0.3); });
+  if (jb) { const src = ac.createBufferSource(), gg = ac.createGain(); gg.gain.value = 0.45; src.buffer = jb; src.connect(gg); gg.connect(mix); src.start(t0 + Math.max(0, tl.total - 3.5)); }
+  let rec = null, chunks = [];
+  if (record) {
+    const stream = c.captureStream(30); dest.stream.getAudioTracks().forEach(tr => stream.addTrack(tr));
+    const mt = ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"].find(m => window.MediaRecorder && MediaRecorder.isTypeSupported(m));
+    if (!mt) { ac.close(); return toast("This window can't record video.", "err"); }
+    rec = new MediaRecorder(stream, { mimeType: mt, videoBitsPerSecond: 6e6 }); rec.ondataavailable = e => e.data.size && chunks.push(e.data); rec.start(1000);
+  }
+  VS.playing = true; VS.stop = false; const data = new Uint8Array(an.fftSize);
+  await new Promise(res => {
+    const frame = () => {
+      const t = ac.currentTime - t0;
+      an.getByteTimeDomainData(data); let pk = 0; for (const v of data) pk = Math.max(pk, Math.abs(v - 128)); const lvl = clamp(pk / 50, 0, 1);
+      drawFrame(g, c.width, c.height, Math.max(0, t), p, lvl); VS.t = Math.max(0, t);
+      vProg(`${record ? "⏺ Recording" : "▶ Playing"} ${fmtD(t)} / ${fmtD(tl.total)}`);
+      if (t >= tl.total + 0.4 || VS.stop) return res(); requestAnimationFrame(frame);
+    };
+    frame();
+  });
+  VS.playing = false;
+  if (rec) {
+    await new Promise(r => { rec.onstop = r; rec.stop(); });
+    if (VS.stop) { ac.close(); return vProg("Recording stopped; nothing saved."); }
+    vProg("Saving the video…");
+    const name = `video-${p.id}${p.vertical ? "-v" : ""}.webm`; forgetURL(name);
+    await putFile(name, new Blob(chunks, { type: "video/webm" }), k => vProg(`Saving… ${Math.round(k * 100)}%`));
+    p.files.video = name; p.files.mp4 = ""; p.videoSecs = tl.total; save();
+    vProg("Making MP4…"); const m = await call("convert", { file: name, fmt: "mp4" }); if (!m.error) { p.files.mp4 = m.file; forgetURL(m.file); }
+    logIt("video", `Video: ${p.title} (${fmtD(tl.total)})`); toast("Video ready.", "ok"); rerender();
+  }
+  ac.close();
+}
+ACT.vMp4 = async () => { const p = piece(CUR); const m = needEngine(await call("convert", { file: p.files.video, fmt: "mp4" })); p.files.mp4 = m.file; save(); rerender(); };
+function srt(p) {
+  const tl = timeline(p), ts = x => { const ms = Math.round(x * 1000), h = Math.floor(ms / 36e5), m = Math.floor(ms / 6e4) % 60, s = Math.floor(ms / 1000) % 60; return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")},${String(ms % 1000).padStart(3, "0")}`; };
+  let n = 0, out = "";
+  tl.scenes.forEach(x => { const w = (x.s.narration || "").split(/\s+/).filter(Boolean); const dur = x.s.secs || x.dur - 0.6, per = dur / Math.max(1, w.length);
+    for (let i = 0; i < w.length; i += 8) out += `${++n}\n${ts(x.start + 0.3 + i * per)} --> ${ts(x.start + 0.3 + Math.min(w.length, i + 8) * per)}\n${w.slice(i, i + 8).join(" ")}\n\n`; });
+  return out;
+}
+ACT.vSrt = () => { const p = piece(CUR); download(slug(p.title) + ".srt", srt(p)); };
+
+// ---- video studio page
+PAGES.video = () => {
+  const vs = S.pieces.filter(p => p.kind === "video" || p.kind === "newscast").sort((a, b) => b.updated - a.updated);
+  return `<h1>🎬 Video & newscast studio</h1><p class="sub">The AI plans scenes and writes narration; a Windows voice reads it; your anchor presents it with lower thirds, a news ticker and captions; it's recorded to a video file (MP4 with ffmpeg) for YouTube, TikTok, Reels, X, your site and more.</p>
+  <div class="row"><button class="p" data-act="castNow">📺 Newscast from the top wire stories</button><button data-act="quick" data-arg="video">🎬 New video story</button><button data-act="castPub">📺 Newscast from our published stories</button></div>
+  <h2>Videos</h2>${pieceTable(vs)}`;
+};
+ACT.castNow = async () => {
+  if (!S.wire.items.length) await ACT.pullWire();
+  const items = S.wire.items.slice(0, 40); if (!items.length) return toast("The wire is empty.", "err");
+  const r = await aiJSON(`Pick the 5 most important distinct stories for a newscast from these headlines.\n${items.map((w, i) => `${i}. ${w.title} (${w.outlet})`).join("\n")}`, `{"items":[0,1,2,3,4]}`);
+  const srcs = (r.items || []).map(i => items[i]).filter(Boolean).map(srcOf);
+  const p = newPiece("newscast", { topic: "Today's top stories", sources: srcs, silent: true }); go("edit", p.id); await generate(p);
+};
+ACT.castPub = async () => {
+  const src = S.pieces.filter(p => p.status === "published" && !["video", "newscast"].includes(p.kind)).slice(-6);
+  if (!src.length) return toast("Publish some stories first.", "err");
+  const p = newPiece("newscast", { topic: "Our top stories", silent: true, sources: src.map(x => ({ title: x.title, link: pieceUrl(x), outlet: S.net.name, summary: x.dek + " " + plain(x.body).slice(0, 700) })) });
+  go("edit", p.id); await generate(p);
+};
+// ======================= outlets, publishing, the network website =======================
+const OUTLET_TYPES = {
+  discord: { name: "Discord", icon: "🎮", secret: "Webhook address", how: "In your server: Server Settings → Integrations → Webhooks → New Webhook → pick the channel → Copy Webhook URL.", fields: [["username", "Post as (name, optional)"]], files: "video, audio or image up to 25 MB" },
+  telegram: { name: "Telegram channel", icon: "✈️", secret: "Bot token", how: "Message @BotFather → /newbot → copy the token. Add the bot to your channel as an admin. Chat ID is @yourchannel (or a number).", fields: [["chat_id", "Chat ID (e.g. @mychannel)"]], files: "video, audio or image up to 50 MB" },
+  mastodon: { name: "Mastodon", icon: "🐘", secret: "Access token", how: "On your server: Preferences → Development → New application (scopes write:statuses and write:media) → copy 'Your access token'.", fields: [["instance", "Server (e.g. mastodon.social)"], ["visibility", "Visibility (public / unlisted)"]], files: "video, audio or image" },
+  bluesky: { name: "Bluesky", icon: "🦋", secret: "App password", how: "Bluesky → Settings → Privacy and security → App passwords → Add. Never use your main password.", fields: [["handle", "Handle (you.bsky.social)"]], files: "link card with cover image" },
+  wordpress: { name: "WordPress site", icon: "📝", secret: "Application password", how: "WP Admin → Users → Profile → Application Passwords → add one. Works on self-hosted WordPress and WordPress.com Business plans.", fields: [["site", "Site address (https://…)"], ["user", "Username"], ["status", "draft or publish"]], files: "uploads cover, audio, video" },
+  ghost: { name: "Ghost blog / newsletter", icon: "👻", secret: "Admin API key (id:secret)", how: "Ghost Admin → Settings → Integrations → Add custom integration → copy the Admin API key.", fields: [["site", "Site address (https://…)"], ["status", "draft or publish"]], files: "cover image" },
+  devto: { name: "DEV Community", icon: "👩‍💻", secret: "API key", how: "dev.to → Settings → Extensions → DEV Community API Keys → Generate.", fields: [["status", "draft or publish"]], files: "text (cover via your site)" },
+  buttondown: { name: "Buttondown newsletter", icon: "📬", secret: "API key", how: "buttondown.com → Settings → API → copy your key. 'publish' emails subscribers; 'draft' waits for you.", fields: [["status", "draft or publish"]], files: "email" },
+  slack: { name: "Slack", icon: "💼", secret: "Incoming webhook address", how: "api.slack.com/apps → Create app → Incoming Webhooks → On → Add New Webhook → copy the URL.", fields: [], files: "text + link" },
+  webhook: { name: "Webhook (Zapier, Make, n8n, IFTTT…)", icon: "🔗", secret: "Webhook address", how: "Make a 'Catch hook' / 'Custom webhook' in Zapier, Make, n8n or Pipedream and paste its address. From there you can post to Facebook Pages, Instagram, LinkedIn, YouTube, X, Medium, Google Sheets, email and thousands more. The full piece is sent as JSON.", fields: [], files: "JSON with every field" }
+};
+const SHARE = {
+  x: ["X", (u, t) => `https://twitter.com/intent/tweet?text=${encodeURIComponent(t)}${u ? "&url=" + encodeURIComponent(u) : ""}`],
+  facebook: ["Facebook", (u, t) => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(u)}`, true],
+  linkedin: ["LinkedIn", (u, t) => `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(u)}`, true],
+  reddit: ["Reddit", (u, t) => `https://www.reddit.com/submit?url=${encodeURIComponent(u)}&title=${encodeURIComponent(t)}`, true],
+  threads: ["Threads", (u, t) => `https://www.threads.net/intent/post?text=${encodeURIComponent(t + (u ? " " + u : ""))}`],
+  bsky: ["Bluesky (manual)", (u, t) => `https://bsky.app/intent/compose?text=${encodeURIComponent(t + (u ? " " + u : ""))}`],
+  whatsapp: ["WhatsApp", (u, t) => `https://wa.me/?text=${encodeURIComponent(t + (u ? " " + u : ""))}`],
+  tg: ["Telegram (manual)", (u, t) => `https://t.me/share/url?url=${encodeURIComponent(u)}&text=${encodeURIComponent(t)}`, true],
+  hn: ["Hacker News", (u, t) => `https://news.ycombinator.com/submitlink?u=${encodeURIComponent(u)}&t=${encodeURIComponent(t)}`, true],
+  pinterest: ["Pinterest", (u, t) => `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(u)}&description=${encodeURIComponent(t)}`, true],
+  email: ["Email", (u, t) => `mailto:?subject=${encodeURIComponent(t)}&body=${encodeURIComponent(t + "\n\n" + u)}`]
+};
+const KITS = {
+  youtube: ["YouTube", "https://studio.youtube.com", "video"], tiktok: ["TikTok", "https://www.tiktok.com/upload", "video"], instagram: ["Instagram Reels", "https://www.instagram.com/", "video"],
+  fb: ["Facebook Page", "https://business.facebook.com/latest/composer", "video"], spotify: ["Spotify for Creators", "https://creators.spotify.com/", "feed"], apple: ["Apple Podcasts Connect", "https://podcastsconnect.apple.com/", "feed"],
+  ytpod: ["YouTube Music podcasts", "https://studio.youtube.com", "feed"], substack: ["Substack", "https://substack.com/", "text"], medium: ["Medium (import a story)", "https://medium.com/p/import", "url"], linkedin: ["LinkedIn article", "https://www.linkedin.com/article/new/", "text"]
+};
+let OUT = [], SITE = {};
+async function refreshStatus() { const r = await call("status"); if (!r.error) { OUT = r.outlets || []; SITE = r; } return r; }
+function pieceUrl(p) { const base = (SITE.page || S.net.siteUrl || "").replace(/\/?$/, "/"); return base.length > 1 ? base + "articles/" + (p.seo && p.seo.slug || slug(p.title)) + ".html" : ""; }
+
+// ---------- outlets page
+PAGES.outlets = () => `<h1>🔌 Outlets</h1><p class="sub">Places your network publishes to. Passwords, tokens and webhook addresses are locked with Windows' encryption in your user folder (not in this app's folder, not in this tab).</p>
+ <div id="olist"><p class="mu"><span class="busy"></span> Loading…</p></div>
+ <h2>Connect an outlet</h2><div class="grid g4">${Object.entries(OUTLET_TYPES).map(([k, t]) => `<div class="card" style="cursor:pointer" data-act="oAdd" data-arg="${k}"><div style="font-size:24px">${t.icon}</div><b>${t.name}</b><div class="sm mu">${t.files}</div></div>`).join("")}</div>
+ <h2>One-click share (no login needed)</h2><p class="mu sm">Opens the site's own share page in your browser with the post filled in. Pick which show up in Publish.</p>
+ <div>${Object.entries(SHARE).map(([k, [n]]) => `<label class="pill ${S.shareOn[k] ? "on" : ""}" style="display:inline-flex"><input type="checkbox" data-bind="S.shareOn.${k}" data-re ${S.shareOn[k] ? "checked" : ""}> ${n}</label>`).join("")}</div>
+ <h2>Upload kits</h2><p class="mu sm">Big platforms that don't let small apps post for you without their review (YouTube, TikTok, Instagram, podcast directories). The kit saves the file, copies the title and caption, and opens their upload page. Podcast directories take your network's podcast feed once, then pick up every new episode by themselves.</p>
+ <div>${Object.entries(KITS).map(([k, [n, u, w]]) => `<span class="pill">${n} <span class="mu sm">(${w})</span></span>`).join("")}</div>`;
+AFTER.outlets = async () => {
+  await refreshStatus();
+  const el = $("#olist"); if (!el) return;
+  if (SITE.error) { el.innerHTML = `<div class="warn">${esc(SITE.error)}</div>`; return; }
+  el.innerHTML = OUT.length ? `<table><tr><th></th><th>Outlet</th><th>Settings</th><th>Secret</th><th></th></tr>${OUT.map(o => { const t = OUTLET_TYPES[o.type] || {}; return `<tr><td>${t.icon || ""}</td><td><b>${esc(o.name)}</b><div class="sm mu">${t.name}</div></td><td class="sm">${Object.entries(o.settings || {}).map(([k, v]) => `${esc(k)}: ${esc(v)}`).join("<br>")}</td><td>${o.has_secret ? "🔒 saved" : `<span class="tag st-factcheck">missing</span>`}</td>
+   <td><button class="s" data-act="oTest" data-arg="${o.id}">Test</button> <button class="s" data-act="oEdit" data-arg="${o.id}">Edit</button> <button class="s" data-act="oDrop" data-arg="${o.id}">Remove</button></td></tr>`; }).join("")}</table>` : `<div class="empty">No outlets yet. Connect one below; your website is set up in Network website.</div>`;
+};
+function outletForm(type, o) {
+  const t = OUTLET_TYPES[type]; o = o || { settings: {} };
+  modal(`<h2>${t.icon} ${o.id ? "Edit" : "Connect"} ${t.name}</h2><p class="sm mu">${esc(t.how)}</p>
+   <label>Name in this app</label><input id="oN" value="${esc(o.name || t.name)}">
+   ${t.fields.map(([k, n]) => `<label>${n}</label><input id="oF_${k}" value="${esc((o.settings || {})[k] || "")}">`).join("")}
+   <label>${t.secret} ${o.id ? "(leave empty to keep the saved one)" : ""}</label><input id="oS" type="password" autocomplete="off">
+   <p class="sm mu">🔒 Locked with Windows' encryption for your user only, kept outside this app's folder.</p>
+   <div class="row"><button class="p" id="oSave">Save</button><button data-close>Cancel</button></div>`, (box, close) => {
+    $("#oSave", box).onclick = async () => {
+      const settings = {}; t.fields.forEach(([k]) => settings[k] = $("#oF_" + k, box).value.trim());
+      const r = await call("outlet_save", { id: o.id, type, name: $("#oN", box).value.trim(), settings, secret: $("#oS", box).value });
+      if (r.error) return toast(r.error, "err"); close(); toast("Saved. Press Test to check it.", "ok"); if (PAGE === "outlets") rerender();
+    };
+  });
+}
+ACT.oAdd = k => outletForm(k);
+ACT.oEdit = id => { const o = OUT.find(x => x.id === id); if (o) outletForm(o.type, o); };
+ACT.oDrop = async id => { if (!confirm("Remove this outlet and forget its secret?")) return; await call("outlet_drop", { id }); rerender(); };
+ACT.oTest = async id => { const o = OUT.find(x => x.id === id); toast("Testing " + (o ? o.name : "") + "…"); const r = await call("outlet_test", { id }); if (r.error) toast(r.error, "err"); else toast(`${r.where}: works. ${r.note || "A test post was sent."}`, "ok"); };
+
+// ---------- publish center
+PAGES.publish = () => {
+  const ready = S.pieces.filter(p => ["approved", "edit", "factcheck", "scheduled"].includes(p.status)).sort((a, b) => b.updated - a.updated);
+  const done = S.pieces.filter(p => p.status === "published").sort((a, b) => (b.pubAt || 0) - (a.pubAt || 0)).slice(0, 30);
+  return `<h1>🚀 Publish center</h1><p class="sub">Send pieces to your website, outlets and share pages, now or on a schedule.</p>
+  <h2>Ready to go</h2>${ready.length ? `<table>${ready.map(p => `<tr><td>${kindTag(p.kind)}</td><td><a data-go="edit" data-id="${p.id}">${esc(p.title)}</a> ${p.factcheck ? `<span class="tag ${p.factcheck.verdict === "pass" ? "st-published" : "st-factcheck"}">fact-check: ${esc(p.factcheck.verdict)}</span>` : `<span class="tag">not fact-checked</span>`}</td><td>${stTag(p.status)} ${p.status === "scheduled" ? fmtT(p.scheduledAt) : ""}</td><td><button class="s p" data-act="pubDlg" data-arg="${p.id}">Publish…</button></td></tr>`).join("")}</table>` : `<div class="empty">Nothing waiting. Approve pieces on the board.</div>`}
+  <h2>Published</h2>${done.length ? `<table>${done.map(p => `<tr><td>${kindTag(p.kind)}</td><td><a data-go="edit" data-id="${p.id}">${esc(p.title)}</a></td><td class="sm">${(p.published || []).map(x => x.url ? `<a data-act="openUrl" data-arg="${esc(x.url)}">${esc(x.where)}</a>` : esc(x.where)).join(" · ")}</td><td class="sm">${fmtT(p.pubAt)}</td><td><button class="s" data-act="pubDlg" data-arg="${p.id}">Again…</button></td></tr>`).join("")}</table>` : `<div class="empty">Nothing published yet.</div>`}`;
+};
+ETABS.pub = p => `<p>Publish <b>${esc(p.title)}</b>.</p><button class="p" data-act="pubDlg" data-arg="${p.id}">Publish…</button>
+ <h3>Where it went</h3>${(p.published || []).length ? `<table>${p.published.map(x => `<tr><td>${fmtT(x.t)}</td><td>${esc(x.where)}</td><td>${x.url ? `<a data-act="openUrl" data-arg="${esc(x.url)}">${esc(x.url)}</a>` : esc(x.note || "")}</td></tr>`).join("")}</table>` : `<p class="mu">Not yet.</p>`}
+ <h3>Share pages</h3>${shareButtons(p)}<h3>Upload kits</h3>${kitButtons(p)}`;
+function shareText(p, k) { const s = p.social || {}; return ({ x: s.x, threads: s.threads, bsky: s.bluesky, linkedin: s.linkedin, facebook: s.facebook })[k] || p.social.x || p.title; }
+function shareButtons(p) { const u = pieceUrl(p); return Object.entries(SHARE).filter(([k]) => S.shareOn[k]).map(([k, [n, f, needU]]) => `<button class="s" data-act="share" data-arg="${k}" ${needU && !u ? "disabled title='Needs your website first'" : ""}>${n}</button>`).join(" ") || `<span class="mu sm">Turn some on in Outlets.</span>`; }
+function kitButtons(p) { return Object.entries(KITS).map(([k, [n]]) => `<button class="s" data-act="kit" data-arg="${k}">${n}</button>`).join(" "); }
+ACT.share = k => { const p = piece(CUR) || piece(S.pubFor); const [n, f] = SHARE[k]; call("open", { url: f(pieceUrl(p), shareText(p, k)) }); p.published.push({ t: now(), where: n + " (share page)" }); logIt("share", `${n}: ${p.title}`); save(); };
+ACT.kit = async k => {
+  const p = piece(CUR); const [n, url, what] = KITS[k];
+  const caption = what === "video" ? `${p.social.youtube_title || p.title}\n\n${p.social.youtube_desc || p.dek}\n\n${pieceUrl(p)}\n\n${S.net.discloseOn ? S.net.disclosure : ""}` : what === "feed" ? (SITE.page ? SITE.page + "podcast-" + slug((S.shows.find(s => s.id === p.showId) || S.shows[0] || {}).name) + ".xml" : "Set up your network website first: the feed address appears there.") : what === "url" ? pieceUrl(p) : `# ${p.title}\n\n${p.dek}\n\n${p.body}`;
+  try { await navigator.clipboard.writeText(caption); toast("Caption copied to the clipboard.", "ok"); } catch (e) { modal(`<h3>Copy this</h3><textarea rows="10">${esc(caption)}</textarea><button data-close>Close</button>`); }
+  const file = what === "video" ? (p.files.mp4 || p.files.video || p.files.gram) : null;
+  if (what === "video" && !file) toast("Record the video first (Video tab), or make an audiogram for podcasts.", "err");
+  if (file) await ACT.saveAs(file);
+  call("open", { url }); p.published.push({ t: now(), where: n + " (upload kit)" }); save();
+};
+
+function pubDialog(p) {
+  const fcOk = !p.sources.length || (p.factcheck && p.factcheck.verdict === "pass");
+  const on = S.outletsOn || {};
+  modal(`<h2>🚀 Publish “${esc(p.title)}”</h2>
+   ${fcOk ? "" : `<div class="warn">This piece has sources but hasn't passed the fact-check. Run it first, or tick to publish anyway: <label class="pill"><input type="checkbox" id="pAny"> publish anyway</label></div>`}
+   <label class="pill on"><input type="checkbox" id="pSite" ${SITE.folder ? "checked" : "disabled"}> 🌐 Network website ${SITE.page ? esc(SITE.page) : "(set up in Network website)"}</label>
+   <h3>Outlets</h3>${OUT.length ? OUT.map(o => `<label class="pill"><input type="checkbox" class="pOut" value="${o.id}" ${on[o.id] !== false ? "checked" : ""}> ${(OUTLET_TYPES[o.type] || {}).icon || ""} ${esc(o.name)}</label>`).join("") : `<p class="mu sm">None connected. <a data-go="outlets" data-close>Connect outlets</a></p>`}
+   <label>Blog / newsletter outlets</label><select id="pStatus"><option value="draft">Send as drafts (you press publish there)</option><option value="publish">Publish live / send to subscribers</option></select>
+   <label>When</label><div class="row"><select id="pWhen" style="max-width:180px"><option value="now">Now</option><option value="later">Schedule</option></select><input type="datetime-local" id="pAt" style="max-width:240px"></div>
+   <p class="sm mu">Scheduled pieces go out while Randis UDS is open with this tab loaded.</p>
+   <div class="row"><button class="p" id="pGo">Publish</button><button data-close>Cancel</button></div><div id="pLog" class="log" style="display:none"></div>`, (box, close) => {
+    $("#pGo", box).onclick = async () => {
+      if (!fcOk && !($("#pAny", box) || {}).checked) return toast("Fact-check first, or tick 'publish anyway'.", "err");
+      const outs = $$(".pOut", box).filter(x => x.checked).map(x => x.value); OUT.forEach(o => S.outletsOn[o.id] = outs.includes(o.id));
+      const t = { site: $("#pSite", box).checked, outlets: outs, status: $("#pStatus", box).value };
+      if ($("#pWhen", box).value === "later") {
+        const at = Date.parse($("#pAt", box).value); if (!at || at < now()) return toast("Pick a time in the future.", "err");
+        p.status = "scheduled"; p.scheduledAt = at; p.schedTargets = t; save(); close(); toast("Scheduled for " + fmtT(at), "ok"); rerender(); return;
+      }
+      const lg = $("#pLog", box); lg.style.display = "block"; $("#pGo", box).disabled = true;
+      await publishPiece(p, t, m => { lg.textContent += m + "\n"; lg.scrollTop = 1e9; });
+      $("#pGo", box).textContent = "Done"; $("#pGo", box).disabled = false; $("#pGo", box).onclick = () => { close(); rerender(); };
+    };
+  });
+}
+ACT.pubDlg = async id => { await refreshStatus(); pubDialog(piece(id)); };
+
+async function publishPiece(p, t, say) {
+  say = say || (() => { });
+  const prev = p.status; p.status = "published"; p.pubAt = p.pubAt || now(); save();
+  const files = [];
+  try { files.push(await coverFile(p)); } catch (e) { say("Cover: " + e.message); }
+  if (p.kind === "podcast" && !(p.files.mp3 || p.files.audio) && p.lines.length) { say("Recording the episode first…"); await mixEpisode(p, say); }
+  if (p.files.mp4 || p.files.video) files.unshift(p.files.mp4 || p.files.video); else if (p.files.mp3 || p.files.audio) files.unshift(p.files.mp3 || p.files.audio);
+  let ok = 0, fail = 0;
+  if (t.site) {
+    try { say("Building the website…"); await buildSite(say); say("Publishing the website…"); const url = await sitePublish(`Publish: ${p.title}`, say); p.published.push({ t: now(), where: "Website", url: pieceUrl(p) }); logIt("push", "Website: " + p.title, { ok: true, where: "Website", url }); ok++; }
+    catch (e) { say("Website: " + e.message); logIt("push", "Website failed: " + e.message, { ok: false, where: "Website" }); fail++; }
+  }
+  for (const id of t.outlets || []) {
+    const o = OUT.find(x => x.id === id) || { name: id, type: "" };
+    say(`Sending to ${o.name}…`);
+    const soc = p.social || {};
+    const social = ({ bluesky: soc.bluesky, mastodon: soc.mastodon, discord: soc.facebook, telegram: soc.facebook, slack: soc.linkedin })[o.type] || soc.x || p.dek;
+    const r = await call("push", { id, item: { kind: p.kind, title: p.title, summary: p.dek, social, body_md: bodyFor(p), body_html: htmlFor(p), url: pieceUrl(p), tags: p.tags, files, status: t.status, disclosure: S.net.discloseOn ? S.net.disclosure : "" } });
+    if (r.error) { say(`✗ ${o.name}: ${r.error}`); logIt("push", `${o.name} failed: ${r.error}`, { ok: false, where: o.name }); fail++; }
+    else { say(`✓ ${o.name}${r.url ? ": " + r.url : ""}${r.note ? " (" + r.note + ")" : ""}`); p.published.push({ t: now(), where: o.name, url: r.url || "", note: r.note || "" }); logIt("push", `${o.name}: ${p.title}`, { ok: true, where: o.name, url: r.url }); ok++; }
+  }
+  if (!ok && fail) { p.status = prev === "scheduled" ? "approved" : prev; }
+  p.updated = now(); save(); say(`Finished: ${ok} sent, ${fail} failed.`); nav();
+  return { ok, fail };
+}
+function bodyFor(p) { return p.kind === "podcast" ? p.body + "\n\n## Transcript\n\n" + p.lines.map(l => `**${byName(l.who)}:** ${l.text}`).join("\n\n") : p.body; }
+function htmlFor(p) { return md(bodyFor(p)); }
+
+// ---------- the website
+PAGES.site = () => `<h1>🌐 Network website</h1><p class="sub">Your network's own free website on GitHub Pages: front page, desk pages, every story, video and episode, an RSS feed, a JSON feed, a podcast feed per show (for Apple Podcasts, Spotify, YouTube Music, Pocket Casts…), a sitemap and an ethics page.</p>
+ <div id="sitebox"><p class="mu"><span class="busy"></span> Checking…</p></div>
+ <h2>Look</h2><div class="grid g4"><div><label>Theme</label><select data-bind="S.site.theme">${["classic", "dark", "tabloid", "minimal"].map(t => `<option ${S.site.theme === t ? "selected" : ""}>${t}</option>`).join("")}</select></div>
+ <div><label>Accent colour</label><input type="color" data-bind="S.net.color" value="${esc(S.net.color)}"></div><div><label>Dark colour</label><input type="color" data-bind="S.net.color2" value="${esc(S.net.color2)}"></div>
+ <div><label>Contact email (shown on the ethics page)</label><input data-bind="S.net.contact" value="${esc(S.net.contact)}"></div></div>
+ <h2>Preview</h2><iframe id="sprev" sandbox="" style="width:100%;height:520px;border:1px solid var(--ln);border-radius:8px;background:#fff"></iframe>`;
+AFTER.site = async () => {
+  const f = $("#sprev"); if (f) f.srcdoc = siteIndex(true);
+  const r = await refreshStatus(); const el = $("#sitebox"); if (!el) return;
+  if (r.error) { el.innerHTML = `<div class="warn">${esc(r.error)}</div>`; return; }
+  const jobs = (r.jobs || []).filter(j => !j.done);
+  el.innerHTML = `<div class="card"><div class="grid g4"><div>Git: ${r.git ? "✅" : "❌"}</div><div>GitHub CLI: ${r.gh ? "✅" : "❌"}</div><div>Signed in: ${r.login ? "✅ " + esc(r.login) : "❌"}</div><div>ffmpeg: ${r.ffmpeg ? "✅" : "➖ optional"}</div></div>
+   ${!r.git || !r.gh ? `<button data-act="instGit">Install ${r.git ? "GitHub CLI" : "Git"}</button> ` : ""}${r.gh && !r.login ? `<button data-act="signIn">Sign in to GitHub</button>` : ""}
+   ${r.folder ? `<p>Site folder: <code>${esc(r.folder)}</code><br>Address: <a data-act="openUrl" data-arg="${esc(r.page)}">${esc(r.page)}</a></p><div class="row"><button class="p" data-act="siteGo">Build & publish the website</button><button data-act="siteBuild">Build only</button><button data-act="siteFolder">Open folder</button></div>
+   <p class="sm mu">Feeds: <code>${esc(r.page)}feed.xml</code> · <code>${esc(r.page)}feed.json</code> · ${S.shows.filter(s => s.kind === "podcast").map(s => `<code>${esc(r.page)}podcast-${slug(s.name)}.xml</code>`).join(" · ")}</p>`
+    : `<label>Website name (becomes github.com/you/<b>name</b>)</label><div class="row"><input id="sName" value="${esc(slug(S.net.name))}" style="max-width:300px"><button class="p" data-act="siteSetup" ${r.login ? "" : "disabled"}>Set up</button></div>`}
+   ${jobs.map(j => `<p class="sm"><span class="busy"></span> ${esc(j.status)}</p>`).join("")}</div>`;
+};
+ACT.instGit = async () => { const r = await call("install_git"); r.error ? toast(r.error, "err") : toast("Installing… this takes a minute; come back to this page.", "ok"); };
+ACT.signIn = async () => { const r = await call("sign_in"); if (r.error) return toast(r.error, "err"); toast("A GitHub page opens: type the code shown in Settings & tools.", "ok"); pollJobs(); };
+ACT.siteSetup = async () => { const r = await call("site_setup", { name: $("#sName").value.trim() }); if (r.error) return toast(r.error, "err"); S.net.siteUrl = r.page; save(); rerender(); };
+ACT.siteFolder = () => call("open_folder", { which: "site" });
+ACT.siteBuild = async () => { await buildSite(m => toast(m)); toast("Website built in its folder.", "ok"); };
+ACT.siteGo = async () => { await buildSite(m => toast(m)); await sitePublish("Network update", m => { const e = $("#sitebox"); if (e) e.querySelector(".card").insertAdjacentHTML("beforeend", `<div class="sm">${esc(m)}</div>`); }); toast("Website is live.", "ok"); };
+async function pollJobs() { let shown = ""; for (let i = 0; i < 200; i++) { await sleep(2500); const r = await call("jobs"); const j = (r.jobs || [])[0]; if (j && j.code && j.code !== shown && (shown = j.code)) toast("GitHub code: " + j.code + " — type it on the GitHub page.", "ok"); if (!j || j.done) { if (PAGE === "site" || PAGE === "settings") rerender(); return j; } } }
+async function sitePublish(msg, say) {
+  const r = await call("site_publish", { message: msg }); if (r.error) throw new Error(r.error);
+  for (let i = 0; i < 400; i++) {
+    await sleep(2500); const js = await call("jobs"); const j = (js.jobs || []).find(x => x.id === (r.id || r.job || (js.jobs[0] || {}).id)) || (js.jobs || [])[0];
+    if (j) say(j.status); if (j && j.done) { if (j.error) throw new Error(j.error); S.site.published = now(); save(); return j.url; }
+  }
+  return SITE.page;
+}
+
+// ---- site pages
+const SITE_CSS = th => {
+  const c1 = S.net.color, c2 = S.net.color2, dark = th === "dark";
+  return `*{box-sizing:border-box}body{margin:0;font:17px/1.6 ${th === "tabloid" ? "Arial Black,Arial" : th === "minimal" ? "Georgia,serif" : "Georgia,'Times New Roman',serif"};background:${dark ? "#0e1116" : "#fff"};color:${dark ? "#e8e8e8" : "#151515"}}
+a{color:${dark ? "#8ab4ff" : c2 === "#0f172a" ? "#0b4fb3" : c2}}header{background:${c2};color:#fff;padding:18px 20px;border-bottom:6px solid ${c1}}header a{color:#fff;text-decoration:none}
+.brand{font:800 34px/1.1 'Segoe UI',Arial,sans-serif;letter-spacing:-.5px}.tag{opacity:.8;font:15px 'Segoe UI',Arial}.credit{font:12px 'Segoe UI',Arial;background:#000;color:#bbb;padding:4px 20px}.credit a{color:#ddd}
+nav{font:600 14px 'Segoe UI',Arial;background:${dark ? "#161a22" : "#f3f3f3"};padding:8px 20px;display:flex;gap:16px;flex-wrap:wrap}nav a{text-decoration:none;color:inherit}
+main{max-width:1100px;margin:0 auto;padding:20px}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:22px}.card img{width:100%;border-radius:6px;aspect-ratio:16/9;object-fit:cover}
+.card h3{font:700 20px/1.25 'Segoe UI',Arial,sans-serif;margin:8px 0 4px}.card h3 a{text-decoration:none;color:inherit}.k{font:700 11px 'Segoe UI',Arial;text-transform:uppercase;color:${c1};letter-spacing:1px}
+.lead{display:grid;grid-template-columns:3fr 2fr;gap:24px;margin-bottom:30px;align-items:center}.lead h2{font:800 38px/1.1 'Segoe UI',Arial,sans-serif;margin:6px 0}.lead img{width:100%;border-radius:8px}
+article{max-width:740px;margin:0 auto}article h1{font:800 40px/1.12 'Segoe UI',Arial,sans-serif;margin:10px 0}.dek{font-size:21px;color:${dark ? "#bbb" : "#555"}}.by{font:14px 'Segoe UI',Arial;color:#888}
+article img.hero{width:100%;border-radius:8px}blockquote{border-left:4px solid ${c1};margin:1em 0;padding:0 1em;color:${dark ? "#ccc" : "#444"}}audio,video{width:100%;margin:14px 0;border-radius:8px}
+.ai{font:13px 'Segoe UI',Arial;background:${dark ? "#1b2130" : "#f6f6f6"};padding:10px 14px;border-radius:8px;color:#888}footer{font:14px 'Segoe UI',Arial;background:${c2};color:#ddd;padding:24px 20px;margin-top:40px}footer a{color:#fff}
+h2.sec{font:800 22px 'Segoe UI',Arial;border-bottom:3px solid ${c1};padding-bottom:4px;margin-top:36px}@media(max-width:760px){.lead{grid-template-columns:1fr}.lead h2{font-size:28px}article h1{font-size:30px}}`;
+};
+const pubList = () => S.pieces.filter(p => p.status === "published").sort((a, b) => (b.pubAt || 0) - (a.pubAt || 0));
+const fileExt = n => (n || "").split(".").pop();
+const mediaRel = (p, kind) => { const f = kind === "cover" ? p.files.cover : kind === "video" ? (p.files.mp4 || p.files.video) : (p.files.mp3 || p.files.audio); return f ? `media/${(p.seo.slug || slug(p.title))}${kind === "cover" ? "" : "-" + kind}.${fileExt(f)}` : ""; };
+function frame(title, body, rel, extraHead) {
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)}</title>${extraHead || ""}
+<link rel="alternate" type="application/rss+xml" title="${esc(S.net.name)}" href="${rel}feed.xml"><style>${SITE_CSS(S.site.theme)}</style></head><body>
+<div class="credit">Made with <a href="https://github.com/RandyWilliamMoore/randis-uds">Randis UDS™ by Randy Moore</a></div>
+<header><a href="${rel}index.html"><div class="brand">${esc(S.net.logo)} ${esc(S.net.name)}</div></a><div class="tag">${esc(S.net.tagline)}</div></header>
+<nav><a href="${rel}index.html">Home</a>${S.desks.filter(d => pubList().some(p => p.deskId === d.id)).map(d => `<a href="${rel}desk-${slug(d.name)}.html">${esc(d.name)}</a>`).join("")}<a href="${rel}listen.html">Listen</a><a href="${rel}watch.html">Watch</a><a href="${rel}about.html">Ethics & AI</a><a href="${rel}feed.xml">RSS</a></nav>
+<main>${body}</main><footer>${esc(S.net.name)} · <a href="${rel}about.html">Standards, corrections & AI disclosure</a> · <a href="${rel}feed.xml">RSS</a> · <a href="${rel}feed.json">JSON feed</a>${S.net.contact ? ` · <a href="mailto:${esc(S.net.contact)}">${esc(S.net.contact)}</a>` : ""}</footer></body></html>`;
+}
+function card(p, rel, preview) {
+  const img = preview ? `data:image/svg+xml;charset=utf-8,${encodeURIComponent(p.cover || autoCover(p))}` : rel + mediaRel(p, "cover");
+  return `<div class="card"><a href="${rel}articles/${esc(p.seo.slug || slug(p.title))}.html"><img src="${img}" alt=""></a><div class="k">${esc(KINDS[p.kind].name)} · ${esc((desk(p.deskId) || {}).name || "")}</div><h3><a href="${rel}articles/${esc(p.seo.slug || slug(p.title))}.html">${esc(p.title)}</a></h3><div>${esc(p.dek)}</div></div>`;
+}
+function siteIndex(preview) {
+  const ps = pubList(); if (!ps.length) return frame(S.net.name, `<p>No stories published yet.</p>`, "");
+  const L = ps[0], img = preview ? `data:image/svg+xml;charset=utf-8,${encodeURIComponent(L.cover || autoCover(L))}` : mediaRel(L, "cover");
+  return frame(S.net.name, `<div class="lead"><a href="articles/${esc(L.seo.slug || slug(L.title))}.html"><img src="${img}" alt=""></a><div><div class="k">${esc(KINDS[L.kind].name)}</div><h2><a href="articles/${esc(L.seo.slug || slug(L.title))}.html" style="color:inherit;text-decoration:none">${esc(L.title)}</a></h2><p>${esc(L.dek)}</p></div></div>
+  <h2 class="sec">Latest</h2><div class="grid">${ps.slice(1, 25).map(p => card(p, "", preview)).join("")}</div>`, "", `<meta name="description" content="${esc(S.net.tagline)}">`);
+}
+function articlePage(p) {
+  const url = pieceUrl(p), cov = mediaRel(p, "cover"), aud = mediaRel(p, "audio"), vid = mediaRel(p, "video");
+  const ld = { "@context": "https://schema.org", "@type": p.kind === "podcast" ? "PodcastEpisode" : p.kind === "video" || p.kind === "newscast" ? "VideoObject" : "NewsArticle", headline: p.title, name: p.title, description: p.dek, datePublished: new Date(p.pubAt || now()).toISOString(), uploadDate: new Date(p.pubAt || now()).toISOString(), author: { "@type": "Person", name: byName(p.byline) }, publisher: { "@type": "Organization", name: S.net.name }, image: cov ? SITE.page + cov : undefined, thumbnailUrl: cov ? SITE.page + cov : undefined };
+  const head = `<meta name="description" content="${esc(p.seo.metaDesc || p.dek)}"><meta property="og:title" content="${esc(p.seo.metaTitle || p.title)}"><meta property="og:description" content="${esc(p.seo.metaDesc || p.dek)}"><meta property="og:type" content="article">${url ? `<meta property="og:url" content="${esc(url)}"><link rel="canonical" href="${esc(url)}">` : ""}${cov && SITE.page ? `<meta property="og:image" content="${esc(SITE.page + cov)}"><meta name="twitter:card" content="summary_large_image">` : ""}<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, "\\u003c")}<\/script>`;
+  const transcript = p.kind === "podcast" && p.lines.length ? `<h2>Transcript</h2>${p.lines.map(l => `<p><b>${esc(byName(l.who))}:</b> ${esc(l.text)}</p>`).join("")}` : (p.kind === "video" || p.kind === "newscast") && p.scenes.length ? `<details><summary>Video transcript</summary>${p.scenes.map(s => `<p>${esc(s.narration)}</p>`).join("")}</details>` : "";
+  return frame(p.title + " · " + S.net.name, `<article><div class="k">${esc(KINDS[p.kind].name)} · ${esc((desk(p.deskId) || {}).name || "")}</div><h1>${esc(p.title)}</h1><p class="dek">${esc(p.dek)}</p><p class="by">By ${esc(byName(p.byline))} · ${new Date(p.pubAt || now()).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })}</p>
+  ${vid ? `<video controls preload="metadata" src="../${vid}" poster="../${cov}"></video>` : cov ? `<img class="hero" src="../${cov}" alt="">` : ""}${aud && !vid ? `<audio controls preload="none" src="../${aud}"></audio>` : ""}
+  ${(p.chapterTimes || []).length ? `<p class="by">${p.chapterTimes.map(c => `${fmtD(c.at)} ${esc(c.title)}`).join(" · ")}</p>` : ""}${md(p.body)}${transcript}
+  ${(p.corrections || []).map(c => `<p class="ai"><b>Correction ${fmtT(c.t)}:</b> ${esc(c.text)}</p>`).join("")}${S.net.discloseOn ? `<p class="ai">${esc(S.net.disclosure)}</p>` : ""}</article>`, "../", head);
+}
+const xmlEsc = s => esc(s).replace(/&#39;/g, "&apos;");
+const rfc822 = t => new Date(t || now()).toUTCString();
+function rss(ps) {
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>${xmlEsc(S.net.name)}</title><link>${xmlEsc(SITE.page)}</link><description>${xmlEsc(S.net.tagline)}</description><language>en</language><atom:link href="${xmlEsc(SITE.page)}feed.xml" rel="self" type="application/rss+xml"/>
+${ps.slice(0, 60).map(p => `<item><title>${xmlEsc(p.title)}</title><link>${xmlEsc(pieceUrl(p))}</link><guid isPermaLink="true">${xmlEsc(pieceUrl(p))}</guid><pubDate>${rfc822(p.pubAt)}</pubDate><description>${xmlEsc(p.dek)}</description>${(p.tags || []).map(t => `<category>${xmlEsc(t)}</category>`).join("")}</item>`).join("\n")}
+</channel></rss>`;
+}
+function podcastXml(show, eps) {
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:podcast="https://podcastindex.org/namespace/1.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel>
+<title>${xmlEsc(show.name)}</title><link>${xmlEsc(SITE.page)}listen.html</link><description>${xmlEsc(show.desc + (S.net.discloseOn ? " " + S.net.disclosure : ""))}</description><language>en</language><atom:link href="${xmlEsc(SITE.page)}podcast-${slug(show.name)}.xml" rel="self" type="application/rss+xml"/>
+<itunes:author>${xmlEsc(S.net.name)}</itunes:author><itunes:image href="${xmlEsc(SITE.page)}media/show-${slug(show.name)}.png"/><itunes:category text="${xmlEsc(show.category || "News")}"/><itunes:explicit>${show.explicit ? "true" : "false"}</itunes:explicit><itunes:type>episodic</itunes:type>
+${S.net.contact ? `<itunes:owner><itunes:name>${xmlEsc(S.net.name)}</itunes:name><itunes:email>${xmlEsc(S.net.contact)}</itunes:email></itunes:owner>` : ""}<podcast:locked>no</podcast:locked>
+${eps.map(p => { const a = mediaRel(p, "audio"); return `<item><title>${xmlEsc(p.title)}</title><description>${xmlEsc(p.dek + "\n\n" + plain(p.body).slice(0, 3500))}</description><link>${xmlEsc(pieceUrl(p))}</link><guid isPermaLink="false">${p.id}</guid><pubDate>${rfc822(p.pubAt)}</pubDate>
+<enclosure url="${xmlEsc(SITE.page + a)}" length="${p.audioBytes || 0}" type="${a.endsWith(".mp3") ? "audio/mpeg" : "audio/wav"}"/><itunes:duration>${Math.round(p.audioSecs || 0)}</itunes:duration><itunes:image href="${xmlEsc(SITE.page + mediaRel(p, "cover"))}"/></item>`; }).join("\n")}
+</channel></rss>`;
+}
+async function buildSite(say) {
+  const st = await refreshStatus(); if (st.error) throw new Error(st.error); if (!SITE.folder) throw new Error("Set up the website first (Network website).");
+  const ps = pubList(), put = (path, text) => call("site_put", { path, text }).then(needEngine);
+  for (const p of ps) {
+    if (!p.seo.slug) p.seo.slug = slug(p.title);
+    p.siteMedia = p.siteMedia || {};
+    const cov = await coverFile(p);
+    if (p.siteMedia.cover !== cov) { await call("site_media", { name: cov, path: mediaRel(p, "cover") }).then(needEngine); p.siteMedia.cover = cov; }
+    const aud = p.files.mp3 || p.files.audio, vid = p.files.mp4 || p.files.video;
+    if (vid && p.siteMedia.video !== vid) { say && say("Copying video: " + p.title); await call("site_media", { name: vid, path: mediaRel(p, "video") }).then(needEngine); p.siteMedia.video = vid; }
+    if (aud && p.siteMedia.audio !== aud) { const r = needEngine(await call("site_media", { name: aud, path: mediaRel(p, "audio") })); p.audioBytes = r.bytes; p.siteMedia.audio = aud; }
+    await put(`articles/${p.seo.slug}.html`, articlePage(p));
+  }
+  for (const s of S.shows.filter(s => s.kind === "podcast")) {
+    if (!S.site["art_" + s.id]) { const a = await squareArt(s); await putFile(`show-${s.id}.png`, a.png); S.site["art_" + s.id] = 1; }
+    await call("site_media", { name: `show-${s.id}.png`, path: `media/show-${slug(s.name)}.png` }).then(needEngine);
+    await put(`podcast-${slug(s.name)}.xml`, podcastXml(s, ps.filter(p => p.kind === "podcast" && p.showId === s.id && (p.files.mp3 || p.files.audio))));
+  }
+  await put("index.html", siteIndex(false));
+  for (const d of S.desks) { const dp = ps.filter(p => p.deskId === d.id); if (dp.length) await put(`desk-${slug(d.name)}.html`, frame(d.name + " · " + S.net.name, `<h2 class="sec">${esc(d.name)}</h2><div class="grid">${dp.map(p => card(p, "")).join("")}</div>`, "")); }
+  const aud = ps.filter(p => p.kind === "podcast" || p.files.mp3 || p.files.audio), vid = ps.filter(p => p.files.mp4 || p.files.video);
+  await put("listen.html", frame("Listen · " + S.net.name, `<h2 class="sec">Listen</h2>${S.shows.filter(s => s.kind === "podcast").map(s => `<p><b>${esc(s.name)}</b>: ${esc(s.desc)} · <a href="podcast-${slug(s.name)}.xml">Podcast feed</a> (paste into any podcast app)</p>`).join("")}<div class="grid">${aud.map(p => card(p, "")).join("") || "<p>No audio yet.</p>"}</div>`, ""));
+  await put("watch.html", frame("Watch · " + S.net.name, `<h2 class="sec">Watch</h2><div class="grid">${vid.map(p => card(p, "")).join("") || "<p>No videos yet.</p>"}</div>`, ""));
+  await put("about.html", frame("Ethics & AI · " + S.net.name, `<article><h1>Standards, corrections & AI</h1><p>${esc(S.net.disclosure)}</p><h2>How we work</h2><p>${esc(S.style.voice)}</p><ul>${S.style.rules.split("\n").filter(Boolean).map(r => `<li>${esc(r)}</li>`).join("")}</ul>
+   <h2>Our AI staff</h2><ul>${S.staff.map(s => `<li><b>${esc(s.name)}</b>, AI ${esc(s.role)} (${esc(s.beat)})</li>`).join("")}</ul><p>Our reporters, anchors and hosts are AI personas. Stories are written with AI from linked sources, checked against those sources, and reviewed before publishing.</p>
+   <h2>Corrections</h2>${S.corrections.length ? `<ul>${S.corrections.slice().reverse().map(c => `<li>${fmtT(c.t)}: <b>${esc(c.title)}</b>: ${esc(c.text)}</li>`).join("")}</ul>` : "<p>None so far.</p>"}${S.net.contact ? `<p>Spotted an error? Write to <a href="mailto:${esc(S.net.contact)}">${esc(S.net.contact)}</a>.</p>` : ""}</article>`, ""));
+  await put("feed.xml", rss(ps));
+  await put("feed.json", JSON.stringify({ version: "https://jsonfeed.org/version/1.1", title: S.net.name, home_page_url: SITE.page, feed_url: SITE.page + "feed.json", items: ps.slice(0, 60).map(p => ({ id: p.id, url: pieceUrl(p), title: p.title, summary: p.dek, content_html: htmlFor(p), image: SITE.page + mediaRel(p, "cover"), date_published: new Date(p.pubAt || now()).toISOString(), tags: p.tags, authors: [{ name: byName(p.byline) }] })) }, null, 1));
+  await put("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>${xmlEsc(SITE.page)}</loc></url>${ps.map(p => `<url><loc>${xmlEsc(pieceUrl(p))}</loc><lastmod>${new Date(p.updated).toISOString().slice(0, 10)}</lastmod></url>`).join("")}</urlset>`);
+  await put("robots.txt", `User-agent: *\nAllow: /\nSitemap: ${SITE.page}sitemap.xml\n`);
+  await put("README.md", `# ${S.net.name}\n\n${S.net.tagline}\n\nMade with [Randis UDS™ by Randy Moore](https://github.com/RandyWilliamMoore/randis-uds): Media Network tab.\n`);
+  S.site.built = now(); save();
+}
+// ======================= autopilot & schedule, staff & shows, standards, log, settings, start =======================
+PAGES.auto = () => {
+  const sch = S.pieces.filter(p => p.status === "scheduled").sort((a, b) => a.scheduledAt - b.scheduledAt);
+  return `<h1>🤖 Autopilot & schedule</h1><p class="sub">Rules that run the network by themselves while Randis UDS is open with this tab loaded: pull the wire, pick stories, write, check and queue or publish.</p>
+  <div class="card ${S.autopilot ? "hi" : ""}"><div class="row"><b>Autopilot is ${S.autopilot ? "ON" : "OFF"}</b><button class="${S.autopilot ? "" : "p"}" data-act="autoToggle">${S.autopilot ? "Turn off" : "Turn on"}</button>
+   <span class="mu sm">Checks every minute. Last run: ${S.lastAuto ? fmtT(S.lastAuto) : "never"}.</span></div>
+   <div class="warn sm">Safe default: autopilot pieces wait in <b>Approved</b> for you. Only rules set to “publish if the fact-check passes” go out without you, and only pieces that pass.</div></div>
+  <h2>Rules</h2>${S.rules.length ? `<table><tr><th>On</th><th>Every</th><th>Makes</th><th>From</th><th>Then</th><th>Next</th><th></th></tr>${S.rules.map((r, i) => `<tr><td><input type="checkbox" data-bind="S.rules.${i}.on" ${r.on ? "checked" : ""}></td><td>${r.every} h${r.at ? " from " + esc(r.at) : ""}</td><td>${r.count} × ${KINDS[r.kind].icon} ${KINDS[r.kind].name}</td><td>${esc(r.from === "topic" ? "topic: " + r.topic : r.from === "desk" ? "desk: " + ((desk(r.deskId) || {}).name || "?") : "top wire stories")}</td><td>${r.then === "publish" ? "publish if fact-check passes → " + (r.outlets || []).length + " outlets" + (r.site ? " + website" : "") : "queue for me"}</td><td class="sm">${fmtT(nextRun(r))}</td><td><button class="s" data-act="ruleRun" data-arg="${i}">Run now</button> <button class="s" data-act="ruleDel" data-arg="${i}">✕</button></td></tr>`).join("")}</table>` : `<div class="empty">No rules yet.</div>`}
+  <div class="card"><h3>New rule</h3><div class="grid g4">
+   <div><label>Make</label><select id="rK">${Object.entries(KINDS).map(([k, v]) => `<option value="${k}">${v.icon} ${v.name}</option>`).join("")}</select></div>
+   <div><label>How many each time</label><input id="rN" type="number" min="1" max="10" value="1"></div>
+   <div><label>Every (hours)</label><input id="rE" type="number" min="1" max="168" value="24"></div>
+   <div><label>Starting at (time of day)</label><input id="rA" type="time" value="07:00"></div>
+   <div><label>From</label><select id="rF"><option value="wire">Top wire stories</option><option value="desk">A desk's stories</option><option value="topic">A topic search</option></select></div>
+   <div><label>Desk</label><select id="rD">${S.desks.map(d => `<option value="${d.id}">${esc(d.name)}</option>`).join("")}</select></div>
+   <div><label>Topic</label><input id="rT" placeholder="e.g. local weather Tampa"></div>
+   <div><label>Then</label><select id="rW"><option value="queue">Queue for my approval</option><option value="publish">Publish if fact-check passes</option></select></div></div>
+   <label>Publish to (when publishing)</label><div><label class="pill"><input type="checkbox" id="rSite" checked> 🌐 Website</label>${OUT.map(o => `<label class="pill"><input type="checkbox" class="rO" value="${o.id}"> ${esc(o.name)}</label>`).join("")}</div>
+   <div class="gap"></div><button class="p" data-act="ruleAdd">Add rule</button></div>
+  <h2>Scheduled</h2>${sch.length ? `<table>${sch.map(p => `<tr><td>${fmtT(p.scheduledAt)}</td><td>${kindTag(p.kind)} <a data-go="edit" data-id="${p.id}">${esc(p.title)}</a></td><td><button class="s" data-act="unsched" data-arg="${p.id}">Unschedule</button></td></tr>`).join("")}</table>` : `<div class="empty">Nothing scheduled. Use Publish… → Schedule on any piece.</div>`}`;
+};
+AFTER.auto = async () => { if (!OUT.length) { await refreshStatus(); if (OUT.length && PAGE === "auto") rerender(); } };
+ACT.autoToggle = () => { S.autopilot = !S.autopilot; save(); logIt("auto", "Autopilot " + (S.autopilot ? "on" : "off")); rerender(); };
+ACT.ruleAdd = () => {
+  S.rules.push({ id: uid(), on: true, kind: $("#rK").value, count: clamp(+$("#rN").value || 1, 1, 10), every: clamp(+$("#rE").value || 24, 1, 168), at: $("#rA").value, from: $("#rF").value, deskId: $("#rD").value, topic: $("#rT").value.trim(),
+    then: $("#rW").value, site: $("#rSite").checked, outlets: $$(".rO").filter(x => x.checked).map(x => x.value), last: 0 });
+  save(); rerender();
+};
+ACT.ruleDel = i => { S.rules.splice(+i, 1); save(); rerender(); };
+ACT.ruleRun = i => runRule(S.rules[+i]);
+ACT.unsched = id => { const p = piece(id); p.status = "approved"; p.scheduledAt = 0; save(); rerender(); };
+function nextRun(r) {
+  if (!r.last) { const d = new Date(); if (r.at) { const [h, m] = r.at.split(":").map(Number); d.setHours(h, m, 0, 0); if (d.getTime() < now() - 60e3) return now(); return d.getTime(); } return now(); }
+  return r.last + r.every * 36e5;
+}
+let RULE_BUSY = false;
+async function runRule(r) {
+  if (RULE_BUSY) return; RULE_BUSY = true; r.last = now(); save();
+  try {
+    logIt("auto", `Rule running: ${r.count} × ${KINDS[r.kind].name}`);
+    let pool = [];
+    if (r.from === "topic" && r.topic) pool = await fetchFeeds([["Search: " + r.topic, "https://news.google.com/rss/search?q=" + encodeURIComponent(r.topic) + "&hl=en-US&gl=US&ceid=US:en"]]);
+    else { if (now() - S.wire.fetched > 30 * 60e3) await ACT.pullWire(); pool = S.wire.items.filter(w => r.from !== "desk" || w.desk === (desk(r.deskId) || {}).name); }
+    const used = new Set(S.pieces.flatMap(p => p.sources.map(s => s.link)));
+    pool = pool.filter(w => !used.has(w.link)).slice(0, 60);
+    if (!pool.length) { logIt("auto", "Nothing new on the wire for this rule."); return; }
+    const multi = r.kind === "newscast" || r.kind === "newsletter" || r.kind === "podcast";
+    const r2 = await aiJSON(`Pick the ${multi ? "5 most newsworthy distinct stories for one " + KINDS[r.kind].name : r.count + " most newsworthy distinct stories, one per piece"} from these headlines. Skip duplicates and trivial items.\n${pool.map((w, i) => `${i}. ${w.title} (${w.outlet})`).join("\n")}`, `{"items":[0,1]}`);
+    const picks = (r2.items || []).map(i => pool[i]).filter(Boolean);
+    const groups = multi ? Array.from({ length: r.count }, (_, k) => picks.slice(k * 5, k * 5 + 5)).filter(g => g.length) : picks.slice(0, r.count).map(w => [w]);
+    for (const g of groups) {
+      const p = newPiece(r.kind, { sources: g.map(srcOf), deskName: g[0].desk, silent: true, topic: r.from === "topic" ? r.topic : "" });
+      p.auto = r.id;
+      try {
+        await generate(p);
+        const fc = await factcheck(p);
+        if (fc.verdict !== "pass") { await ACT_fix(p); await factcheck(p); }
+        if (p.kind === "podcast") await mixEpisode(p);
+        if (p.kind === "video" || p.kind === "newscast") await voiceScenes(p);
+        if (r.then === "publish" && p.factcheck && p.factcheck.verdict === "pass" && p.kind !== "video" && p.kind !== "newscast") { await refreshStatus(); await publishPiece(p, { site: r.site && !!SITE.folder, outlets: r.outlets || [], status: "publish" }); }
+        else { p.status = p.factcheck && p.factcheck.verdict === "pass" ? "approved" : "factcheck"; save(); }
+      } catch (e) { logIt("auto", `Autopilot piece failed: ${e.message}`); p.status = "draft"; save(); }
+    }
+  } finally { RULE_BUSY = false; save(); nav(); if (["auto", "board", "home"].includes(PAGE)) rerender(); }
+}
+async function ACT_fix(p) {
+  const bad = ((p.factcheck || {}).claims || []).filter(c => c.status !== "supported" && c.status !== "opinion"); if (!bad.length || !p.body) return;
+  const r = await aiJSON(`Remove or correct these flagged claims so every fact is in the sources:\n${bad.map(c => "- " + c.claim).join("\n")}\n\nBODY:\n${p.body}\n\n${srcBlock(p)}`, `{"body_markdown":""}`, { max: 9000 });
+  if (r.body_markdown) { p.revs.push({ t: now(), title: p.title, body: p.body }); p.body = r.body_markdown; save(); }
+}
+async function tick() {
+  for (const p of S.pieces.filter(p => p.status === "scheduled" && p.scheduledAt && p.scheduledAt <= now())) {
+    await refreshStatus(); logIt("auto", "Scheduled publish: " + p.title);
+    await publishPiece(p, p.schedTargets || { site: !!SITE.folder, outlets: [], status: "draft" });
+  }
+  if (!S.autopilot) return;
+  S.lastAuto = now(); save();
+  for (const r of S.rules.filter(r => r.on)) if (nextRun(r) <= now()) { await runRule(r); break; }
+}
+setInterval(() => { tick().catch(e => logIt("auto", "Autopilot error: " + e.message)); }, 60e3);
+
+// ---------- staff, shows, desks
+PAGES.staff = () => `<h1>🧑‍💼 AI staff, shows & desks</h1><p class="sub">Your newsroom's AI personas, their voices and looks; the shows they host; the desks (beats) and the feeds each desk reads.</p>
+ <h2>Staff</h2><div class="grid g3">${S.staff.map((s, i) => `<div class="card"><div class="row"><canvas class="av" data-i="${i}" width="90" height="90" style="border-radius:50%;background:#223"></canvas><div class="f"><input data-bind="S.staff.${i}.name" data-re value="${esc(s.name)}"><div class="row" style="margin-top:4px"><select data-bind="S.staff.${i}.role" style="max-width:110px">${["anchor", "host", "reporter", "editor", "producer"].map(r => `<option ${s.role === r ? "selected" : ""}>${r}</option>`).join("")}</select><select data-bind="S.staff.${i}.beat">${["All"].concat(S.desks.map(d => d.name)).map(b => `<option ${s.beat === b ? "selected" : ""}>${esc(b)}</option>`).join("")}</select></div></div></div>
+  <label>Personality & style</label><textarea rows="2" data-bind="S.staff.${i}.style">${esc(s.style)}</textarea>
+  <label>Voice</label><div class="row"><select class="vsel f" data-i="${i}"><option value="">(automatic)</option></select><button class="s" data-act="hear" data-arg="${i}">▶</button></div>
+  <label>Speed ${s.rate || 0}</label><input type="range" min="-5" max="5" data-bind="S.staff.${i}.rate" data-re value="${s.rate || 0}">
+  <div class="row sm">Skin <input type="color" data-bind="S.staff.${i}.look.skin" data-re value="${s.look.skin}" style="width:40px">Hair <input type="color" data-bind="S.staff.${i}.look.hair" data-re value="${s.look.hair}" style="width:40px">Suit <input type="color" data-bind="S.staff.${i}.look.suit" data-re value="${s.look.suit}" style="width:40px"><button class="s" data-act="staffDel" data-arg="${i}">✕</button></div></div>`).join("")}</div>
+ <div class="row" style="margin-top:8px"><button data-act="staffAdd">+ Add staff</button><button data-act="staffAI">✨ AI: hire a persona</button></div>
+ <h2>Shows</h2><div class="grid g2">${S.shows.map((s, i) => `<div class="card"><div class="row"><input data-bind="S.shows.${i}.art" value="${esc(s.art)}" style="width:60px"><input class="f" data-bind="S.shows.${i}.name" data-re value="${esc(s.name)}"><select data-bind="S.shows.${i}.kind" style="max-width:110px"><option ${s.kind === "podcast" ? "selected" : ""}>podcast</option><option ${s.kind === "video" ? "selected" : ""}>video</option></select></div>
+  <label>Description</label><input data-bind="S.shows.${i}.desc" value="${esc(s.desc)}"><div class="grid g3"><div><label>Category</label><input data-bind="S.shows.${i}.category" value="${esc(s.category || "News")}"></div><div><label>Intro music</label><select data-bind="S.shows.${i}.intro">${Object.entries(JINGLES).map(([k, n]) => `<option value="${k}" ${s.intro === k ? "selected" : ""}>${n}</option>`).join("")}</select></div><div><label>&nbsp;</label><button class="s" data-act="hearJ" data-arg="${i}">▶ intro</button> <button class="s" data-act="showDel" data-arg="${i}">✕</button></div></div>
+  <label>Hosts</label><div>${S.staff.map(st => `<label class="pill ${(s.hosts || []).includes(st.id) ? "on" : ""}"><input type="checkbox" onchange="const h=S.shows[${i}].hosts=S.shows[${i}].hosts||[];this.checked?h.push('${st.id}'):h.splice(h.indexOf('${st.id}'),1);save();rerender()" ${(s.hosts || []).includes(st.id) ? "checked" : ""}> ${esc(st.name)}</label>`).join("")}</div></div>`).join("")}</div>
+ <button data-act="showAdd">+ Add show</button>
+ <h2>Desks & feeds</h2>${S.desks.map((d, i) => `<div class="card" style="margin-bottom:8px"><div class="row"><input data-bind="S.desks.${i}.name" value="${esc(d.name)}" style="max-width:200px"><span class="mu sm">${d.feeds.length} feeds</span><span class="f"></span><button class="s" data-act="deskDel" data-arg="${i}">✕</button></div>
+  <textarea rows="${Math.max(2, d.feeds.length)}" onchange="S.desks[${i}].feeds=this.value.split(/\\s+/).filter(x=>/^https?:/.test(x));save()" placeholder="One RSS/Atom feed address per line">${esc(d.feeds.join("\n"))}</textarea></div>`).join("")}
+ <div class="row"><button data-act="deskAdd">+ Add desk</button><button data-act="feedFind">✨ AI: suggest feeds for a desk…</button></div>`;
+AFTER.staff = async () => {
+  $$("canvas.av").forEach(c => { const s = S.staff[+c.dataset.i], g = c.getContext("2d"); g.fillStyle = "#223"; g.fillRect(0, 0, 90, 90); drawAnchor(g, 45, 40, 0.3, s.look, 0, 1); });
+  const vs = await voices();
+  $$("select.vsel").forEach(sel => { const s = S.staff[+sel.dataset.i]; sel.innerHTML = `<option value="">(automatic)</option>` + vs.map(v => `<option ${s.voice === v.name ? "selected" : ""}>${esc(v.name)}</option>`).join(""); sel.onchange = () => { s.voice = sel.value; save(); }; });
+  if (!vs.length && $(".vsel")) $(".vsel").insertAdjacentHTML("afterend", `<span class="sm mu">No Windows voices found (they come from Settings → Time & language → Speech).</span>`);
+};
+ACT.hear = async i => { const s = S.staff[+i]; await voices(); const r = needEngine(await call("tts", { text: `Hi, I'm ${s.name}, ${s.role} at ${S.net.name}.`, voice: voiceOf(s, +i), rate: s.rate || 0, name: "hear.wav" })); forgetURL(r.file); new Audio(await fileURL(r.file)).play(); };
+ACT.hearJ = async i => { const d = await jingle(S.shows[+i].intro || "bright"); if (!d) return; const ac = new AudioContext(), b = ac.createBuffer(1, d.length, SR); b.copyToChannel(d, 0); const s = ac.createBufferSource(); s.buffer = b; s.connect(ac.destination); s.start(); };
+ACT.staffAdd = () => { S.staff.push({ id: uid(), name: "New reporter", role: "reporter", beat: "All", voice: "", rate: 0, style: "", look: { skin: "#c68642", hair: "#222", suit: "#333" } }); save(); rerender(); };
+ACT.staffDel = i => { if (S.staff.length < 2) return; S.staff.splice(+i, 1); save(); rerender(); };
+ACT.staffAI = async () => {
+  const role = prompt("What kind of persona? e.g. 'a dry-humored science podcast host'", "a warm local news anchor"); if (!role) return;
+  const r = await aiJSON(`Invent an original AI persona for our newsroom: ${role}. Clearly fictional (not a real person).`, `{"name":"","role":"anchor|host|reporter|editor|producer","beat":"one of: ${S.desks.map(d => d.name).join(", ")}","style":"2 sentences on voice and personality","skin":"#hex","hair":"#hex","suit":"#hex"}`);
+  S.staff.push({ id: uid(), name: r.name || "New staff", role: r.role || "reporter", beat: r.beat || "All", voice: "", rate: 0, style: r.style || "", look: { skin: r.skin || "#c68642", hair: r.hair || "#222", suit: r.suit || "#333" } }); save(); rerender();
+};
+ACT.showAdd = () => { S.shows.push({ id: uid(), kind: "podcast", name: "New show", desc: "", hosts: [], art: "🎧", category: "News", intro: "calm" }); save(); rerender(); };
+ACT.showDel = i => { S.shows.splice(+i, 1); save(); rerender(); };
+ACT.deskAdd = () => { S.desks.push({ id: uid(), name: "New desk", feeds: [], topics: [] }); save(); rerender(); };
+ACT.deskDel = i => { if (!confirm("Remove this desk?")) return; S.desks.splice(+i, 1); save(); rerender(); };
+ACT.feedFind = async () => {
+  const name = prompt("Which desk/topic? (e.g. 'Gaming', 'Florida local news', 'Climate')"); if (!name) return;
+  const r = await aiJSON(`List 6 real, public RSS or Atom feed URLs from reputable outlets for a news desk about: ${name}. Only feeds you are confident exist.`, `{"feeds":["https://..."]}`);
+  const ok = [];
+  for (const f of r.feeds || []) { const t = await call("feed", { url: f }); if (!t.error && (t.items || []).length) ok.push(f); }
+  ok.push("https://news.google.com/rss/search?q=" + encodeURIComponent(name) + "&hl=en-US&gl=US&ceid=US:en");
+  let d = S.desks.find(x => x.name.toLowerCase() === name.toLowerCase()); if (!d) { d = { id: uid(), name, feeds: [], topics: [] }; S.desks.push(d); }
+  d.feeds = [...new Set(d.feeds.concat(ok))]; save(); rerender(); toast(`${ok.length} working feeds added to ${name} (each was checked).`, "ok");
+};
+
+// ---------- standards & corrections
+PAGES.standards = () => `<h1>⚖️ Standards & corrections</h1><p class="sub">Your house style and rules go to the AI with every request, and onto your website's ethics page.</p>
+ <div class="grid g2"><div><label>House voice</label><textarea rows="3" data-bind="S.style.voice">${esc(S.style.voice)}</textarea>
+ <label>Rules (one per line)</label><textarea rows="7" data-bind="S.style.rules">${esc(S.style.rules)}</textarea>
+ <label>Words to avoid</label><input data-bind="S.style.banned" value="${esc(S.style.banned)}"></div>
+ <div><label class="pill ${S.net.discloseOn ? "on" : ""}" style="display:inline-flex"><input type="checkbox" data-bind="S.net.discloseOn" data-re ${S.net.discloseOn ? "checked" : ""}> Show the AI disclosure on everything published</label>
+ <label>AI disclosure line</label><textarea rows="2" data-bind="S.net.disclosure">${esc(S.net.disclosure)}</textarea>
+ <p class="sm mu">Many platforms (YouTube, TikTok, Meta) and some laws require labeling realistic AI-made media, and readers trust a network more when it's honest about it. Keeping this on is strongly recommended.</p>
+ <h3>Log a correction</h3><select id="cP">${pubList().map(p => `<option value="${p.id}">${esc(p.title)}</option>`).join("")}</select><textarea id="cT" rows="2" placeholder="What was wrong and what's right"></textarea><button data-act="corr">Add correction</button>
+ ${S.corrections.length ? `<table>${S.corrections.slice().reverse().map(c => `<tr><td class="sm">${fmtT(c.t)}</td><td><b>${esc(c.title)}</b><div class="sm">${esc(c.text)}</div></td></tr>`).join("")}</table>` : ""}</div></div>`;
+ACT.corr = () => { const p = piece($("#cP").value), t = $("#cT").value.trim(); if (!p || !t) return; const c = { t: now(), id: p.id, title: p.title, text: t }; S.corrections.push(c); (p.corrections = p.corrections || []).push(c); p.updated = now(); save(); toast("Correction logged; it shows on the story and the ethics page next time the website is published.", "ok"); rerender(); };
+
+// ---------- log & reach
+PAGES.log = () => {
+  const pushes = S.log.filter(l => l.kind === "push"), byW = {};
+  pushes.forEach(l => { const w = l.where || "?"; byW[w] = byW[w] || { ok: 0, fail: 0 }; byW[w][l.ok ? "ok" : "fail"]++; });
+  const byK = {}; S.pieces.forEach(p => byK[p.kind] = (byK[p.kind] || 0) + 1);
+  return `<h1>📈 Log & reach</h1><p class="sub">What the network made and where it went. (Views and likes live on each platform; links go there.)</p>
+  <div class="grid g2"><div class="card"><h3>By outlet</h3><table><tr><th>Outlet</th><th>Sent</th><th>Failed</th></tr>${Object.entries(byW).map(([w, c]) => `<tr><td>${esc(w)}</td><td>${c.ok}</td><td>${c.fail}</td></tr>`).join("") || `<tr><td colspan=3 class="mu">Nothing yet.</td></tr>`}</table></div>
+  <div class="card"><h3>By kind</h3><table>${Object.entries(byK).map(([k, n]) => `<tr><td>${kindTag(k)}</td><td>${n}</td></tr>`).join("") || `<tr><td class="mu">Nothing yet.</td></tr>`}</table></div></div>
+  <div class="row" style="margin:12px 0"><button data-act="logCsv">⬇ Export log (CSV)</button><button data-act="logClear">Clear log</button></div>
+  <div class="log" style="max-height:520px">${S.log.slice().reverse().slice(0, 500).map(l => `${new Date(l.t).toLocaleString()}  [${l.kind}] ${esc(l.text)}${l.url ? " " + esc(l.url) : ""}`).join("\n") || "Empty."}</div>`;
+};
+ACT.logCsv = () => download("media-network-log.csv", "time,kind,text,where,ok,url\n" + S.log.map(l => [new Date(l.t).toISOString(), l.kind, l.text, l.where || "", l.ok ?? "", l.url || ""].map(x => `"${String(x).replace(/"/g, '""')}"`).join(",")).join("\n"), "text/csv");
+ACT.logClear = () => { if (confirm("Clear the log?")) { S.log = []; save(); rerender(); } };
+
+// ---------- settings & tools
+PAGES.settings = () => `<h1>⚙️ Settings & tools</h1>
+ <div class="grid g2"><div class="card"><h3>Network</h3><div class="grid g3"><div><label>Logo (emoji)</label><input data-bind="S.net.logo" data-re value="${esc(S.net.logo)}"></div><div><label>Short name</label><input data-bind="S.net.short" value="${esc(S.net.short)}"></div><div><label>Language</label><input data-bind="S.net.language" value="${esc(S.net.language)}"></div></div>
+  <label>Name</label><input data-bind="S.net.name" data-re value="${esc(S.net.name)}"><label>Tagline</label><input data-bind="S.net.tagline" value="${esc(S.net.tagline)}"><label>Audience</label><input data-bind="S.net.audience" value="${esc(S.net.audience)}">
+  <div class="grid g2"><div><label>Accent colour</label><input type="color" data-bind="S.net.color" value="${esc(S.net.color)}"></div><div><label>Dark colour</label><input type="color" data-bind="S.net.color2" value="${esc(S.net.color2)}"></div></div></div>
+ <div class="card"><h3>Tools</h3><div id="tools"><span class="busy"></span></div>
+  <h3>Files</h3><p class="sm mu">Audio, video and art live in the app's <code>data\\media\\files</code> folder (left out of undo snapshots so they don't fill your disk).</p><button data-act="filesFolder">Open files folder</button> <button data-act="filesList">Show files</button><div id="flist"></div>
+  <h3>Backup</h3><button data-act="backup">⬇ Export everything (JSON)</button> <label class="pill" style="display:inline-flex">⬆ Import<input type="file" id="imp" accept=".json" style="display:none"></label>
+  <button data-act="reset">Start over</button></div></div>`;
+AFTER.settings = async () => {
+  $("#imp").onchange = async e => { const f = e.target.files[0]; if (!f) return; try { const d = JSON.parse(await f.text()); if (d.v !== 1 || !d.net) throw new Error("Not a Media Network backup."); if (!confirm("Replace everything with this backup?")) return; S = d; save(); go("home"); } catch (er) { toast(er.message, "err"); } };
+  const r = await refreshStatus(), el = $("#tools"); if (!el) return;
+  if (r.error) { el.innerHTML = `<div class="warn">${esc(r.error)}</div>`; return; }
+  const vs = await voices();
+  el.innerHTML = `<table><tr><td>Linked AI</td><td>Uses whichever AI is linked in Randis UDS (the LLM button).</td></tr><tr><td>Windows voices</td><td>${vs.length ? vs.map(v => esc(v.name)).join(", ") : "none found"}</td></tr>
+   <tr><td>ffmpeg (MP3/MP4)</td><td>${r.ffmpeg ? "✅ installed" : `➖ <button class="s" data-act="instFF">Install ffmpeg</button>`}</td></tr><tr><td>Git</td><td>${r.git ? "✅" : `❌ <button class="s" data-act="instGit">Install</button>`}</td></tr>
+   <tr><td>GitHub CLI</td><td>${r.gh ? (r.login ? "✅ signed in as " + esc(r.login) : `✅ <button class="s" data-act="signIn">Sign in</button>`) : `❌ <button class="s" data-act="instGit">Install</button>`}</td></tr></table>
+   ${(r.jobs || []).filter(j => !j.done).map(j => `<p class="sm"><span class="busy"></span> ${esc(j.status)} ${j.code ? `<b style="font-size:18px">${esc(j.code)}</b>` : ""}</p>`).join("")}`;
+};
+ACT.instFF = async () => { const r = await call("install_ffmpeg"); r.error ? toast(r.error, "err") : (toast("Installing ffmpeg… Windows may ask to allow it.", "ok"), pollJobs()); };
+ACT.filesFolder = () => call("open_folder", { which: "files" });
+ACT.filesList = async () => { const r = needEngine(await call("files")); $("#flist").innerHTML = `<table>${r.files.slice(-200).reverse().map(f => `<tr><td class="sm">${esc(f.name)}</td><td class="sm">${(f.bytes / 1048576).toFixed(1)} MB</td><td><button class="s" data-act="saveAs" data-arg="${esc(f.name)}">⬇</button> <button class="s" data-act="dropF" data-arg="${esc(f.name)}">✕</button></td></tr>`).join("")}</table>`; };
+ACT.dropF = async n => { if (!confirm("Delete " + n + "?")) return; await call("drop_file", { name: n }); ACT.filesList(); };
+ACT.backup = () => download(`media-network-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(S), "application/json");
+ACT.reset = () => { if (!confirm("Delete every piece, rule and setting in this tab? (Outlets and files are kept.)")) return; S = defaults(); save(); go("home"); };
+
+// ---------- start
+load(); go("home");
+refreshStatus().then(() => nav());
+setTimeout(() => tick().catch(() => { }), 5000);
+</script></body></html>
