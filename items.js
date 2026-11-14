@@ -699,6 +699,23 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "randis-antivirus",
+  "name": "Randis Antivirus",
+  "by": "Randy",
+  "blurb": "A plain-language antivirus with its own engine: 40 editable rules, heuristic levels, known-malware hashes, archive and Office/PDF/shortcut checks, Smart/Full/Custom/Deep scans, quarantine, Shield folder watching, processes, startup and network views. The engine runs inside Randis UDS, so in the shop you can look around but not scan.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/randis-antivirus",
+  "file": "apps/randis-antivirus/item.html",
+  "logo": "apps/randis-antivirus/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "randis-bench-lab",
   "name": "Randis Bench Lab",
   "by": "Randy",
@@ -763,6 +780,23 @@ window.ITEMS = [
   "open_with": "randisuds://open?item=apps/randis-sound-forge",
   "file": "apps/randis-sound-forge/item.html",
   "logo": "apps/randis-sound-forge/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "repo-scout",
+  "name": "Repo Scout",
+  "by": "Randy",
+  "blurb": "Finds tools and ideas on GitHub, GitLab, Codeberg, Hugging Face Spaces, Show HN and npm, ranks them by fit, stars, activity and license, reads READMEs and suggests Clone, Use, Fork, Integrate, Watch, Study or Ignore with checkboxes. The searching and cloning run inside Randis UDS, so in the shop you can look around but not search.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/repo-scout",
+  "file": "apps/repo-scout/item.html",
+  "logo": "apps/repo-scout/logo.svg",
   "video_pic": null
  },
  {

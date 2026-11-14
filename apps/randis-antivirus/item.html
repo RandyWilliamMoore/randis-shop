@@ -1,0 +1,671 @@
+<!doctype html>
+<!-- Randis UDS™ by Randy Moore. Original: https://github.com/RandyWilliamMoore/randis-uds · Support: https://ko-fi.com/moorescombinatoricsmatrix -->
+<html><head><meta charset="utf-8"><title>Randis Antivirus</title>
+<style>
+:root{--bg:#0b0f14;--pan:#121922;--pan2:#18212c;--line:#253141;--tx:#dce6f0;--mut:#8696a8;--ac:#33e08a;--ac2:#1fb8ff;--warn:#ffb020;--bad:#ff4d5e;--crit:#ff2bd6}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 "Segoe UI",system-ui,sans-serif;display:flex;height:100vh;overflow:hidden}
+nav{width:200px;background:#081018;border-right:1px solid var(--line);display:flex;flex-direction:column;padding:10px 8px;gap:2px;overflow:auto}
+nav .brand{font-weight:900;font-size:17px;padding:6px 8px 2px;letter-spacing:.5px}nav .brand b{color:var(--ac)}
+nav .tag{font-size:11px;color:var(--mut);padding:0 8px 10px}
+nav button{all:unset;cursor:pointer;padding:7px 10px;border-radius:8px;color:var(--mut);display:flex;gap:8px;align-items:center}
+nav button:hover{background:var(--pan2);color:var(--tx)}nav button.on{background:linear-gradient(90deg,#123a28,#0f2030);color:#fff;box-shadow:inset 3px 0 var(--ac)}
+nav .cnt{margin-left:auto;background:var(--bad);color:#fff;border-radius:9px;padding:0 6px;font-size:11px}
+main{flex:1;overflow:auto;padding:18px 22px}
+h1{margin:0 0 4px;font-size:22px}h2{font-size:16px;margin:18px 0 8px}.sub{color:var(--mut);margin-bottom:14px}
+.card{background:var(--pan);border:1px solid var(--line);border-radius:12px;padding:14px}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.btn{cursor:pointer;border:1px solid var(--line);background:var(--pan2);color:var(--tx);padding:7px 13px;border-radius:8px;font:inherit}
+.btn:hover{border-color:var(--ac2)}.btn.pri{background:linear-gradient(135deg,#1aa864,#0e7fbf);border:0;color:#fff;font-weight:700}
+.btn.big{padding:12px 20px;font-size:15px}.btn.bad{background:#4a1520;border-color:#7a2433}.btn.sm{padding:3px 8px;font-size:12px}
+.btn:disabled{opacity:.45;cursor:default}
+input,select,textarea{background:#0a1118;color:var(--tx);border:1px solid var(--line);border-radius:7px;padding:6px 8px;font:inherit}
+textarea{width:100%;font-family:Consolas,monospace;font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--mut);font-weight:600;position:sticky;top:0;background:var(--pan)}tr:hover td{background:#141e29}
+.mono{font-family:Consolas,monospace;font-size:12px;word-break:break-all}.mut{color:var(--mut)}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.v{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:700;text-transform:uppercase;white-space:nowrap}
+.v-malware{background:var(--crit);color:#fff}.v-test{background:#7a3cff;color:#fff}.v-dangerous{background:var(--bad);color:#fff}.v-suspicious{background:var(--warn);color:#000}
+.v-low{background:#3a4a5a}.v-info,.v-clean{background:#1d3b2c;color:#7ff0b5}
+.s0{color:var(--mut)}.s1{color:#9fb3c8}.s2{color:var(--warn)}.s3{color:var(--bad)}.s4{color:var(--crit);font-weight:700}
+.ok{color:var(--ac)}.no{color:var(--bad)}.meh{color:var(--warn)}
+.ring{width:150px;height:150px;border-radius:50%;display:grid;place-items:center;font-size:38px;font-weight:900}
+.bar{height:8px;background:#0a1118;border-radius:5px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--ac),var(--ac2));transition:width .3s}
+.pulse{animation:p 1.2s infinite}@keyframes p{50%{opacity:.4}}
+label.opt{display:flex;gap:8px;align-items:flex-start;padding:5px 0}label.opt small{display:block;color:var(--mut)}
+.hide{display:none!important}#toast{position:fixed;bottom:18px;right:18px;background:#10301f;border:1px solid var(--ac);padding:10px 14px;border-radius:10px;opacity:0;transition:.3s;pointer-events:none;max-width:420px}#toast.on{opacity:1}
+.modal{position:fixed;inset:0;background:#000a;display:grid;place-items:center;z-index:9}.modal>div{background:var(--pan);border:1px solid var(--line);border-radius:14px;padding:18px;width:min(860px,92vw);max-height:86vh;overflow:auto}
+.chat{display:flex;flex-direction:column;gap:8px}.msg{padding:9px 12px;border-radius:10px;white-space:pre-wrap;max-width:85%}.msg.u{align-self:flex-end;background:#123a28}.msg.a{background:var(--pan2)}
+.issue{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}.issue:last-child{border:0}
+pre.log{background:#05090d;border:1px solid var(--line);border-radius:8px;padding:10px;max-height:340px;overflow:auto;font-size:12px;white-space:pre-wrap}
+</style></head><body>
+<nav id="nav">
+  <div class="brand">🛡️ Randis <b>Antivirus</b></div><div class="tag">Know your role, malware.</div>
+</nav>
+<main id="main"></main>
+<div id="toast"></div>
+<script>
+"use strict";
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const inApp = window.parent !== window, tell = m => { try { window.parent.postMessage(m, "*"); } catch (e) {} };
+const uid = () => Math.random().toString(36).slice(2, 10);
+const toast = t => { const e = $("#toast"); e.textContent = t; e.classList.add("on"); clearTimeout(toast.h); toast.h = setTimeout(() => e.classList.remove("on"), 3800); };
+const mb = b => b > 2 ** 30 ? (b / 2 ** 30).toFixed(2) + " GB" : (b / 2 ** 20).toFixed(1) + " MB";
+const when = t => t ? new Date(t * 1000).toLocaleString() : "never";
+const base = p => String(p || "").split(/[\\/]/).pop();
+
+// ------------------------------------------------------------ app bridge
+const waits = {};
+let loaded = false;
+window.addEventListener("message", e => {
+  const d = e.data; if (!d || typeof d !== "object") return;
+  if (d.uds === "av" && waits[d.id]) { const f = waits[d.id]; delete waits[d.id]; f(d.r || {}); }
+  if (d.uds === "store" && !loaded) boot(d.data && d.data.av);
+  if (d.uds === "exported") toast(d.ok ? "Saved." : (d.note || "Not saved."));
+});
+function call(op, args) {
+  if (!inApp) return Promise.resolve({ error: "Open this inside Randis UDS: the engine runs in the app." });
+  return new Promise(res => { const id = uid(); waits[id] = res; tell({ uds: "av", id, op, args: args || {} });
+    setTimeout(() => { if (waits[id]) { delete waits[id]; res({ error: "No answer from the app (timed out)." }); } }, 15 * 60 * 1000); });
+}
+function exportFile(name, text) {
+  const blob = new Blob([text], { type: "application/json" });
+  if (inApp) return tell({ uds: "export-file", name, data: blob });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; a.click();
+}
+
+// ------------------------------------------------------------ built-in rules (editable: on/off, severity; add your own)
+const R = (id, name, cat, sev, types, strings, cond, desc) => ({ id, name, cat, sev, types, strings: strings.map(v => typeof v === "string" ? { t: "text", v } : v), cond: cond || "any", desc, on: true, builtin: true });
+const BUILTIN = [
+  R("ps-enc", "PowerShell encoded command", "script", 3, ["script", "lnk", "office", "ole", ".txt"], [{ t: "re", v: "(?i)powershell(\\.exe)?[^\\n]{0,80}\\s-(e|en|enc|encodedcommand)\\s+[A-Za-z0-9+/=]{40,}" }], "any", "Runs a hidden base64 PowerShell command."),
+  R("ps-cradle", "Download-and-run cradle", "script", 3, ["script", "lnk", "office", "ole", "pe"], [{ t: "re", v: "(?i)(iex|invoke-expression)\\s*\\(?\\s*\\(?\\s*(new-object\\s+(system\\.)?net\\.webclient|iwr|invoke-webrequest|irm|invoke-restmethod)" }, { t: "re", v: "(?i)\\.downloadstring\\s*\\(\\s*['\"]https?://" }], "any", "Fetches code from the web and runs it straight away."),
+  R("ps-hidden", "Hidden window + bypass", "script", 2, ["script", "lnk"], [{ t: "re", v: "(?i)-w(indowstyle)?\\s+hid(den)?" }, { t: "re", v: "(?i)-(ep|ex(ecutionpolicy)?)\\s+bypass" }, { t: "re", v: "(?i)-nop(rofile)?\\b" }], "all", "Starts PowerShell invisibly, skipping safety settings."),
+  R("ps-amsi", "AMSI / defender bypass", "evasion", 4, ["any"], ["AmsiScanBuffer", "amsiInitFailed", { t: "re", v: "(?i)set-mppreference\\s+-disable(realtime|ioav|behavior)" }, { t: "re", v: "(?i)add-mppreference\\s+-exclusion(path|process)" }], "any", "Tries to blind antivirus scanning."),
+  R("lolbin-certutil", "certutil download", "lolbin", 3, ["script", "lnk", "office", "ole", "pe"], [{ t: "re", v: "(?i)certutil(\\.exe)?\\s+.*-(urlcache|decode)" }], "any", "Misuses a Windows certificate tool to download or decode payloads."),
+  R("lolbin-mshta", "mshta runs remote code", "lolbin", 3, ["script", "lnk", "office", "ole", "pe"], [{ t: "re", v: "(?i)mshta(\\.exe)?\\s+(\"|')?(https?:|javascript:|vbscript:)" }], "any", "Runs an HTML application from the web."),
+  R("lolbin-regsvr", "regsvr32 scriptlet (Squiblydoo)", "lolbin", 3, ["script", "lnk", "office", "ole"], [{ t: "re", v: "(?i)regsvr32.{0,40}/i:\\s*https?" }], "any", "Loads a remote scriptlet through regsvr32."),
+  R("lolbin-rundll", "rundll32 script", "lolbin", 3, ["script", "lnk", "office", "ole"], [{ t: "re", v: "(?i)rundll32(\\.exe)?\\s+(javascript:|vbscript:|.*shell32\\.dll,\\s*shellexec_rundll)" }], "any", "Uses rundll32 to run script code."),
+  R("lolbin-bits", "bitsadmin download", "lolbin", 2, ["script", "lnk"], [{ t: "re", v: "(?i)bitsadmin.{0,40}/transfer" }], "any", "Downloads with BITS (often used to hide transfers)."),
+  R("ransom-vss", "Deletes backups (ransomware move)", "ransom", 4, ["any"], [{ t: "re", v: "(?i)vssadmin(\\.exe)?\\s+delete\\s+shadows" }, { t: "re", v: "(?i)wmic(\\.exe)?\\s+shadowcopy\\s+delete" }, { t: "re", v: "(?i)bcdedit.{0,30}recoveryenabled\\s+no" }, { t: "re", v: "(?i)wbadmin\\s+delete\\s+catalog" }], "any", "Wipes Windows restore points / backups, which ransomware does before encrypting."),
+  R("ransom-note", "Ransom note wording", "ransom", 3, ["any"], ["your files have been encrypted", "to decrypt your files", "bitcoin wallet", "tor browser"], 2, "Text typical of ransom notes."),
+  R("clear-logs", "Wipes event logs", "evasion", 3, ["script", "pe", "lnk"], [{ t: "re", v: "(?i)wevtutil(\\.exe)?\\s+(cl|clear-log)" }, { t: "re", v: "(?i)clear-eventlog" }], "any", "Erases Windows logs to hide tracks."),
+  R("persist-run", "Adds itself to startup", "persist", 2, ["script", "lnk", "office", "ole"], [{ t: "re", v: "(?i)(reg(\\.exe)?\\s+add|new-itemproperty|set-itemproperty|regwrite).{0,120}currentversion\\\\run" }, { t: "re", v: "(?i)schtasks(\\.exe)?\\s+/create" }], "any", "Makes itself start with Windows."),
+  R("cred-mimikatz", "Mimikatz credential stealer", "stealer", 4, ["any"], ["sekurlsa::logonpasswords", "privilege::debug", "lsadump::sam", "gentilkiwi", "mimikatz"], 2, "Strings from the famous password-dumping tool."),
+  R("cred-lsass", "Dumps LSASS memory", "stealer", 4, ["script", "lnk", "pe"], [{ t: "re", v: "(?i)comsvcs(\\.dll)?[, ]+minidump" }, { t: "re", v: "(?i)procdump.{0,30}lsass" }], "any", "Copies the Windows password process memory."),
+  R("stealer-browsers", "Browser password stealer", "stealer", 3, ["pe", "script"], ["\\Google\\Chrome\\User Data\\Default\\Login Data", "\\Mozilla\\Firefox\\Profiles", "logins.json", "Local State", "\\Microsoft\\Edge\\User Data", "encrypted_key"], 4, "Reads several browsers' saved passwords and keys."),
+  R("stealer-wallets", "Crypto wallet stealer", "stealer", 3, ["pe", "script"], ["wallet.dat", "\\Exodus\\", "\\Electrum\\wallets", "\\Ethereum\\keystore", "MetaMask", "nkbihfbeogaeaoehlefnkodbefgpgknn", "\\Atomic\\Local Storage"], 3, "Looks for many crypto wallets at once."),
+  R("stealer-discord", "Discord token grabber", "stealer", 3, ["pe", "script"], ["discord", "Local Storage\\leveldb", { t: "re", v: "[\\w-]{24}\\.[\\w-]{6}\\.[\\w-]{27}|mfa\\.[\\w-]{84}" }, "webhooks"], 3, "Steals Discord login tokens."),
+  R("exfil-telegram", "Sends data to a Telegram bot", "exfil", 2, ["pe", "script"], [{ t: "re", v: "(?i)api\\.telegram\\.org/bot[0-9]{6,}:[A-Za-z0-9_-]{30,}" }], "any", "Has a Telegram bot key built in, common in stealers."),
+  R("exfil-discordhook", "Sends data to a Discord webhook", "exfil", 2, ["pe", "script"], [{ t: "re", v: "(?i)discord(app)?\\.com/api/webhooks/[0-9]{15,}/" }], "any", "Has a Discord webhook built in, common in stealers."),
+  R("rat-names", "Remote access trojan names", "rat", 3, ["pe", "script"], ["AsyncRAT", "njRAT", "Quasar.Client", "DcRat", "Remcos", "NanoCore", "XWorm", "VenomRAT", "DarkComet", "Orcus"], "any", "Mentions a known remote-control trojan family."),
+  R("miner", "Hidden crypto miner", "miner", 3, ["pe", "script", "lnk"], ["stratum+tcp://", "stratum+ssl://", "xmrig", "--donate-level", "cryptonight", "randomx", "nicehash"], 2, "Mining software settings: uses your PC to make someone else money."),
+  R("c2-cobalt", "Cobalt Strike beacon traits", "rat", 4, ["pe", "script"], ["%c%c%c%c%c%c%c%c%cMSSE-%d-server", "beacon.dll", "ReflectiveLoader", { t: "hex", v: "69 68 69 68 69 6b" }], 2, "Traits of a hacking-tool implant."),
+  R("revshell", "Reverse shell", "rat", 3, ["script", "pe"], [{ t: "re", v: "(?i)new-object\\s+system\\.net\\.sockets\\.tcpclient\\s*\\(" }, { t: "re", v: "(?i)/bin/(ba)?sh\\s+-i\\s*>&\\s*/dev/tcp/" }, { t: "re", v: "(?i)nc(\\.exe)?\\s+-e\\s+(cmd|/bin/sh)" }], "any", "Hands a command line to a remote computer."),
+  R("vba-shell", "Macro runs commands", "macro", 3, ["ole", "office", "zip"], [{ t: "re", v: "(?i)(wscript\\.shell|shell\\.application)" }, { t: "re", v: "(?i)(autoopen|document_open|workbook_open)" }], "all", "A macro that starts itself and runs programs."),
+  R("vba-download", "Macro downloads files", "macro", 3, ["ole", "office", "zip"], [{ t: "re", v: "(?i)(urldownloadtofile|msxml2\\.xmlhttp|winhttp\\.winhttprequest)" }, "adodb.stream"], 2, "A macro that downloads and saves a file."),
+  R("xl4", "Excel 4.0 (XLM) macro", "macro", 2, ["ole", "office", ".xls", ".xlsb"], ["EXEC(", "CALL(", "REGISTER(", "Auto_Open"], 2, "Old-style Excel macros, popular with malware."),
+  R("hta", "HTML application with script", "script", 2, [".hta"], [{ t: "re", v: "(?i)<script[^>]*(vbscript|jscript)" }, { t: "re", v: "(?i)(createobject|activexobject)" }], "all", "HTA files run with full rights on Windows."),
+  R("js-wsh", "Windows script with ActiveX", "script", 2, [".js", ".jse", ".vbs", ".vbe", ".wsf"], [{ t: "re", v: "(?i)(activexobject|createobject)\\s*\\(\\s*['\"](wscript\\.shell|msxml2\\.xmlhttp|adodb\\.stream|scripting\\.filesystemobject)" }], 2, "Desktop script that runs programs or downloads (very common malware email attachment)."),
+  R("obf-chr", "Heavy character-code obfuscation", "obfusc", 2, ["script", "ole", "office"], [{ t: "re", v: "(?i)((chr|chrw)\\s*\\(\\s*\\d+\\s*\\)\\s*[&+]\\s*){25,}" }, { t: "re", v: "(?i)(\\[char\\]\\s*\\d+\\s*\\+\\s*){20,}" }], "any", "Builds text one character code at a time to hide what it does."),
+  R("obf-b64pe", "Hidden program in base64", "dropper", 3, ["script", "ole", "office", "pdf", ".html", ".htm", ".svg"], ["TVqQAAMAAAAEAAAA", "TVpQAAIAAAAEAA8A", "TVoAAAAAAAAAAAAA"], "any", "Carries a whole Windows program encoded as text."),
+  R("embed-pe", "Program hidden inside a document", "dropper", 3, ["pdf", "ole", ".rtf", ".jpg", ".png", ".gif"], [{ t: "re", v: "This program cannot be run in DOS mode" }], "any", "A document or picture with a program tucked inside."),
+  R("uac-bypass", "UAC bypass tricks", "evasion", 3, ["script", "pe"], [{ t: "re", v: "(?i)(ms-settings\\\\shell\\\\open\\\\command|mscfile\\\\shell\\\\open\\\\command|fodhelper|computerdefaults\\.exe|eventvwr\\.exe)" }, "DelegateExecute"], 2, "Gets admin rights without the Windows prompt."),
+  R("hosts-hijack", "Edits the hosts file", "hijack", 2, ["script", "pe"], [{ t: "re", v: "(?i)drivers\\\\etc\\\\hosts" }, { t: "re", v: "(?i)(add-content|>>|appendalltext|writealltext)" }], "all", "Can redirect websites (e.g. block antivirus updates)."),
+  R("disable-defender", "Turns off Defender / security", "evasion", 4, ["script", "pe", "lnk", ".reg"], [{ t: "re", v: "(?i)DisableAntiSpyware\"?\\s*[=,/].{0,10}1" }, { t: "re", v: "(?i)DisableRealtimeMonitoring\\s+\\$?true" }, { t: "re", v: "(?i)sc(\\.exe)?\\s+(stop|config|delete)\\s+windefend" }, { t: "re", v: "(?i)netsh\\s+advfirewall\\s+set\\s+\\w+\\s+state\\s+off" }], "any", "Switches off Windows security or the firewall."),
+  R("webshell-php", "Web shell", "rat", 3, [".php", ".asp", ".aspx", ".jsp"], [{ t: "re", v: "(?i)(eval|assert|system|passthru|shell_exec)\\s*\\(\\s*(base64_decode\\s*\\()?\\s*\\$_(post|get|request|cookie)" }], "any", "A web page that runs commands sent to it."),
+  R("tech-scam", "Fake support / scam page", "phish", 2, [".html", ".htm", ".hta", ".svg"], ["your computer has been blocked", "call microsoft support", "toll free", "do not restart your computer", "virus detected"], 2, "Scare text from tech-support scam pages."),
+  R("fake-captcha", "Fake 'I'm not a robot' paste trick", "phish", 4, [".html", ".htm", ".svg", "script"], [{ t: "re", v: "(?i)(navigator\\.clipboard\\.writetext|execcommand\\(['\"]copy)" }, { t: "re", v: "(?i)(powershell|mshta|cmd\\s*/c)" }, { t: "re", v: "(?i)(win(dows)?\\s*\\+\\s*r|press\\s+ctrl\\s*\\+\\s*v|verify you are human|i'?m not a robot)" }], 2, "Copies a command to your clipboard and tells you to paste it into Run (ClickFix)."),
+  R("discord-inject", "Discord client injection", "stealer", 3, ["script", "pe"], ["discord_desktop_core", "index.js", { t: "re", v: "(?i)module\\.exports\\s*=\\s*require\\(" }], 2, "Tampers with the Discord app to steal logins."),
+  R("python-stealer", "Packed Python stealer", "stealer", 2, ["pe"], ["PyInstaller", "pyi-windows-manifest-filename", { t: "re", v: "(?i)(browser_cookie3|pycryptodome|win32crypt)" }], 2, "A Python program packed as .exe that reads browser secrets."),
+];
+const SEV = ["info", "low", "medium", "high", "critical"];
+
+// ------------------------------------------------------------ state
+let S;
+function blank() {
+  return { v: 1, rules: {}, custom: [], block: [], allow: [], exclude: [], history: [], shield: { on: false, folders: [], every: 20, auto: false, log: [], last: 0 },
+    opt: { heur: 2, max_mb: 64, archives: true, only_risky: true, feed: true, motw: true, sign: true, peek: true, depth: 64, show_info: false, deep: false },
+    custom_paths: [], results: [], chat: [], lastScan: 0, autoFeed: true, sched: { on: false, hour: 12, last: "" } };
+}
+let saveT; function save() { clearTimeout(saveT); saveT = setTimeout(() => {
+  if (S.history.length > 80) S.history = S.history.slice(-80); if (S.shield.log.length > 200) S.shield.log = S.shield.log.slice(-200);
+  if (S.results.length > 600) S.results = S.results.slice(0, 600); if (S.chat.length > 40) S.chat = S.chat.slice(-40);
+  if (inApp) tell({ uds: "store-set", data: { av: S } }); else localStorage.setItem("randis-av", JSON.stringify(S));
+}, 400); }
+function rules() {
+  return BUILTIN.map(r => Object.assign({}, r, S.rules[r.id] || {})).concat(S.custom);
+}
+
+// ------------------------------------------------------------ pages
+const PAGES = [["dash", "🏠", "Dashboard"], ["scan", "🔎", "Scan"], ["results", "☣️", "Results"], ["shield", "🛡️", "Shield"], ["procs", "⚙️", "Processes"],
+  ["startup", "🚀", "Startup"], ["net", "🌐", "Network"], ["health", "🩺", "Windows health"], ["lab", "🔬", "File lab"], ["rules", "📜", "Rules"],
+  ["lists", "🧬", "Hash lists"], ["quar", "🔒", "Quarantine"], ["engines", "🧰", "Engines"], ["history", "🕘", "History"], ["ai", "🤖", "Analyst AI"]];
+let page = "dash", ST = null, job = null, PR = null, AR = null, QL = [];
+function nav() {
+  const bad = S.results.filter(r => ["malware", "dangerous", "test"].includes(r.verdict)).length;
+  $("#nav").innerHTML = $("#nav").innerHTML.split("</div>").slice(0, 2).join("</div>") + "</div>" + PAGES.map(([id, ic, n]) =>
+    `<button data-p="${id}" class="${page === id ? "on" : ""}">${ic} ${n}${id === "results" && bad ? `<span class="cnt">${bad}</span>` : ""}${id === "scan" && job && !job.done ? ` <span class="pulse ok">●</span>` : ""}${id === "shield" && S.shield.on ? ` <span class="ok">●</span>` : ""}</button>`).join("");
+  $$("#nav button").forEach(b => b.onclick = () => go(b.dataset.p));
+}
+function go(p) { page = p; nav(); render(); }
+function render() { const m = $("#main"); (VIEWS[page] || VIEWS.dash)(m); m.scrollTop = 0; }
+
+// ------------------------------------------------------------ dashboard
+function score(st) {
+  if (!st || st.error) return null;
+  let s = 100; const why = [];
+  const on = st.av.filter(a => a.on);
+  if (!on.length) { s -= 35; why.push([4, "No antivirus is switched on in Windows Security Center.", "Turn on Microsoft Defender (Windows Security → Virus & threat protection) or your own antivirus."]); }
+  if (on.length > 1) { s -= 8; why.push([2, "More than one antivirus is switched on: " + on.map(a => a.name).join(", ") + ".", "Two real-time scanners fight each other and slow the PC. Keep one."]); }
+  on.filter(a => !a.uptodate).forEach(a => { s -= 15; why.push([3, a.name + " is out of date.", "Open it and update its definitions."]); });
+  st.av.filter(a => !a.on && !a.snoozed && !/defender/i.test(a.name)).forEach(a => { s -= 4; why.push([2, a.name + " is installed but switched off" + (a.uptodate ? "" : " and out of date") + ".", "If its subscription ended, uninstall it (Settings → Apps) so it can't confuse Windows; if you still pay for it, open it and turn it on."]); });
+  const fwOff = (st.fw || []).filter(f => f.on !== "True");
+  if (fwOff.length && !(st.fw3 || []).some(f => f.on)) { s -= 20; why.push([4, "Firewall is off for: " + fwOff.map(f => f.name).join(", "), "Windows Security → Firewall & network protection → turn on."]); }
+  if (st.uac === 0) { s -= 15; why.push([3, "User Account Control (UAC) is off.", "Search 'Change User Account Control settings' and set it back to the default."]); }
+  if (st.hideExt === 1) { s -= 5; why.push([2, "Windows hides file extensions, so 'invoice.pdf.exe' shows as 'invoice.pdf'.", "File Explorer → View → tick 'File name extensions'."]); }
+  if (st.rdp === 0) { s -= 6; why.push([2, "Remote Desktop is on.", "If you don't use it: Settings → System → Remote Desktop → Off."]); }
+  if (st.smb1 === 1) { s -= 8; why.push([3, "SMBv1 (used by WannaCry) is on.", "Turn Windows features on or off → untick SMB 1.0."]); }
+  if (st.guest) { s -= 5; why.push([2, "The Guest account is on.", "Turn it off in Computer Management → Local Users."]); }
+  if (st.lastUpdate) { const d = (Date.now() - new Date(st.lastUpdate)) / 864e5; if (d > 45) { s -= Math.min(15, Math.round(d / 10)); why.push([d > 90 ? 3 : 2, `Last Windows update installed ${Math.round(d)} days ago (${st.lastUpdate}).`, "Settings → Update & Security → Windows Update → Check for updates."]); } }
+  if (Array.isArray(st.hosts) && st.hosts.some(h => h.odd)) { s -= 10; why.push([3, "Your hosts file redirects some websites.", "See Windows health → hosts file."]); }
+  if (st.bitlocker === 0 || st.bitlocker === 2) why.push([1, "Drive isn't encrypted (BitLocker off).", "Windows 10 Home has 'Device encryption' on some PCs only; otherwise a stolen laptop's files can be read."]);
+  const f = st.feed || {}; const age = Math.min(...Object.values(f.files || {}).map(x => (Date.now() / 1000 - x.time) / 86400).concat([999]));
+  if (age > 3) { s -= 5; why.push([2, age > 900 ? "The known-malware hash lists haven't been downloaded yet." : `Hash lists are ${Math.round(age)} days old.`, "Hash lists page → Update now (free, about 10 MB)."]); }
+  if (!S.lastScan || Date.now() / 1000 - S.lastScan > 7 * 86400) { s -= 5; why.push([1, "No scan in the last 7 days.", "Run a Smart scan."]); }
+  return { s: Math.max(0, s), why: why.sort((a, b) => b[0] - a[0]) };
+}
+async function loadStatus(force) {
+  if (ST && !force) return ST;
+  ST = await call("status"); if (page === "dash" || page === "health" || page === "engines") render(); return ST;
+}
+var VIEWS = {};
+VIEWS.dash = m => {
+  const sc = score(ST);
+  const col = !sc ? "#345" : sc.s >= 85 ? "var(--ac)" : sc.s >= 60 ? "var(--warn)" : "var(--bad)";
+  const bad = S.results.filter(r => ["malware", "dangerous"].includes(r.verdict)).length;
+  m.innerHTML = `<h1>Protection dashboard</h1><div class="sub">Your PC's security at a glance. Randis Antivirus scans on demand and watches folders; Windows' own real-time antivirus keeps running underneath.</div>
+  <div class="row" style="gap:20px;align-items:center">
+    <div class="ring" style="background:conic-gradient(${col} ${(sc ? sc.s : 0) * 3.6}deg,#1b2633 0);"><div style="width:120px;height:120px;border-radius:50%;background:var(--bg);display:grid;place-items:center">${sc ? sc.s : `<span class="pulse" style="font-size:14px">checking…</span>`}</div></div>
+    <div style="flex:1;min-width:260px"><div style="font-size:20px;font-weight:800">${!sc ? "Checking your PC…" : sc.s >= 85 ? "You're well protected" : sc.s >= 60 ? "Mostly protected: a few things to fix" : "Action needed"}</div>
+      <div class="mut">${bad ? `<span class="no">${bad} dangerous file(s) found in your last scans → Results</span>` : "No threats waiting."} · Last scan: ${when(S.lastScan)}</div>
+      <div class="row" style="margin-top:12px"><button class="btn pri big" id="smart">⚡ Smart scan</button><button class="btn big" id="full">💽 Full scan</button><button class="btn big" id="cust">📁 Scan a folder…</button><button class="btn" id="re">↻ Recheck</button></div></div></div>
+  <h2>What to fix</h2><div class="card" id="why">${!sc ? (ST && ST.error ? `<span class="no">${esc(ST.error)}</span>` : "…") : sc.why.length ? sc.why.map(w => `<div class="issue"><div class="s${w[0]}" style="width:70px">${SEV[w[0]]}</div><div><b>${esc(w[1])}</b><div class="mut">${esc(w[2])}</div></div></div>`).join("") : `<span class="ok">Nothing. 👍</span>`}</div>
+  <h2>Security Center</h2><div class="grid">${ST && !ST.error ? ST.av.map(a => `<div class="card"><b>${esc(a.name)}</b><div class="${a.on ? "ok" : a.snoozed ? "mut" : "meh"}">${a.on ? "● Real-time protection on" : a.snoozed ? "○ Standing by (another antivirus is in charge)" : "○ Off"}</div><div class="${a.uptodate ? "mut" : "no"}">${a.uptodate ? "Definitions up to date" : "Definitions out of date"}</div></div>`).join("") +
+    `<div class="card"><b>Firewall</b>${(ST.fw || []).map(f => `<div class="${f.on === "True" ? "ok" : "no"}">${f.on === "True" ? "●" : "○"} ${esc(f.name)}</div>`).join("")}</div>
+     <div class="card"><b>Randis engine</b><div>${rules().filter(r => r.on).length} rules on · heuristics level ${S.opt.heur}</div><div class="mut">${((ST.feed || {}).count || 0).toLocaleString()} known-malware hashes loaded</div><div class="mut">Shield: ${S.shield.on ? `<span class="ok">watching ${S.shield.folders.length} folder(s)</span>` : "off"}</div></div>` : ""}</div>`;
+  $("#smart").onclick = () => startScan({ quick: true, label: "Smart scan" });
+  $("#full").onclick = () => startScan({ paths: ["C:\\"], label: "Full scan", only_risky: false });
+  $("#cust").onclick = async () => { const r = await call("pick_folder"); if (r.path) startScan({ paths: [r.path], label: "Folder scan" }); };
+  $("#re").onclick = () => { ST = null; render(); loadStatus(true); };
+  if (!ST) loadStatus();
+};
+
+// ------------------------------------------------------------ scan
+async function startScan(o) {
+  if (job && !job.done) return toast("A scan is already running.");
+  const opts = Object.assign({}, S.opt, o, { rules: rules(), block: S.block.map(b => b.h), allow: S.allow.map(b => b.h), exclude: S.exclude });
+  const r = await call("scan", opts);
+  if (r.error) return toast(r.error);
+  job = { id: r.job, label: o.label || "Scan", done: false, flagged: [], files: 0, bytes: 0, started: Date.now() / 1000, phase: "starting", silent: !!o.silent, src: o.src };
+  if (!o.silent) go("scan");
+  pollScan();
+}
+async function pollScan() {
+  if (!job || job.done) return;
+  const r = await call("poll", { job: job.id, since: job.flagged.length });
+  if (r.error) { job.done = true; toast(r.error); return render(); }
+  job.flagged.push(...(r.flagged || [])); Object.assign(job, { files: r.files, bytes: r.bytes, dir: r.dir, phase: r.phase, skipped: r.skipped, errors: r.errors, nerrors: r.nerrors, paths: r.paths, rules: r.rules });
+  if (r.done) {
+    job.done = true; job.elapsed = r.elapsed;
+    if (job.phase === "done" || job.phase === "stopped") {
+      // re-poll once for flagged list with final signature verdicts
+      const fin = await call("poll", { job: job.id, since: 0 }); if (!fin.error) job.flagged = fin.flagged || job.flagged;
+      call("forget", { job: job.id });
+    }
+    finishScan();
+  } else setTimeout(pollScan, 700);
+  if (page === "scan" && !job.silent) renderScanLive(); else if (!r.done) nav();
+}
+function finishScan() {
+  const now = Date.now() / 1000, j = job;
+  if (!j.silent) S.lastScan = now;
+  const keep = j.flagged.map(f => Object.assign(f, { found: now, scan: j.label }));
+  const seen = new Set(keep.map(f => f.path));
+  S.results = keep.concat(S.results.filter(r => !seen.has(r.path)));
+  S.history.push({ t: now, label: j.label, files: j.files, bytes: j.bytes, flagged: j.flagged.length, bad: j.flagged.filter(f => ["malware", "dangerous", "test"].includes(f.verdict)).length, secs: Math.round(j.elapsed || 0), stopped: j.phase === "stopped" });
+  if (j.src === "shield") shieldAfter(j);
+  save(); nav();
+  if (!j.silent) { toast(`${j.label} finished: ${j.files.toLocaleString()} files, ${j.flagged.length} flagged.`); render(); }
+}
+function renderScanLive() {
+  const b = $("#live"); if (!b || !job) return;
+  const secs = (job.done ? job.elapsed : Date.now() / 1000 - job.started) || 0;
+  b.innerHTML = `<div class="row"><b style="font-size:16px">${esc(job.label)}</b><span class="${job.done ? "ok" : "pulse ok"}">${job.done ? (job.phase === "stopped" ? "stopped" : "finished") : esc(job.phase)}</span>${job.done ? "" : `<button class="btn bad sm" id="stopScan">Stop</button>`}</div>
+  <div class="bar" style="margin:10px 0"><i style="width:${job.done ? 100 : 30 + 60 * (1 - Math.exp(-job.files / 4000))}%"></i></div>
+  <div class="grid" style="grid-template-columns:repeat(5,1fr)"><div><div class="mut">Files</div><b>${(job.files || 0).toLocaleString()}</b></div><div><div class="mut">Data read</div><b>${mb(job.bytes || 0)}</b></div><div><div class="mut">Speed</div><b>${Math.round((job.files || 0) / Math.max(1, secs))}/s</b></div><div><div class="mut">Flagged</div><b class="${job.flagged.length ? "no" : "ok"}">${job.flagged.length}</b></div><div><div class="mut">Time</div><b>${Math.floor(secs / 60)}m ${Math.round(secs % 60)}s</b></div></div>
+  <div class="mono mut" style="margin-top:8px">${esc(job.dir || "")}</div>${job.nerrors ? `<details><summary class="mut">${job.nerrors} file(s) couldn't be opened (in use or locked: normal)</summary><pre class="log">${esc((job.errors || []).join("\n"))}</pre></details>` : ""}
+  ${job.flagged.length ? `<h2>Found so far</h2>` + resultTable(job.flagged.slice(-30).reverse(), true) : ""}${job.done ? `<div class="row" style="margin-top:10px"><button class="btn pri" onclick="go('results')">See all results →</button></div>` : ""}`;
+  const s = $("#stopScan"); if (s) s.onclick = () => call("stop", { job: job.id });
+  bindResultRows(b);
+}
+VIEWS.scan = m => {
+  const o = S.opt;
+  m.innerHTML = `<h1>Scan</h1><div class="sub">Pick what to scan and how hard to look. Everything is checked on this PC: nothing is uploaded.</div>
+  <div class="card" id="live">${job ? "" : `<span class="mut">No scan running.</span>`}</div>
+  <h2>Start a scan</h2><div class="grid">
+   <div class="card"><b>⚡ Smart scan</b><div class="mut">Downloads, Desktop, Documents, temp folders and Startup: where threats land. A few minutes.</div><button class="btn pri" style="margin-top:8px" data-s="smart">Start</button></div>
+   <div class="card"><b>💽 Full scan</b><div class="mut">Every file on drive C:, every type. Takes a long time; you can keep working.</div><button class="btn" style="margin-top:8px" data-s="full">Start</button></div>
+   <div class="card"><b>📁 Custom scan</b><div class="mut">Your own list of folders and files:</div><div id="cpaths" class="mono" style="margin:6px 0">${S.custom_paths.map((p, i) => `<div>${esc(p)} <a href="#" data-rm="${i}" class="mut">✕</a></div>`).join("") || `<span class="mut">none yet</span>`}</div>
+     <div class="row"><button class="btn sm" id="addF">+ Folder</button><button class="btn sm" id="addFi">+ Files</button><button class="btn pri sm" data-s="custom">Start</button></div></div>
+   <div class="card"><b>🧪 Deep scan</b><div class="mut">Full scan at paranoid heuristics, inside archives, every file type, no skipped system folders. Hours; more false alarms.</div><button class="btn" style="margin-top:8px" data-s="deep">Start</button></div>
+  </div>
+  <h2>How hard to look (granular settings)</h2><div class="card grid" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr))">
+   <label class="opt">Heuristics <select id="o-heur">${["0 · off (hash lists + rules only)", "1 · basic (disguises, packers)", "2 · standard", "3 · paranoid (more false alarms)"].map((t, i) => `<option value="${i}" ${o.heur == i ? "selected" : ""}>${t}</option>`).join("")}</select></label>
+   <label class="opt">Largest file to read <select id="o-max_mb">${[8, 32, 64, 256, 1024].map(v => `<option ${o.max_mb == v ? "selected" : ""}>${v}</option>`).join("")}</select> MB</label>
+   <label class="opt"><input type="checkbox" id="o-only_risky" ${o.only_risky ? "checked" : ""}><span>Only risky file types<small>Programs, scripts, documents, archives, shortcuts, disk images, PDFs, web pages… (programs with fake extensions are still caught)</small></span></label>
+   <label class="opt"><input type="checkbox" id="o-archives" ${o.archives ? "checked" : ""}><span>Look inside zip archives<small>Office files are always opened to look for macros</small></span></label>
+   <label class="opt"><input type="checkbox" id="o-feed" ${o.feed ? "checked" : ""}><span>Check known-malware hash lists<small>150,000+ fingerprints, updated hourly online</small></span></label>
+   <label class="opt"><input type="checkbox" id="o-sign" ${o.sign ? "checked" : ""}><span>Check digital signatures of flagged programs<small>Validly signed programs get the benefit of the doubt</small></span></label>
+   <label class="opt"><input type="checkbox" id="o-motw" ${o.motw ? "checked" : ""}><span>Note where downloads came from<small>Reads Windows' "downloaded from the internet" mark</small></span></label>
+   <label class="opt"><input type="checkbox" id="o-show_info" ${o.show_info ? "checked" : ""}><span>List info-only findings too<small>e.g. "downloaded from the internet" with nothing else wrong</small></span></label>
+   <label class="opt">Folder depth <input type="number" id="o-depth" min="1" max="64" value="${o.depth}" style="width:70px"></label>
+   <label class="opt">Only files changed in the last <input type="number" id="o-days" min="0" value="${o.days || 0}" style="width:70px"> days <small>(0 = all)</small></label>
+  </div>
+  <h2>Never scan these</h2><div class="card"><div class="mono">${S.exclude.map((p, i) => `<div>${esc(p)} <a href="#" data-ex="${i}" class="mut">✕</a></div>`).join("") || `<span class="mut">No exclusions.</span>`}</div><button class="btn sm" id="addEx" style="margin-top:6px">+ Exclude a folder</button></div>`;
+  $$("[id^=o-]").forEach(el => el.onchange = () => { const k = el.id.slice(2); S.opt[k] = el.type === "checkbox" ? el.checked : +el.value; save(); });
+  $$("[data-s]").forEach(b => b.onclick = () => {
+    const k = b.dataset.s, since = S.opt.days ? Date.now() / 1000 - S.opt.days * 86400 : 0;
+    if (k === "smart") startScan({ quick: true, label: "Smart scan", since });
+    if (k === "full") startScan({ paths: ["C:\\"], label: "Full scan", only_risky: false, since });
+    if (k === "deep") startScan({ paths: ["C:\\"], label: "Deep scan", only_risky: false, heur: 3, archives: true, deep: true, max_mb: 256, since });
+    if (k === "custom") S.custom_paths.length ? startScan({ paths: S.custom_paths, label: "Custom scan", since }) : toast("Add a folder or file first.");
+  });
+  $("#addF").onclick = async () => { const r = await call("pick_folder"); if (r.path) { S.custom_paths.push(r.path); save(); render(); } };
+  $("#addFi").onclick = async () => { const r = await call("pick_file"); if (r.paths && r.paths.length) { S.custom_paths.push(...r.paths); save(); render(); } };
+  $("#addEx").onclick = async () => { const r = await call("pick_folder"); if (r.path) { S.exclude.push(r.path); save(); render(); } };
+  $$("[data-rm]").forEach(a => a.onclick = e => { e.preventDefault(); S.custom_paths.splice(+a.dataset.rm, 1); save(); render(); });
+  $$("[data-ex]").forEach(a => a.onclick = e => { e.preventDefault(); S.exclude.splice(+a.dataset.ex, 1); save(); render(); });
+  if (job) renderScanLive();
+};
+
+// ------------------------------------------------------------ results
+let rFilter = "threats";
+function resultTable(list, compact) {
+  if (!list.length) return `<div class="mut">Nothing here.</div>`;
+  return `<table><tr><th>Verdict</th><th>File</th><th>Why</th>${compact ? "" : "<th>Actions</th>"}</tr>` + list.map(r => `<tr data-path="${esc(r.path)}">
+    <td><span class="v v-${r.verdict}">${r.verdict === "test" ? "test file" : r.verdict}</span>${r.sig && r.sig.status === "Valid" ? `<div class="mut" style="font-size:11px">✔ signed: ${esc(r.sig.signer)}</div>` : ""}</td>
+    <td><b>${esc(base(r.path))}</b><div class="mono mut">${esc(r.path)}</div></td>
+    <td>${r.findings.map(f => `<div class="s${f.sev}">• ${esc(f.name)}${f.inner ? ` <span class="mut">(inside ${esc(f.inner)})</span>` : ""}</div>`).join("")}</td>
+    ${compact ? "" : `<td style="white-space:nowrap"><button class="btn sm" data-a="info">Details</button> <button class="btn sm bad" data-a="q">Quarantine</button><br><button class="btn sm" data-a="show">Folder</button> <button class="btn sm" data-a="allow">Trust</button> <button class="btn sm" data-a="vt">VirusTotal</button> <button class="btn sm" data-a="ai">Ask AI</button></td>`}</tr>`).join("") + `</table>`;
+}
+function findResult(p) { return S.results.find(r => r.path === p) || (job && job.flagged.find(r => r.path === p)); }
+function bindResultRows(root) {
+  $$("tr[data-path] [data-a]", root).forEach(b => b.onclick = async () => {
+    const p = b.closest("tr").dataset.path, r = findResult(p), a = b.dataset.a;
+    if (a === "info") return fileModal(p, r);
+    if (a === "q") return quarantineOne(r);
+    if (a === "show") { const x = await call("reveal", { path: p }); if (x.error) toast(x.error); }
+    if (a === "allow") { if (!confirm("Trust this exact file from now on? Scans will skip it (if it changes, it gets checked again).")) return; S.allow.push({ h: r.sha256, name: base(p), t: Date.now() / 1000 }); S.results = S.results.filter(x => x.path !== p); save(); render(); }
+    if (a === "vt") { const x = await call("virustotal", { hash: r.sha256 }); if (x.error) toast(x.error); else toast("Opened in your browser. Only the fingerprint is sent, not the file."); }
+    if (a === "ai") askAbout("Is this file dangerous? What should I do?\n" + JSON.stringify({ path: r.path, size: r.size, verdict: r.verdict, signature: r.sig, findings: r.findings.map(f => ({ name: f.name, severity: SEV[f.sev], detail: f.desc, matched: f.match, inside: f.inner })) }, null, 1));
+  });
+}
+async function quarantineOne(r, quiet) {
+  if (!quiet && !confirm(`Quarantine ${base(r.path)}?\n\nIt's moved into Randis Antivirus's quarantine, scrambled so it can't run. You can put it back from the Quarantine page.`)) return false;
+  const x = await call("quarantine", { path: r.path, reason: r.findings.map(f => f.name).join("; ") });
+  if (x.error) { toast(x.error); return false; }
+  S.results = S.results.filter(y => y.path !== r.path); save(); if (!quiet) { toast("Quarantined."); render(); nav(); } return true;
+}
+VIEWS.results = m => {
+  const F = { threats: r => ["malware", "dangerous", "test"].includes(r.verdict), susp: r => r.verdict === "suspicious", low: r => ["low", "info"].includes(r.verdict), all: () => true };
+  const list = S.results.filter(F[rFilter]);
+  m.innerHTML = `<h1>Results</h1><div class="sub">Everything your scans flagged, newest first. "Dangerous" means several strong signs; "suspicious" means look closer; "low" is usually fine.</div>
+  <div class="row">${[["threats", "Threats"], ["susp", "Suspicious"], ["low", "Low / info"], ["all", "All"]].map(([k, n]) => `<button class="btn ${rFilter === k ? "pri" : ""}" data-f="${k}">${n} (${S.results.filter(F[k]).length})</button>`).join("")}
+   <span style="flex:1"></span><button class="btn bad" id="qall" ${S.results.some(r => ["malware", "test"].includes(r.verdict)) ? "" : "disabled"}>Quarantine all known malware</button><button class="btn" id="clr">Clear list</button><button class="btn" id="exp">Export report</button></div>
+  <div class="card" style="margin-top:10px">${resultTable(list)}</div>`;
+  $$("[data-f]").forEach(b => b.onclick = () => { rFilter = b.dataset.f; render(); });
+  $("#qall").onclick = async () => { const l = S.results.filter(r => ["malware", "test"].includes(r.verdict)); if (!confirm(`Quarantine ${l.length} file(s) marked malware / test?`)) return; let n = 0; for (const r of l) if (await quarantineOne(r, true)) n++; toast(`${n} quarantined.`); render(); nav(); };
+  $("#clr").onclick = () => { if (confirm("Clear the results list? (Files aren't touched.)")) { S.results = []; save(); render(); nav(); } };
+  $("#exp").onclick = () => exportFile("randis-antivirus-report.json", JSON.stringify({ made: new Date().toISOString(), results: S.results }, null, 1));
+  bindResultRows(m);
+};
+async function fileModal(p, r) {
+  const box = document.createElement("div"); box.className = "modal"; box.innerHTML = `<div><div class="pulse">Reading ${esc(base(p))}…</div></div>`; document.body.appendChild(box);
+  box.onclick = e => { if (e.target === box) box.remove(); };
+  const i = await call("info", { path: p });
+  box.firstChild.innerHTML = i.error ? `<span class="no">${esc(i.error)}</span>` : `<div class="row"><h1 style="flex:1">${esc(base(p))}</h1><button class="btn" id="mx">✕</button></div>
+   <div class="mono mut">${esc(p)}</div>
+   <table style="margin-top:10px"><tr><td>Size</td><td>${mb(i.size)} (${i.size.toLocaleString()} bytes)</td></tr><tr><td>Type</td><td>${esc(i.kind)}</td></tr>
+   <tr><td>Changed</td><td>${when(i.mtime)}</td></tr><tr><td>Randomness</td><td>${i.entropy} / 8 ${i.entropy > 7.4 ? `<span class="meh">(packed / compressed / encrypted)</span>` : ""}</td></tr>
+   <tr><td>Signature</td><td>${i.sig ? (i.sig.status === "Valid" ? `<span class="ok">✔ Valid: ${esc(i.sig.signer)}</span> <span class="mut">issued by ${esc(i.sig.issuer)}</span>` : `<span class="meh">${esc(i.sig.status)}</span>`) : `<span class="mut">not a program</span>`}</td></tr>
+   <tr><td>Came from</td><td>${i.motw ? `zone ${i.motw.zone} ${esc(i.motw.url || "")} ${i.motw.ref ? `<div class="mut">via ${esc(i.motw.ref)}</div>` : ""}` : `<span class="mut">no download mark</span>`}</td></tr>
+   <tr><td>Known malware list</td><td>${i.feed ? `<span class="no">⚠ MATCH</span>` : `<span class="ok">not listed</span>`}</td></tr>
+   <tr><td>SHA-256</td><td class="mono">${i.sha256}</td></tr><tr><td>MD5</td><td class="mono">${i.md5}</td></tr><tr><td>SHA-1</td><td class="mono">${i.sha1}</td></tr></table>
+   ${r ? `<h2>Findings</h2>` + r.findings.map(f => `<div style="margin-bottom:6px"><b class="s${f.sev}">${esc(f.name)}</b> <span class="mut">${SEV[f.sev]}${f.eased ? ", eased: signed program" : ""}</span><div>${esc(f.desc)}</div>${f.match ? `<div class="mono mut">matched: ${f.match.map(esc).join(" · ")}</div>` : ""}</div>`).join("") : ""}
+   <h2>Interesting text inside</h2><pre class="log">${esc((i.strings || []).join("\n")) || "none"}</pre>
+   <div class="row"><button class="btn" id="mvt">VirusTotal</button><button class="btn" id="mblk">Add to my block list</button><button class="btn" id="mai">Ask AI</button></div>`;
+  const c = $("#mx", box); if (c) c.onclick = () => box.remove();
+  if (!i.error) {
+    $("#mvt", box).onclick = () => call("virustotal", { hash: i.sha256 });
+    $("#mblk", box).onclick = () => { S.block.push({ h: i.sha256, name: base(p), t: Date.now() / 1000 }); save(); toast("Added to your block list."); };
+    $("#mai", box).onclick = () => { box.remove(); askAbout("What is this file and is it safe?\n" + JSON.stringify(Object.assign({}, i, { findings: r && r.findings })).slice(0, 12000)); };
+  }
+}
+
+// ------------------------------------------------------------ shield (folder watching)
+let shieldT = null;
+function shieldTick() {
+  clearTimeout(shieldT);
+  if (!S.shield.on || !S.shield.folders.length) return;
+  shieldT = setTimeout(async () => {
+    if (!(job && !job.done)) {
+      const since = S.shield.last || Date.now() / 1000 - 60; S.shield.pending = Date.now() / 1000;
+      await startScan({ paths: S.shield.folders, since, label: "Shield", silent: true, src: "shield", only_risky: true });
+    }
+    shieldTick();
+  }, Math.max(5, S.shield.every) * 1000);
+}
+async function shieldAfter(j) {
+  S.shield.last = S.shield.pending || Date.now() / 1000;
+  for (const f of j.flagged) {
+    let act = "flagged";
+    if (S.shield.auto && ["malware", "test"].includes(f.verdict)) act = (await quarantineOne(f, true)) ? "auto-quarantined" : "flagged (couldn't quarantine)";
+    S.shield.log.push({ t: Date.now() / 1000, path: f.path, verdict: f.verdict, why: f.findings.map(x => x.name).join(", "), act });
+    if (["malware", "dangerous", "test"].includes(f.verdict)) toast(`🛡️ Shield: ${f.verdict.toUpperCase()} – ${base(f.path)} (${act})`);
+  }
+  if (j.files) S.shield.log.push({ t: Date.now() / 1000, note: `checked ${j.files} new file(s)` });
+  save(); if (page === "shield") render();
+}
+VIEWS.shield = m => {
+  const sh = S.shield;
+  m.innerHTML = `<h1>Shield</h1><div class="sub">Watches folders while Randis UDS is open and scans every new or changed file within seconds. It sits on top of Windows' real-time antivirus (which keeps guarding everything else).</div>
+  <div class="card"><div class="row"><label class="opt"><input type="checkbox" id="shon" ${sh.on ? "checked" : ""}><b>Shield on</b></label>
+   <span>Check every <input type="number" id="shev" min="5" value="${sh.every}" style="width:60px"> seconds</span>
+   <label class="opt"><input type="checkbox" id="shauto" ${sh.auto ? "checked" : ""}><span>Auto-quarantine known malware<small>Only hash-list matches and test files, never guesses</small></span></label></div>
+   <h2>Watched folders</h2><div class="mono">${sh.folders.map((p, i) => `<div>${esc(p)} <a href="#" data-sr="${i}" class="mut">✕</a></div>`).join("") || `<span class="mut">none</span>`}</div>
+   <div class="row" style="margin-top:6px"><button class="btn sm" id="shadd">+ Folder</button><button class="btn sm" id="shdef">Add Downloads + Desktop + Startup</button></div></div>
+  <h2>Shield log</h2><div class="card"><table>${sh.log.slice().reverse().slice(0, 120).map(l => `<tr><td class="mut" style="white-space:nowrap">${new Date(l.t * 1000).toLocaleTimeString()}</td><td>${l.note ? `<span class="mut">${esc(l.note)}</span>` : `<span class="v v-${l.verdict}">${l.verdict}</span> <b>${esc(base(l.path))}</b> <span class="mut">${esc(l.why)} → ${esc(l.act)}</span>`}</td></tr>`).join("") || `<tr><td class="mut">Nothing yet.</td></tr>`}</table></div>`;
+  $("#shon").onchange = e => { sh.on = e.target.checked; sh.last = Date.now() / 1000; save(); shieldTick(); nav(); };
+  $("#shev").onchange = e => { sh.every = Math.max(5, +e.target.value); save(); shieldTick(); };
+  $("#shauto").onchange = e => { sh.auto = e.target.checked; save(); };
+  $("#shadd").onclick = async () => { const r = await call("pick_folder"); if (r.path) { sh.folders.push(r.path); save(); render(); } };
+  $("#shdef").onclick = async () => { const r = await call("quick_targets"); (r.paths || []).filter(p => /downloads|desktop|startup/i.test(p)).forEach(p => sh.folders.includes(p) || sh.folders.push(p)); save(); render(); };
+  $$("[data-sr]").forEach(a => a.onclick = e => { e.preventDefault(); sh.folders.splice(+a.dataset.sr, 1); save(); render(); });
+};
+
+// ------------------------------------------------------------ processes
+let pFilter = "flag";
+VIEWS.procs = m => {
+  m.innerHTML = `<h1>Processes</h1><div class="sub">Every program running right now, its signature, where it lives and what it's connected to. Flags are hints, not proof: Microsoft Store apps and dev tools are often unsigned.</div>
+  <div class="row"><button class="btn pri" id="pl">${PR ? "↻ Refresh" : "Look at running programs"}</button>${[["flag", "Flagged"], ["net", "Online"], ["all", "All"]].map(([k, n]) => `<button class="btn ${pFilter === k ? "pri" : ""}" data-pf="${k}">${n}</button>`).join("")}<input id="pq" placeholder="filter…" value=""></div>
+  <div class="card" style="margin-top:10px" id="pt">${PR ? "" : `<span class="mut">Takes about 20 seconds (it checks every program's signature).</span>`}</div>`;
+  $("#pl").onclick = async () => { $("#pt").innerHTML = `<span class="pulse">Looking at every running program…</span>`; PR = await call("processes"); render(); };
+  $$("[data-pf]").forEach(b => b.onclick = () => { pFilter = b.dataset.pf; render(); });
+  $("#pq").oninput = () => drawProcs();
+  drawProcs();
+};
+function drawProcs() {
+  const t = $("#pt"); if (!PR || !t) return;
+  if (PR.error) { t.innerHTML = `<span class="no">${esc(PR.error)}</span>`; return; }
+  const q = ($("#pq").value || "").toLowerCase();
+  let l = PR.procs.filter(p => pFilter === "all" || (pFilter === "flag" ? p.risk > 0 : p.net && p.net.length)).filter(p => !q || (p.name + " " + p.path + " " + p.cmd).toLowerCase().includes(q));
+  l.sort((a, b) => b.risk - a.risk || String(a.name).localeCompare(b.name));
+  t.innerHTML = `<div class="mut">${l.length} of ${PR.procs.length}</div><table><tr><th>Program</th><th>Signed by</th><th>Flags</th><th>Net</th><th></th></tr>` + l.slice(0, 400).map(p => `<tr data-pid="${p.pid}">
+   <td><b class="s${p.risk}">${esc(p.name)}</b> <span class="mut">#${p.pid} · ${p.mem} MB · ${esc(p.start)}</span><div class="mono mut">${esc(p.path || "(protected system process)")}</div>${p.cmd && p.cmd.length > (p.path || "").length + 3 ? `<details><summary class="mut">command line</summary><div class="mono">${esc(p.cmd)}</div></details>` : ""}</td>
+   <td>${p.sig ? (p.sig.status === "Valid" ? `<span class="ok">✔</span> ${esc(p.sig.signer)}` : `<span class="meh">${esc(p.sig.status)}</span>`) : `<span class="mut">–</span>`}</td>
+   <td>${p.flags.map(f => `<div class="s${f[0]}">• ${esc(f[1])}</div>`).join("")}</td>
+   <td>${(p.net || []).length ? `<details><summary>${p.net.length}</summary>${p.net.map(n => `<div class="mono">${esc(n.s)} ${esc(n.r)}</div>`).join("")}</details>` : ""}</td>
+   <td style="white-space:nowrap">${p.path ? `<button class="btn sm" data-pa="info">Details</button> <button class="btn sm" data-pa="show">Folder</button>` : ""} <button class="btn sm bad" data-pa="kill">End</button> <button class="btn sm" data-pa="ai">AI</button></td></tr>`).join("") + `</table>`;
+  $$("[data-pa]", t).forEach(b => b.onclick = async () => {
+    const p = PR.procs.find(x => x.pid == b.closest("tr").dataset.pid), a = b.dataset.pa;
+    if (a === "info") fileModal(p.path);
+    if (a === "show") call("reveal", { path: p.path });
+    if (a === "kill") { if (!confirm(`End ${p.name} (#${p.pid})? Unsaved work in it will be lost.`)) return; const r = await call("kill", { pid: p.pid, name: p.name }); toast(r.error || (r.ok ? "Ended." : r.note)); if (r.ok) { PR.procs = PR.procs.filter(x => x.pid !== p.pid); drawProcs(); } }
+    if (a === "ai") askAbout("Is this running program safe?\n" + JSON.stringify({ name: p.name, path: p.path, cmd: p.cmd, signature: p.sig, flags: p.flags, connections: p.net, parent: (PR.procs.find(x => x.pid === p.ppid) || {}).name }));
+  });
+}
+
+// ------------------------------------------------------------ startup
+let aFilter = "flag";
+VIEWS.startup = m => {
+  m.innerHTML = `<h1>Startup</h1><div class="sub">Everything that starts by itself: registry Run keys, Startup folders, scheduled tasks, services, Winlogon/IFEO hijack spots and WMI. Turning one off keeps a copy so you can put it back.</div>
+  <div class="row"><button class="btn pri" id="al">${AR ? "↻ Refresh" : "Look at startup entries"}</button>${[["flag", "Flagged"], ["registry", "Run keys"], ["startup", "Startup folder"], ["task", "Tasks"], ["service", "Services"], ["all", "All"]].map(([k, n]) => `<button class="btn ${aFilter === k ? "pri" : ""}" data-af="${k}">${n}</button>`).join("")}</div>
+  <div class="card" style="margin-top:10px" id="at">${AR ? "" : `<span class="mut">Takes about 15 seconds.</span>`}</div><h2>Turned off by you</h2><div class="card" id="ab"></div>`;
+  $("#al").onclick = async () => { $("#at").innerHTML = `<span class="pulse">Reading startup entries…</span>`; AR = await call("autoruns"); render(); };
+  $$("[data-af]").forEach(b => b.onclick = () => { aFilter = b.dataset.af; render(); });
+  drawAutoruns(); drawBackups();
+};
+function drawAutoruns() {
+  const t = $("#at"); if (!AR || !t) return;
+  if (AR.error) { t.innerHTML = `<span class="no">${esc(AR.error)}</span>`; return; }
+  const l = AR.items.map((x, i) => Object.assign(x, { i })).filter(x => aFilter === "all" || (aFilter === "flag" ? x.risk > 0 : x.type === aFilter)).sort((a, b) => b.risk - a.risk);
+  t.innerHTML = `<table><tr><th>Entry</th><th>Runs</th><th>Signed by</th><th>Flags</th><th></th></tr>` + l.map(x => `<tr data-i="${x.i}"><td><b class="s${x.risk}">${esc(x.disp || x.name)}</b><div class="mut" style="font-size:12px">${esc(x.type)} · ${esc(x.where)}${x.state ? " · " + esc(x.state) : ""}${x.start ? " · " + esc(x.start) : ""}</div></td>
+   <td class="mono">${esc(x.cmd)}</td><td>${x.sig ? (x.sig.status === "Valid" ? `<span class="ok">✔</span> ${esc(x.sig.signer)}` : `<span class="meh">${esc(x.sig.status)}</span>`) : ""}</td>
+   <td>${x.flags.map(f => `<div class="s${f[0]}">• ${esc(f[1])}</div>`).join("")}</td>
+   <td style="white-space:nowrap">${["registry", "startup", "task", "service"].includes(x.type) && x.on !== false ? `<button class="btn sm bad" data-x="off">Turn off</button>` : ""} ${x.exists ? `<button class="btn sm" data-x="show">Folder</button>` : ""} <button class="btn sm" data-x="ai">AI</button></td></tr>`).join("") + `</table>`;
+  $$("[data-x]", t).forEach(b => b.onclick = async () => {
+    const x = AR.items[+b.closest("tr").dataset.i], a = b.dataset.x;
+    if (a === "show") call("reveal", { path: x.exe });
+    if (a === "ai") askAbout("Is this startup entry safe or needed?\n" + JSON.stringify({ type: x.type, name: x.name, where: x.where, cmd: x.cmd, signature: x.sig, flags: x.flags }));
+    if (a === "off") { if (!confirm(`Stop "${x.name}" starting with Windows?\n\nA copy is kept here so you can put it back.`)) return; const r = await call("autorun_disable", { item: x }); toast(r.error || "Turned off."); if (r.ok) { x.on = false; drawAutoruns(); drawBackups(); } }
+  });
+}
+async function drawBackups() {
+  const b = $("#ab"); if (!b) return; const r = await call("autorun_backups"); if (!$("#ab")) return;
+  b.innerHTML = (r.items || []).length ? `<table>${r.items.map(x => `<tr><td><b>${esc(x.name)}</b> <span class="mut">${esc(x.type)} · ${when(x.time)}</span><div class="mono mut">${esc(x.cmd)}</div></td><td><button class="btn sm" data-rb="${x.id}">Put back</button></td></tr>`).join("")}</table>` : `<span class="mut">Nothing.</span>`;
+  $$("[data-rb]", b).forEach(x => x.onclick = async () => { const r = await call("autorun_restore", { id: x.dataset.rb }); toast(r.error || "Put back."); drawBackups(); });
+}
+
+// ------------------------------------------------------------ network
+const ODD_PORTS = { 4444: "Metasploit default", 1337: "hacker favourite", 31337: "Back Orifice", 6667: "IRC (old botnets)", 6666: "IRC", 5555: "Android debug / RATs", 8888: "often RAT panels", 9001: "Tor relay", 9050: "Tor", 9150: "Tor Browser", 3389: "Remote Desktop", 5900: "VNC remote control", 23: "Telnet", 2222: "alt SSH", 1604: "DarkComet", 5552: "njRAT", 8808: "AsyncRAT", 7707: "RAT" };
+VIEWS.net = m => {
+  m.innerHTML = `<h1>Network</h1><div class="sub">Which programs are talking to the internet, and who's listening for incoming connections.</div><button class="btn pri" id="nl">${PR ? "↻ Refresh" : "Look at connections"}</button><div class="card" id="nt" style="margin-top:10px"></div>`;
+  $("#nl").onclick = async () => { $("#nt").innerHTML = `<span class="pulse">Looking…</span>`; PR = await call("processes"); render(); };
+  if (!PR || PR.error) return;
+  const rows = []; PR.procs.forEach(p => (p.net || []).forEach(n => {
+    const rp = +String(n.r).split(":").pop(), lp = +String(n.l).split(":").pop(), ip = String(n.r).replace(/:\d+$/, "");
+    const priv = /^(127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|0\.0\.0\.0|::|::1|fe80|\[?::)/.test(ip);
+    const why = []; if (ODD_PORTS[rp] && n.s !== "Listen") why.push(`remote port ${rp}: ${ODD_PORTS[rp]}`); if (n.s === "Listen" && ODD_PORTS[lp]) why.push(`listening on ${lp}: ${ODD_PORTS[lp]}`);
+    if (n.s === "Listen" && !/^(127\.|::1)/.test(n.l) && p.risk >= 2) why.push("unsigned/odd program accepting outside connections");
+    if (p.risk >= 2 && !priv && n.s === "Established") why.push("flagged program talking to the internet");
+    rows.push({ p, n, ip, priv, why });
+  }));
+  rows.sort((a, b) => b.why.length - a.why.length || (a.n.s === "Listen") - (b.n.s === "Listen"));
+  $("#nt").innerHTML = `<table><tr><th>Program</th><th>State</th><th>Local</th><th>Remote</th><th>Notes</th><th></th></tr>` + rows.map(r => `<tr><td><b class="s${r.p.risk}">${esc(r.p.name)}</b> <span class="mut">#${r.p.pid}</span></td><td>${esc(r.n.s)}</td><td class="mono">${esc(r.n.l)}</td><td class="mono">${esc(r.n.r)} ${r.priv ? `<span class="mut">(local)</span>` : ""}</td><td>${r.why.map(w => `<div class="s3">• ${esc(w)}</div>`).join("")}</td><td>${!r.priv && r.n.s === "Established" ? `<a href="#" data-ip="${esc(r.ip)}" class="mut">who?</a>` : ""}</td></tr>`).join("") + `</table>`;
+  $$("[data-ip]").forEach(a => a.onclick = e => { e.preventDefault(); askAbout(`Who likely owns IP ${a.dataset.ip} and is it normal for ${a.closest("tr").querySelector("b").textContent} to talk to it?`); });
+};
+
+// ------------------------------------------------------------ windows health
+VIEWS.health = m => {
+  const st = ST;
+  const yn = (v, good, t) => `<tr><td>${t}</td><td class="${v === good ? "ok" : "no"}">${v === good ? "✔ good" : "✖ check"}</td></tr>`;
+  m.innerHTML = `<h1>Windows health</h1><div class="sub">The settings that matter most for staying safe.</div><button class="btn" id="hr">↻ Recheck</button>
+  ${!st ? `<div class="pulse">checking…</div>` : st.error ? `<div class="no">${esc(st.error)}</div>` : `<div class="grid" style="margin-top:10px">
+   <div class="card"><b>System</b><table><tr><td>Windows</td><td>${esc(st.os)}</td></tr><tr><td>Last update</td><td>${esc(st.lastUpdate || "?")}</td></tr><tr><td>Started</td><td>${esc(st.boot)}</td></tr><tr><td>Admins</td><td>${(st.admins || []).map(esc).join("<br>")}</td></tr></table></div>
+   <div class="card"><b>Settings</b><table>${yn(st.uac, 1, "User Account Control")}${yn(st.hideExt, 0, "Show file extensions")}${yn(st.rdp, 1, "Remote Desktop off")}${yn(!!st.guest, false, "Guest account off")}${yn(st.smb1 === 1, false, "SMBv1 off")}${yn(st.wsh === 0, true, "Windows Script Host off (advanced)")}
+    <tr><td>PowerShell policy (you)</td><td>${esc(st.execPolicy)}</td></tr><tr><td>Drive encryption</td><td>${st.bitlocker === 1 ? `<span class="ok">on</span>` : `<span class="meh">off</span>`}</td></tr></table></div>
+   <div class="card"><b>Services</b><table>${(st.svc || []).map(s => `<tr><td>${esc(s.name)}</td><td>${esc(s.status)} <span class="mut">${esc(s.start)}</span></td></tr>`).join("")}</table></div>
+   <div class="card"><b>hosts file</b><div class="mut">Redirects for website names. Normally empty.</div>${Array.isArray(st.hosts) && st.hosts.length ? `<table>${st.hosts.map(h => `<tr><td class="mono ${h.odd ? "no" : ""}">${esc(h.ip)}</td><td class="mono">${h.names.map(esc).join(" ")}</td></tr>`).join("")}</table>` : `<div class="ok">✔ empty</div>`}</div>
+  </div>`}`;
+  $("#hr").onclick = () => { ST = null; render(); loadStatus(true); };
+  if (!st) loadStatus();
+};
+
+// ------------------------------------------------------------ file lab
+VIEWS.lab = m => {
+  m.innerHTML = `<h1>File lab</h1><div class="sub">Take one file apart: fingerprints, signature, where it came from, randomness, interesting text, plus a full scan of it at paranoid level.</div>
+  <div class="row"><button class="btn pri" id="lp">Pick a file…</button></div><div id="lr" style="margin-top:10px"></div>`;
+  $("#lp").onclick = async () => {
+    const r = await call("pick_file"); if (!r.paths || !r.paths.length) return;
+    const p = r.paths[0]; $("#lr").innerHTML = `<span class="pulse">Scanning ${esc(base(p))}…</span>`;
+    const s = await call("scan", Object.assign({}, S.opt, { paths: [p], heur: 3, only_risky: false, show_info: true, rules: rules(), block: S.block.map(b => b.h), allow: [] }));
+    let res = null; if (s.job) { for (let k = 0; k < 600; k++) { const q = await call("poll", { job: s.job }); if (q.done || q.error) { res = (q.flagged || [])[0]; call("forget", { job: s.job }); break; } await new Promise(z => setTimeout(z, 400)); } }
+    $("#lr").innerHTML = res ? `<div class="card">${resultTable([res])}</div>` : `<div class="card ok">✔ Nothing found in it, even at paranoid level.</div>`;
+    if (res) { S.results = [Object.assign(res, { found: Date.now() / 1000, scan: "File lab" })].concat(S.results.filter(x => x.path !== res.path)); save(); bindResultRows($("#lr")); }
+    fileModal(p, res);
+  };
+};
+
+// ------------------------------------------------------------ rules
+VIEWS.rules = m => {
+  const all = rules();
+  m.innerHTML = `<h1>Rules</h1><div class="sub">${BUILTIN.length} built-in detection rules plus your own. Turn any on/off, change how serious each one is, or write new ones (text, hex bytes or regular expressions; match any, all or N of them). Test them on pasted text.</div>
+  <div class="row"><button class="btn pri" id="rn">+ New rule</button><button class="btn" id="rex">Export my rules</button><button class="btn" id="rim">Import rules</button><input type="file" id="rfile" accept=".json" class="hide"></div>
+  <div class="card" style="margin-top:10px"><table><tr><th>On</th><th>Rule</th><th>Looks in</th><th>Severity</th><th></th></tr>${all.map(r => `<tr data-id="${esc(r.id)}"><td><input type="checkbox" data-on ${r.on ? "checked" : ""}></td>
+   <td><b>${esc(r.name)}</b> <span class="mut">${esc(r.cat)}${r.builtin ? "" : " · yours"}</span><div class="mut">${esc(r.desc)}</div></td><td class="mut">${esc((r.types || []).join(", "))}</td>
+   <td><select data-sev>${SEV.map((s, i) => `<option value="${i}" ${r.sev == i ? "selected" : ""}>${s}</option>`).join("")}</select></td><td>${r.builtin ? `<button class="btn sm" data-view>View</button>` : `<button class="btn sm" data-edit>Edit</button> <button class="btn sm bad" data-del>✕</button>`}</td></tr>`).join("")}</table></div>
+  <h2>Test rules on text</h2><div class="card"><textarea id="rt" rows="5" placeholder="Paste a suspicious script, email attachment text, command line…"></textarea><div class="row" style="margin-top:6px"><button class="btn" id="rtest">Test</button><span id="rto"></span></div></div>`;
+  const set = (id, k, v) => { if (BUILTIN.some(b => b.id === id)) { S.rules[id] = Object.assign(S.rules[id] || {}, { [k]: v }); } else { const c = S.custom.find(c => c.id === id); if (c) c[k] = v; } save(); };
+  $$("tr[data-id]").forEach(tr => {
+    const id = tr.dataset.id;
+    $("[data-on]", tr).onchange = e => set(id, "on", e.target.checked);
+    $("[data-sev]", tr).onchange = e => set(id, "sev", +e.target.value);
+    const v = $("[data-view]", tr); if (v) v.onclick = () => ruleEditor(BUILTIN.find(b => b.id === id), true);
+    const ed = $("[data-edit]", tr); if (ed) ed.onclick = () => ruleEditor(S.custom.find(c => c.id === id));
+    const d = $("[data-del]", tr); if (d) d.onclick = () => { if (confirm("Delete this rule?")) { S.custom = S.custom.filter(c => c.id !== id); save(); render(); } };
+  });
+  $("#rn").onclick = () => ruleEditor(null);
+  $("#rex").onclick = () => exportFile("randis-av-rules.json", JSON.stringify({ format: "randis-av-rules/1", rules: S.custom, tweaks: S.rules }, null, 1));
+  $("#rim").onclick = () => $("#rfile").click();
+  $("#rfile").onchange = e => { const f = e.target.files[0]; if (!f) return; const rd = new FileReader(); rd.onload = () => { try { const j = JSON.parse(rd.result); (j.rules || []).forEach(r => { if (r && r.name && Array.isArray(r.strings)) { r.id = "u-" + uid(); r.builtin = false; S.custom.push(r); } }); Object.assign(S.rules, j.tweaks || {}); save(); render(); toast("Imported."); } catch (x) { toast("That isn't a rules file."); } }; rd.readAsText(f); };
+  $("#rtest").onclick = () => {
+    const txt = $("#rt").value, low = txt.toLowerCase(), hits = [];
+    for (const r of rules().filter(r => r.on)) {
+      let n = 0; for (const s of r.strings) { try { if (s.t === "re") { let src = s.v, fl = s.i ? "i" : ""; if (src.startsWith("(?i)")) { src = src.slice(4); fl = "i"; } if (new RegExp(src, fl).test(txt)) n++; } else if (s.t === "hex") {} else if ((s.i === false ? txt : low).includes(s.i === false ? s.v : s.v.toLowerCase())) n++; } catch (e) {} }
+      const need = r.cond === "all" ? r.strings.length : r.cond === "any" ? 1 : +r.cond; if (n >= need) hits.push(r);
+    }
+    $("#rto").innerHTML = hits.length ? hits.map(r => `<span class="s${r.sev}">● ${esc(r.name)}</span>`).join(" ") : `<span class="ok">No rule matched.</span>`;
+  };
+};
+function ruleEditor(r, ro) {
+  const x = r ? JSON.parse(JSON.stringify(r)) : { id: "u-" + uid(), name: "", cat: "custom", sev: 2, types: ["any"], strings: [{ t: "text", v: "" }], cond: "any", desc: "", on: true };
+  const box = document.createElement("div"); box.className = "modal"; document.body.appendChild(box);
+  const draw = () => {
+    box.innerHTML = `<div><h1>${ro ? "Built-in rule" : r ? "Edit rule" : "New rule"}</h1>
+    <div class="grid" style="grid-template-columns:1fr 1fr"><label>Name<br><input id="en" value="${esc(x.name)}" style="width:100%"></label><label>Category<br><input id="ec" value="${esc(x.cat)}" style="width:100%"></label>
+    <label>Looks in (comma list: any, pe, script, office, ole, pdf, lnk, zip, or .ext)<br><input id="et" value="${esc(x.types.join(", "))}" style="width:100%"></label>
+    <label>Match when<br><select id="ecd">${["any", "all", "2", "3", "4"].map(c => `<option ${String(x.cond) === c ? "selected" : ""} value="${c}">${c === "any" ? "any one matches" : c === "all" ? "all match" : c + " or more match"}</option>`).join("")}</select></label></div>
+    <label>What it means (shown in results)<br><input id="ed" value="${esc(x.desc)}" style="width:100%"></label>
+    <h2>Patterns</h2>${x.strings.map((s, i) => `<div class="row" style="margin-bottom:4px"><select data-st="${i}">${["text", "hex", "re"].map(t => `<option ${s.t === t ? "selected" : ""} value="${t}">${{ text: "text", hex: "hex bytes", re: "regex" }[t]}</option>`).join("")}</select><input data-sv="${i}" value="${esc(s.v)}" style="flex:1" class="mono"><label class="mut"><input type="checkbox" data-si="${i}" ${s.i !== false ? "checked" : ""}> any case</label><a href="#" data-sx="${i}" class="mut">✕</a></div>`).join("")}
+    ${ro ? "" : `<button class="btn sm" id="eadd">+ pattern</button>`}<div class="row" style="margin-top:14px"><span style="flex:1"></span><button class="btn" id="ecancel">${ro ? "Close" : "Cancel"}</button>${ro ? `<button class="btn" id="ecopy">Copy as my own rule</button>` : `<button class="btn pri" id="esave">Save</button>`}</div></div>`;
+    const read = () => { x.name = $("#en", box).value; x.cat = $("#ec", box).value; x.desc = $("#ed", box).value; x.types = $("#et", box).value.split(",").map(s => s.trim()).filter(Boolean); x.cond = $("#ecd", box).value;
+      $$("[data-sv]", box).forEach(el => { const i = +el.dataset.sv; x.strings[i] = { t: $(`[data-st="${i}"]`, box).value, v: el.value, i: $(`[data-si="${i}"]`, box).checked }; }); };
+    $("#ecancel", box).onclick = () => box.remove();
+    const a = $("#eadd", box); if (a) a.onclick = () => { read(); x.strings.push({ t: "text", v: "" }); draw(); };
+    $$("[data-sx]", box).forEach(el => el.onclick = e => { e.preventDefault(); if (ro) return; read(); x.strings.splice(+el.dataset.sx, 1); draw(); });
+    const sv = $("#esave", box); if (sv) sv.onclick = () => { read(); x.strings = x.strings.filter(s => s.v); if (!x.name || !x.strings.length) return toast("Give it a name and at least one pattern.");
+      for (const s of x.strings) if (s.t === "re") { try { new RegExp(s.v.replace(/^\(\?i\)/, "")); } catch (e) { return toast("Bad regex: " + s.v); } }
+      const i = S.custom.findIndex(c => c.id === x.id); if (i >= 0) S.custom[i] = x; else S.custom.push(x); save(); box.remove(); render(); };
+    const cp = $("#ecopy", box); if (cp) cp.onclick = () => { const c = JSON.parse(JSON.stringify(x)); c.id = "u-" + uid(); c.builtin = false; c.name += " (mine)"; S.custom.push(c); save(); box.remove(); render(); };
+  };
+  draw();
+}
+
+// ------------------------------------------------------------ hash lists
+VIEWS.lists = m => {
+  const f = (ST && ST.feed) || {};
+  m.innerHTML = `<h1>Hash lists</h1><div class="sub">Fingerprints (SHA-256 / MD5 / SHA-1) of files known to be malware. A match is near-certain proof. Your own block and trust lists live here too.</div>
+  <div class="card"><b>Public malware list</b><div class="mut">${esc(f.source || "Malicious hash aggregation (MIT license), github.com/romainmarcoux/malicious-hash, updated hourly")}</div>
+   <div id="fi" style="margin:8px 0">${Object.keys(f.files || {}).length ? Object.entries(f.files).map(([k, v]) => `<div>${esc(k)}: ${mb(v.bytes)}, downloaded ${when(v.time)}</div>`).join("") : `<span class="meh">Not downloaded yet.</span>`}</div>
+   <div class="row"><button class="btn pri" id="fu">Update now</button><label class="opt"><input type="checkbox" id="fa" ${S.autoFeed ? "checked" : ""}> Update automatically once a day</label></div></div>
+  <h2>My block list</h2><div class="card"><div class="row"><input id="bh" placeholder="paste a SHA-256, MD5 or SHA-1" style="flex:1" class="mono"><input id="bn" placeholder="label"><button class="btn" id="badd">Add</button></div>
+   <table>${S.block.map((b, i) => `<tr><td class="mono">${esc(b.h)}</td><td>${esc(b.name)}</td><td><a href="#" data-bx="${i}" class="mut">✕</a></td></tr>`).join("")}</table></div>
+  <h2>Trusted files (skipped)</h2><div class="card"><table>${S.allow.map((b, i) => `<tr><td class="mono">${esc(b.h)}</td><td>${esc(b.name)}</td><td><a href="#" data-ax="${i}" class="mut">✕</a></td></tr>`).join("") || `<tr><td class="mut">none</td></tr>`}</table></div>`;
+  $("#fu").onclick = async () => { $("#fi").innerHTML = `<span class="pulse">Downloading…</span>`; const r = await call("feed_update"); toast(r.error || (r.errors && r.errors.length ? r.errors.join("; ") : `Got ${Object.values(r.got || {}).reduce((a, b) => a + b, 0).toLocaleString()} fingerprints.`)); if (ST && r.info) ST.feed = r.info; S.feedAt = Date.now(); save(); render(); };
+  $("#fa").onchange = e => { S.autoFeed = e.target.checked; save(); };
+  $("#badd").onclick = () => { const h = $("#bh").value.trim().toLowerCase(); if (!/^[0-9a-f]{32}$|^[0-9a-f]{40}$|^[0-9a-f]{64}$/.test(h)) return toast("That isn't a SHA-256, MD5 or SHA-1."); S.block.push({ h, name: $("#bn").value, t: Date.now() / 1000 }); save(); render(); };
+  $$("[data-bx]").forEach(a => a.onclick = e => { e.preventDefault(); S.block.splice(+a.dataset.bx, 1); save(); render(); });
+  $$("[data-ax]").forEach(a => a.onclick = e => { e.preventDefault(); S.allow.splice(+a.dataset.ax, 1); save(); render(); });
+  if (!ST) loadStatus();
+};
+
+// ------------------------------------------------------------ quarantine
+VIEWS.quar = m => {
+  m.innerHTML = `<h1>Quarantine</h1><div class="sub">Files moved out of harm's way, scrambled so they can't run. Put one back if it was a false alarm, or delete it for good.</div><div class="card" id="ql"><span class="pulse">…</span></div>`;
+  call("q_list").then(r => {
+    QL = r.items || []; const el = $("#ql"); if (!el) return;
+    el.innerHTML = QL.length ? `<table><tr><th>File</th><th>Why</th><th>When</th><th></th></tr>${QL.map(q => `<tr><td><b>${esc(base(q.path))}</b><div class="mono mut">${esc(q.path)}</div></td><td>${esc(q.reason)}</td><td class="mut">${when(q.time)}</td>
+     <td style="white-space:nowrap"><button class="btn sm" data-qr="${q.id}">Put back</button> <button class="btn sm bad" data-qd="${q.id}">Delete forever</button></td></tr>`).join("")}</table>` : `<span class="ok">Empty.</span>`;
+    $$("[data-qr]", el).forEach(b => b.onclick = async () => { if (!confirm("Put this file back where it was? Only do this if you're sure it's safe.")) return; const x = await call("q_restore", { id: b.dataset.qr }); toast(x.error || "Put back: " + x.path); render(); });
+    $$("[data-qd]", el).forEach(b => b.onclick = async () => { if (!confirm("Delete it forever? This can't be undone.")) return; const x = await call("q_delete", { id: b.dataset.qd }); toast(x.error || "Deleted."); render(); });
+  });
+};
+
+// ------------------------------------------------------------ engines
+let procJob = null;
+VIEWS.engines = m => {
+  const e = ST && ST.engines;
+  m.innerHTML = `<h1>Engines</h1><div class="sub">Randis Antivirus can hand a file or folder to other scanners on this PC for a second opinion.</div>
+  ${!e ? `<span class="pulse">checking…</span>` : `<div class="grid">
+   <div class="card"><b>🛡️ Randis engine</b><div class="ok">● ready</div><div class="mut">${rules().filter(r => r.on).length} rules, 4 heuristic levels, hash lists, signatures, archives, Office/PDF/shortcut analysis.</div></div>
+   <div class="card"><b>Microsoft Defender</b><div class="${e.defender.running ? "ok" : "mut"}">${e.defender.running ? "● running" : "○ standing by: another antivirus is in charge (normal)"}</div>
+     <div class="row" style="margin-top:6px"><button class="btn sm" data-eng="defender" data-k="quick" ${e.defender.running ? "" : "disabled"}>Quick scan</button><button class="btn sm" data-eng="defender" data-k="custom" ${e.defender.running ? "" : "disabled"}>Scan folder…</button></div></div>
+   <div class="card"><b>ClamAV</b> <span class="mut">free, open source, ~8 million signatures</span><div class="${e.clamav.ready ? "ok" : "mut"}">${e.clamav.here ? (e.clamav.ready ? "● ready" : "○ installed, signatures not downloaded") : "○ not installed"}</div>
+     <div class="row" style="margin-top:6px">${e.clamav.here ? `<button class="btn sm" data-eng="clamupd">Download / update signatures</button><button class="btn sm" data-eng="clamav" ${e.clamav.ready ? "" : "disabled"}>Scan folder…</button>` : `<button class="btn sm" data-eng="clamins">Install ClamAV (winget)</button>`}</div></div>
+   <div class="card"><b>Avast</b><div class="${e.avast.here ? "ok" : "mut"}">${e.avast.here ? "● installed" : "○ not installed"}</div><div class="row" style="margin-top:6px"><button class="btn sm" data-eng="avast" ${e.avast.here ? "" : "disabled"}>Scan folder with Avast…</button></div></div>
+   <div class="card"><b>🧪 Test your protection</b><div class="mut">Writes the harmless industry test file (EICAR) into a folder you pick. Your real-time antivirus should grab it within seconds, and Randis should flag it.</div><button class="btn sm" data-eng="test" style="margin-top:6px">Make test file…</button></div>
+  </div>`}<h2>Output</h2><pre class="log" id="eo">${procJob ? esc(procJob.lines.join("\n")) : "–"}</pre>`;
+  $$("[data-eng]").forEach(b => b.onclick = async () => {
+    const k = b.dataset.eng; let r;
+    const pick = async () => (await call("pick_folder")).path;
+    if (k === "defender") { const p = b.dataset.k === "custom" ? await pick() : null; if (b.dataset.k === "custom" && !p) return; r = await call("defender", { kind: b.dataset.k, path: p }); }
+    if (k === "clamav") { const p = await pick(); if (!p) return; r = await call("clamav", { path: p }); }
+    if (k === "clamupd") r = await call("clamav_update");
+    if (k === "clamins") { if (!confirm("Install ClamAV with winget? Windows will ask for permission (this installs outside Randis UDS).")) return; r = await call("install_clamav"); }
+    if (k === "avast") { const p = await pick(); if (!p) return; r = await call("avast", { path: p }); return toast(r.error || r.note); }
+    if (k === "test") { const p = await pick(); if (!p) return; r = await call("test_file", { path: p }); return toast(r.error || (r.still_there ? "Test file written. Now run a scan of that folder: Randis should flag it." : "Written, and your real-time antivirus already removed it. ✔ It works.")); }
+    if (r.error) return toast(r.error);
+    procJob = { id: r.job, lines: [], done: false }; pollProc();
+  });
+  if (!ST) loadStatus();
+};
+async function pollProc() {
+  const r = await call("poll", { job: procJob.id, since: procJob.lines.length }); if (r.error) return toast(r.error);
+  procJob.lines.push(...(r.lines || [])); procJob.done = r.done;
+  const o = $("#eo"); if (o) { o.textContent = procJob.lines.join("\n") + (r.done ? `\n\n[finished, code ${r.code}]` : ""); o.scrollTop = 1e9; }
+  if (!r.done) setTimeout(pollProc, 800); else { call("forget", { job: procJob.id }); ST = null; loadStatus(true); }
+}
+
+// ------------------------------------------------------------ history
+VIEWS.history = m => {
+  m.innerHTML = `<h1>History</h1><div class="sub">Past scans.</div><div class="card"><table><tr><th>When</th><th>Scan</th><th>Files</th><th>Data</th><th>Flagged</th><th>Threats</th><th>Time</th></tr>${S.history.slice().reverse().filter(h => h.label !== "Shield").map(h => `<tr><td>${when(h.t)}</td><td>${esc(h.label)}${h.stopped ? ` <span class="mut">(stopped)</span>` : ""}</td><td>${(h.files || 0).toLocaleString()}</td><td>${mb(h.bytes || 0)}</td><td>${h.flagged}</td><td class="${h.bad ? "no" : "ok"}">${h.bad}</td><td>${h.secs}s</td></tr>`).join("") || `<tr><td class="mut">No scans yet.</td></tr>`}</table></div>
+  <h2>Daily scan</h2><div class="card"><label class="opt"><input type="checkbox" id="sc" ${S.sched.on ? "checked" : ""}><span>Run a Smart scan once a day, after <input type="number" id="sh" min="0" max="23" value="${S.sched.hour}" style="width:55px">:00<small>Only while Randis UDS is open.</small></span></label></div>`;
+  $("#sc").onchange = e => { S.sched.on = e.target.checked; save(); };
+  $("#sh").onchange = e => { S.sched.hour = +e.target.value; save(); };
+};
+
+// ------------------------------------------------------------ analyst AI
+let aiBusy = false;
+function askAbout(q) { go("ai"); sendAI(q); }
+async function sendAI(q) {
+  if (aiBusy) return toast("Still answering…");
+  S.chat.push({ role: "user", content: q }); aiBusy = true; render();
+  const r = await call("ask", { history: S.chat });
+  if (r.error) { S.chat.push({ role: "assistant", content: "⚠ " + r.error }); aiBusy = false; save(); return render(); }
+  for (;;) { const p = await call("ai_poll", { job: r.job }); const el = $("#aiwait"); if (el) el.textContent = p.text || "thinking…";
+    if (p.done) { S.chat.push({ role: "assistant", content: p.error ? "⚠ " + p.error : p.text }); break; } await new Promise(z => setTimeout(z, 700)); }
+  aiBusy = false; save(); render();
+}
+VIEWS.ai = m => {
+  m.innerHTML = `<h1>Analyst AI</h1><div class="sub">Ask the AI linked in Randis UDS about any finding, program, startup entry or setting. "Ask AI" buttons across this tab send the details here.</div>
+  <div class="card chat" id="ch">${S.chat.map(c => `<div class="msg ${c.role === "user" ? "u" : "a"}">${esc(c.content)}</div>`).join("") || `<span class="mut">No questions yet.</span>`}${aiBusy ? `<div class="msg a pulse" id="aiwait">thinking…</div>` : ""}</div>
+  <div class="row" style="margin-top:8px"><textarea id="aq" rows="2" style="flex:1" placeholder="e.g. Is it normal to have both Norton and Avast?"></textarea><button class="btn pri" id="as">Ask</button><button class="btn" id="ac">Clear</button></div>`;
+  $("#as").onclick = () => { const q = $("#aq").value.trim(); if (q) sendAI(q); };
+  $("#ac").onclick = () => { S.chat = []; save(); render(); };
+  const ch = $("#ch"); ch.scrollTop = 1e9;
+};
+
+// ------------------------------------------------------------ start
+function daily() {
+  const d = new Date(), today = d.toISOString().slice(0, 10);
+  if (S.sched.on && S.sched.last !== today && d.getHours() >= S.sched.hour && !(job && !job.done)) { S.sched.last = today; save(); startScan({ quick: true, label: "Daily smart scan", silent: page !== "scan" }); }
+  if (S.autoFeed && (!S.feedAt || Date.now() - S.feedAt > 864e5)) { S.feedAt = Date.now(); save(); call("feed_update").then(r => { if (ST && r.info) ST.feed = r.info; }); }
+}
+function boot(saved) {
+  if (loaded) return; loaded = true;
+  S = Object.assign(blank(), saved || {}); S.opt = Object.assign(blank().opt, S.opt || {}); S.shield = Object.assign(blank().shield, S.shield || {}); S.sched = Object.assign(blank().sched, S.sched || {});
+  nav(); render(); shieldTick(); daily(); setInterval(daily, 5 * 60 * 1000);
+}
+if (inApp) { tell({ uds: "store-get" }); setTimeout(() => { if (!loaded) boot(JSON.parse(localStorage.getItem("randis-av") || "null")); }, 1500); }
+else boot(JSON.parse(localStorage.getItem("randis-av") || "null"));
+</script></body></html>

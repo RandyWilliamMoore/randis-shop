@@ -1,0 +1,11 @@
+{
+ "name": "Repo Scout",
+ "by": "Randy",
+ "blurb": "Finds tools and ideas on GitHub, GitLab, Codeberg, Hugging Face Spaces, Show HN and npm, ranks them by fit, stars, activity and license, reads READMEs and suggests Clone, Use, Fork, Integrate, Watch, Study or Ignore with checkboxes. The searching and cloning run inside Randis UDS, so in the shop you can look around but not search.",
+ "status": "ok",
+ "real_items": null,
+ "reviews": {
+  "randy": null,
+  "maker": null
+ }
+}

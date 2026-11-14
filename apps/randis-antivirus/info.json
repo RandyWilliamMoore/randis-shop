@@ -1,0 +1,11 @@
+{
+ "name": "Randis Antivirus",
+ "by": "Randy",
+ "blurb": "A plain-language antivirus with its own engine: 40 editable rules, heuristic levels, known-malware hashes, archive and Office/PDF/shortcut checks, Smart/Full/Custom/Deep scans, quarantine, Shield folder watching, processes, startup and network views. The engine runs inside Randis UDS, so in the shop you can look around but not scan.",
+ "status": "ok",
+ "real_items": null,
+ "reviews": {
+  "randy": null,
+  "maker": null
+ }
+}
