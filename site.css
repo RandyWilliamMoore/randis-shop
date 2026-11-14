@@ -149,3 +149,4 @@ h2.sect, h3 { margin: 0 0 8px; }
   .shelf .boxes { justify-content: center; }
   .tv em { white-space: normal; text-align: center; width: 80%; }
 }
+.offscreen { position: fixed; left: -9999px; top: 0; }

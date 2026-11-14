@@ -42,6 +42,24 @@ function el(tag, attrs, ...kids) {
   return e;
 }
 const out = (href, text, cls) => el("a", { href, target: "_blank", rel: "noopener noreferrer", class: cls || "" }, text);
+// A share link: a plain page per item (tools/build_share.py) whose preview shows the item's picture in Discord, then opens the item here.
+const PUBLIC = "https://randywilliammoore.github.io/randis-shop/";
+const shareLink = (kind, slug) => `${PUBLIC}share/${kind}/${slug}/`;
+function copyText(text) {
+  if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
+  return new Promise((ok, no) => {
+    const t = el("textarea", { readonly: "", class: "offscreen" });
+    t.value = text; document.body.append(t); t.select();
+    try { document.execCommand("copy") ? ok() : no(); } catch (x) { no(); } finally { t.remove(); }
+  });
+}
+function shareButton(label, link, cls) {
+  return el("button", { class: "btn" + (cls ? " " + cls : ""), type: "button", title: link, "data-act": "share", "data-link": link, on: { click: e => {
+    const b = e.currentTarget;
+    copyText(link).then(() => { b.textContent = "Link copied"; }, () => { b.textContent = "Copy failed: " + link; });
+    setTimeout(() => { b.textContent = label; }, 2500);
+  } } }, label);
+}
 const safeWeb = u => (typeof u === "string" && u.startsWith("https://") ? u : null);
 
 function win(title, ...kids) {
@@ -70,7 +88,9 @@ function header() {
       el("a", { class: "btn", href: "#/games" }, "Arcade"),
       el("a", { class: "btn", href: "#/apps" }, "Software Shelf"),
       el("a", { class: "btn", href: "#/music" }, "Jukebox"),
-      out(SHOP.guestbook, "Guestbook", "btn")));
+      out(SHOP.guestbook, "Guestbook", "btn"),
+      shareButton("Share the shop", PUBLIC),
+      shareButton("Share Randis UDS", SHOP.repo)));
 }
 
 function footer() {
@@ -127,7 +147,8 @@ function track(t) {
       el("span", { class: "track-tags" }, [t.genre, t.length].filter(Boolean).join(" · "))),
     t.blurb ? el("p", {}, t.blurb) : null,
     el("div", { class: "track-play" }, audio,
-      el("a", { class: "btn", href: t.file, download: t.download, "data-act": "download-song" }, "Download, royalty free")),
+      el("a", { class: "btn", href: t.file, download: t.download, "data-act": "download-song" }, "Download, royalty free"),
+      shareButton("Share", shareLink("music", t.slug))),
     el("div", { class: "credit" }, el("b", {}, "Credit required: "), el("span", { class: "credit-line" }, creditFor(t)), " ",
       el("button", { class: "btn small", "data-act": "copy-credit", on: { click: e => {
         const b = e.currentTarget;
@@ -161,6 +182,7 @@ function softwarePage(s) {
         el("div", { class: "actions" },
           link ? out(link, `Download ${s.name} ${s.version}`, "btn go") : null,
           safeWeb(s.source) ? out(s.source, "See the code", "btn") : null,
+          shareButton("Share", shareLink("software", s.slug)),
           el("a", { class: "btn", href: "#/apps" }, "Back")),
         el("p", { class: "fine" }, s.fine)))),
     s.screenshot ? win("Screenshot", el("img", { class: "screenshot", src: s.screenshot,
@@ -211,6 +233,7 @@ function itemPage(i) {
           el("a", { class: "btn go", href: `#/${i.kind}/${i.slug}/play`, "data-act": "play" }, `Play this ${noun} here`),
           el("a", { class: "btn", href: i.file, download: `${i.slug}.html`, "data-act": "download" }, `Download just this ${noun}`),
           i.open_with ? el("a", { class: "btn", href: i.open_with, "data-act": "open-with" }, "Open With Randis UDS To Edit") : null,
+          shareButton("Share", shareLink(i.kind, i.slug)),
           el("a", { class: "btn", href: `#/${i.kind}` }, "Back")),
         i.status === "flagged" ? null : el("p", { class: "fine" }, "Playing here runs it walled off. A downloaded copy opens as a normal page in your browser, without this wall."),
         i.status === "flagged" || !i.open_with ? null : el("p", { class: "fine" }, "Open With needs ", out(SHOP.download, "Randis UDS 0.1.2 or newer"),
