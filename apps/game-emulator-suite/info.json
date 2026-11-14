@@ -1,0 +1,11 @@
+{
+ "name": "Game Emulator Suite",
+ "by": "Randy",
+ "blurb": "Play retro games you own: an offline emulator for 13 systems that runs inside the app, a built-in CHIP-8 emulator, links to the best web emulators (EmulatorJS, v86, PCjs, Infinite Mac, DOS Zone, Internet Archive) and tips per system. No games included; bring your own files.",
+ "status": "ok",
+ "real_items": null,
+ "reviews": {
+  "randy": null,
+  "maker": null
+ }
+}
