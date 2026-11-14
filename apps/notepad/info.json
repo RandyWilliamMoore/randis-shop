@@ -1,0 +1,11 @@
+{
+ "name": "Notepad",
+ "by": "Randy",
+ "blurb": "A plain, fast notepad: type, find, wrap or unwrap lines, change the text size, see words and characters. Open a text file from your computer and Save it back as a .txt in your downloads.",
+ "status": "ok",
+ "real_items": null,
+ "reviews": {
+  "randy": null,
+  "maker": null
+ }
+}

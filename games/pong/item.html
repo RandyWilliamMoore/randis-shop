@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Pong</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; font: 16px system-ui, sans-serif; color: #fff; }
+  canvas { display: block; width: 100vw; height: 100vh; }
+  #menu { position: fixed; left: 0; right: 0; bottom: 12%; text-align: center; font: 15px 'Courier New', monospace; }
+  #menu button { background: #000; color: #fff; border: 2px solid #fff; padding: 8px 18px; margin: 6px; font: bold 16px 'Courier New', monospace; cursor: pointer; }
+  #menu button:hover { background: #fff; color: #000; } #menu p { margin: 10px; color: #bbb; } .hide { display: none; }
+</style></head>
+<body>
+<canvas id="c" aria-label="Pong court"></canvas>
+<div id="menu"><button id="p1">Play the computer (1)</button><button id="p2">Two players (2)</button><p>Left paddle: W/S, arrow keys or mouse. Right paddle (two players): arrow keys. P pauses. First to 7 wins.</p></div>
+<script>
+  // Classic Pong. You are the left paddle: W/S, arrow keys or the mouse. Press 2 for two players (right paddle: arrow keys).
+  const c = document.getElementById("c"), g = c.getContext("2d");
+  const W = 800, H = 500, PH = 80, PW = 10, BALL = 10, WIN = 7;
+  let L, R, ball, two = false, state = "title", keys = {}, mouseY = null, last = 0, serveAt = 0, flash = 0;
+  let ac = null;
+  function beep(f, len) {
+    try {
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      const o = ac.createOscillator(), v = ac.createGain();
+      o.type = "square"; o.frequency.value = f; v.gain.value = .06;
+      o.connect(v).connect(ac.destination); o.start(); o.stop(ac.currentTime + len);
+    } catch (e) {}
+  }
+  function fit() {
+    const s = Math.min(innerWidth / W, innerHeight / H);
+    c.width = innerWidth * devicePixelRatio; c.height = innerHeight * devicePixelRatio;
+    g.setTransform(s * devicePixelRatio, 0, 0, s * devicePixelRatio, (innerWidth - W * s) / 2 * devicePixelRatio, (innerHeight - H * s) / 2 * devicePixelRatio);
+    fit.s = s;
+  }
+  function reset() { L = { y: H / 2 - PH / 2, score: 0 }; R = { y: H / 2 - PH / 2, score: 0 }; serve(Math.random() < .5 ? 1 : -1); }
+  function serve(dir) {
+    ball = { x: W / 2, y: H / 2, vx: 0, vy: 0, dir };
+    serveAt = performance.now() + 900;
+  }
+  function launch() {
+    const a = (Math.random() * .8 - .4);
+    ball.vx = ball.dir * 330 * Math.cos(a); ball.vy = 330 * Math.sin(a);
+  }
+  const menu = document.getElementById("menu");
+  function start(p2) { two = p2; reset(); state = "play"; menu.classList.add("hide"); c.focus(); }
+  document.getElementById("p1").onclick = () => start(false); document.getElementById("p2").onclick = () => start(true);
+  addEventListener("resize", fit); fit();
+  addEventListener("keydown", e => {
+    keys[e.code] = true;
+    if (["ArrowUp", "ArrowDown", "Space"].includes(e.code)) e.preventDefault();
+    if (state != "play" && (e.code == "Space" || e.code == "Enter" || e.code == "Digit1")) start(false);
+    if (state != "play" && e.code == "Digit2") start(true);
+    if (state == "play" && e.code == "KeyP") state = "pause"; else if (state == "pause" && e.code == "KeyP") state = "play";
+  });
+  addEventListener("keyup", e => keys[e.code] = false);
+  c.addEventListener("mousemove", e => {
+    const r = c.getBoundingClientRect(), s = fit.s;
+    mouseY = (e.clientY - r.top - (innerHeight - H * s) / 2) / s;
+  });
+
+  function move(p, up, down, dt) { if (up) p.y -= 420 * dt; if (down) p.y += 420 * dt; p.y = Math.max(0, Math.min(H - PH, p.y)); }
+  function step(dt, now) {
+    // left: W/S, or arrows when playing alone, or the mouse
+    const lUp = keys.KeyW || (!two && keys.ArrowUp), lDown = keys.KeyS || (!two && keys.ArrowDown);
+    if (lUp || lDown) { move(L, lUp, lDown, dt); mouseY = null; }
+    else if (mouseY != null) L.y = Math.max(0, Math.min(H - PH, mouseY - PH / 2));
+    if (two) move(R, keys.ArrowUp, keys.ArrowDown, dt);
+    else {
+      // the computer follows the ball, a little slow so it can be beaten
+      const target = (ball.vx > 0 ? ball.y : H / 2) - PH / 2, d = target - R.y;
+      R.y += Math.sign(d) * Math.min(Math.abs(d), 300 * dt); R.y = Math.max(0, Math.min(H - PH, R.y));
+    }
+    if (ball.vx == 0) { if (now >= serveAt) launch(); return; }
+    ball.x += ball.vx * dt; ball.y += ball.vy * dt;
+    if (ball.y < 0) { ball.y = 0; ball.vy = Math.abs(ball.vy); beep(300, .04); }
+    if (ball.y > H - BALL) { ball.y = H - BALL; ball.vy = -Math.abs(ball.vy); beep(300, .04); }
+    hit(L, 20, 1); hit(R, W - 20 - PW, -1);
+    if (ball.x < -BALL) point(R, 1);
+    if (ball.x > W) point(L, -1);
+  }
+  function hit(p, px, dir) {
+    if (Math.sign(ball.vx) == dir) return;
+    if (ball.x + BALL < px || ball.x > px + PW || ball.y + BALL < p.y || ball.y > p.y + PH) return;
+    const off = ((ball.y + BALL / 2) - (p.y + PH / 2)) / (PH / 2), speed = Math.min(900, Math.hypot(ball.vx, ball.vy) * 1.06), a = off * 1.0;
+    ball.vx = dir * speed * Math.cos(a); ball.vy = speed * Math.sin(a);
+    ball.x = dir > 0 ? px + PW : px - BALL; beep(460, .05);
+  }
+  function point(p, dir) {
+    p.score++; beep(180, .25); flash = .3;
+    if (p.score >= WIN) { state = "over"; menu.classList.remove("hide"); over = p === L ? (two ? "Left player wins!" : "You win!") : (two ? "Right player wins!" : "The computer wins."); return; }
+    serve(dir);
+  }
+  let over = "";
+  function text(t, x, y, size, align) { g.font = size + "px 'Courier New', monospace"; g.textAlign = align || "center"; g.fillText(t, x, y); }
+  function draw() {
+    g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = "#000"; g.fillRect(0, 0, c.width, c.height); g.restore();
+    g.fillStyle = flash > 0 ? "#222" : "#000"; g.fillRect(0, 0, W, H);
+    g.fillStyle = "#fff";
+    for (let y = 5; y < H; y += 30) g.fillRect(W / 2 - 2, y, 4, 16);
+    if (state == "title") {
+      text("PONG", W / 2, 170, 80);
+      return;
+    }
+    text(L.score, W / 2 - 60, 70, 56); text(R.score, W / 2 + 60, 70, 56);
+    g.fillRect(20, L.y, PW, PH); g.fillRect(W - 20 - PW, R.y, PW, PH);
+    if (state != "over") g.fillRect(ball.x, ball.y, BALL, BALL);
+    if (state == "pause") text("PAUSED (P)", W / 2, H / 2, 36);
+    if (state == "over") { text(over, W / 2, H / 2, 40);  }
+  }
+  function frame(now) {
+    const dt = Math.min(.033, (now - last) / 1000 || 0); last = now;
+    if (state == "play") step(dt, now);
+    if (flash > 0) flash -= dt;
+    draw(); requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+</script>
+</body></html>

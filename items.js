@@ -325,6 +325,23 @@ window.ITEMS = [
  },
  {
   "kind": "games",
+  "slug": "pong",
+  "name": "Pong",
+  "by": "Randy",
+  "blurb": "Classic Pong. Play the computer with W/S, the arrow keys or your mouse, or two players on one keyboard. First to 7 wins.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=games/pong",
+  "file": "games/pong/item.html",
+  "logo": "games/pong/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "games",
   "slug": "rev-the-frog",
   "name": "REV! The Frog Who Saved the World",
   "by": "Randy",
@@ -423,6 +440,23 @@ window.ITEMS = [
   "open_with": "randisuds://open?item=apps/club-wiki",
   "file": "apps/club-wiki/item.html",
   "logo": "apps/club-wiki/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "code-editor",
+  "name": "Code Editor",
+  "by": "Randy",
+  "blurb": "Write HTML, CSS and JavaScript and watch your page run next to it, with a console for console.log and errors. Save your project as a .json file and open it again later. The full IDE with Claude Code is in Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/code-editor",
+  "file": "apps/code-editor/item.html",
+  "logo": "apps/code-editor/logo.svg",
   "video_pic": null
  },
  {
@@ -529,6 +563,23 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "notepad",
+  "name": "Notepad",
+  "by": "Randy",
+  "blurb": "A plain, fast notepad: type, find, wrap or unwrap lines, change the text size, see words and characters. Open a text file from your computer and Save it back as a .txt in your downloads.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/notepad",
+  "file": "apps/notepad/item.html",
+  "logo": "apps/notepad/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "publishing-suite",
   "name": "Publishing Suite",
   "by": "Randy",
@@ -542,6 +593,23 @@ window.ITEMS = [
   "open_with": "randisuds://open?item=apps/publishing-suite",
   "file": "apps/publishing-suite/item.html",
   "logo": "apps/publishing-suite/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "quak-quak",
+  "name": "Quak Quak",
+  "by": "Randy",
+  "blurb": "Quak Quak is a rubber duck for talking your problems out. Explain what you're stuck on and he listens and asks the next small question, like a real duck on your desk. Spin him, make him quack, breathe fire, and look for the secrets.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/quak-quak",
+  "file": "apps/quak-quak/item.html",
+  "logo": "apps/quak-quak/logo.svg",
   "video_pic": null
  },
  {
