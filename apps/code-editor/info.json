@@ -1,0 +1,11 @@
+{
+ "name": "Code Editor",
+ "by": "Randy",
+ "blurb": "Write HTML, CSS and JavaScript and watch your page run next to it, with a console for console.log and errors. Save your project as a .json file and open it again later. The full IDE with Claude Code is in Randis UDS.",
+ "status": "ok",
+ "real_items": null,
+ "reviews": {
+  "randy": null,
+  "maker": null
+ }
+}

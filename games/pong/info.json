@@ -1,0 +1,11 @@
+{
+ "name": "Pong",
+ "by": "Randy",
+ "blurb": "Classic Pong. Play the computer with W/S, the arrow keys or your mouse, or two players on one keyboard. First to 7 wins.",
+ "status": "ok",
+ "real_items": null,
+ "reviews": {
+  "randy": null,
+  "maker": null
+ }
+}

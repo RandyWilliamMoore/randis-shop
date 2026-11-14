@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Notepad</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #1e1f24; color: #e8e6e3; font: 14px system-ui, sans-serif; }
+  body { display: flex; flex-direction: column; }
+  #bar { display: flex; gap: 6px; align-items: center; padding: 6px 8px; background: #2a2c33; border-bottom: 1px solid #3a3d46; flex-wrap: wrap; }
+  button, select, label.b { background: #3a3d46; color: #e8e6e3; border: 1px solid #50545f; border-radius: 4px; padding: 4px 10px; font: inherit; cursor: pointer; }
+  button:hover, label.b:hover { background: #474b56; }
+  #name { background: #1e1f24; color: #e8e6e3; border: 1px solid #50545f; border-radius: 4px; padding: 4px 6px; width: 160px; font: inherit; }
+  #file { display: none; }
+  #pad { flex: 1; resize: none; border: 0; outline: 0; padding: 12px 14px; background: #1e1f24; color: #e8e6e3;
+         font: 15px/1.5 Consolas, "Cascadia Mono", monospace; tab-size: 4; }
+  #pad.wrap { white-space: pre-wrap; } #pad.nowrap { white-space: pre; overflow-x: auto; }
+  #status { padding: 3px 10px; background: #2a2c33; border-top: 1px solid #3a3d46; color: #a9a6a0; font-size: 12px; display: flex; gap: 16px; }
+  #status .note { margin-left: auto; }
+</style></head>
+<body>
+<div id="bar">
+  <button id="new" title="Ctrl+N">New</button>
+  <label class="b" for="file" title="Ctrl+O">Open…</label><input type="file" id="file" accept=".txt,.md,.csv,.json,.log,.ini,.html,.css,.js,.py,text/*">
+  <button id="save" title="Ctrl+S">Save</button>
+  <input id="name" value="notes.txt" aria-label="File name" spellcheck="false">
+  <button id="wrap">Wrap: on</button>
+  <select id="size" aria-label="Text size"><option>13</option><option selected>15</option><option>18</option><option>22</option></select>
+  <button id="find" title="Ctrl+F">Find</button>
+</div>
+<textarea id="pad" class="wrap" spellcheck="false" autofocus placeholder="Type here. Save gives you a .txt file in your downloads; Open loads one back."></textarea>
+<div id="status"><span id="pos">Ln 1, Col 1</span><span id="count">0 words · 0 characters</span><span class="note" id="note">Nothing is kept in the shop: save to keep your notes.</span></div>
+<script>
+  const $ = id => document.getElementById(id), pad = $("pad");
+  let dirty = false;
+  function note(t) { $("note").textContent = t; }
+  function stats() {
+    const v = pad.value, before = v.slice(0, pad.selectionStart).split("\n");
+    $("pos").textContent = "Ln " + before.length + ", Col " + (before[before.length - 1].length + 1);
+    const words = (v.match(/\S+/g) || []).length;
+    $("count").textContent = words + " word" + (words == 1 ? "" : "s") + " · " + v.length + " character" + (v.length == 1 ? "" : "s");
+  }
+  function plainName() {
+    let n = $("name").value.trim().replace(/[\\/:*?"<>|]+/g, "") || "notes";
+    n = n.replace(/\.[^.]*$/, "");
+    return n + ".txt";
+  }
+  function save() {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([pad.value], { type: "text/plain" }));
+    a.download = plainName(); document.body.append(a); a.click(); a.remove();
+    dirty = false; note("Saved " + a.download + " to your downloads.");
+  }
+  function newDoc() {
+    if (dirty && !confirm("Start a new note? What you haven't saved will be lost.")) return;
+    pad.value = ""; $("name").value = "notes.txt"; dirty = false; stats(); pad.focus(); note("New note.");
+  }
+  $("file").addEventListener("change", e => {
+    const f = e.target.files[0]; if (!f) return;
+    if (f.size > 5e6) { note("That file is too big for Notepad (5 MB max)."); return; }
+    f.text().then(t => { pad.value = t; $("name").value = f.name; dirty = false; stats(); note("Opened " + f.name + "."); });
+    e.target.value = "";
+  });
+  $("new").onclick = newDoc; $("save").onclick = save;
+  $("wrap").onclick = () => { const on = pad.classList.toggle("wrap"); pad.classList.toggle("nowrap", !on); $("wrap").textContent = "Wrap: " + (on ? "on" : "off"); };
+  $("size").onchange = () => pad.style.fontSize = $("size").value + "px";
+  let lastFind = "";
+  function find() {
+    const q = prompt("Find:", lastFind); if (!q) return; lastFind = q;
+    const v = pad.value.toLowerCase(), from = pad.selectionEnd;
+    let i = v.indexOf(q.toLowerCase(), from); if (i < 0) i = v.indexOf(q.toLowerCase());
+    if (i < 0) { note("Not found: " + q); return; }
+    pad.focus(); pad.setSelectionRange(i, i + q.length); stats(); note("Found: " + q);
+  }
+  $("find").onclick = find;
+  pad.addEventListener("input", () => { dirty = true; stats(); });
+  ["keyup", "click"].forEach(t => pad.addEventListener(t, stats));
+  pad.addEventListener("keydown", e => {
+    if (e.key == "Tab") { e.preventDefault(); const s = pad.selectionStart; pad.setRangeText("\t", s, pad.selectionEnd, "end"); dirty = true; stats(); }
+  });
+  addEventListener("keydown", e => {
+    if (!e.ctrlKey) return;
+    const k = e.key.toLowerCase();
+    if (k == "s") { e.preventDefault(); save(); }
+    else if (k == "o") { e.preventDefault(); $("file").click(); }
+    else if (k == "n") { e.preventDefault(); newDoc(); }
+    else if (k == "f") { e.preventDefault(); find(); }
+  });
+  stats();
+</script>
+</body></html>
