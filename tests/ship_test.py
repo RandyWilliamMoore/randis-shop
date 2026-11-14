@@ -34,6 +34,7 @@ def test(page, check):
         start = page.json("{errs: F.__errs, text: F.document.body.innerText.length}") or {}
         check(f"{name}: starts with no errors under the player's rules", start.get("errs") == [], start.get("errs"))
         check(f"{name}: shows something", start.get("text", 0) > 50, start.get("text"))
+        page.until("[...F.document.querySelectorAll('button,[onclick],.btn')].some(e => e.getClientRects().length > 0)")   # some draw their buttons a moment after loading
         clicked = page.js(CLICK) or 0
         time.sleep(2)
         after = page.json("{errs: F.__errs, csp: F.__csp}") or {}

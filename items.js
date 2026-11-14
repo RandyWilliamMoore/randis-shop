@@ -427,6 +427,23 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "codex-academy",
+  "name": "Codex Academy",
+  "by": "Randy",
+  "blurb": "Learn to code, any language: an atlas of 15 realms and about 200 topics, 87 hand-made exercises, 20 arena challenges, 6 guided projects, 8 labs (sorting, Big-O, regex, neural net, pathfinding and more), XP, streaks and certificates. JavaScript runs right here; other languages and the Sage tutor need Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/codex-academy",
+  "file": "apps/codex-academy/item.html",
+  "logo": "apps/codex-academy/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "discord-bot-design-suite",
   "name": "Discord Bot Design Suite",
   "by": "Randy",
@@ -478,6 +495,23 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "money-lab",
+  "name": "Money Lab",
+  "by": "Randy",
+  "blurb": "Paper trading and money skills in one place: about 170 simulated markets (stocks, ETFs, bonds, forex, crypto, futures, metals, real estate, collectibles, options), 93 calculators, budgeting, home buying, an 18-course academy, an encyclopedia and a scam center. No real money.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/money-lab",
+  "file": "apps/money-lab/item.html",
+  "logo": "apps/money-lab/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "music-studio",
   "name": "Music Studio",
   "by": "Randy",
@@ -491,6 +525,23 @@ window.ITEMS = [
   "open_with": "randisuds://open?item=apps/music-studio",
   "file": "apps/music-studio/item.html",
   "logo": "apps/music-studio/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "publishing-suite",
+  "name": "Publishing Suite",
+  "by": "Randy",
+  "blurb": "Make one book or thousands: templates, data and puzzle generators, interior layout with embedded fonts, covers with spine and barcode, ISBN blocks, and export to PDF, EPUB, DOCX, ODT, TXT, Markdown, HTML, RTF, FB2, LaTeX and more. Building straight into a folder needs Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/publishing-suite",
+  "file": "apps/publishing-suite/item.html",
+  "logo": "apps/publishing-suite/logo.svg",
   "video_pic": null
  },
  {
@@ -546,6 +597,23 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "shop-studio",
+  "name": "Shop Studio",
+  "by": "Randy",
+  "blurb": "Make and run your own shop like this one: sign in to GitHub, make a shop from the Shop Kit, put your tabs on its shelves, send songs to its Jukebox, change its look, publish and watch it go live. The GitHub parts need Randis UDS; in the shop you can look around.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/shop-studio",
+  "file": "apps/shop-studio/item.html",
+  "logo": "apps/shop-studio/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "sing-in-my-voice",
   "name": "Sing in My Voice",
   "by": "Randy",
@@ -576,6 +644,23 @@ window.ITEMS = [
   "open_with": "randisuds://open?item=apps/the-dispatch",
   "file": "apps/the-dispatch/item.html",
   "logo": "apps/the-dispatch/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "vm-suite",
+  "name": "VM Suite",
+  "by": "Randy",
+  "blurb": "Make many real PCs shown live in a tab, from a catalog of free systems (TempleOS, Tiny Core, SliTaz, Alpine, FreeDOS, ReactOS) or your own disc image, with memory, processors, drive size and Speed boost per machine. Running machines needs Randis UDS; in the shop you can look around.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/vm-suite",
+  "file": "apps/vm-suite/item.html",
+  "logo": "apps/vm-suite/logo.svg",
   "video_pic": null
  },
  {

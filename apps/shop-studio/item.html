@@ -1,0 +1,578 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Shop Studio</title>
+<style>
+  :root{--bg:#f4f5f8;--panel:#fff;--line:#e2e5ec;--text:#1d2230;--dim:#6b7385;--acc:#3d63dd;--ok:#1f9d55;--bad:#d64545;--warn:#c98a00;--soft:#eef2ff}
+  @media (prefers-color-scheme: dark){:root{--bg:#15171c;--panel:#1d2027;--line:#2c313b;--text:#e6e8ec;--dim:#99a0ad;--acc:#6d8dff;--soft:#232a3d}}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:14px/1.45 "Segoe UI",system-ui,sans-serif}
+  body{display:flex}
+  nav{width:210px;flex:none;background:var(--panel);border-right:1px solid var(--line);padding:12px 8px;display:flex;flex-direction:column;gap:2px;overflow:auto}
+  nav h1{font-size:17px;margin:2px 8px 2px}
+  nav .who{color:var(--dim);font-size:12px;margin:0 8px 10px;word-break:break-all}
+  nav button{all:unset;cursor:pointer;padding:7px 10px;border-radius:7px;display:flex;gap:8px;align-items:center}
+  nav button:hover{background:var(--soft)}
+  nav button.on{background:var(--acc);color:#fff}
+  nav button .n{margin-left:auto;font-size:11px;background:var(--bad);color:#fff;border-radius:9px;padding:0 6px}
+  nav button[disabled]{opacity:.4;cursor:default}
+  main{flex:1;min-width:0;overflow:auto;padding:18px 22px 60px}
+  h2{margin:0 0 4px;font-size:21px}
+  h3{margin:20px 0 8px;font-size:15px}
+  p.lead{color:var(--dim);margin:0 0 16px;max-width:820px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:12px}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+  .stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px}
+  .stat b{display:block;font-size:24px}
+  .stat span{color:var(--dim);font-size:12px}
+  button,select,input,textarea{font:inherit;color:var(--text);background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:6px 11px}
+  button{cursor:pointer}
+  button:hover:not(:disabled){border-color:var(--acc)}
+  button:disabled{opacity:.5;cursor:default}
+  button.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+  button.danger{color:var(--bad)}
+  button.small{padding:3px 8px;font-size:12px}
+  label{display:block;font-size:12px;color:var(--dim);margin:10px 0 3px}
+  input[type=text],textarea,select.wide{width:100%}
+  textarea{min-height:70px;resize:vertical}
+  .chk{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+  .chk:last-child{border:0}
+  .chk .i{width:22px;text-align:center;font-size:16px}
+  .chk .t{flex:1}
+  .chk .t small{display:block;color:var(--dim)}
+  .ok{color:var(--ok)} .bad{color:var(--bad)} .warn{color:var(--warn)} .dim{color:var(--dim)}
+  .item{display:flex;gap:12px;align-items:flex-start}
+  .item img{width:64px;height:64px;border-radius:10px;object-fit:cover;background:var(--soft);flex:none}
+  .item .t{flex:1;min-width:0}
+  .item .t b{display:block}
+  .item .t p{margin:3px 0;color:var(--dim);font-size:13px}
+  .tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:9px;background:var(--soft);margin-right:4px}
+  .tag.flag{background:#ffe1e1;color:#a00}
+  table{width:100%;border-collapse:collapse}
+  td,th{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:top}
+  th{color:var(--dim);font-weight:600}
+  #job{position:fixed;left:226px;right:16px;bottom:12px;background:var(--text);color:var(--bg);border-radius:10px;padding:10px 14px;display:none;gap:12px;align-items:center;box-shadow:0 6px 24px rgba(0,0,0,.25)}
+  #job.show{display:flex}
+  #job .code{font:700 20px Consolas,monospace;letter-spacing:2px;background:var(--bg);color:var(--text);padding:2px 10px;border-radius:6px}
+  #job.err{background:var(--bad);color:#fff}
+  .spin{width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:s 0.8s linear infinite;flex:none}
+  @keyframes s{to{transform:rotate(360deg)}}
+  .linkrow{display:grid;grid-template-columns:150px 1fr auto;gap:6px;margin-bottom:6px}
+  .swatch{display:inline-block;width:18px;height:18px;border-radius:4px;vertical-align:middle;border:1px solid var(--line)}
+  .guide li{margin:6px 0}
+  .flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 4px}
+  .flow span{background:var(--soft);padding:4px 10px;border-radius:14px;font-size:13px}
+  .flow i{color:var(--dim);font-style:normal}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:20px}
+  .modal.show{display:flex}
+  .modal .box{background:var(--panel);border-radius:12px;padding:18px 20px;max-width:620px;width:100%;max-height:90vh;overflow:auto}
+  .err{color:var(--bad)}
+  code{background:var(--soft);padding:0 4px;border-radius:4px}
+</style></head>
+<body>
+<nav id="nav">
+  <h1>🏪 Shop Studio</h1>
+  <div class="who" id="who">…</div>
+  <button data-p="setup">🧰 Set up</button>
+  <button data-p="home">🏠 Overview</button>
+  <button data-p="shelves">🎮 Shelves</button>
+  <button data-p="music">🎵 Jukebox</button>
+  <button data-p="look">🎨 Look &amp; links</button>
+  <button data-p="publish">🚀 Publish <span class="n" id="nchg" hidden></span></button>
+  <button data-p="checks">✅ Checks &amp; builds</button>
+  <button data-p="guide">📘 Running a shop</button>
+</nav>
+<main id="main"></main>
+<div id="job"><div class="spin" id="jobspin"></div><div id="jobtext" style="flex:1"></div><span class="code" id="jobcode" hidden></span><button class="small" id="jobopen" hidden>Open GitHub</button><button class="small" id="jobclose">Hide</button></div>
+<div class="modal" id="modal"><div class="box" id="mbox"></div></div>
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  let seq = 0; const waiting = new Map();
+  addEventListener("message", e => { const d = e.data; if (d && d.uds === "studio" && waiting.has(d.id)) { waiting.get(d.id)(d.r || {}); waiting.delete(d.id); } });
+  function call(op, args, ms) {
+    return new Promise(res => {
+      const id = ++seq; waiting.set(id, res);
+      parent.postMessage({ uds: "studio", id, op, args: args || {} }, "*");
+      setTimeout(() => { if (waiting.has(id)) { waiting.delete(id); res({ error: "The app didn't answer." }); } }, ms || 60000);
+    });
+  }
+  const slugify = t => String(t || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
+  let S = null, page = "setup", runsCache = null, tabsCache = null, hideJob = null, form = {};
+
+  // ---------- modal helpers
+  function modal(html, wire) { $("mbox").innerHTML = html; $("modal").classList.add("show"); if (wire) wire($("mbox")); }
+  function closeModal() { $("modal").classList.remove("show"); }
+  $("modal").addEventListener("click", e => { if (e.target === $("modal")) closeModal(); });
+  function ask(title, text, yes) {
+    return new Promise(res => modal(`<h3 style="margin-top:0">${esc(title)}</h3><p>${text}</p><div class="row"><button class="pri" id="y">${esc(yes || "Yes")}</button><button id="n">Cancel</button></div>`,
+      b => { b.querySelector("#y").onclick = () => { closeModal(); res(true); }; b.querySelector("#n").onclick = () => { closeModal(); res(false); }; }));
+  }
+  function toast(t, bad) { const j = $("job"); j.classList.add("show"); j.classList.toggle("err", !!bad); $("jobspin").style.display = "none"; $("jobtext").textContent = t; $("jobcode").hidden = true; $("jobopen").hidden = true; clearTimeout(hideJob); hideJob = setTimeout(() => { if (!activeJob()) j.classList.remove("show"); }, 6000); }
+
+  // ---------- state
+  const activeJob = () => S && (S.jobs || []).find(j => !j.done);
+  const ready = () => S && S.tools.git && S.tools.gh && S.login;
+  async function refresh(full) {
+    const r = await call("status", {}, 90000);
+    if (r.error) { $("main").innerHTML = `<p class="err">${esc(r.error)}</p>`; return; }
+    S = r;
+    if (full !== false) { if (!S.folder && page !== "setup" && page !== "guide") page = "setup"; }
+    $("who").textContent = S.login ? `GitHub: ${S.login}` + (S.repo ? ` · ${S.repo}` : "") : "Not signed in to GitHub";
+    const n = (S.changes || []).length;
+    $("nchg").hidden = !n; $("nchg").textContent = n;
+    for (const b of document.querySelectorAll("nav button[data-p]")) {
+      b.classList.toggle("on", b.dataset.p === page);
+      b.disabled = !S.folder && !["setup", "guide"].includes(b.dataset.p);
+    }
+    showJob();
+    draw();
+  }
+  let lastJobDone = null;
+  function showJob() {
+    const j = (S.jobs || [])[0], box = $("job");
+    if (!j || (j.done && Date.now() / 1000 - j.started > 600)) { if (!hideJob) box.classList.remove("show"); return; }
+    if (j.done && lastJobDone === j.id) return;
+    box.classList.add("show"); box.classList.toggle("err", !!j.error);
+    $("jobspin").style.display = j.done ? "none" : "";
+    $("jobtext").textContent = j.status;
+    $("jobcode").hidden = !j.code || j.done; $("jobcode").textContent = j.code || "";
+    $("jobopen").hidden = !j.url; $("jobopen").textContent = j.kind === "sign_in" ? "Open GitHub" : "Open it";
+    $("jobopen").onclick = () => call("open", { what: j.kind === "sign_in" ? "device" : "page" });
+    if (j.done) { lastJobDone = j.id; clearTimeout(hideJob); hideJob = setTimeout(() => { hideJob = null; box.classList.remove("show"); }, j.error ? 20000 : 9000); }
+  }
+  $("jobclose").onclick = () => { $("job").classList.remove("show"); const j = (S.jobs || [])[0]; if (j) lastJobDone = j.id; };
+  document.querySelectorAll("nav button[data-p]").forEach(b => b.onclick = () => { page = b.dataset.p; runsCache = null; refresh(false); });
+  setInterval(() => { if (!document.hidden && S && (activeJob() || Date.now() % 30000 < 3000)) refresh(false); }, 3000);
+
+  function draw() {
+    const m = $("main");
+    if (document.activeElement && m.contains(document.activeElement) && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) return;   // don't redraw under typing
+    ({ setup: drawSetup, home: drawHome, shelves: drawShelves, music: drawMusic, look: drawLook, publish: drawPublish, checks: drawChecks, guide: drawGuide }[page] || drawSetup)(m);
+  }
+
+  // ---------- Set up
+  function drawSetup(m) {
+    const t = S.tools, j = activeJob();
+    const line = (okv, title, sub, act) => `<div class="chk"><span class="i ${okv ? "ok" : "bad"}">${okv ? "✔" : "✘"}</span><div class="t">${title}<small>${sub}</small></div>${okv ? "" : act}</div>`;
+    m.innerHTML = `<h2>Set up your shop</h2>
+      <p class="lead">Your own shop site, like the Randis Shop: games, apps and songs people can play right on the page, on GitHub Pages, for free. GitHub keeps the files and its machines check and build them. You only need a free GitHub account.</p>
+      <div class="card">
+        ${line(t.git, "Git", "Keeps the shop's history and sends it to GitHub.", `<button data-install="git" ${j ? "disabled" : ""}>Install</button>`)}
+        ${line(t.gh, "GitHub CLI", "GitHub's own program: makes the repo, turns on the page, signs you in.", `<button data-install="gh" ${j ? "disabled" : ""}>Install</button>`)}
+        ${line(!!S.login, S.login ? `Signed in to GitHub as <b>${esc(S.login)}</b>` : "Sign in to GitHub", "GitHub's sign-in page opens in your browser. Nothing secret is kept in Randis UDS.", `<button class="pri" id="signin" ${!t.gh || j ? "disabled" : ""}>Sign in</button> <a href="#" id="nogh" class="dim">no account? github.com/signup</a>`)}
+        ${line(t.ffmpeg, "ffmpeg <span class='dim'>(only for songs)</span>", "Turns Sound Forge songs into MP3s for the Jukebox.", `<button data-install="ffmpeg" ${j ? "disabled" : ""}>Install</button>`)}
+      </div>
+      ${S.folder ? `<div class="card"><b>Connected:</b> ${esc(S.shop.name)} <span class="dim">(${esc(S.folder)})</span><div class="row" style="margin-top:8px"><button id="switch">Use a different shop…</button></div></div>` : ""}
+      <div id="make" ${S.folder ? "hidden" : ""}>
+      <h3>Make a new shop</h3>
+      <div class="card">
+        <div class="grid">
+          <div><label>Shop name</label><input type="text" id="c-name" maxlength="40" placeholder="Alex's Arcade" value="${esc(form.name || "")}"></div>
+          <div><label>Your name on it (short)</label><input type="text" id="c-owner" maxlength="40" placeholder="${esc(S.login || "Alex")}" value="${esc(form.owner || "")}"></div>
+          <div><label>Full name for credits (optional)</label><input type="text" id="c-full" maxlength="60" value="${esc(form.full || "")}"></div>
+          <div><label>Repo name (also the web address)</label><input type="text" id="c-repo" maxlength="100" value="${esc(form.repo || "")}"></div>
+        </div>
+        <label>Tagline</label><input type="text" id="c-tag" maxlength="80" placeholder="games and apps made with Randis UDS" value="${esc(form.tag || "")}">
+        <label>Look</label><select id="c-theme">${["retro", "midnight", "candy", "forest", "paper", "sunset"].map(x => `<option ${form.theme === x ? "selected" : ""}>${x}</option>`).join("")}</select>
+        <p class="dim" id="c-where"></p>
+        <button class="pri" id="create" ${!ready() || j ? "disabled" : ""}>Make my shop</button>
+        ${ready() ? "" : `<span class="dim"> Install the programs and sign in first.</span>`}
+      </div>
+      <h3>Or use a shop you already have</h3>
+      <div class="card row">
+        <button id="connect">Pick its folder on this computer…</button>
+        <span class="dim">or download it from GitHub:</span>
+        <input type="text" id="clone-repo" placeholder="owner/repo" style="width:220px"><button id="clone" ${!ready() || j ? "disabled" : ""}>Download</button>
+      </div></div>`;
+    const where = () => { const r = $("c-repo").value.trim(); $("c-where").textContent = r && S.login ? `It will live at https://${S.login.toLowerCase()}.github.io/${r}/ (public), with its files in Documents\\${r} and at github.com/${S.login}/${r}.` : ""; };
+    const keep = () => { form = { name: $("c-name").value, owner: $("c-owner").value, full: $("c-full").value, repo: $("c-repo").value, tag: $("c-tag").value, theme: $("c-theme").value }; };
+    $("c-name").oninput = () => { if (!form.repoTouched) $("c-repo").value = slugify($("c-name").value); where(); keep(); };
+    $("c-repo").oninput = () => { form.repoTouched = true; where(); keep(); };
+    for (const id of ["c-owner", "c-full", "c-tag", "c-theme"]) $(id).onchange = keep;
+    where();
+    m.querySelectorAll("[data-install]").forEach(b => b.onclick = async () => { const r = await call("install", { tool: b.dataset.install }); if (r.error) toast(r.error, true); refresh(); });
+    if ($("signin")) $("signin").onclick = async () => { const r = await call("sign_in"); if (r.error) toast(r.error, true); refresh(); };
+    if ($("nogh")) $("nogh").onclick = e => { e.preventDefault(); call("open", { what: "signup" }); };
+    if ($("switch")) $("switch").onclick = () => { $("make").hidden = false; $("switch").disabled = true; };
+    $("create").onclick = async () => {
+      keep();
+      const name = $("c-name").value.trim(), repo = $("c-repo").value.trim();
+      if (!name || !repo) return toast("Give the shop a name and a repo name.", true);
+      if (!await ask("Make your shop?", `This makes a <b>public</b> repo <code>${esc(S.login)}/${esc(repo)}</code> on your GitHub account and turns on its web page. Anyone can see the shop and its files. You can delete it later on GitHub.`, "Make it")) return;
+      const r = await call("create", { name, owner: $("c-owner").value.trim() || S.login, owner_full: $("c-full").value.trim(), repo_name: repo,
+        tagline: $("c-tag").value.trim(), theme: $("c-theme").value });
+      if (r.error) return toast(r.error, true);
+      form = {}; page = "home"; refresh();
+    };
+    $("connect").onclick = async () => { const r = await call("connect_pick", {}, 600000); if (r.error) toast(r.error, true); else if (!r.cancelled) { page = "home"; refresh(); } };
+    $("clone").onclick = async () => { const r = await call("clone", { repo: $("clone-repo").value }); if (r.error) toast(r.error, true); refresh(); };
+  }
+
+  // ---------- Overview
+  function drawHome(m) {
+    const s = S.shop, items = S.items || [], ch = (S.changes || []).length;
+    const games = items.filter(i => i.kind === "games").length, apps = items.length - games;
+    const last = runsCache && runsCache.runs && runsCache.runs.find(r => /check/i.test(r.workflowName));
+    m.innerHTML = `<h2>${esc(s.name)}</h2><p class="lead">${esc(s.tagline || "")}</p>
+      <div class="flow"><span>Make a tab</span><i>→</i><span>Put it on a shelf</span><i>→</i><span>Publish</span><i>→</i><span>Live on your page</span><i>→</i><span>In everyone's Shop tab</span><i>→</i><span>Windows &amp; Linux versions</span></div>
+      <div class="stats" style="margin-top:12px">
+        <div class="stat"><b>${games}</b><span>games</span></div><div class="stat"><b>${apps}</b><span>apps</span></div>
+        <div class="stat"><b>${(S.songs || []).length}</b><span>songs</span></div><div class="stat"><b>${(S.software || []).length}</b><span>desktop downloads</span></div>
+        <div class="stat"><b class="${ch ? "warn" : "ok"}">${ch}</b><span>changes not published</span></div>
+        <div class="stat"><b>${last ? (last.status !== "completed" ? "…" : last.conclusion === "success" ? "✔" : "✘") : "–"}</b><span>latest check</span></div>
+      </div>
+      <h3>Your shop</h3>
+      <div class="card">
+        <div class="row"><b>Web page:</b> <span>${esc(S.page || "not on GitHub yet")}</span>${S.page ? `<button class="small" data-open="page">Open</button>` : ""}</div>
+        <div class="row" style="margin-top:6px"><b>Repo:</b> <span>${esc(S.repo || "–")}</span>${S.repo ? `<button class="small" data-open="repo">Open</button><button class="small" data-open="pages_settings">Pages settings</button>` : ""}</div>
+        <div class="row" style="margin-top:6px"><b>Folder:</b> <span class="dim">${esc(S.folder)}</span></div>
+      </div>
+      <div class="row">
+        <button class="pri" data-go="shelves">Put a tab on a shelf</button>
+        <button data-go="publish" ${ch || (S.pending_tags || []).length ? "" : "disabled"}>Publish ${ch} change${ch === 1 ? "" : "s"}</button>
+        <button data-go="look">Change the look</button>
+      </div>
+      <p class="dim" style="margin-top:14px">People see your shop in Randis UDS too: in the Shop tab, they pick "Add a shop…" and type <code>${esc(S.repo || "owner/repo")}</code>. Your own app lists it as "My shop".</p>`;
+    wireCommon(m);
+    if (!runsCache) loadRuns().then(() => page === "home" && draw());
+  }
+  function wireCommon(m) {
+    m.querySelectorAll("[data-open]").forEach(b => b.onclick = () => call("open", { what: b.dataset.open, run: b.dataset.run }));
+    m.querySelectorAll("[data-go]").forEach(b => b.onclick = () => { page = b.dataset.go; refresh(false); });
+  }
+
+  // ---------- Shelves
+  async function drawShelves(m) {
+    if (!tabsCache) { tabsCache = (await call("tabs")).tabs || []; }
+    const items = S.items || [];
+    const soft = S.software || [];
+    m.innerHTML = `<h2>Shelves</h2><p class="lead">Games go in the Arcade, apps on the Software Shelf. A tab's current version is what goes up. Changes wait here until you Publish.</p>
+      <div class="card"><h3 style="margin-top:0">Put a tab on a shelf</h3>
+        <div class="grid">
+          <div><label>Tab</label><select class="wide" id="i-tab"><option value="">Pick a tab…</option>${tabsCache.map(t => `<option value="${esc(t.id)}">${esc(t.name)}</option>`).join("")}</select></div>
+          <div><label>Shelf</label><select class="wide" id="i-kind"><option value="games">Games (the Arcade)</option><option value="apps">Apps (the Software Shelf)</option></select></div>
+          <div><label>Name</label><input type="text" id="i-name" maxlength="60"></div>
+          <div><label>Short name (its web address)</label><input type="text" id="i-slug" maxlength="60"></div>
+        </div>
+        <label>What it is (one or two lines)</label><textarea id="i-blurb" maxlength="400"></textarea>
+        <div class="grid">
+          <div><label>Made by</label><input type="text" id="i-by" maxlength="40" value="${esc(S.shop.owner)}"></div>
+          <div><label>Logo: an emoji (or leave empty for initials)</label><input type="text" id="i-emoji" maxlength="4" placeholder="🎮"></div>
+          <div><label>Logo colour</label><input type="color" id="i-color" value="#2b59c3" style="width:100%;height:34px;padding:2px"></div>
+          <div><label>…or your own PNG logo</label><input type="file" id="i-png" accept="image/png"></div>
+          <div><label>Shop link for real items (optional, https)</label><input type="text" id="i-real"></div>
+          <div><label>Your review video (optional, https)</label><input type="text" id="i-review"></div>
+        </div>
+        <div class="row" style="margin-top:12px"><button class="pri" id="i-put">Put it on the shelf</button><span class="err" id="i-err"></span></div>
+      </div>
+      <h3>On the shelves (${items.length})</h3>
+      ${items.length ? items.map(i => {
+        const d = soft.find(s => s.item === `${i.kind}/${i.slug}`);
+        return `<div class="card item"><img src="${esc(i.logo || "")}" alt=""><div class="t"><b>${esc(i.name)}</b>
+          <span class="tag">${i.kind === "games" ? "Game" : "App"}</span>${i.status === "flagged" ? `<span class="tag flag">flagged</span>` : ""}${d ? `<span class="tag">desktop ${esc(d.version)}</span>` : ""}
+          <p>${esc(i.blurb)}</p><p>by ${esc(i.by)} · <code>${esc(i.kind)}/${esc(i.slug)}</code></p>
+          <div class="row">
+            ${i.source_tab ? `<button class="small" data-act="update" data-k="${i.kind}" data-s="${i.slug}" data-tab="${esc(i.source_tab)}">Update from its tab</button>` : ""}
+            <button class="small" data-act="edit" data-k="${i.kind}" data-s="${i.slug}">Edit words &amp; links</button>
+            <button class="small" data-act="desk" data-k="${i.kind}" data-s="${i.slug}">Windows &amp; Linux versions…</button>
+            <button class="small" data-act="flag" data-k="${i.kind}" data-s="${i.slug}">${i.status === "flagged" ? "Unflag" : "Flag (hide play)"}</button>
+            <button class="small danger" data-act="remove" data-k="${i.kind}" data-s="${i.slug}">Remove</button>
+          </div></div></div>`; }).join("") : `<p class="dim">Nothing on the shelves yet.</p>`}`;
+    let slugTouched = false;
+    $("i-tab").onchange = () => { const t = tabsCache.find(x => x.id === $("i-tab").value); if (t && !$("i-name").value) { $("i-name").value = t.name.slice(0, 60); } if (!slugTouched) $("i-slug").value = slugify($("i-name").value); };
+    $("i-name").oninput = () => { if (!slugTouched) $("i-slug").value = slugify($("i-name").value); };
+    $("i-slug").oninput = () => { slugTouched = true; };
+    $("i-put").onclick = async () => {
+      $("i-err").textContent = "";
+      const a = { tab: $("i-tab").value, kind: $("i-kind").value, name: $("i-name").value.trim(), slug: $("i-slug").value.trim(), blurb: $("i-blurb").value.trim(),
+        by: $("i-by").value.trim(), emoji: $("i-emoji").value.trim(), color: $("i-color").value, real_items: $("i-real").value.trim(), review: $("i-review").value.trim() };
+      if (!a.tab) return $("i-err").textContent = "Pick a tab.";
+      if (!a.name || !a.blurb) return $("i-err").textContent = "Give it a name and a line about what it is.";
+      const f = $("i-png").files[0];
+      if (f) { if (f.size > 2e6) return $("i-err").textContent = "The logo must be under 2 MB."; a.logo_png = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(f); }); }
+      $("i-put").disabled = true;
+      const r = await call("put_item", a);
+      $("i-put").disabled = false;
+      if (r.error) return $("i-err").textContent = r.error;
+      toast(`${r.updated ? "Updated" : "Added"} ${r.item}. Publish to put it live.`); refresh(false);
+    };
+    m.querySelectorAll("[data-act]").forEach(b => b.onclick = () => itemAct(b.dataset.act, b.dataset.k, b.dataset.s, b.dataset.tab));
+  }
+  async function itemAct(act, kind, slug, tab) {
+    const i = (S.items || []).find(x => x.kind === kind && x.slug === slug); if (!i) return;
+    if (act === "update") {
+      const r = await call("put_item", { tab, kind, slug }); if (r.error) return toast(r.error, true);
+      toast(`Updated ${kind}/${slug} from its tab. Publish to put it live.`); return refresh(false);
+    }
+    if (act === "flag") { const r = await call("item_change", { kind, slug, flagged: i.status !== "flagged" }); if (r.error) toast(r.error, true); return refresh(false); }
+    if (act === "remove") {
+      if (!await ask(`Remove ${i.name}?`, "It comes off the shelf (and its desktop downloads entry, if any) when you next publish. Its tab here isn't touched.", "Remove")) return;
+      const r = await call("item_change", { kind, slug, remove: true }); if (r.error) toast(r.error, true); return refresh(false);
+    }
+    if (act === "edit") return modal(`<h3 style="margin-top:0">${esc(i.name)}</h3>
+      <label>Name</label><input type="text" id="e-name" maxlength="60" value="${esc(i.name)}">
+      <label>What it is</label><textarea id="e-blurb" maxlength="400">${esc(i.blurb)}</textarea>
+      <label>Made by</label><input type="text" id="e-by" maxlength="40" value="${esc(i.by)}">
+      <label>Shop link for real items (https, optional)</label><input type="text" id="e-real" value="${esc(i.real_items || "")}">
+      <label>Your review video (https, optional)</label><input type="text" id="e-rev" value="${esc(i.review || "")}">
+      <div class="row" style="margin-top:12px"><button class="pri" id="e-save">Save</button><button id="e-no">Cancel</button><span class="err" id="e-err"></span></div>`, b => {
+        b.querySelector("#e-no").onclick = closeModal;
+        b.querySelector("#e-save").onclick = async () => {
+          const r = await call("item_change", { kind, slug, name: b.querySelector("#e-name").value, blurb: b.querySelector("#e-blurb").value, by: b.querySelector("#e-by").value,
+            real_items: b.querySelector("#e-real").value.trim(), review: b.querySelector("#e-rev").value.trim() });
+          if (r.error) return b.querySelector("#e-err").textContent = r.error;
+          closeModal(); refresh(false);
+        };
+      });
+    if (act === "desk") {
+      const d = (S.software || []).find(s => s.item === `${kind}/${slug}`);
+      const next = d ? d.version.replace(/(\d+)$/, n => +n + 1) : "1.0.0";
+      return modal(`<h3 style="margin-top:0">Windows &amp; Linux versions of ${esc(i.name)}</h3>
+        <p class="dim">When you publish, GitHub's machines build it into a Windows program (.exe) and a Linux program, put both on a release page, and your Software Shelf gets a download box for it. It takes about 5 to 10 minutes; Checks &amp; builds shows how it's going. The programs are your page in a plain window, nothing else.</p>
+        ${d ? `<p>Now at version <b>${esc(d.version)}</b>.</p>` : ""}
+        <label>Version</label><input type="text" id="d-ver" value="${esc(next)}" style="width:120px">
+        <label>What's new (one per line)</label><textarea id="d-notes" placeholder="First desktop version."></textarea>
+        <div class="row" style="margin-top:12px"><button class="pri" id="d-go">Get it ready</button><button id="d-no">Cancel</button><span class="err" id="d-err"></span></div>`, b => {
+          b.querySelector("#d-no").onclick = closeModal;
+          b.querySelector("#d-go").onclick = async () => {
+            const r = await call("desktop", { kind, slug, version: b.querySelector("#d-ver").value.trim(), notes: b.querySelector("#d-notes").value.split("\n") });
+            if (r.error) return b.querySelector("#d-err").textContent = r.error;
+            closeModal(); toast(`Ready: ${r.tag}. Publish to have GitHub build it.`); refresh(false);
+          };
+        });
+    }
+  }
+
+  // ---------- Jukebox
+  async function drawMusic(m) {
+    const st = await call("songs_status");
+    const here = st.folder && S.folder && st.folder.replace(/\\/g, "/").toLowerCase() === S.folder.replace(/\\/g, "/").toLowerCase();
+    const songs = S.songs || [];
+    m.innerHTML = `<h2>Jukebox</h2><p class="lead">Songs made in Sound Forge go in your shop's Jukebox, royalty free with credit, as tagged MP3s with cover art. Sound Forge's Publish button sends them straight here and puts them live.</p>
+      <div class="card">
+        <div class="chk"><span class="i ${here ? "ok" : "warn"}">${here ? "✔" : "•"}</span><div class="t">${here ? "Sound Forge publishes to this shop." : st.folder ? `Sound Forge publishes to <b>${esc(st.shop || "another shop")}</b> now.` : "Sound Forge isn't set to publish anywhere yet."}
+          <small>${here ? "" : "Switch it here; the old setting is kept in data/publish.before_studio.json."}</small></div>${here ? "" : `<button class="pri" id="m-here">Send songs to this shop</button>`}</div>
+        <div class="chk"><span class="i ${S.tools.ffmpeg ? "ok" : "bad"}">${S.tools.ffmpeg ? "✔" : "✘"}</span><div class="t">ffmpeg<small>Needed to make the MP3s.</small></div>${S.tools.ffmpeg ? "" : `<button data-install="ffmpeg">Install</button>`}</div>
+        <div class="chk"><span class="i ${S.shop.music === false ? "warn" : "ok"}">${S.shop.music === false ? "•" : "✔"}</span><div class="t">The Jukebox shows on your page<small>Turn it on or off, and set its terms, in Look &amp; links.</small></div></div>
+      </div>
+      <h3>In the Jukebox (${songs.length})</h3>
+      ${songs.length ? `<table><tr><th>Song</th><th>Genre</th><th>Added</th></tr>${songs.map(s => `<tr><td>${esc(s.name)}</td><td>${esc(s.genre)}</td><td>${esc(s.added)}</td></tr>`).join("")}</table>` : `<p class="dim">No songs yet. Make one in Sound Forge and press Publish there.</p>`}`;
+    if ($("m-here")) $("m-here").onclick = async () => { const r = await call("songs_here"); if (r.error) toast(r.error, true); else toast("Sound Forge now publishes to this shop."); draw(); };
+    m.querySelectorAll("[data-install]").forEach(b => b.onclick = async () => { const r = await call("install", { tool: b.dataset.install }); if (r.error) toast(r.error, true); refresh(); });
+  }
+
+  // ---------- Look & links
+  function drawLook(m) {
+    const s = S.shop, sec = s.sections || {};
+    const links = (s.links || []).slice();
+    while (links.length < 3) links.push({ label: "", url: "" });
+    m.innerHTML = `<h2>Look &amp; links</h2><p class="lead">How your shop looks and where it points people. Saved to <code>shop.json</code>; Publish puts it live.</p>
+      <div class="card"><div class="grid">
+        <div><label>Shop name</label><input type="text" id="l-name" maxlength="40" value="${esc(s.name)}"></div>
+        <div><label>Tagline</label><input type="text" id="l-tagline" maxlength="80" value="${esc(s.tagline || "")}"></div>
+        <div><label>Your name (short, on items)</label><input type="text" id="l-owner" maxlength="40" value="${esc(s.owner)}"></div>
+        <div><label>Full name (credits)</label><input type="text" id="l-owner_full" maxlength="60" value="${esc(s.owner_full || "")}"></div>
+        <div><label>Theme</label><select class="wide" id="l-theme">${["retro", "midnight", "candy", "forest", "paper", "sunset"].map(x => `<option ${s.theme === x ? "selected" : ""}>${x}</option>`).join("")}</select></div>
+        <div><label>Accent colour (buttons, signs)</label><div class="row"><input type="color" id="l-accent" value="${esc(s.accent || "#ffd23f")}" style="height:34px;padding:2px"><label class="row" style="margin:0"><input type="checkbox" id="l-accent-on" ${s.accent ? "checked" : ""}> use it</label></div></div>
+      </div>
+      <label>Scrolling ticker</label><input type="text" id="l-ticker" maxlength="300" value="${esc(s.ticker || "")}" placeholder="*** WELCOME TO THE SHOP *** …">
+      <div class="grid"><div><label>Welcome box title</label><input type="text" id="l-welcome_title" maxlength="60" value="${esc(s.welcome_title || "")}"></div></div>
+      <label>Welcome text</label><textarea id="l-welcome" maxlength="600">${esc(s.welcome || "")}</textarea>
+      <label>About this shop (in the footer)</label><textarea id="l-about" maxlength="600">${esc(s.about || "")}</textarea>
+      </div>
+      <h3>Links</h3>
+      <div class="card">
+        <p class="dim" style="margin-top:0">Your support page, store, socials… up to 8, shown in the footer. https addresses only.</p>
+        <div id="links">${links.map((l, n) => `<div class="linkrow"><input type="text" data-l="label" maxlength="30" placeholder="Ko-fi" value="${esc(l.label)}"><input type="text" data-l="url" placeholder="https://…" value="${esc(l.url)}"><button class="small" data-rm="${n}">✕</button></div>`).join("")}</div>
+        <button class="small" id="l-add">Add a link</button>
+        <div class="grid">
+          <div><label>Store for real items (shown on every item, optional)</label><input type="text" id="l-store" value="${esc(s.store || "")}"></div>
+          <div><label>Guestbook (a GitHub Discussions page, Discord…)</label><input type="text" id="l-guestbook" value="${esc(s.guestbook || "")}"></div>
+          <div><label>Front-door video (YouTube)</label><input type="text" id="l-video" value="${esc(s.video || "")}"></div>
+        </div>
+      </div>
+      <h3>Shelves &amp; Jukebox</h3>
+      <div class="card"><div class="grid">
+        <div><label>Arcade name</label><input type="text" id="l-sec-games" maxlength="40" value="${esc(sec.games || "")}" placeholder="The Arcade"></div>
+        <div><label>Software shelf name</label><input type="text" id="l-sec-apps" maxlength="40" value="${esc(sec.apps || "")}" placeholder="The Software Shelf"></div>
+        <div><label>Jukebox name</label><input type="text" id="l-sec-music" maxlength="40" value="${esc(sec.music || "")}" placeholder="The Jukebox"></div>
+      </div>
+      <label class="row"><input type="checkbox" id="l-music" ${s.music === false ? "" : "checked"}> Show the Jukebox</label>
+      <label>Jukebox terms (empty = the standard royalty-free-with-credit terms)</label><textarea id="l-music_terms" maxlength="600">${esc(s.music_terms || "")}</textarea></div>
+      <div class="row"><button class="pri" id="l-save">Save</button><span class="err" id="l-err"></span>${S.page ? `<button data-open="page">See the live page</button>` : ""}</div>`;
+    wireCommon(m);
+    $("l-add").onclick = () => { const box = $("links"); if (box.children.length >= 8) return; const d = document.createElement("div"); d.className = "linkrow"; d.innerHTML = `<input type="text" data-l="label" maxlength="30" placeholder="Label"><input type="text" data-l="url" placeholder="https://…"><button class="small">✕</button>`; d.querySelector("button").onclick = () => d.remove(); box.appendChild(d); };
+    m.querySelectorAll("[data-rm]").forEach(b => b.onclick = () => b.parentElement.remove());
+    $("l-save").onclick = async () => {
+      const v = id => $("l-" + id).value.trim(), orNull = x => x || null;
+      const links = [...$("links").children].map(r => ({ label: r.querySelector("[data-l=label]").value.trim(), url: r.querySelector("[data-l=url]").value.trim() })).filter(l => l.label || l.url);
+      const sections = {}; for (const k of ["games", "apps", "music"]) if (v("sec-" + k)) sections[k] = v("sec-" + k);
+      const shop = { name: v("name"), tagline: v("tagline"), owner: v("owner"), owner_full: v("owner_full"), theme: $("l-theme").value,
+        accent: $("l-accent-on").checked ? $("l-accent").value : "", ticker: v("ticker"), welcome_title: v("welcome_title"), welcome: v("welcome"), about: v("about"),
+        links, store: orNull(v("store")), guestbook: orNull(v("guestbook")), video: orNull(v("video")), music: $("l-music").checked, music_terms: v("music_terms"), sections };
+      const r = await call("settings", { shop });
+      if (r.error) return $("l-err").textContent = r.error;
+      $("l-err").textContent = ""; toast("Saved. Publish to put it live."); refresh(false);
+    };
+  }
+
+  // ---------- Publish
+  function drawPublish(m) {
+    const ch = S.changes || [], tags = S.pending_tags || [];
+    m.innerHTML = `<h2>Publish</h2><p class="lead">Publishing saves your changes in the shop's history (a commit), sends them to GitHub (a push), and waits until your page has them. GitHub's machines then run the checks.</p>
+      <div class="card">
+        ${ch.length ? `<b>${ch.length} change${ch.length === 1 ? "" : "s"} waiting</b><table style="margin:8px 0">${ch.slice(0, 40).map(c => `<tr><td style="width:40px"><span class="tag">${esc({ M: "changed", A: "new", D: "gone", "??": "new", R: "moved" }[c.what] || c.what)}</span></td><td><code>${esc(c.path)}</code></td></tr>`).join("")}${ch.length > 40 ? `<tr><td></td><td class="dim">…and ${ch.length - 40} more</td></tr>` : ""}</table>` : `<p class="ok">Nothing waiting: the folder matches the last commit.</p>`}
+        ${tags.length ? `<p>Desktop builds that start when you publish: ${tags.map(t => `<code>${esc(t)}</code>`).join(" ")}</p>` : ""}
+        ${S.unpushed ? `<p class="warn">${S.unpushed} commit${S.unpushed === 1 ? " hasn't" : "s haven't"} reached GitHub yet; publishing sends ${S.unpushed === 1 ? "it" : "them"} too.</p>` : ""}
+        <label>What changed (the commit message)</label><input type="text" id="p-msg" maxlength="200" placeholder="Added a new game">
+        <div class="row" style="margin-top:12px">
+          <button class="pri" id="p-go" ${(ch.length || tags.length || S.unpushed) && !activeJob() ? "" : "disabled"}>Ship check, then publish</button>
+          <button id="p-pull">Get changes from GitHub</button>
+          <button class="danger" id="p-undo" ${ch.length ? "" : "disabled"}>Undo unpublished changes…</button>
+        </div>
+      </div>
+      <div id="p-check"></div>
+      <h3>History</h3>
+      <div class="card"><table><tr><th>When</th><th>What</th><th>Who</th></tr>${(S.history || []).map(h => `<tr><td class="dim" style="white-space:nowrap">${esc(h.when)}</td><td>${esc(h.message)}</td><td class="dim">${esc(h.by)}</td></tr>`).join("")}</table>
+      ${S.repo ? `<button class="small" data-open="commits" style="margin-top:8px">All of it on GitHub</button>` : ""}</div>`;
+    wireCommon(m);
+    $("p-go").onclick = () => runShipCheck(m);   // Publish only goes from the Ship check, for exactly what it showed
+    if (SC && !SC.error) drawShipCheck();       // the tab redraws now and then; an open Ship check stays as you left it
+    $("p-pull").onclick = async () => { const r = await call("pull"); if (r.error) toast(r.error, true); else toast("Up to date with GitHub."); refresh(false); };
+    $("p-undo").onclick = async () => {
+      if (!await ask("Undo unpublished changes?", "Every change in the shop folder since the last publish is thrown away: items put on shelves, settings, everything. Your tabs here aren't touched.", "Throw them away")) return;
+      const r = await call("discard"); if (r.error) toast(r.error, true); else toast("Back to the last publish."); refresh(false);
+    };
+  }
+
+  // ---------- the Ship check: every line is seen and ticked; private things are kept out; each new item is placed by you
+  let SC = null;
+  async function runShipCheck(m) {
+    const box = $("p-check");
+    box.innerHTML = `<p class="dim">Checking every change…</p>`;
+    SC = await call("ship_check", {}, 120000);
+    if (SC.error) { box.innerHTML = `<p class="err">${esc(SC.error)}</p>`; return; }
+    SC.ticks = new Set(); SC.place = {}; SC.named = {};
+    drawShipCheck();
+  }
+  function shipReady() {
+    if (!SC || SC.error) return false;
+    const lines = SC.lines.filter(l => !l.findings.length);
+    return !SC.blocking && lines.every((l, i) => SC.ticks.has(l.path)) &&
+      SC.items.filter(i => i.new).every(i => SC.place[i.item] === "shop") && SC.items.filter(i => i.suggest).every(i => SC.named[i.item]);
+  }
+  function drawShipCheck() {
+    const box = $("p-check"), what = { new: "new", changed: "changed", gone: "removed", moved: "moved" };
+    const priv = SC.lines.filter(l => l.findings.length), ok = SC.lines.filter(l => !l.findings.length);
+    const newItems = SC.items.filter(i => i.new), names = SC.items.filter(i => i.suggest);
+    box.innerHTML = `
+      ${priv.length ? `<h3 class="err">Kept out until you decide: ${priv.length} file${priv.length === 1 ? "" : "s"} with private things</h3>
+        ${priv.map(l => `<div class="card"><code>${esc(l.path)}</code><ul>${l.findings.map(f => `<li>${esc(f.what)}${f.line ? ` (line ${f.line})` : ""}: <code>${esc(f.match)}</code></li>`).join("")}</ul>
+          <div class="row"><button class="pri small" data-keep="${esc(l.path)}" data-item="${esc(l.what === "new" && /\/info\.json$/.test(l.path) ? l.item : "")}">Keep it off the shop</button>
+          <button class="small" data-public="${esc(l.path)}">It's meant to be public</button></div></div>`).join("")}` : `<p class="ok">✔ No private things found (chats, saves, emails, your folder paths, keys).</p>`}
+      ${newItems.length ? `<h3>Where does each new item go?</h3>${newItems.map(i => `<div class="card"><b>${esc(i.name)}</b> <code>${esc(i.item)}</code>
+          <div class="row"><label><input type="radio" name="pl-${esc(i.item)}" data-place="${esc(i.item)}" value="shop" ${SC.place[i.item] === "shop" ? "checked" : ""}> On my shop</label>
+          <label><input type="radio" name="pl-${esc(i.item)}" data-place="${esc(i.item)}" value="private"> Keep private (it comes off the shelf; its tab is untouched)</label>
+          <button class="small" data-preview="${esc(i.item)}">Preview</button></div></div>`).join("")}` : ""}
+      ${names.length ? `<h3>Names that look like the request that made them</h3>${names.map(i => `<div class="card"><code>${esc(i.item)}</code> is named <b>${esc(i.name)}</b>
+          <div class="row"><input type="text" maxlength="60" data-name="${esc(i.item)}" value="${esc(SC.named[i.item] || i.suggest)}">
+          <button class="small" data-rename="${esc(i.item)}">Use this name</button><button class="small" data-keepname="${esc(i.item)}">Keep "${esc(i.name.slice(0, 30))}"</button>
+          ${SC.named[i.item] ? `<span class="ok">✔</span>` : ""}</div></div>`).join("")}` : ""}
+      <h3>What goes up (${ok.length} line${ok.length === 1 ? "" : "s"}): tick each one you've checked</h3>
+      <div class="card"><button class="small" id="sc-all">Tick all</button>
+        <table style="margin-top:6px">${ok.map(l => `<tr><td><input type="checkbox" data-tick="${esc(l.path)}" ${SC.ticks.has(l.path) ? "checked" : ""}></td>
+          <td><span class="tag">${esc(what[l.what] || l.what)}</span></td><td><code>${esc(l.path)}</code></td>
+          <td>${l.item && /\/item\.html$/.test(l.path) ? `<button class="small" data-preview="${esc(l.item)}">Preview</button>` : ""}</td></tr>`).join("")}</table></div>
+      <p class="dim">Publishing only touches this shop's folder and its GitHub repo. Your tabs, your other copies and your open apps are never changed.</p>
+      <div class="row"><button class="pri" id="sc-go" ${shipReady() ? "" : "disabled"}>Publish exactly this</button>
+        <span class="dim" id="sc-why">${shipReady() ? "" : "Decide every private thing, place every new item, settle every name and tick every line to publish."}</span></div>`;
+    box.querySelectorAll("[data-tick]").forEach(c => c.onchange = () => { c.checked ? SC.ticks.add(c.dataset.tick) : SC.ticks.delete(c.dataset.tick); drawShipCheck(); });
+    if ($("sc-all")) $("sc-all").onclick = () => { ok.forEach(l => SC.ticks.add(l.path)); drawShipCheck(); };
+    box.querySelectorAll("[data-place]").forEach(r => r.onchange = async () => {
+      if (r.value === "private") {
+        if (!await ask("Keep it private?", "It comes off this shop's shelf before publishing. Its tab here isn't touched.", "Keep it private")) { r.checked = false; return; }
+        const x = await call("ship_keep", { item: r.dataset.place }); if (x.error) return toast(x.error, true);
+        return runShipCheck();
+      }
+      SC.place[r.dataset.place] = "shop"; drawShipCheck();
+    });
+    box.querySelectorAll("[data-keep]").forEach(b => b.onclick = async () => {
+      const x = await call("ship_keep", b.dataset.item ? { item: b.dataset.item } : { path: b.dataset.keep }); if (x.error) return toast(x.error, true);
+      toast("Kept off the shop."); runShipCheck();
+    });
+    box.querySelectorAll("[data-public]").forEach(b => b.onclick = async () => {
+      const l = SC.lines.find(x => x.path === b.dataset.public);
+      if (!await ask("Is it meant to be public?", `These go on your public shop for anyone to see: ${l.findings.map(f => `<code>${esc(f.match)}</code>`).join(", ")}`, "Yes, it's public")) return;
+      const x = await call("ship_keep", { path: l.path, public: true, matches: l.findings.map(f => f.match) }); if (x.error) return toast(x.error, true);
+      runShipCheck();
+    });
+    box.querySelectorAll("[data-rename]").forEach(b => b.onclick = async () => {
+      const item = b.dataset.rename, name = box.querySelector(`[data-name="${item}"]`).value.trim();
+      if (!name) return toast("Give it a name.", true);
+      const [kind, slug] = item.split("/"); const x = await call("item_change", { kind, slug, name }); if (x.error) return toast(x.error, true);
+      await runShipCheck(); SC.named[item] = name; drawShipCheck();
+    });
+    box.querySelectorAll("[data-keepname]").forEach(b => b.onclick = () => { SC.named[b.dataset.keepname] = "kept"; drawShipCheck(); });
+    box.querySelectorAll("[data-preview]").forEach(b => b.onclick = async () => {
+      const x = await call("item_preview", { item: b.dataset.preview }); if (x.error) return toast(x.error, true);
+      modal(`<h3 style="margin-top:0">Preview: ${esc(b.dataset.preview)}</h3><p class="dim">How it opens on your shop (walled off, like the shop's player).</p>
+        <iframe sandbox="allow-scripts" style="width:100%;height:60vh;border:1px solid #8884;border-radius:8px;background:#fff"></iframe>
+        <div class="row"><button id="pv-x">Close</button></div>`, mb => { mb.querySelector("iframe").srcdoc = x.html; mb.querySelector("#pv-x").onclick = closeModal; });
+    });
+    $("sc-go").onclick = async () => {
+      if (!shipReady()) return;
+      const msg = $("p-msg").value.trim() || "Shop update";
+      const r = await call("publish", { message: msg, token: SC.token }); if (r.error) toast(r.error, true);
+      SC = null; refresh(false);
+    };
+  }
+
+  // ---------- Checks & builds
+  async function loadRuns() { runsCache = await call("runs", {}, 90000); return runsCache; }
+  async function drawChecks(m) {
+    m.innerHTML = `<h2>Checks &amp; builds</h2><p class="lead">GitHub's machines check your shop after every publish: every shelf in order, and every page opening and running in a real browser on Linux and Windows. They also build the Windows and Linux versions. This is free for public repos.</p><p class="dim">Loading…</p>`;
+    const r = runsCache || await loadRuns();
+    if (page !== "checks") return;
+    const icon = x => x.status !== "completed" ? `<span class="warn">● running</span>` : x.conclusion === "success" ? `<span class="ok">✔ passed</span>` : `<span class="bad">✘ ${esc(x.conclusion || "failed")}</span>`;
+    m.innerHTML = `<h2>Checks &amp; builds</h2><p class="lead">GitHub's machines check your shop after every publish: every shelf in order, and every page opening and running in a real browser on Linux and Windows. They also build the Windows and Linux versions. This is free for public repos.</p>
+      <div class="row"><button class="pri" id="c-run">Run the checks now</button><button id="c-ref">Refresh</button>${S.repo ? `<button data-open="actions">Open on GitHub</button>` : ""}</div>
+      ${r.error ? `<p class="err">${esc(r.error)}</p>` : ""}
+      <h3>Recent runs</h3>
+      <div class="card">${(r.runs || []).length ? `<table><tr><th>Result</th><th>What</th><th>For</th><th>When</th><th></th></tr>${r.runs.map(x => `<tr><td>${icon(x)}</td><td>${esc(x.workflowName)}</td><td>${esc(x.displayTitle)}</td><td class="dim">${esc((x.createdAt || "").replace("T", " ").slice(0, 16))}</td><td><button class="small" data-open="run" data-run="${esc(x.databaseId)}">Details</button></td></tr>`).join("")}</table>` : `<p class="dim">No runs yet. They start after your first publish.</p>`}</div>
+      <h3>Desktop releases</h3>
+      <div class="card">${(r.releases || []).length ? `<table><tr><th>Release</th><th>When</th></tr>${r.releases.map(x => `<tr><td>${esc(x.name || x.tagName)}</td><td class="dim">${esc((x.publishedAt || "").slice(0, 10))}</td></tr>`).join("")}</table><button class="small" data-open="releases" style="margin-top:8px">Open releases</button>` : `<p class="dim">None yet. Make one from Shelves → "Windows &amp; Linux versions…", then Publish.</p>`}</div>`;
+    wireCommon(m);
+    $("c-run").onclick = async () => { const x = await call("run_checks"); if (x.error) toast(x.error, true); else { toast("Checks started on GitHub."); setTimeout(async () => { await loadRuns(); if (page === "checks") draw(); }, 4000); } };
+    $("c-ref").onclick = async () => { await loadRuns(); draw(); };
+  }
+
+  // ---------- Running a shop
+  function drawGuide(m) {
+    m.innerHTML = `<h2>Running a shop</h2><p class="lead">How the pieces fit, and what to think about when your shop is out in the world.</p>
+      <div class="card"><h3 style="margin-top:0">The whole loop</h3>
+      <div class="flow"><span>1. Make a tab in Randis UDS</span><i>→</i><span>2. Shelves: put it in the Arcade or on the Software Shelf</span><i>→</i><span>3. Publish</span><i>→</i><span>4. GitHub Pages puts it on your page</span><i>→</i><span>5. GitHub checks it in real browsers</span><i>→</i><span>6. People play it, or open it in their own Randis UDS to change it</span><i>→</i><span>7. Optional: Windows &amp; Linux programs on the Software Shelf</span></div>
+      <ol class="guide">
+        <li><b>Your shop is a GitHub repo.</b> Every file is in Documents, in its folder, and on GitHub. The page is free GitHub Pages hosting. Publishing is a Git commit and push; the Studio does both.</li>
+        <li><b>Everything plays walled off.</b> A game on your page can't reach the visitor's files or other sites; links it opens ask the visitor first. Same inside Randis UDS.</li>
+        <li><b>Other people's apps see your shop.</b> In Randis UDS's Shop tab they pick "Add a shop…" and type <code>${esc(S.repo || "you/your-shop")}</code>. "Open With Randis UDS" buttons on your page open the item straight into their app (it asks them first).</li>
+        <li><b>Checks run on every publish</b> on GitHub's Linux and Windows machines. A red ✘ in Checks &amp; builds means something on the page broke; "Details" shows what.</li>
+        <li><b>Desktop versions</b> are built on GitHub's machines from a tag (like <code>my-game-v1.0.0</code>). Windows may warn about a new, unsigned program; that's normal for small makers.</li>
+      </ol></div>
+      <div class="card"><h3 style="margin-top:0">The business side</h3>
+      <ul class="guide">
+        <li><b>Getting paid:</b> put your support page (Ko-fi, Patreon, Buy Me a Coffee) and your store (Etsy, Shopify, Gumroad) in Look &amp; links. Each item can link to real items too (merch, prints, physical versions).</li>
+        <li><b>Rights:</b> only put up things you made or may share. The Jukebox's standard terms are royalty free with credit; change them in Look &amp; links if you want different terms for your music.</li>
+        <li><b>Credit:</b> your page carries a small "made with Randis UDS by Randy Moore" line at the top. Randis UDS's licence asks every shop made with it to keep it.</li>
+        <li><b>Reviews &amp; video:</b> each item has a "TV" for your review video, and the front door can show a YouTube video. Videos are the easiest way to get people to try things.</li>
+        <li><b>Community:</b> a guestbook link (GitHub Discussions on your repo, or a Discord) gives people a place to ask, suggest and send in their own things.</li>
+        <li><b>Flag fast:</b> if something on a shelf turns out broken or not OK, Flag it: the page keeps it listed but turns Play and Download off until you fix it.</li>
+        <li><b>Your own domain:</b> GitHub Pages can show the shop at your own web address; set it in the repo's Pages settings.</li>
+      </ul></div>`;
+  }
+
+  refresh().then(() => { if (S && S.folder) { page = "home"; refresh(false); } });
+})();
+</script>
+</body></html>

@@ -1,0 +1,11 @@
+{
+ "name": "Shop Studio",
+ "by": "Randy",
+ "blurb": "Make and run your own shop like this one: sign in to GitHub, make a shop from the Shop Kit, put your tabs on its shelves, send songs to its Jukebox, change its look, publish and watch it go live. The GitHub parts need Randis UDS; in the shop you can look around.",
+ "status": "ok",
+ "real_items": null,
+ "reviews": {
+  "randy": null,
+  "maker": null
+ }
+}
