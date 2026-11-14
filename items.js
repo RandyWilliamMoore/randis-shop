@@ -444,6 +444,23 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "bindy-and-louis",
+  "name": "Bindy & Louis",
+  "by": "Randy",
+  "blurb": "Bindy the paperclip reads what you type and offers repair tips for phones, laptops, bikes, washers and more, from its own offline tip book. Plus a helper game: walk Louis around, let Bindy fix customers' devices to open each gate. Also a list of top repair channels and tools.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/bindy-and-louis",
+  "file": "apps/bindy-and-louis/item.html",
+  "logo": "apps/bindy-and-louis/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "club-wiki",
   "name": "Club Wiki",
   "by": "Randy",
@@ -920,6 +937,23 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "templeos",
+  "name": "TempleOS",
+  "by": "Randy",
+  "blurb": "Run the real TempleOS 5.03 (public domain, by Terry A. Davis) in a sandboxed virtual PC with no network and no access to your files. Boot the live CD or install to the tab's own small virtual drive. The virtual PC runs in Randis UDS (it uses QEMU).",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/templeos",
+  "file": "apps/templeos/item.html",
+  "logo": "apps/templeos/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "the-dispatch",
   "name": "The Dispatch",
   "by": "Randy",
@@ -984,6 +1018,23 @@ window.ITEMS = [
   "open_with": "randisuds://open?item=apps/vr-avatar-designer",
   "file": "apps/vr-avatar-designer/item.html",
   "logo": "apps/vr-avatar-designer/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "vtuber-studio",
+  "name": "VTuber Studio",
+  "by": "Randy",
+  "blurb": "Design, rig and stream your own original VTuber: build the avatar, set faces on keys 1-0, talk with Space, stage-only mode for streaming, and fun extras like throwing things and bonking the head. Camera, voice and saving parts need Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "open_with": "randisuds://open?item=apps/vtuber-studio",
+  "file": "apps/vtuber-studio/item.html",
+  "logo": "apps/vtuber-studio/logo.svg",
   "video_pic": null
  },
  {

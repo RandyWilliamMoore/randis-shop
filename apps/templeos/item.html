@@ -1,0 +1,177 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>TempleOS</title>
+<style>
+  html,body{margin:0;height:100%;background:#000;color:#fff;font:14px/1.35 Consolas,"Courier New",monospace}
+  body{display:flex;flex-direction:column}
+  #bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px 8px;background:#0000aa;border-bottom:2px solid #55ffff}
+  #bar b{color:#ffff55;margin-right:6px}
+  button,select{font:inherit;background:#fff;color:#0000aa;border:2px solid #55ffff;padding:2px 10px;cursor:pointer}
+  button:hover{background:#ffff55}
+  button:disabled{opacity:.45;cursor:default;background:#fff}
+  #msg{flex:1;min-width:200px;color:#55ffff}
+  #fps{color:#aaa;font-size:12px}
+  #stage{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;position:relative;outline:none}
+  #stage:focus #screen{box-shadow:0 0 0 2px #ffff55}
+  #screen{image-rendering:pixelated;max-width:100%;max-height:100%;aspect-ratio:4/3;background:#000;cursor:crosshair}
+  #cover{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#000;padding:20px}
+  #cover .box{max-width:620px;background:#fff;color:#000;border:4px double #0000aa;padding:18px 22px}
+  #cover h1{margin:0 0 8px;color:#0000aa;font-size:22px}
+  #cover p{margin:6px 0}
+  #cover .hint{color:#aa0000}
+  #help{padding:4px 8px;font-size:12px;color:#aaa;background:#111}
+  kbd{background:#333;color:#fff;padding:0 4px;border-radius:2px}
+</style></head>
+<body>
+<div id="bar">
+  <b>TempleOS</b>
+  <select id="boot" title="Where to start from">
+    <option value="cd">Start from the CD (live)</option>
+    <option value="disk">Start from the hard drive (after installing)</option>
+  </select>
+  <button id="start">▶ Start</button>
+  <button id="reset" disabled>⟲ Restart</button>
+  <button id="stop" disabled>■ Turn off</button>
+  <span id="msg">Checking…</span>
+  <span id="fps"></span>
+</div>
+<div id="stage" tabindex="0">
+  <canvas id="screen" width="640" height="480"></canvas>
+  <div id="cover"><div class="box">
+    <h1>TempleOS, the real one</h1>
+    <p>This runs the actual TempleOS 5.03 (public domain, by Terry A. Davis) on a pretend 64-bit PC (QEMU) on this computer. It has no network and can't see your files.</p>
+    <p>Press <b>▶ Start</b>. It takes about 10 seconds to boot.</p>
+    <p>It will ask <i>"Install onto hard drive (y or n)?"</i>:<br>
+      &nbsp;• <kbd>n</kbd>: play from the live CD. Nothing is kept when you turn it off.<br>
+      &nbsp;• <kbd>y</kbd>: install onto this tab's own 2 GB pretend hard drive (it lives in data/vm/templeos). Answer its questions with the defaults, then next time pick "Start from the hard drive".</p>
+    <p class="hint" id="need"></p>
+  </div></div>
+</div>
+<div id="help">Click the screen to type and use the mouse. <kbd>Ctrl</kbd>+<kbd>Alt</kbd> lets go of the mouse. In TempleOS: <kbd>F1</kbd> help · <kbd>Esc</kbd> save &amp; exit · <kbd>Shift</kbd>+<kbd>Esc</kbd> abort · <kbd>Ctrl</kbd>+<kbd>M</kbd> personal menu · <kbd>F7</kbd> God word</div>
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const cv = $("screen"), g = cv.getContext("2d"), stage = $("stage");
+  let seq = 0, waiting = new Map(), running = false, loopOn = false, frames = 0, lastFps = performance.now();
+  const held = new Set();
+
+  addEventListener("message", e => {
+    const d = e.data;
+    if (!d || d.uds !== "vm" || !waiting.has(d.id)) return;
+    waiting.get(d.id)(d.r || {}); waiting.delete(d.id);
+  });
+  function call(op, args, ms) {
+    return new Promise(res => {
+      const id = ++seq;
+      waiting.set(id, res);
+      parent.postMessage({ uds: "vm", id, op, args: args || {} }, "*");
+      setTimeout(() => { if (waiting.has(id)) { waiting.delete(id); res({ error: "The app didn't answer." }); } }, ms || 30000);
+    });
+  }
+  const say = t => { $("msg").textContent = t; };
+
+  function setRunning(on) {
+    running = on;
+    $("start").disabled = on; $("boot").disabled = on;
+    $("reset").disabled = !on; $("stop").disabled = !on;
+    $("cover").style.display = on ? "none" : "flex";
+    if (on && !loopOn) loop();
+    if (!on) $("fps").textContent = "";
+  }
+
+  async function check() {
+    const s = await call("status", {}, 8000);
+    if (s.error) { say(s.error); $("need").textContent = s.error; $("start").disabled = true; return; }
+    const need = [];
+    if (!s.qemu) need.push("QEMU isn't installed on this computer. Ask Claude Code to install it.");
+    if (!s.iso) need.push("The TempleOS disc image is missing (data/vm/templeos/TempleOS.ISO). Ask Claude Code to download it.");
+    $("need").textContent = need.join(" ");
+    if (need.length) { say("Not ready yet."); $("start").disabled = true; return; }
+    setRunning(!!s.running);
+    say(s.running ? "Running." : "Ready. Press Start.");
+  }
+
+  const img = new Image();
+  async function loop() {
+    loopOn = true;
+    while (running) {
+      const t0 = performance.now();
+      const r = await call("frame", {}, 10000);
+      if (r.off) { setRunning(false); say("TempleOS is off."); break; }
+      if (r.png) {
+        await new Promise(res => { img.onload = res; img.onerror = res; img.src = r.png; });
+        if (img.width && (cv.width !== img.width || cv.height !== img.height)) { cv.width = img.width; cv.height = img.height; }
+        g.drawImage(img, 0, 0);
+      }
+      frames++;
+      const now = performance.now();
+      if (now - lastFps > 1000) { $("fps").textContent = Math.round(frames * 1000 / (now - lastFps)) + " fps"; frames = 0; lastFps = now; }
+      const wait = Math.max(0, 50 - (now - t0));
+      if (wait) await new Promise(res => setTimeout(res, wait));
+    }
+    loopOn = false;
+  }
+
+  $("start").onclick = async () => {
+    $("start").disabled = true; say("Starting the pretend PC…");
+    const r = await call("start", { boot: $("boot").value }, 60000);
+    if (r.error) { $("start").disabled = false; say(r.error); return; }
+    setRunning(true); say("Running. Click the screen to use it."); stage.focus();
+  };
+  $("reset").onclick = async () => { await call("reset"); say("Restarted."); stage.focus(); };
+  $("stop").onclick = async () => {
+    if (!confirm("Turn TempleOS off? Anything not saved inside it is lost.")) return;
+    await call("stop"); setRunning(false); say("Turned off.");
+  };
+
+  // keyboard: everything goes to TempleOS while the screen has focus
+  stage.addEventListener("keydown", e => {
+    if (!running) return;
+    e.preventDefault();
+    if (e.ctrlKey && e.altKey && document.pointerLockElement) { document.exitPointerLock(); return; }
+    held.add(e.code);
+    call("key", { code: e.code, down: true });
+  });
+  stage.addEventListener("keyup", e => {
+    if (!running) return;
+    e.preventDefault();
+    held.delete(e.code);
+    call("key", { code: e.code, down: false });
+  });
+  function releaseAll() { for (const c of held) call("key", { code: c, down: false }); held.clear(); sendMouse(true); }
+  stage.addEventListener("blur", releaseAll);
+  addEventListener("blur", releaseAll);
+
+  // mouse: TempleOS reads a plain PS/2 mouse, which only reports movement, so the screen catches the pointer
+  let dx = 0, dy = 0, btns = new Set(), wheel = 0, pending = false;
+  const NAMES = ["left", "middle", "right"];
+  function sendMouse(clear) {
+    if (clear) btns.clear();
+    if (!running) return;
+    const a = { dx: Math.round(dx), dy: Math.round(dy), buttons: [...btns], wheel };
+    dx -= a.dx; dy -= a.dy; wheel = 0;
+    call("mouse", a);
+  }
+  function queue() { if (!pending) { pending = true; setTimeout(() => { pending = false; sendMouse(); }, 25); } }
+  cv.addEventListener("mousedown", e => {
+    stage.focus();
+    if (!running) return;
+    if (document.pointerLockElement !== cv) { cv.requestPointerLock && cv.requestPointerLock(); return; }
+    btns.add(NAMES[e.button] || "left"); queue(); e.preventDefault();
+  });
+  addEventListener("mouseup", e => { if (btns.delete(NAMES[e.button] || "left")) queue(); });
+  addEventListener("mousemove", e => {
+    if (document.pointerLockElement !== cv) return;
+    const k = cv.width / cv.getBoundingClientRect().width;     // move as far as the pointer would on the shown screen
+    dx += e.movementX * k; dy += e.movementY * k; queue();
+  });
+  cv.addEventListener("wheel", e => { if (document.pointerLockElement === cv) { wheel += Math.sign(e.deltaY); queue(); e.preventDefault(); } }, { passive: false });
+  cv.addEventListener("contextmenu", e => e.preventDefault());
+  document.addEventListener("pointerlockchange", () => {
+    if (document.pointerLockElement === cv) say("Mouse caught. Ctrl+Alt lets go.");
+    else { sendMouse(true); if (running) say("Running. Click the screen to catch the mouse."); }
+  });
+
+  check();
+})();
+</script>
+</body></html>
