@@ -57,8 +57,8 @@ audio{width:100%;margin-top:6px}
 <label><span>Genre</span><select id="genre"></select></label>
 <label><span>Sub-genre</span><select id="sub"></select></label>
 <label><span>Mood</span><select id="mood"></select></label>
-<label><span>Era / flavor</span><select id="era"></select></label>
-<label><span>Song form</span><select id="form"><option value="loop">Loop (4 bars)</option><option value="short">Short (~16 bars)</option><option value="full" selected>Full song</option><option value="long">Extended mix</option></select></label>
+<label><span>Era / style</span><select id="era"></select></label>
+<label><span>Song form</span><select id="form"><option value="loop">Loop (4 bars)</option><option value="short">Short (~16 bars)</option><option value="full" selected>Full song</option><option value="long">Extended mix</option><option value="lyrics">Fit the lyrics</option></select></label>
 <div class="row"><button class="b" id="applyGenre">Apply genre defaults</button><label style="margin:0"><span>Seed</span><input type="number" id="seed" value="1" style="width:80px"></label></div>
 </div>
 <div class="card"><h3>Song</h3>
@@ -84,17 +84,30 @@ audio{width:100%;margin-top:6px}
 <label><span>Echo</span><input type="range" id="dly" min="0" max="0.8" step="0.01" value="0.1"></label>
 <label><span>Sidechain pump</span><button class="tg" id="pump"></button></label>
 <label><span>Lo-fi (cut lows + highs)</span><button class="tg" id="lofi"></button></label>
-<label><span>Master volume</span><input type="range" id="vol" min="0" max="1" step="0.01" value="0.7"></label>
+<label><span>Soft &amp; ear-friendly (quieter, less sharp)</span><button class="tg on" id="soft"></button></label>
+<label><span>Master volume</span><input type="range" id="vol" min="0" max="1" step="0.01" value="0.5"></label>
 </div>
 </div>
 <div class="card" style="margin-top:10px"><h3>Tracks (polyphonic) <small>on/off · sound · volume · octave · pan, all change live</small></h3><div class="grid" id="tracks"></div></div>
 <div class="card" style="margin-top:10px"><h3>Pattern view <small id="secInfo"></small></h3><div class="seq" id="seq"></div></div>
 <div class="card" style="margin-top:10px"><h3>🎤 Lyrics <small>one line per bar of the verses and choruses; the band's singer sings along</small></h3>
 <label><span>Sing lyrics</span><button class="tg" id="lyOn"></button></label>
-<textarea id="lyText" rows="4" placeholder="Type lyrics here, one line per bar.&#10;Sing them on the melody, and the band's singer mouths along."></textarea>
+<div class="row"><button class="b p" id="lyWrite">✍️ Write lyrics</button><button class="b" id="lyBot" title="Asks the AI linked in Randis UDS to write the lyrics, using the settings below">🤖 Lyrics bot</button><span class="muted" id="lyInfo">Writes lyrics for this song. Edit them after, or write your own.</span></div>
+<label><span>Notes for the bot (optional)</span><input type="text" id="lyBotNote" maxlength="300" placeholder="e.g. about my dog, funny, no swearing"></label>
+<label><span>Pick the best lyric settings for me (both buttons)</span><button class="tg on" id="lyPick" title="On: style, blend, rhyme, line length and verse lines are chosen to suit the song before writing. Off: your own choices are used."></button></label>
+<label><span>Length</span><select id="lyLen"><option value="fit" selected>Tailor lyrics to the song's length</option><option value="song">Tailor the song's length to the lyrics</option><option value="short">Short: verse, chorus, verse, chorus</option><option value="standard">Standard: adds a bridge</option><option value="long">Long: three verses, a bridge, double chorus</option></select></label>
+<label><span>Lyric style</span><select id="lyStyle"></select></label>
+<label><span>Blend with</span><select id="lyBlend"></select></label>
+<label><span>Blend amount</span><input type="range" id="lyBlendAmt" min="0" max="1" step="0.05" value="0.35"></label>
+<label><span>Theme (optional)</span><input type="text" id="lyTheme" maxlength="30" placeholder="e.g. summer, robots, home"></label>
+<label><span>Rhyme</span><select id="lyRhyme"><option value="AABB" selected>AABB (couplets)</option><option value="ABAB">ABAB (alternating)</option><option value="AAAA">AAAA (rap-style, one rhyme)</option><option value="free">Loose (barely rhymes)</option></select></label>
+<label><span>Line length</span><select id="lyLineLen"><option value="short">Short (easy to sing)</option><option value="medium" selected>Medium</option><option value="long">Long (wordy)</option></select></label>
+<label><span>Verse lines</span><select id="lyVerse"><option value="4" selected>4</option><option value="8">8</option></select></label>
+<label><span>Write new lyrics with each 🎲 New song</span><button class="tg" id="lyAuto"></button></label>
+<textarea id="lyText" rows="8" placeholder="Type lyrics here, one line per bar.&#10;Mark parts with [Verse], [Chorus], [Bridge] to sing them in the right places.&#10;Or press ✍️ Write lyrics."></textarea>
 <label><span>Voice</span><select id="lyMode"><option value="sing">Synth singer (heard in renders and stems too)</option><option value="speak">This computer's voice, spoken (live only)</option></select></label>
 <label><span>Voice effect</span><select id="lyFx"><option>none</option><option>robot</option><option>8-bit voice</option><option>chipmunk</option><option>deep / monster</option></select></label>
-<label><span>Octave</span><select id="lyOct"><option value="-1">Low</option><option value="0" selected>Middle</option><option value="1">High</option></select></label>
+<label><span>Pitch</span><select id="lyOct"><option value="-1">Low</option><option value="0" selected>Middle</option><option value="1">High</option></select></label>
 <label><span>Vocal volume</span><input type="range" id="lyVol" min="0" max="1" step="0.01" value="0.7"></label>
 </div>
 <div class="card" style="margin-top:10px"><h3>⭐ Saved songs <small>kept inside Sound Forge; favourites first</small></h3>
@@ -746,7 +759,7 @@ function fillGenre(){opts($('genre'),Object.keys(G[V('cat')]));fillSub()}
 function fillSub(){opts($('sub'),G[V('cat')][V('genre')])}
 $('cat').onchange=()=>{fillGenre();applyGenre();refresh()};$('genre').onchange=()=>{fillSub();applyGenre();refresh()};['sub','mood','era'].forEach(id=>$(id).onchange=()=>{applyGenre();refresh()});
 const TR=[{id:'drums',n:'Drums'},{id:'bass',n:'Bass'},{id:'pad',n:'Chords / pad'},{id:'lead',n:'Lead melody'},{id:'arp',n:'Arpeggio'},{id:'counter',n:'Counter melody'},{id:'perc',n:'Extra percussion'},{id:'fx',n:'Risers & impacts'}];
-TR.forEach(t=>{const d=document.createElement('div');d.className='card';const tonal=!/drums|perc|fx/.test(t.id);d.innerHTML=`<h3>${t.n}<button class="tg on" id="on_${t.id}"></button></h3>`+(tonal?`<label><span>Sound</span><select id="w_${t.id}"></select></label><label><span>Octave</span><input type="range" id="o_${t.id}" min="-2" max="2" step="1" value="0"></label>`:'')+`<label><span>Volume</span><input type="range" id="v_${t.id}" min="0" max="1" step="0.01" value="0.6"></label><label><span>Pan</span><input type="range" id="p_${t.id}" min="-1" max="1" step="0.05" value="0"></label>`;$('tracks').appendChild(d);if(tonal)opts($('w_'+t.id),WAVES)});
+TR.forEach(t=>{const d=document.createElement('div');d.className='card';const tonal=!/drums|perc|fx/.test(t.id);d.innerHTML=`<h3>${t.n}<button class="tg on" id="on_${t.id}"></button></h3>`+(tonal?`<label><span>Sound</span><select id="w_${t.id}"></select></label><label><span>Pitch</span><input type="range" id="o_${t.id}" min="-2" max="2" step="1" value="0"></label>`:'')+`<label><span>Volume</span><input type="range" id="v_${t.id}" min="0" max="1" step="0.01" value="0.6"></label><label><span>Pan</span><input type="range" id="p_${t.id}" min="-1" max="1" step="0.05" value="0"></label>`;$('tracks').appendChild(d);if(tonal)opts($('w_'+t.id),WAVES)});
 $('on_counter').classList.remove('on');$('v_counter').value=.4;$('v_arp').value=.4;$('v_perc').value=.5;$('v_fx').value=.4;
 function applyGenre(){const s=V('cat')+'|'+V('genre')+'|'+V('sub');const p=profile(s);const r=rng(hash(s)+V('seed'));
 $('bpm').value=Math.round(p.bpm[0]+r()*(p.bpm[1]-p.bpm[0]));$('scale').value=MOODS[V('mood')]||p.scale;$('drums').value=p.drums;$('swing').value=p.swing;$('dens').value=p.dens;$('chip').value=p.chip;$('bassStyle').value=p.bassStyle;$('kit').value=p.kit;
@@ -805,7 +818,12 @@ const ALL=['drums','bass','pad','lead','arp','counter','perc','fx'];
 const F={loop:[['Loop',A,ALL]],short:[['Intro',A,['drums','pad','arp','fx']],['Verse',A,['drums','bass','pad','arp','perc']],['Chorus',B,ALL],['Outro',A,['pad','lead']]],
 full:[['Intro',A,['drums','pad','arp']],['Build',A,['drums','pad','arp','fx','bass']],['Verse',A,['drums','bass','pad','lead','perc']],['Chorus',B,ALL],['Breakdown',Br,['pad','lead','fx']],['Verse 2',A,['drums','bass','pad','arp','lead','counter']],['Chorus',B,ALL],['Chorus',B,ALL],['Outro',A,['pad','arp']]]};
 F.long=[...F.full.slice(0,4),['Chorus',B,ALL],['Bridge',Br,['drums','bass','pad','counter']],['Breakdown',Br,['pad','fx']],['Build',A,['drums','pad','arp','fx']],['Verse 3',A,['drums','bass','pad','lead','arp']],['Chorus',B,ALL],['Chorus',B,ALL],['Outro',A,['pad','arp']]];
-const bars=[];F[V('form')].forEach(([nm,sec,tr])=>sec.forEach((b,j)=>bars.push(Object.assign({},b,{sec:nm,tracks:tr,first:j===0,last:j===3}))));
+if(V('form')==='lyrics'){const bl=lyricBlocks();if(bl.length){const out=[],add=(nm,sec,tr,ly)=>sec.forEach((b,j)=>out.push(Object.assign({},b,{sec:nm,tracks:tr,first:j===0,last:j===3},ly?{ly:ly(j)}:{})));
+add('Intro',A,['drums','pad','arp']);
+bl.forEach((k,bi)=>{const t=k.tag,sec=t==='Chorus'?B:t==='Bridge'?Br:A,tr=t==='Chorus'?ALL:t==='Bridge'?['drums','bass','pad','counter']:t==='Pre'?['drums','pad','arp','fx','bass']:t==='Intro'||t==='Outro'?['pad','arp']:['drums','bass','pad','lead','perc'];
+const n=Math.max(1,Math.ceil(k.lines.length/4));for(let q=0;q<n;q++)add(k.name,sec,tr,j=>({b:bi,j:q*4+j}))});
+add('Outro',A,['pad','arp']);return{bars:out,bpm:V('bpm'),root,fromLyrics:true}}}
+const bars=[];F[V('form')==='lyrics'?'full':V('form')].forEach(([nm,sec,tr])=>sec.forEach((b,j)=>bars.push(Object.assign({},b,{sec:nm,tracks:tr,first:j===0,last:j===3}))));
 return{bars,bpm:V('bpm'),root}}
 let song=null;
 function refresh(){if(!document.body)return;if(song&&song.fromText){say('Kept the song from the text. Press 🎲 New song to make a new one with these settings.');return}newSong();if(E.playing)E.step=E.step%16?E.step-E.step%16+16:E.step}
@@ -854,11 +872,11 @@ function crushCurve(bits){const n=4096,c=new Float32Array(n),q=Math.pow(2,bits-1
 function driveCurve(a){const n=2048,c=new Float32Array(n),k=a*80;for(let i=0;i<n;i++){const x=i/(n/2)-1;c[i]=(1+k)*x/(1+k*Math.abs(x))}return c}
 function impulse(ctx,sec){const len=Math.floor(ctx.sampleRate*sec),b=ctx.createBuffer(2,len,ctx.sampleRate);for(let ch=0;ch<2;ch++){const d=b.getChannelData(ch);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,3)}return b}
 function buildChain(ctx,dest){const I=ctx.createGain(),music=ctx.createGain(),hp=ctx.createBiquadFilter(),lp=ctx.createBiquadFilter(),dr=ctx.createWaveShaper(),cr=ctx.createWaveShaper(),dl=ctx.createDelay(2),fb=ctx.createGain(),dw=ctx.createGain(),cv=ctx.createConvolver(),rw=ctx.createGain(),comp=ctx.createDynamicsCompressor(),M=ctx.createGain();
-music.connect(I);I.connect(hp);hp.connect(lp);lp.connect(dr);dr.connect(cr);cr.connect(comp);cr.connect(dl);dl.connect(fb);fb.connect(dl);dl.connect(dw);dw.connect(comp);cr.connect(cv);cv.connect(rw);rw.connect(comp);const mk=ctx.createGain(),lim=ctx.createDynamicsCompressor();mk.gain.value=2.4;comp.connect(mk);mk.connect(lim);lim.connect(M);M.connect(dest);lim.threshold.value=-2;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=.002;lim.release.value=.12;
+music.connect(I);I.connect(hp);hp.connect(lp);lp.connect(dr);dr.connect(cr);cr.connect(comp);cr.connect(dl);dl.connect(fb);fb.connect(dl);dl.connect(dw);dw.connect(comp);cr.connect(cv);cv.connect(rw);rw.connect(comp);const mk=ctx.createGain(),lim=ctx.createDynamicsCompressor();const sh=ctx.createBiquadFilter(),pk=ctx.createBiquadFilter(),sl=ctx.createBiquadFilter();sh.type='highshelf';sh.frequency.value=3500;pk.type='peaking';pk.frequency.value=2800;pk.Q.value=1;sl.type='lowpass';sl.Q.value=.5;comp.connect(mk);mk.connect(lim);lim.connect(sh);sh.connect(pk);pk.connect(sl);sl.connect(M);M.connect(dest);const ch_soft=[mk,lim,sh,pk,sl];lim.attack.value=.002;lim.release.value=.12;
 hp.type='highpass';lp.type='lowpass';comp.threshold.value=-14;comp.ratio.value=4;dr.oversample='2x';
-const ch={I,music,M,ctx,tracks:{},vox:ctx.createGain(),live:!(window.OfflineAudioContext&&ctx instanceof OfflineAudioContext)};ch.vox.connect(music);
+const ch={I,music,M,ctx,soft:ch_soft,tracks:{},vox:ctx.createGain(),live:!(window.OfflineAudioContext&&ctx instanceof OfflineAudioContext)};ch.vox.connect(music);
 TR.forEach(t=>{const g=ctx.createGain(),p=ctx.createStereoPanner();g.connect(p);p.connect(t.id==='drums'||t.id==='perc'?I:music);ch.tracks[t.id]={g,p}});
-ch.update=()=>{const now=ctx.currentTime;lp.frequency.setTargetAtTime(V('cut'),now,.05);lp.Q.value=V('res');hp.frequency.value=ON('lofi')?150:20;
+ch.update=()=>{const now=ctx.currentTime;{const[mk,lim,sh,pk,sl]=ch.soft,s=ON('soft');mk.gain.setTargetAtTime(s?1:2.4,now,.05);lim.threshold.value=s?-9:-2;lim.knee.value=s?8:0;lim.ratio.value=s?6:20;sh.gain.value=s?-8:0;pk.gain.value=s?-4:0;sl.frequency.value=s?9000:22000}lp.frequency.setTargetAtTime(V('cut'),now,.05);lp.Q.value=V('res');hp.frequency.value=ON('lofi')?150:20;
 const d=V('drive');if(ch.d!==d){ch.d=d;dr.curve=d>0?driveCurve(d):null}const chip=+V('chip');if(ch.chip!==chip){ch.chip=chip;cr.curve=chip?crushCurve(chip===16?10:chip===8?5:3):null}
 if(ON('lofi')&&V('cut')>7000)lp.frequency.setTargetAtTime(7000,now,.05);
 const bpm=song?song.bpm:V('bpm');dl.delayTime.setTargetAtTime(Math.min(1.9,60/bpm*.75),now,.05);fb.gain.value=V('dly')*.7;dw.gain.value=V('dly');
@@ -931,7 +949,7 @@ function bandOn(){if(window.Band&&E.an)Band.play(E.an,bandGenre(),'your '+V('sub
 if(window.Band)$('bandCard').appendChild(Band.stage());
 ['cat','genre','sub','era'].forEach(id=>$(id).addEventListener('change',()=>{if(E.playing)bandOn()}));
 $('play').onclick=()=>play();$('stop').onclick=()=>{stop();say('Stopped.')};
-$('gen').onclick=()=>{$('seed').value=V('seed')+1;newSong();if(E.playing)play({long:E.long})};
+$('gen').onclick=()=>{$('seed').value=V('seed')+1;newSong();if(ON('lyAuto'))writeLyrics(true);if(E.playing)play({long:E.long})};
 $('lfGo').onclick=()=>{if(!song)newSong();play({long:true});say('Long-form running.')};$('ambOnly').onclick=()=>{if(!AMB.some(([id])=>ON('a_'+id)))return say('Turn on at least one ambience layer first.');play({only:true});say('Ambience playing.')};
 // a layer switched on or off, or its volume moved, is heard right away while playing
 function ambRestart(){if(!E.playing||!E.ch)return;E.amb.forEach(n=>{try{n.stop()}catch(e){}});E.amb=startAmb(E.ctx,E.ch.I,E.ctx.currentTime+.02,0);if(E.only&&!E.amb.length){stop();say('Ambience stopped: no layers are on.')}}
@@ -964,14 +982,14 @@ const pickOf=(r,a)=>a[Math.floor(r()*a.length)];
 const titleCase=t=>t.replace(/[^\w' -]/g,'').trim().split(/\s+/).slice(0,4).map(w=>w[0].toUpperCase()+w.slice(1).toLowerCase()).join(' ');
 let titleRoll=0,blurbRoll=0;
 function songTitle(again){if(again)titleRoll++;const r=rng(songPrint()+titleRoll*7919),w=WORDS[feel()],adj=pickOf(r,w[pace()]),noun=pickOf(r,w.nouns);
-const line=(V('lyText')||'').split('\n').map(x=>x.trim()).find(x=>/\w/.test(x));if(line&&ON('lyOn')&&r()<.5)return titleCase(line);
+const line=lyricLines().find(x=>/\w/.test(x));if(line&&ON('lyOn')&&r()<.5)return titleCase(line);
 const k=r();return k<.4?adj+' '+noun:k<.6?'The '+adj+' '+noun:k<.75?noun+' in '+V('key'):k<.88?adj+' '+noun+' No. '+(songPrint()%9+1):noun+' at '+(song?song.bpm:V('bpm'))}
 const DRUM_WORDS={four:'four-on-the-floor drums',dnb:'breakbeat drums',swing:'swung drums',trap:'trap hats and 808s',drill:'drill drums',half:'half-time drums',onedrop:'one-drop drums',none:'no drums',metal:'pounding drums',rock:'rock drums',epic:'big booming drums'};
 function songBlurb(again){if(again)blurbRoll++;const r=rng(songPrint()+blurbRoll*104729),mood=V('mood'),era=V('era'),f=feel(),bpm=song?song.bpm:V('bpm');
 const kind=(mood&&mood!=='Auto'?mood.toLowerCase():f)+' '+V('sub'),an=(/^[aeiou]/i.test(kind)?'An ':'A ')+kind;
 const secs=song?new Set(song.bars.map(b=>b.sec).filter(Boolean)).size||1:1,len=song?fmt(song.bars.length*16*15/song.bpm):'';
 const drums=DRUM_WORDS[V('drums')]||V('drums')+' drums',parts=`${drums}, a ${V('w_bass')} bass and a ${V('w_lead')} lead over ${V('w_pad')} pads`;
-const line=(V('lyText')||'').split('\n').map(x=>x.trim()).find(x=>/\w/.test(x)),sung=line&&ON('lyOn')?` Sung: "${line.slice(0,60)}".`:'';
+const line=lyricLines().find(x=>/\w/.test(x)),sung=line&&ON('lyOn')?` Sung: "${line.slice(0,60)}".`:'';
 const eraT=era&&era!=='Auto'?`, with a ${era} sound`:'';
 const forms=[()=>`${an} song in ${V('key')} ${V('scale')} at ${bpm} BPM${eraT}: ${parts}. ${secs} section${secs>1?'s':''}, ${len} long.`,
 ()=>`${len} of ${kind} at ${bpm} BPM, in ${V('key')} ${V('scale')}${eraT}. ${parts[0].toUpperCase()+parts.slice(1)}.`,
@@ -1167,17 +1185,119 @@ $('toolList').innerHTML=TOOLS.map(([n,d,u])=>`<label><span><b>${n}</b> · ${d}</
 // ---------- lyrics: a synth singer on the melody (heard live, in renders and in stems), or this computer's voice (live only) ----------
 const VOWELS={a:[800,1150,2900],e:[400,1700,2600],i:[300,2250,3000],o:[480,850,2800],u:[340,750,2450],y:[300,2250,3000]};
 function syllables(line){const out=[];String(line).toLowerCase().replace(/[^a-z'\s-]/g,' ').split(/[\s-]+/).filter(Boolean).forEach(w=>{w=w.replace(/'/g,'');if(!w)return;out.push(...(w.match(/[^aeiouy]*[aeiouy]+(?:[^aeiouy]+$|[^aeiouy](?=[^aeiouy]))?/g)||[w]))});return out.slice(0,16)}
-const lyricLines=()=>V('lyText').split('\n').map(s=>s.trim()).filter(Boolean);
-// which syllable is sung when: one line per bar of the verses, choruses and bridges (else the bars with the melody, else every bar), lines taking turns
+// lyric lines, without the [Verse] / [Chorus] part markers
+function lyricLines(){return String(V('lyText')||'').split('\n').map(s=>s.trim()).filter(s=>s&&!/^\[.*\]$/.test(s))}
+// the lyrics as parts: [Verse], [Chorus], [Bridge], [Pre-Chorus], [Intro], [Outro]; unmarked lines become 4-line verses
+function lyricBlocks(){const raw=[];let cur=null;const tagOf=h=>/pre/i.test(h)?'Pre':/chorus|hook|refrain/i.test(h)?'Chorus':/bridge|breakdown/i.test(h)?'Bridge':/intro/i.test(h)?'Intro':/outro/i.test(h)?'Outro':'Verse';
+String(V('lyText')||'').split('\n').forEach(x=>{const s=x.trim();if(!s)return;const h=s.match(/^\[(.+)\]$/);if(h){cur={name:h[1].trim().slice(0,24),tag:tagOf(h[1]),tagged:true,lines:[]};raw.push(cur);return}
+if(!cur){cur={tag:'Verse',tagged:false,lines:[]};raw.push(cur)}cur.lines.push(s)});
+const res=[];let vn=0;raw.forEach(b=>{if(!b.lines.length)return;if(b.tagged){res.push(b);return}for(let i=0;i<b.lines.length;i+=4)res.push({name:'Verse '+(++vn),tag:'Verse',tagged:false,lines:b.lines.slice(i,i+4)})});return res}
+// which syllable is sung when: a song built from the lyrics sings each part in its place; marked lyrics put choruses on choruses and verses on verses;
+// plain lyrics go one line per bar of the verses, choruses and bridges (else the bars with the melody, else every bar), lines taking turns
 function voxPlan(S){const key=V('lyText')+'|'+V('lyOct');if(S._voxKey===key)return S._vox;S._voxKey=key;const lines=lyricLines();if(!lines.length)return S._vox=null;
-const pick=f=>S.bars.map((b,k)=>f(b)?k:-1).filter(k=>k>=0);let sung=pick(b=>/Verse|Chorus|Bridge|Loop/.test(b.sec||''));
+const bl=lyricBlocks(),pairs=[];
+if(S.bars.some(b=>b.ly))S.bars.forEach((b,k)=>{const l=b.ly&&bl[b.ly.b]&&bl[b.ly.b].lines[b.ly.j];if(l)pairs.push([k,l])});
+else{const pick=f=>S.bars.map((b,k)=>f(b)?k:-1).filter(k=>k>=0);let sung=pick(b=>/Verse|Chorus|Bridge|Loop/.test(b.sec||''));
 if(!sung.length)sung=pick(b=>(b.tracks||[]).includes('lead'));if(!sung.length)sung=S.bars.map((_,k)=>k);
+if(bl.some(b=>b.tagged)){const pool={},ptr={};bl.forEach(b=>(pool[b.tag]=pool[b.tag]||[]).push(...b.lines));const has=t=>pool[t]&&pool[t].length;
+sung.forEach((k,j)=>{const s=S.bars[k].sec||'';let t=/Chorus/.test(s)?'Chorus':/Bridge/.test(s)?'Bridge':'Verse';if(!has(t))t=has('Verse')?'Verse':null;
+if(!t){pairs.push([k,lines[j%lines.length]]);return}ptr[t]=ptr[t]||0;pairs.push([k,pool[t][ptr[t]++%pool[t].length]])})}
+else sung.forEach((k,j)=>pairs.push([k,lines[j%lines.length]]))}
 const plan=S.bars.map(()=>null);
-sung.forEach((k,j)=>{const bar=S.bars[k],line=lines[j%lines.length],syl=syllables(line);if(!syl.length)return;const step=Math.max(1,Math.floor(16/syl.length));
+pairs.forEach(([k,line])=>{const bar=S.bars[k],syl=syllables(line);if(!syl.length)return;const step=Math.max(1,Math.floor(16/syl.length));
 const tones=(bar.pad&&bar.pad[0]&&bar.pad[0].notes&&bar.pad[0].notes.length)?bar.pad[0].notes:[60],lead=(bar.lead||[]).slice().sort((a,b)=>a.i-b.i);
 plan[k]=syl.map((s,q)=>{const i=q*step,ln=lead.filter(n=>n.i<=i).pop();let n=ln?ln.n:tones[q%tones.length]+12;while(n>74)n-=12;while(n<52)n+=12;
 return{i,n:n+12*(+V('lyOct')),len:step>1?step-.5:1,syl:s}});plan[k].line=line});
 return S._vox=plan}
+// ---------- lyric writer: word banks per style, blended, rhymed, sized to the song (or the song sized to them) ----------
+const L=(s)=>s.split(',');
+const LY_GEN={T:['I {V} beneath the {R}','we {V} until the {R}','{A} like the {R}',"you're the {N} in my {R}",'lost in the {A} {R}','tell me about the {R}','all I want is the {R}','{V} with me into the {R}','we were {A} under the {R}','hold on to the {R}','the {N} is calling from the {R}','I keep chasing the {R}','from the {P} to the {R}','oh, the {A} {R}','nothing left but the {R}','every {N} becomes the {R}','I {V} and I {V} for the {R}','{A} {N}, {A} {R}'],
+H:['{A} {N}','{V} with me','we are the {N}','{N} of the {P}','never {V} again','hey, {A} {N}','{V}, {V}, {V}','oh, {T}','{T}, {T}','all about the {T}'],
+R:[L('night,light,fight,flight,sight,height,kite'),L('fire,wire,choir,desire,empire,spire'),L('heart,start,art,part,chart,dart'),L('dark,spark,mark,park,ark'),L('day,way,bay,ray,play,highway'),L('glow,snow,show,flow,crow,radio'),L('sky,eye,lullaby,alibi,goodbye,butterfly,firefly'),L('line,sign,shrine,wine,pine,design'),L('dream,stream,gleam,team,beam,scream'),L('sea,key,tree,melody,memory,symphony,victory'),L('town,crown,gown,ground,sound'),L('gold,fold,soul,road,goal'),L('rain,pain,chain,train,lane,name,flame'),L('sun,run,one,fun,drum'),L('drive,hive,dive,jive,archive')]};
+const LYS={
+pop:{n:'Pop / love',N:L('love,heartbeat,summer,radio,secret,moment,feeling,mirror,promise,firework'),A:L('golden,electric,brand new,shining,sweet,crazy,perfect,starry'),V:L('dance,shine,fall,glow,sing,run,fly,spin'),P:L('dancefloor,rooftop,city,party,backseat'),T:["baby, you're my {R}",'turn it up, we {V} to the {R}',"can't stop thinking 'bout the {R}",'we light up like the {R}','kiss me in the {R}'],H:['{A} {N}','turn it up','you and me tonight','{A} love'],R:[L('kiss,bliss,abyss,this'),L('view,blue,crew,avenue,rendezvous')]},
+hiphop:{n:'Hip-hop / rap',N:L('hustle,grind,crew,city,block,dream,mic,bass,cash,legacy'),A:L('real,cold,fresh,clean,heavy,hungry,certified'),V:L('rise,grind,flex,ride,shine,move,stack'),P:L('corner,studio,block,stage,top floor'),T:['came up from the {P}, now I own the {R}',"mic in my hand, I'm running the {R}",'they never believed, now look at the {R}',"{A} with the flow, I'm cooking the {R}",'stack it up high, all the way to the {R}','whole crew rolling deep through the {R}'],H:['{A} on the {P}','we on top','run it up','no days off'],R:[L('track,stack,pack,back,plaque'),L('flow,show,dough,pro,glow'),L('grind,mind,line,sign,rhyme')]},
+rock:{n:'Rock / emo',N:L('scars,stars,cars,heart,storm,thunder,wreckage,engine,noise'),A:L('broken,loud,restless,burning,wild,reckless'),V:L('scream,burn,break,fall,run,shout,bleed'),P:L('highway,basement,arena,garage,gutter'),T:['turn the amps up, shake the {R}','we were born to burn the {R}','screaming at the {R}','nothing breaks us like the {R}','tear it down and break the {R}'],H:['{A} and alive',"we won't fall",'louder than the {N}'],R:[L('scars,stars,cars,bars,guitars'),L('wall,fall,hall,call,brawl')]},
+metal:{n:'Metal / epic',N:L('steel,throne,blood,storm,iron,shadow,bones,warrior,dragon,doom'),A:L('eternal,iron,burning,cursed,unholy,mighty,ancient'),V:L('rise,conquer,burn,march,ride,fall,kneel'),P:L('battlefield,abyss,mountain,fortress,inferno'),T:['we march across the {R}','forged in fire, we rule the {R}','the {N} awakens in the {R}','raise your sword against the {R}','thunder rolling through the {R}'],H:['rise of the {N}','{A} {N}','ride into the {P}'],R:[L('throne,bone,stone,unknown,cyclone'),L('steel,wheel,seal,zeal,ordeal')]},
+punk:{n:'Punk',N:L('rules,system,noise,riot,kids,city,static,trouble,attitude,boredom'),A:L('loud,fast,angry,bored,broken,teenage'),V:L('shout,riot,smash,run,rebel,scream'),P:L('suburbs,basement,parking lot,school,streets'),T:["we don't need your {R}",'smash it up and burn the {R}','three chords and we break the {R}','kids are screaming at the {R}'],H:['no more {N}','{A} and {A}','riot in the {P}'],R:[L('rules,fools,schools,tools,jewels'),L('state,gate,plate,date,slate')]},
+country:{n:'Country',N:L('truck,whiskey,porch,boots,radio,river,sunset,hometown,heartache,guitar'),A:L('dusty,old,lonesome,sweet,honest,small-town'),V:L('drive,ride,pray,sing,dance,wander'),P:L('backroad,county line,front porch,honky-tonk,cornfield'),T:['pickup rolling down the {R}','mama always said to mind the {R}','boots on the floor of the {R}','Friday night out by the {R}'],H:['{A} {N}','down a {P}','{P} kind of love'],R:[L('dust,rust,trust,crust'),L('road,load,abode,toad')]},
+folk:{n:'Folk / ballad',N:L('river,hill,lantern,wagon,harvest,ballad,willow,fiddle,mother,sparrow'),A:L('old,weary,golden,wild,gentle,lonesome'),V:L('wander,sing,roam,sail,rest,carry on'),P:L('valley,hillside,harbour,village,mill'),T:['down beside the {R}','my father built the {R}','sing a song about the {R}','the sparrow knows the {R}'],H:['{A} {N}','{N} of the {P}','carry on'],R:[L('hill,mill,will,sill,rill'),L('river,shiver,giver,sliver')]},
+blues:{n:'Blues / soul',N:L('blues,whiskey,heartache,midnight train,river,soul,baby,crossroads,rain,guitar'),A:L('lonesome,blue,low-down,tired,sweet,muddy'),V:L('cry,moan,ramble,wait,sing,wander,roll'),P:L('crossroads,juke joint,delta,station,back porch'),T:['woke up this morning with the {R}','baby left me at the {R}',"got a {A} feeling 'bout the {R}","lord, I'm tired of the {R}"],H:['{A} {N}','got the blues','{N} blues'],R:[L('blues,shoes,news,dues,booze')]},
+gospel:{n:'Gospel / uplifting',N:L('light,grace,hope,morning,mountain,river,glory,spirit,hands,heaven'),A:L('holy,shining,mighty,joyful,amazing,new'),V:L('rise,sing,shine,praise,soar,stand,believe'),P:L('mountain,valley,river,sunrise,open sky'),T:['lift me higher than the {R}',"I'm standing in the {R}",'every voice is singing to the {R}','grace will carry me to the {R}'],H:['we will {V}','{A} {N}','lift me up'],R:[L('grace,place,face,embrace,space')]},
+edm:{n:'EDM / party',N:L('bass,beat,floor,lights,crowd,night,drop,rhythm,heat,speakers'),A:L('loud,electric,wild,hot,euphoric,unstoppable'),V:L('dance,jump,move,bounce,shake,rave'),P:L('club,dancefloor,festival,warehouse,main stage'),T:['hands up in the {R}','feel it in the {R}','let the bass shake the {R}',"we don't stop until the {R}"],H:['drop the {N}','{V} all night','hands up'],R:[L('floor,door,roar,core,encore'),L('bass,place,space,face,race')]},
+latin:{n:'Latin / tropical',N:L('fuego,rhythm,heat,night,corazón,summer,street,moon,body,beat'),A:L('hot,sweet,wild,golden,caliente'),V:L('dance,move,sway,shake,spin,burn'),P:L('plaza,beach,street party,club,boardwalk'),T:['dance with me beneath the {R}','feel the rhythm of the {R}','move your hips to the {R}','summer burning like the {R}'],H:['{A} {N}','dance with me','{N} caliente'],R:[L('dance,chance,romance,trance,glance'),L('heat,beat,street,feet,sweet')]},
+synth:{n:'Synthwave / retro',N:L('neon,highway,chrome,midnight,cassette,skyline,laser,engine,palm tree,sunset'),A:L('neon,electric,midnight,chrome,retro,endless'),V:L('drive,glide,race,glow,fade,cruise'),P:L('freeway,arcade,boulevard,city grid,ocean drive'),T:['driving through the {R}','neon lights reflect the {R}','cassette playing in the {R}','we chase the {A} {R}'],H:['{A} {N}','midnight drive','running on {N}'],R:[L('chrome,home,dome,foam,poem')]},
+game:{n:'Video game / chiptune',N:L('quest,level,pixel,coin,hero,castle,dragon,boss,power-up,score'),A:L('8-bit,brave,tiny,legendary,secret,final'),V:L('jump,run,dash,fight,warp,respawn'),P:L('dungeon,castle,overworld,arcade,cave,sky island'),T:['press start and jump into the {R}','one more life to reach the {R}','collect the coins and find the {R}','warp pipe down into the {R}','the final boss is guarding the {R}'],H:['press start','level up','{A} {N}','game on'],R:[L('quest,chest,test,crest,west'),L('score,door,floor,core,lore')]},
+lofi:{n:'Lo-fi / chill',N:L('coffee,rain,window,notebook,headphones,sunday,tea,polaroid,vinyl,cat'),A:L('cozy,sleepy,warm,mellow,hazy,quiet'),V:L('chill,drift,rest,read,doodle,stay'),P:L('bedroom,cafe,window seat,rooftop,library'),T:['coffee going cold beside the {R}','rain is tapping on the {R}','headphones on, I watch the {R}','nothing much to do but watch the {R}'],H:['{A} {N}','rainy {N}','just {V}'],R:[L('tea,sea,tree,melody,memory')]},
+ambient:{n:'Ambient / dreamy',N:L('ocean,cloud,breath,starlight,silence,feather,tide,moon,garden,mist'),A:L('soft,slow,quiet,endless,floating,distant,gentle'),V:L('drift,float,breathe,rest,dream,fade,glow'),P:L('shoreline,meadow,cloud,sea,starfield'),T:['slowly drifting to the {R}','breathe in, breathe out with the {R}','floating softly past the {R}','close your eyes and find the {R}'],H:['{A} {N}','let it {V}','drifting away'],R:[L('tide,side,guide,ride'),L('breeze,trees,seas,leaves')]},
+dark:{n:'Dark / gothic',N:L('shadow,raven,grave,candle,mirror,ghost,moon,thorn,fog,coffin'),A:L('hollow,cold,pale,haunted,crimson,silent'),V:L('whisper,fade,haunt,wander,weep,drown'),P:L('graveyard,attic,cathedral,forest,manor'),T:['candles flicker in the {R}','something whispers from the {R}','a raven watches from the {R}','I hear footsteps in the {R}'],H:['{A} {N}','the {N} returns','{N} of the {P}'],R:[L('grave,cave,wave,nave'),L('bone,stone,moan,groan,throne')]},
+funny:{n:'Silly / kids',N:L('cheese,pickle,sock,llama,banana,noodle,penguin,sandwich,duck,pancake'),A:L('silly,wobbly,giant,squishy,sneaky,sticky'),V:L('wiggle,bounce,giggle,sneeze,waddle,hop'),P:L('fridge,bathtub,backyard,zoo,kitchen'),T:['a {N} fell into the {R}','I put my {N} in the {R}','the duck was dancing with the {R}','nobody expected the {R}'],H:['{A} {N}','do the {N}','{N} party'],R:[L('cheese,sneeze,knees,breeze,fleas'),L('cat,hat,mat,bat,splat')]}};
+const LY_MAP=[[/Metal|Djent|Doom|Epic|Trailer|Fantasy|Action|Boss/,'metal'],[/Punk/,'punk'],[/Rock|Shoegaze|Grunge|Emo/,'rock'],[/Trap|Drill|Hip-Hop|Grime|Rap|Phonk|Boom Bap|G-Funk/,'hiphop'],[/Country|Bluegrass|Americana/,'country'],[/Folk|Celtic|Shanty|Nordic|Medieval/,'folk'],[/Gospel/,'gospel'],[/Blues|Soul|Motown|R&B|Funk|Jazz|Swing/,'blues'],[/Chiptune|8-bit|16-bit|Video Game|Overworld|Dungeon|Platformer|Arcade/,'game'],[/Synthwave|Outrun|Vaporwave|Cyberpunk|Darksynth|Dreamwave|80s|City Pop/,'synth'],[/Lo-fi|Chillhop|Study|Cozy|Rainy|Jazzhop|Bedroom|Reading/,'lofi'],[/Ambient|Sleep|Meditation|Spa|Yoga|Drone|New Age|Nature|Dream/,'ambient'],[/Horror|Suspense|Gothic/,'dark'],[/Latin|Reggaeton|Salsa|Bachata|Cumbia|Samba|Dembow|Afro|Dancehall|Soca|Calypso|Reggae|Bossa/,'latin'],[/Electronic|House|Techno|Trance|Dubstep|DnB|Hardstyle|Big Room|Disco|Eurodance/,'edm'],[/Pop/,'pop']];
+const LY_MOOD={Happy:L('happy,sunny,bright'),Sad:L('lonely,fading,blue'),Dark:L('dark,cold,hollow'),Epic:L('endless,mighty'),Chill:L('easy,mellow'),Dreamy:L('dreamy,hazy'),Aggressive:L('savage,furious'),Romantic:L('tender,sweet'),Energetic:L('wild,electric'),Nostalgic:L('faded,old'),Spooky:L('haunted,pale'),Heroic:L('brave,fearless'),Peaceful:L('calm,gentle'),Mysterious:L('secret,strange')};
+opts($('lyStyle'),['auto'].concat(Object.keys(LYS)));opts($('lyBlend'),['none'].concat(Object.keys(LYS)));
+[['lyStyle','Auto: from the genre'],['lyBlend','No blend']].forEach(([id,t])=>[...$(id).options].forEach(o=>{const v=o.value;o.value=v;o.textContent=LYS[v]?LYS[v].n:t}));
+function lyAutoStyle(){if(V('mood')==='Spooky')return'dark';const s=V('cat')+'|'+V('genre')+'|'+V('sub');for(const[re,k]of LY_MAP)if(re.test(s))return k;return'pop'}
+let lyRoll=0;
+// the built-in pick: lyric settings that suit this song's genre, mood, era and tempo
+function lyAutoPick(){const st=lyAutoStyle(),m=V('mood'),era=V('era'),bpm=song?song.bpm:V('bpm');
+let bl={Spooky:'dark',Dark:'dark',Romantic:'pop',Chill:'lofi',Dreamy:'ambient',Peaceful:'ambient',Epic:'metal',Heroic:'metal',Energetic:'edm',Funky:'blues',Nostalgic:'folk',Sad:'blues',Happy:'pop',Aggressive:'rock'}[m]||'none';
+if(/1980s|Retro VHS|Futuristic|Space station/.test(era))bl='synth';else if(/Medieval/.test(era))bl='folk';else if(/1950s|1960s/.test(era)&&bl==='none')bl='blues';if(bl===st)bl='none';
+const rh={hiphop:'AAAA',folk:'ABAB',country:'ABAB',blues:'ABAB',gospel:'ABAB',ambient:'free',lofi:'free'}[st]||'AABB';
+const ll=st==='hiphop'?'long':/ambient|lofi/.test(st)||bpm>=150?'short':bpm<80?'long':'medium';
+$('lyStyle').value=st;$('lyBlend').value=bl;$('lyBlendAmt').value=bl==='none'?.35:/Spooky|Dark|Epic|Heroic/.test(m)?.45:.3;$('lyRhyme').value=rh;$('lyLineLen').value=ll;$('lyVerse').value=st==='hiphop'?'8':'4';
+return LYS[st].n+(bl!=='none'?' + '+LYS[bl].n:'')+', '+(rh==='free'?'loose':rh)+' rhyme, '+ll+' lines'}
+function writeLyrics(quiet){const picked=ON('lyPick')?lyAutoPick():'';const r=rng(songPrint()+(++lyRoll)*7919+hash(V('lyTheme')+V('lyStyle')+V('lyBlend')));const pk=a=>a[Math.floor(r()*a.length)];
+const k1=V('lyStyle')==='auto'?lyAutoStyle():V('lyStyle'),s1=LYS[k1],s2=V('lyBlend')!=='none'&&V('lyBlend')!==k1?LYS[V('lyBlend')]:null,amt=s2?V('lyBlendAmt'):0,S_=()=>s2&&r()<amt?s2:s1;
+const theme=V('lyTheme').trim().toLowerCase(),moodA=LY_MOOD[V('mood')]||[],[lo,hi]={short:[3,7],medium:[5,10],long:[8,14]}[V('lyLineLen')];
+const fill=t=>t.replace(/\{([NAVPT])\}/g,(_,c)=>{const s=S_();if(c==='N')return theme&&r()<.25?theme:pk(s.N);if(c==='A')return moodA.length&&r()<.25?pk(moodA):pk(s.A);if(c==='V')return pk(s.V);if(c==='P')return pk(s.P);return theme||pk(s.N)});
+const cap=t=>t[0].toUpperCase()+t.slice(1),cnt=t=>String(t).toLowerCase().replace(/[^a-z'\s-]/g,' ').split(/[\s-]+/).filter(Boolean).reduce((a,w)=>a+Math.max(1,(w.match(/[aeiouy]+/g)||[]).length),0);
+const groups=[...s1.R,...(s2?s2.R:[]),...LY_GEN.R],used=new Set();
+const group=()=>{const g=pk(groups).slice().sort(()=>r()-.5);let i=0;return()=>{for(let n=0;n<g.length;n++){const w=g[(i+n)%g.length];if(!used.has(w)){i+=n+1;used.add(w);return w}}return g[i++%g.length]}};
+const line=end=>{let best=null,bd=99;for(let t=0;t<14;t++){const s=S_(),tp=r()<.7?pk(s.T):pk(LY_GEN.T),x=fill(tp).replace('{R}',end),c=cnt(x),d=c<lo?lo-c:c>hi?c-hi:0;if(d<bd){bd=d;best=x}if(!d)break}return cap(best)};
+const hook=()=>{const h=S_().H.concat(theme?['oh, {T}','{T}, {T}','all about the {T}']:[]),x=r()<.65?pk(h):pk(LY_GEN.H.filter(t=>theme||!/\{T\}/.test(t)));return cap(fill(x))};
+const verse=n=>{const out=[],sc=V('lyRhyme');for(let c=0;c<n;c+=4){const a=group(),b=group(),pat=sc==='ABAB'?[a,b,a,b]:sc==='AAAA'?[a,a,a,a]:sc==='free'?[group(),group(),group(),group()]:[a,a,b,b];pat.forEach(g=>out.push(line(g())))}return out.slice(0,n)};
+let chorus=null;const ch=n=>{if(!chorus){const h=hook(),g=group();chorus=[h,line(g()),r()<.5?h:'Oh, '+h.toLowerCase(),line(g())]}return Array.from({length:n},(_,i)=>chorus[i%4])};
+// the parts to write: from this song's own sections, or a set shape
+const text=lyParts().map(p=>`[${p.name}]\n`+(p.t==='C'?ch(p.n):verse(p.n)).join('\n')).join('\n\n');
+useLyrics(text,picked?'picked for this song: '+picked:`${s1.n}${s2?' blended with '+s2.n+' ('+Math.round(amt*100)+'%)':''}`,quiet)}
+// the parts to write: from this song's own sections, or a set shape
+function lyParts(){const mode=V('lyLen'),vl=+V('lyVerse');let parts=[];
+if(mode==='fit'&&V('form')!=='lyrics'){if(!song)newSong();song.bars.forEach((b,k)=>{if(!b.first&&k)return;const sec=b.sec||'';if(!/Verse|Chorus|Bridge|Loop/.test(sec))return;let n=1;while(k+n<song.bars.length&&!song.bars[k+n].first)n++;
+const t=/Chorus/.test(sec)?'C':/Bridge/.test(sec)?'B':'V';parts.push({t,n})})}
+else parts=({short:'VCVC',standard:'VCVCBC',long:'VCVCBVCC'}[mode==='fit'||mode==='song'?'standard':mode]).split('').map(t=>({t,n:t==='V'?vl:4}));
+let vn=0;parts.forEach(p=>p.name=p.t==='C'?'Chorus':p.t==='B'?'Bridge':'Verse '+(++vn));return parts}
+// put lyrics in the box, sing them, and (when the song fits the lyrics) rebuild the song around them
+function useLyrics(text,what,quiet){$('lyText').value=text;$('lyOn').classList.add('on');
+if(V('lyLen')==='song')$('form').value='lyrics';if(V('form')==='lyrics'){newSong();if(E.playing)E.step=E.step%16?E.step-E.step%16+16:E.step}
+const info=`${lyricLines().length} lines, ${what}${V('form')==='lyrics'?'; the song is shaped to fit them':''}.`;$('lyInfo').textContent=info;if(!quiet)say('Wrote lyrics: '+info)}
+$('lyWrite').onclick=()=>writeLyrics();
+// ---------- the lyrics bot: asks the AI linked in Randis UDS (through the app; this page never goes online) ----------
+let lyBotBusy=false,lyBotHeard=false;
+$('lyBot').onclick=()=>{if(lyBotBusy)return;if(window.parent===window){$('lyInfo').textContent='The lyrics bot works when this page is open in Randis UDS.';return}
+const k1=V('lyStyle')==='auto'?lyAutoStyle():V('lyStyle'),b=V('lyBlend');
+const brief={genre:V('cat')+' / '+V('genre')+' / '+V('sub'),mood:V('mood'),era:V('era'),bpm:song?song.bpm:V('bpm'),key:V('key')+' '+V('scale'),style:LYS[k1].n,
+blend:b!=='none'&&b!==k1?LYS[b].n+' at '+Math.round(V('lyBlendAmt')*100)+'%':'',theme:V('lyTheme').trim(),rhyme:V('lyRhyme'),lineLength:V('lyLineLen'),
+parts:lyParts().map(p=>({name:p.name,lines:p.n})),note:V('lyBotNote').trim(),pick:ON('lyPick'),styles:Object.fromEntries(Object.entries(LYS).map(([k,v])=>[k,v.n]))};
+lyBotBusy=true;lyBotHeard=false;$('lyBot').disabled=true;$('lyInfo').textContent='Asking the lyrics bot…';
+parent.postMessage({uds:'lyrics-ask',brief},'*');
+setTimeout(()=>{if(lyBotBusy&&!lyBotHeard){lyBotBusy=false;$('lyBot').disabled=false;$('lyInfo').textContent='Randis UDS didn\'t answer. Close the app and open it again (Reload isn\'t enough), then try the bot again.'}},4000)};
+addEventListener('message',e=>{const d=e.data;if(!d||d.uds!=='lyrics'||e.source!==parent)return;lyBotHeard=true;
+if(d.status&&!d.done){$('lyInfo').textContent=d.status;return}
+lyBotBusy=false;$('lyBot').disabled=false;
+if(d.error){$('lyInfo').textContent='Lyrics bot: '+d.error;return}
+// the bot's own picks come first, on a SETTINGS: {...} line; only known choices are taken
+let raw=String(d.text||''),picked='';const sm=raw.match(/^\s*SETTINGS:\s*(\{.*\})\s*$/m);
+if(sm){raw=raw.replace(sm[0],'');try{const o=JSON.parse(sm[1]),setIf=(id,v,ok)=>{if(v!=null&&ok(String(v)))$(id).value=String(v)};
+setIf('lyStyle',o.style,v=>!!LYS[v]);setIf('lyBlend',o.blend,v=>v==='none'||!!LYS[v]);if(+o.blendAmount>=0&&+o.blendAmount<=1)$('lyBlendAmt').value=+o.blendAmount;
+setIf('lyRhyme',o.rhyme,v=>/^(AABB|ABAB|AAAA|free)$/.test(v));setIf('lyLineLen',o.lineLength,v=>/^(short|medium|long)$/.test(v));if(typeof o.theme==='string')$('lyTheme').value=o.theme.slice(0,30);
+const st=LYS[V('lyStyle')],bl=LYS[V('lyBlend')];picked=(st?st.n:'auto style')+(bl?' + '+bl.n:'')+', '+V('lyRhyme')+' rhyme'}catch(_){}}
+const lines=raw.replace(/```[a-z]*\n?/gi,'').split('\n').map(s=>s.replace(/^\s*[-*]\s+/,'').trim()).filter((s,i,a)=>s||a[i-1]);
+const text=lines.join('\n').replace(/\n{3,}/g,'\n\n').trim();
+if(!/\w/.test(text)){$('lyInfo').textContent='The lyrics bot sent nothing back. Try again.';return}
+useLyrics(text,'from the lyrics bot'+(picked?' (it picked: '+picked+')':''))});
+$('lyLen').addEventListener('change',()=>{if(V('lyLen')==='song'){$('form').value='lyrics'}else if(V('form')==='lyrics')$('form').value='full';refresh()});
+$('form').addEventListener('change',()=>{if(V('form')==='lyrics')$('lyLen').value='song';else if(V('lyLen')==='song')$('lyLen').value='fit'});
+$('lyText').addEventListener('change',()=>{if(V('form')==='lyrics'&&!(song&&song.fromText))refresh()});
 function singNote(ctx,out,n,t,d,syl){const fx=V('lyFx'),shift=fx==='chipmunk'?12:fx==='deep / monster'?-12:0,f=mtof(n+shift);
 const F=VOWELS[(syl.match(/[aeiouy]/)||['a'])[0]].map(x=>x*(fx==='deep / monster'?.85:fx==='chipmunk'?1.15:1));
 const g=ctx.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.55,t+.03);g.gain.setValueAtTime(.55,t+Math.max(.04,d-.06));g.gain.linearRampToValueAtTime(0,t+d);let o=g;
