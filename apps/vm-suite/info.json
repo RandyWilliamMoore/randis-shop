@@ -1,0 +1,11 @@
+{
+ "name": "VM Suite",
+ "by": "Randy",
+ "blurb": "Make many real PCs shown live in a tab, from a catalog of free systems (TempleOS, Tiny Core, SliTaz, Alpine, FreeDOS, ReactOS) or your own disc image, with memory, processors, drive size and Speed boost per machine. Running machines needs Randis UDS; in the shop you can look around.",
+ "status": "ok",
+ "real_items": null,
+ "reviews": {
+  "randy": null,
+  "maker": null
+ }
+}
