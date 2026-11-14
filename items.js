@@ -12,6 +12,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 6,
   "open_with": "randisuds://open?item=games/battle-tanks-royale",
   "file": "games/battle-tanks-royale/item.html",
   "logo": "games/battle-tanks-royale/logo.svg",
@@ -29,6 +30,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=games/bindy-and-louis",
   "file": "games/bindy-and-louis/item.html",
   "logo": "games/bindy-and-louis/logo.svg",
@@ -46,6 +48,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=games/blockwild",
   "file": "games/blockwild/item.html",
   "logo": "games/blockwild/logo.svg",
@@ -63,6 +66,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=games/card-master",
   "file": "games/card-master/item.html",
   "logo": "games/card-master/logo.svg",
@@ -80,6 +84,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 2,
   "open_with": "randisuds://open?item=games/castle-mnemosyne",
   "file": "games/castle-mnemosyne/item.html",
   "logo": "games/castle-mnemosyne/logo.png",
@@ -97,6 +102,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 3,
   "open_with": "randisuds://open?item=games/coin-flipper",
   "file": "games/coin-flipper/item.html",
   "logo": "games/coin-flipper/logo.svg",
@@ -114,6 +120,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 2,
   "open_with": "randisuds://open?item=games/dice-master",
   "file": "games/dice-master/item.html",
   "logo": "games/dice-master/logo.svg",
@@ -131,6 +138,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 3,
   "open_with": "randisuds://open?item=games/diesel-gen-mechanic-simulator",
   "file": "games/diesel-gen-mechanic-simulator/item.html",
   "logo": "games/diesel-gen-mechanic-simulator/logo.svg",
@@ -148,6 +156,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 3,
   "open_with": "randisuds://open?item=games/fossil-collector",
   "file": "games/fossil-collector/item.html",
   "logo": "games/fossil-collector/logo.png",
@@ -165,6 +174,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 5,
   "open_with": "randisuds://open?item=games/gem-collector",
   "file": "games/gem-collector/item.html",
   "logo": "games/gem-collector/logo.png",
@@ -182,6 +192,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 3,
   "open_with": "randisuds://open?item=games/gilded-hands",
   "file": "games/gilded-hands/item.html",
   "logo": "games/gilded-hands/logo.svg",
@@ -199,6 +210,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 7,
   "open_with": "randisuds://open?item=games/hotdog-tycoon",
   "file": "games/hotdog-tycoon/item.html",
   "logo": "games/hotdog-tycoon/logo.svg",
@@ -216,6 +228,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 2,
   "open_with": "randisuds://open?item=games/lanternfall",
   "file": "games/lanternfall/item.html",
   "logo": "games/lanternfall/logo.svg",
@@ -233,6 +246,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=games/lhc-simulator",
   "file": "games/lhc-simulator/item.html",
   "logo": "games/lhc-simulator/logo.svg",
@@ -250,6 +264,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 2,
   "open_with": "randisuds://open?item=games/mail-sorter",
   "file": "games/mail-sorter/item.html",
   "logo": "games/mail-sorter/logo.svg",
@@ -267,6 +282,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 7,
   "open_with": "randisuds://open?item=games/marble-collector",
   "file": "games/marble-collector/item.html",
   "logo": "games/marble-collector/logo.png",
@@ -284,6 +300,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 3,
   "open_with": "randisuds://open?item=games/matching-master",
   "file": "games/matching-master/item.html",
   "logo": "games/matching-master/logo.svg",
@@ -301,6 +318,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 2,
   "open_with": "randisuds://open?item=games/milk-cap-champ",
   "file": "games/milk-cap-champ/item.html",
   "logo": "games/milk-cap-champ/logo.svg",
@@ -318,6 +336,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=games/pachinko-player",
   "file": "games/pachinko-player/item.html",
   "logo": "games/pachinko-player/logo.svg",
@@ -335,6 +354,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=games/pong",
   "file": "games/pong/item.html",
   "logo": "games/pong/logo.svg",
@@ -352,6 +372,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=games/rev-the-frog",
   "file": "games/rev-the-frog/item.html",
   "logo": "games/rev-the-frog/logo.svg",
@@ -369,6 +390,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 4,
   "open_with": "randisuds://open?item=games/sandwich-master",
   "file": "games/sandwich-master/item.html",
   "logo": "games/sandwich-master/logo.svg",
@@ -386,6 +408,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 6,
   "open_with": "randisuds://open?item=games/skateboard-collector",
   "file": "games/skateboard-collector/item.html",
   "logo": "games/skateboard-collector/logo.png",
@@ -403,6 +426,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=games/slot-player",
   "file": "games/slot-player/item.html",
   "logo": "games/slot-player/logo.svg",
@@ -420,6 +444,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 2,
   "open_with": "randisuds://open?item=games/topiary-master",
   "file": "games/topiary-master/item.html",
   "logo": "games/topiary-master/logo.svg",
@@ -437,6 +462,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=apps/atelier-fashion-suite",
   "file": "apps/atelier-fashion-suite/item.html",
   "logo": "apps/atelier-fashion-suite/logo.svg",
@@ -454,6 +480,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=apps/aura-assistant",
   "file": "apps/aura-assistant/item.html",
   "logo": "apps/aura-assistant/logo.svg",
@@ -471,6 +498,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=apps/club-wiki",
   "file": "apps/club-wiki/item.html",
   "logo": "apps/club-wiki/logo.svg",
@@ -488,6 +516,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=apps/code-editor",
   "file": "apps/code-editor/item.html",
   "logo": "apps/code-editor/logo.svg",
@@ -505,6 +534,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=apps/codex-academy",
   "file": "apps/codex-academy/item.html",
   "logo": "apps/codex-academy/logo.svg",
@@ -522,6 +552,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 3,
   "open_with": "randisuds://open?item=apps/discord-bot-design-suite",
   "file": "apps/discord-bot-design-suite/item.html",
   "logo": "apps/discord-bot-design-suite/logo.svg",
@@ -539,6 +570,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=apps/forge-rd-suite",
   "file": "apps/forge-rd-suite/item.html",
   "logo": "apps/forge-rd-suite/logo.svg",
@@ -556,6 +588,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=apps/free-money-finder",
   "file": "apps/free-money-finder/item.html",
   "logo": "apps/free-money-finder/logo.svg",
@@ -573,6 +606,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 2,
   "open_with": "randisuds://open?item=apps/game-emulator-suite",
   "file": "apps/game-emulator-suite/item.html",
   "logo": "apps/game-emulator-suite/logo.svg",
@@ -590,6 +624,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=apps/heirloom-boxes",
   "file": "apps/heirloom-boxes/item.html",
   "logo": "apps/heirloom-boxes/logo.svg",
@@ -607,6 +642,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=apps/heirloom-design-lab",
   "file": "apps/heirloom-design-lab/item.html",
   "logo": "apps/heirloom-design-lab/logo.svg",
@@ -624,6 +660,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=apps/heritage",
   "file": "apps/heritage/item.html",
   "logo": "apps/heritage/logo.svg",
@@ -641,6 +678,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=apps/life-tree",
   "file": "apps/life-tree/item.html",
   "logo": "apps/life-tree/logo.svg",
@@ -658,6 +696,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=apps/media-network",
   "file": "apps/media-network/item.html",
   "logo": "apps/media-network/logo.svg",
@@ -675,6 +714,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 3,
   "open_with": "randisuds://open?item=apps/mintworks-exchange",
   "file": "apps/mintworks-exchange/item.html",
   "logo": "apps/mintworks-exchange/logo.svg",
@@ -692,6 +732,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=apps/money-lab",
   "file": "apps/money-lab/item.html",
   "logo": "apps/money-lab/logo.svg",
@@ -709,6 +750,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 2,
   "open_with": "randisuds://open?item=apps/music-studio",
   "file": "apps/music-studio/item.html",
   "logo": "apps/music-studio/logo.svg",
@@ -726,6 +768,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=apps/notepad",
   "file": "apps/notepad/item.html",
   "logo": "apps/notepad/logo.svg",
@@ -743,6 +786,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=apps/omnisight-xint-suite",
   "file": "apps/omnisight-xint-suite/item.html",
   "logo": "apps/omnisight-xint-suite/logo.svg",
@@ -760,6 +804,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=apps/publishing-suite",
   "file": "apps/publishing-suite/item.html",
   "logo": "apps/publishing-suite/logo.svg",
@@ -777,6 +822,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=apps/quak-quak",
   "file": "apps/quak-quak/item.html",
   "logo": "apps/quak-quak/logo.svg",
@@ -794,6 +840,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=apps/randis-antivirus",
   "file": "apps/randis-antivirus/item.html",
   "logo": "apps/randis-antivirus/logo.svg",
@@ -811,6 +858,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=apps/randis-bench-lab",
   "file": "apps/randis-bench-lab/item.html",
   "logo": "apps/randis-bench-lab/logo.svg",
@@ -828,6 +876,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 4,
   "open_with": "randisuds://open?item=apps/randis-office",
   "file": "apps/randis-office/item.html",
   "logo": "apps/randis-office/logo.svg",
@@ -845,6 +894,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=apps/randis-paint",
   "file": "apps/randis-paint/item.html",
   "logo": "apps/randis-paint/logo.svg",
@@ -862,6 +912,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 17,
   "open_with": "randisuds://open?item=apps/randis-sound-forge",
   "file": "apps/randis-sound-forge/item.html",
   "logo": "apps/randis-sound-forge/logo.svg",
@@ -879,6 +930,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=apps/repo-scout",
   "file": "apps/repo-scout/item.html",
   "logo": "apps/repo-scout/logo.svg",
@@ -896,6 +948,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=apps/service-member-helper",
   "file": "apps/service-member-helper/item.html",
   "logo": "apps/service-member-helper/logo.svg",
@@ -913,6 +966,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 2,
   "open_with": "randisuds://open?item=apps/shop-studio",
   "file": "apps/shop-studio/item.html",
   "logo": "apps/shop-studio/logo.svg",
@@ -930,6 +984,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 2,
   "open_with": "randisuds://open?item=apps/sing-in-my-voice",
   "file": "apps/sing-in-my-voice/item.html",
   "logo": "apps/sing-in-my-voice/logo.svg",
@@ -947,6 +1002,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=apps/templeos",
   "file": "apps/templeos/item.html",
   "logo": "apps/templeos/logo.svg",
@@ -964,6 +1020,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=apps/the-dispatch",
   "file": "apps/the-dispatch/item.html",
   "logo": "apps/the-dispatch/logo.svg",
@@ -981,6 +1038,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=apps/vm-suite",
   "file": "apps/vm-suite/item.html",
   "logo": "apps/vm-suite/logo.svg",
@@ -998,6 +1056,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=apps/voice-forge",
   "file": "apps/voice-forge/item.html",
   "logo": "apps/voice-forge/logo.svg",
@@ -1015,6 +1074,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=apps/vr-avatar-designer",
   "file": "apps/vr-avatar-designer/item.html",
   "logo": "apps/vr-avatar-designer/logo.svg",
@@ -1032,6 +1092,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=apps/vtuber-studio",
   "file": "apps/vtuber-studio/item.html",
   "logo": "apps/vtuber-studio/logo.svg",
@@ -1049,6 +1110,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
+  "version": 1,
   "open_with": "randisuds://open?item=apps/wiki-suite",
   "file": "apps/wiki-suite/item.html",
   "logo": "apps/wiki-suite/logo.svg",

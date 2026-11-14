@@ -29,6 +29,8 @@ const ROYALTY_FREE = "Royalty free, with credit: use these songs in anything, pa
 const SHOP_PAGE = "randywilliammoore.github.io/randis-shop";
 const ARTISTS = { Randy: "Randy Moore" };
 // the exact credit for one song, the same words that are inside its MP3
+// shop items carry the Randis UDS version they were pushed from, shown as "Name vN"
+const vname = i => i.version ? `${i.name} v${i.version}` : i.name;
 const creditFor = t => `Music: "${t.name}" by ${ARTISTS[t.by] || t.by}, from the Randis Shop (${SHOP_PAGE})`;
 
 function el(tag, attrs, ...kids) {
@@ -105,7 +107,7 @@ const byKind = kind => window.ITEMS.filter(i => i.kind === kind);
 
 function cabinet(i) {
   return el("a", { class: "cab" + (i.status === "flagged" ? " flagged" : ""), href: `#/${i.kind}/${i.slug}`, "data-item": i.slug },
-    el("span", { class: "top" }, i.name),
+    el("span", { class: "top" }, vname(i)),
     el("span", { class: "screen" }, el("img", { src: i.logo, alt: "" })),
     el("span", { class: "deck" }, el("i"), el("i"), el("i")),
     el("span", { class: "slot" }, "INSERT COIN: FREE PLAY"));
@@ -113,7 +115,7 @@ function cabinet(i) {
 
 function softwareBox(i) {
   return el("a", { class: "box" + (i.status === "flagged" ? " flagged" : ""), href: `#/${i.kind}/${i.slug}`, "data-item": i.slug },
-    el("b", {}, i.name), el("img", { src: i.logo, alt: "" }), el("small", {}, "BY " + i.by.toUpperCase()));
+    el("b", {}, vname(i)), el("img", { src: i.logo, alt: "" }), el("small", {}, "BY " + i.by.toUpperCase()));
 }
 
 function downloadBox(s) {
@@ -222,7 +224,7 @@ function itemPage(i) {
     ? [reviewSlot("Randy's review", i.reviews.randy, i.video_pic)]
     : [reviewSlot(`${i.by}'s review`, i.reviews.maker), reviewSlot("Randy's review", i.reviews.randy)];
   const real = safeWeb(i.real_items);
-  return [win(i.name,
+  return [win(vname(i),
     el("div", { class: "item-top" },
       el("div", { class: "item-logo" + (i.status === "flagged" ? " flagged" : "") }, el("img", { src: i.logo, alt: i.name + " logo" })),
       el("div", {},
@@ -320,7 +322,7 @@ function playWindow(i) {
   };
   const box = el("div", { class: "play", role: "dialog", "aria-label": i.name },
     el("div", { class: "win" },
-      el("div", { class: "bar" }, el("h2", {}, i.name), el("button", { class: "sq", "aria-label": "Close", "data-act": "close", on: { click: close } }, "X")),
+      el("div", { class: "bar" }, el("h2", {}, vname(i)), el("button", { class: "sq", "aria-label": "Close", "data-act": "close", on: { click: close } }, "X")),
       ask,
       el("div", { class: "walled" }, note, " ", el("button", { class: "btn small", "data-act": "load-save", on: { click: () => pick.click() } }, "Load a saved file"), pick)));
   start(fetch(i.file).then(r => { if (!r.ok) throw new Error(r.status); return r.text(); }));
@@ -344,7 +346,7 @@ function render() {
   const page = el("div", { class: "page" }, header(), ...main, footer());
   app.replaceChildren(page);
   if (item && act === "play" && item.status !== "flagged") app.append(playWindow(item));
-  document.title = item || soft ? `${(item || soft).name} | The Randis Shop` : "The Randis Shop";
+  document.title = item || soft ? `${item ? vname(item) : soft.name} | The Randis Shop` : "The Randis Shop";
   const song = kind === "music" && slug ? document.getElementById("song-" + slug) : null;
   if (song) { song.classList.add("picked"); song.scrollIntoView(); } else window.scrollTo(0, 0);
 }
