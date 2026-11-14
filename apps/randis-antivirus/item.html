@@ -57,10 +57,14 @@ const base = p => String(p || "").split(/[\\/]/).pop();
 // ------------------------------------------------------------ app bridge
 const waits = {};
 let loaded = false;
+// the shop's walled player blocks storage; never let that stop the app
+const lsGet = () => { try { return JSON.parse(localStorage.getItem("randis-av") || "null"); } catch (e) { return null; } };
+const lsSet = v => { try { localStorage.setItem("randis-av", v); } catch (e) {} };
 window.addEventListener("message", e => {
   const d = e.data; if (!d || typeof d !== "object") return;
   if (d.uds === "av" && waits[d.id]) { const f = waits[d.id]; delete waits[d.id]; f(d.r || {}); }
   if (d.uds === "store" && !loaded) boot(d.data && d.data.av);
+  if (d.uds === "store-none" && !loaded) boot(lsGet());
   if (d.uds === "exported") toast(d.ok ? "Saved." : (d.note || "Not saved."));
 });
 function call(op, args) {
@@ -130,7 +134,7 @@ function blank() {
 let saveT; function save() { clearTimeout(saveT); saveT = setTimeout(() => {
   if (S.history.length > 80) S.history = S.history.slice(-80); if (S.shield.log.length > 200) S.shield.log = S.shield.log.slice(-200);
   if (S.results.length > 600) S.results = S.results.slice(0, 600); if (S.chat.length > 40) S.chat = S.chat.slice(-40);
-  if (inApp) tell({ uds: "store-set", data: { av: S } }); else localStorage.setItem("randis-av", JSON.stringify(S));
+  if (inApp) tell({ uds: "store-set", data: { av: S } }); else lsSet(JSON.stringify(S));
 }, 400); }
 function rules() {
   return BUILTIN.map(r => Object.assign({}, r, S.rules[r.id] || {})).concat(S.custom);
@@ -666,6 +670,6 @@ function boot(saved) {
   S = Object.assign(blank(), saved || {}); S.opt = Object.assign(blank().opt, S.opt || {}); S.shield = Object.assign(blank().shield, S.shield || {}); S.sched = Object.assign(blank().sched, S.sched || {});
   nav(); render(); shieldTick(); daily(); setInterval(daily, 5 * 60 * 1000);
 }
-if (inApp) { tell({ uds: "store-get" }); setTimeout(() => { if (!loaded) boot(JSON.parse(localStorage.getItem("randis-av") || "null")); }, 1500); }
-else boot(JSON.parse(localStorage.getItem("randis-av") || "null"));
+if (inApp) { tell({ uds: "store-get" }); setTimeout(() => { if (!loaded) boot(lsGet()); }, 1500); }
+else boot(lsGet());
 </script></body></html>
