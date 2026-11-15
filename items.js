@@ -793,6 +793,24 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "pdf-maker",
+  "name": "PDF Maker",
+  "by": "Randy",
+  "blurb": "Make a PDF from your own text and pictures: type or paste, add photos (any picture your browser shows), pick Letter or A4 and a text size, then Make PDF saves it to your downloads. Works with no internet; nothing leaves your computer.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 1,
+  "open_with": "randisuds://open?item=apps/pdf-maker",
+  "file": "apps/pdf-maker/item.html",
+  "logo": "apps/pdf-maker/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "publishing-suite",
   "name": "Publishing Suite",
   "by": "Randy",
