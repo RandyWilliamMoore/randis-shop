@@ -1,0 +1,12 @@
+{
+ "name": "Weather",
+ "by": "Randy",
+ "blurb": "Weather for any place: now, the next 24 hours and 7 days, with feels-like, wind, rain chance, sunrise and air quality. Save a few places and switch °F/°C. Free Open-Meteo forecasts, no account or key. Radar and marine open as links (the full panels are in Randis UDS).",
+ "status": "ok",
+ "real_items": null,
+ "reviews": {
+  "randy": null,
+  "maker": null
+ },
+ "version": 1
+}

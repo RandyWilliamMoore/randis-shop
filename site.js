@@ -12,6 +12,9 @@ const SHOP = {
   guestbook: "https://github.com/RandyWilliamMoore/randis-uds/discussions",
   maxSave: 30 * 1024 * 1024,
   maxDownload: 300 * 1024 * 1024,
+  // Weather's lookups (apps/weather): only these Open-Meteo addresses, answers up to 2 MB
+  weatherUrl: /^https:\/\/(api|geocoding-api|air-quality-api|marine-api)\.open-meteo\.com\/v1\/[\w-]+\?[\w.,&=%+-]*$/,
+  maxWeather: 2 * 1024 * 1024,
   saveKinds: { wav: "audio/wav", mp3: "audio/mpeg", ogg: "audio/ogg", flac: "audio/flac", mid: "audio/midi", midi: "audio/midi",
     webm: "video/webm", mp4: "video/mp4", png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", webp: "image/webp",
     txt: "text/plain", json: "application/json", csv: "text/csv", md: "text/markdown", ics: "text/calendar",
@@ -282,6 +285,15 @@ function playWindow(i) {
         // Randis Office's "Add office product": this page asks the AI with the person's own key (site/office_ai.js); the app never sees the key
         const src = e.source, id = e.data.id;
         window.OfficeAI.ask(e.data, m => src.postMessage(Object.assign({ uds: "office", id }, m), "*"), ask);
+      } else if (e.data && e.data.uds === "weather-get" && i.slug === "weather" && typeof e.data.id === "string" && e.data.id.length <= 64) {
+        // Weather's lookups: this page fetches, only Open-Meteo forecast addresses (no key, no cookies), and hands back the text
+        const src = e.source, id = e.data.id, url = String(e.data.url || "");
+        const reply = r => src.postMessage({ uds: "weather", id, r }, "*");
+        if (url.length > 2000 || !SHOP.weatherUrl.test(url)) reply({ error: "The shop only looks up Open-Meteo weather." });
+        else fetch(url, { credentials: "omit", referrerPolicy: "no-referrer" })
+          .then(r => r.ok ? r.text() : Promise.reject(new Error(`The weather service said ${r.status}.`)))
+          .then(text => reply(text.length <= SHOP.maxWeather ? { text } : { error: "The weather answer was too big." }))
+          .catch(x => reply({ error: x && x.message && /said/.test(x.message) ? x.message : "Couldn't reach the weather service." }));
       } else if (e.data && typeof e.data.uds === "string" && typeof e.data.id === "string" && e.data.id.length <= 64) {
         // an app asking Randis UDS to do work (web lookups, scans, AI): the shop can't, and says so at once instead of leaving it waiting
         e.source.postMessage({ uds: e.data.uds, id: e.data.id, r: { error: "This part only works inside Randis UDS." } }, "*");
