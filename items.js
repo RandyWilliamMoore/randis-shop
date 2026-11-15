@@ -1099,6 +1099,24 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "weather",
+  "name": "Weather",
+  "by": "Randy",
+  "blurb": "Weather for any place: now, the next 24 hours and 7 days, with feels-like, wind, rain chance, sunrise and air quality. Save a few places and switch \u00b0F/\u00b0C. Free Open-Meteo forecasts, no account or key. Radar and marine open as links (the full panels are in Randis UDS).",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 1,
+  "open_with": "randisuds://open?item=apps/weather",
+  "file": "apps/weather/item.html",
+  "logo": "apps/weather/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "wiki-suite",
   "name": "Wiki Suite",
   "by": "Randy",

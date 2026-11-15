@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Weather</title>
+<!-- Randis UDS. Copyright (C) 2026 Randy Moore. GPLv3 with additional terms: every copy, clone or derivative must attribute this work first and conspicuously. Original: https://github.com/RandyWilliamMoore/randis-uds -->
+<style>
+  :root { --bg: #0d1422; --card: #16203a; --line: #2a3a60; --ink: #e8eefc; --dim: #9aa8c8; --hi: #6fb3ff; }
+  html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--ink); font: 15px system-ui, sans-serif; }
+  main { max-width: 900px; margin: 0 auto; padding: 14px; }
+  h1 { font-size: 20px; margin: 0 0 10px; }
+  .bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+  input, button, select { font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; }
+  button { cursor: pointer; } button:hover { border-color: var(--hi); }
+  #q { flex: 1; min-width: 180px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin-bottom: 10px; }
+  .now { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
+  .big { font-size: 46px; font-weight: 700; }
+  .icon { font-size: 52px; }
+  .dim { color: var(--dim); font-size: 13px; }
+  .row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+  .cell { min-width: 62px; text-align: center; background: #101a30; border-radius: 8px; padding: 6px 4px; }
+  .days .cell { min-width: 96px; }
+  .places button { margin: 2px 4px 2px 0; }
+  .places button.on { border-color: var(--hi); }
+  #results button { display: block; width: 100%; text-align: left; margin: 3px 0; }
+  #msg { min-height: 1.2em; }
+  a { color: var(--hi); }
+</style>
+</head>
+<body>
+<main>
+  <h1>🌤 Weather</h1>
+  <div class="bar">
+    <input id="q" type="search" placeholder="Find a place (city or town)" aria-label="Find a place">
+    <button id="find" type="button">Find</button>
+    <button id="units" type="button" title="Switch °F / °C">°F</button>
+  </div>
+  <div id="results"></div>
+  <div class="places" id="places"></div>
+  <div id="msg" class="dim" role="status"></div>
+  <div id="out"></div>
+  <p class="dim">Forecasts from <a href="https://open-meteo.com/" data-link>Open-Meteo</a> (free, no key).
+    Radar: <a href="https://www.rainviewer.com/map.html" data-link>RainViewer</a> ·
+    US alerts and marine: <a href="https://www.weather.gov/" data-link>weather.gov</a>.
+    Radar, marine and aviation panels live in Randis UDS.</p>
+</main>
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const ALLOWED = /^https:\/\/(api|geocoding-api|air-quality-api|marine-api)\.open-meteo\.com\/v1\//;
+const lsGet = k => { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {   } };
+const S = Object.assign({ places: [], home: 0, F: true }, lsGet("weather.v1") || {});
+const save = () => lsSet("weather.v1", S);
+
+const inShop = window.parent !== window;
+const waiting = {};
+let seq = 0;
+window.addEventListener("message", e => {
+  const d = e.data;
+  if (e.source !== window.parent || !d || d.uds !== "weather" || !waiting[d.id]) return;
+  const done = waiting[d.id]; delete waiting[d.id]; done(d.r || { error: "No answer." });
+});
+function get(url) {
+  if (!ALLOWED.test(url)) return Promise.reject(new Error("Not an Open-Meteo address."));
+  if (!inShop) return fetch(url, { credentials: "omit" }).then(r => r.ok ? r.json() : Promise.reject(new Error("The weather service said " + r.status)));
+  return new Promise((ok, no) => {
+    const id = "w" + (++seq);
+    const t = setTimeout(() => { delete waiting[id]; no(new Error("The weather service didn't answer.")); }, 20000);
+    waiting[id] = r => { clearTimeout(t); if (r.error) no(new Error(r.error)); else { try { ok(JSON.parse(r.text)); } catch (x) { no(new Error("Bad answer from the weather service.")); } } };
+    window.parent.postMessage({ uds: "weather-get", id, url }, "*");
+  });
+}
+
+const ICON = c => c === 0 ? "☀️" : c <= 2 ? "🌤" : c === 3 ? "☁️" : c <= 48 ? "🌫" : c <= 57 ? "🌦" : c <= 67 ? "🌧" : c <= 77 ? "🌨"
+  : c <= 82 ? "🌧" : c <= 86 ? "🌨" : "⛈";
+const WORD = c => c === 0 ? "Clear" : c <= 2 ? "Partly cloudy" : c === 3 ? "Cloudy" : c <= 48 ? "Fog" : c <= 57 ? "Drizzle" : c <= 67 ? "Rain"
+  : c <= 77 ? "Snow" : c <= 82 ? "Showers" : c <= 86 ? "Snow showers" : "Thunderstorms";
+const esc = s => String(s).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+const say = t => { $("#msg").textContent = t; };
+const label = p => [p.name, p.admin1, p.country].filter(Boolean).join(", ");
+
+function drawPlaces() {
+  const box = $("#places"); box.textContent = "";
+  S.places.forEach((p, i) => {
+    const b = document.createElement("button"); b.type = "button"; b.textContent = label(p);
+    if (i === S.home) b.className = "on";
+    b.onclick = () => { S.home = i; save(); drawPlaces(); show(); };
+    const x = document.createElement("button"); x.type = "button"; x.textContent = "✕"; x.title = "Remove " + label(p);
+    x.onclick = () => { S.places.splice(i, 1); if (S.home >= S.places.length) S.home = 0; save(); drawPlaces(); show(); };
+    box.append(b, x);
+  });
+}
+
+async function find() {
+  const q = $("#q").value.trim(); const box = $("#results"); box.textContent = "";
+  if (!q) return;
+  say("Looking…");
+  try {
+    const j = await get("https://geocoding-api.open-meteo.com/v1/search?count=6&language=en&format=json&name=" + encodeURIComponent(q.slice(0, 80)));
+    const list = (j && j.results) || [];
+    say(list.length ? "Pick one:" : "No place by that name.");
+    list.forEach(r => {
+      const b = document.createElement("button"); b.type = "button"; b.textContent = label(r);
+      b.onclick = () => {
+        S.places.push({ name: r.name, admin1: r.admin1 || "", country: r.country || "", lat: r.latitude, lon: r.longitude });
+        if (S.places.length > 12) S.places.shift();
+        S.home = S.places.length - 1; save(); box.textContent = ""; $("#q").value = ""; drawPlaces(); show();
+      };
+      box.append(b);
+    });
+  } catch (e) { say(e.message); }
+}
+
+async function show() {
+  const out = $("#out"); const p = S.places[S.home];
+  if (!p) { out.textContent = ""; say("Find a place to see its weather."); return; }
+  $("#units").textContent = S.F ? "°F" : "°C";
+  say("Getting the weather for " + label(p) + "…");
+  const u = S.F ? "&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch" : "&wind_speed_unit=kmh";
+  const at = `latitude=${+p.lat}&longitude=${+p.lon}&timezone=auto`;
+  try {
+    const [w, a] = await Promise.all([
+      get(`https://api.open-meteo.com/v1/forecast?${at}${u}&forecast_days=7`
+        + "&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,wind_gusts_10m,precipitation"
+        + "&hourly=temperature_2m,weather_code,precipitation_probability"
+        + "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset"),
+      get(`https://air-quality-api.open-meteo.com/v1/air-quality?${at}&current=us_aqi,pm2_5`).catch(() => null)
+    ]);
+    if (S.places[S.home] !== p) return;
+    const c = w.current || {}, T = S.F ? "°F" : "°C", V = S.F ? "mph" : "km/h";
+    const r = Math.round;
+    let h = `<div class="card now"><div class="icon">${ICON(c.weather_code)}</div><div><div class="big">${r(c.temperature_2m)}${T}</div>`
+      + `<div>${esc(WORD(c.weather_code))} · feels ${r(c.apparent_temperature)}${T}</div></div>`
+      + `<div class="dim">${esc(label(p))}<br>Humidity ${r(c.relative_humidity_2m)}% · Wind ${r(c.wind_speed_10m)} ${V} (gusts ${r(c.wind_gusts_10m)})`
+      + (a && a.current && a.current.us_aqi != null ? `<br>Air quality (US AQI) ${r(a.current.us_aqi)} · PM2.5 ${r(a.current.pm2_5)}` : "") + `</div></div>`;
+    const H = w.hourly || {}, now = (c.time || "").slice(0, 13);
+    let start = Math.max(0, (H.time || []).findIndex(t => t.slice(0, 13) >= now));
+    h += `<div class="card"><b>Next 24 hours</b><div class="row">`;
+    for (let i = start; i < Math.min(start + 24, (H.time || []).length); i++)
+      h += `<div class="cell"><div class="dim">${esc(H.time[i].slice(11, 16))}</div><div>${ICON(H.weather_code[i])}</div><div>${r(H.temperature_2m[i])}°</div>`
+        + `<div class="dim">${H.precipitation_probability[i] ?? 0}%</div></div>`;
+    h += `</div></div>`;
+    const D = w.daily || {};
+    h += `<div class="card"><b>7 days</b><div class="row days">`;
+    (D.time || []).forEach((d, i) => {
+      const day = new Date(d + "T12:00").toLocaleDateString(undefined, { weekday: "short", month: "numeric", day: "numeric" });
+      h += `<div class="cell"><div class="dim">${esc(day)}</div><div>${ICON(D.weather_code[i])}</div><div>${r(D.temperature_2m_max[i])}° / ${r(D.temperature_2m_min[i])}°</div>`
+        + `<div class="dim">rain ${D.precipitation_probability_max[i] ?? 0}%</div><div class="dim">☀ ${esc((D.sunrise[i] || "").slice(11))}–${esc((D.sunset[i] || "").slice(11))}</div></div>`;
+    });
+    h += `</div></div>`;
+    out.innerHTML = h;
+    say("Updated " + new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + ".");
+  } catch (e) { say(e.message); }
+}
+
+$("#find").onclick = find;
+$("#q").addEventListener("keydown", e => { if (e.key === "Enter") find(); });
+$("#units").onclick = () => { S.F = !S.F; save(); show(); };
+drawPlaces(); show();
+setInterval(() => { if (!document.hidden) show(); }, 600000);
+</script>
+</body>
+</html>
