@@ -266,12 +266,15 @@ function playWindow(i) {
           const file = saveDownload(d.name, buf);
           reply(file ? `Saved ${file} in your downloads.` : "The shop can't save that kind of file, or a save just happened. Try again in a moment.");
         });
+      } else if (e.data && e.data.uds === "office-ask" && i.slug === "randis-office" && typeof e.data.id === "string" && e.data.id.length <= 64) {
+        const src = e.source, id = e.data.id;
+        window.OfficeAI.ask(e.data, m => src.postMessage(Object.assign({ uds: "office", id }, m), "*"), ask);
       } else if (e.data && typeof e.data.uds === "string" && typeof e.data.id === "string" && e.data.id.length <= 64) {
         e.source.postMessage({ uds: e.data.uds, id: e.data.id, r: { error: "This part only works inside Randis UDS." } }, "*");
       }
     };
     window.addEventListener("message", hear);
-    stop = () => { window.removeEventListener("message", hear); frame.remove(); };
+    stop = () => { window.removeEventListener("message", hear); frame.remove(); if (window.OfficeAI) window.OfficeAI.cancel(); };
     box.querySelector(".win").append(frame);
   };
   const pick = el("input", { type: "file", accept: ".html,.htm", hidden: "hidden", "data-act": "load-file", on: { change: e => {

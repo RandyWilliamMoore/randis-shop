@@ -1103,10 +1103,10 @@ function mountBuilder(work){const B=S.builder=S.builder||{chat:[],html:'',editin
         S.custom=S.custom.filter(x=>x!==p);delete S.apps['cx_'+p.id];if(B.editing===p.id)B.editing=null;rebuildApps();render();save()}},'✕')))};drawMine();
   const log=h('div',{class:'blog'}),box=h('textarea',{rows:3,placeholder:B.html?'Say what to change…':'Describe the office product you want, e.g. "an invoice maker with line items and totals that exports to HTML"'});
   const status=h('div',{class:'bstat'}),send=h('button',{class:'btn pri'},'Send');
-  const drawLog=()=>{log.innerHTML='';if(!B.chat.length)log.append(h('div',{class:'bhint'},h('b',null,'Make a new office product'),h('p',null,'Tell your AI what you want it to do. It builds the whole thing and shows it on the right. Keep chatting to change it, then press “Add to Office” and it gets its own tab up top, next to Writer and Sheets.'),h('p',null,'It uses the AI linked in Randis UDS (the LLM button).')));
+  const drawLog=()=>{log.innerHTML='';if(!B.chat.length)log.append(h('div',{class:'bhint'},h('b',null,'Make a new office product'),h('p',null,'Tell your AI what you want it to do. It builds the whole thing and shows it on the right. Keep chatting to change it, then press “Add to Office” and it gets its own tab up top, next to Writer and Sheets.'),h('p',null,fallback==='shop'?'In the Randis Shop it uses your own Anthropic API key: the shop asks for it the first time, and it stays in your browser.':'It uses the AI linked in Randis UDS (the LLM button).')));
     for(const m of B.chat)log.append(h('div',{class:'msg '+m.role},m.content));log.scrollTop=log.scrollHeight};drawLog();
   const busy=v=>{send.disabled=v;box.disabled=v};
-  function go(){const t=box.value.trim();if(!t||send.disabled)return;if(!HOST||fallback==='shop'){toast('This only works inside Randis UDS, where an AI is linked.');return}
+  function go(){const t=box.value.trim();if(!t||send.disabled)return;if(!HOST){toast('This only works inside Randis UDS or the Randis Shop, where an AI can be reached.');return}
     B.chat.push({role:'user',content:t.slice(0,4000)});B.chat=B.chat.slice(-30);box.value='';drawLog();save();busy(true);status.textContent='Asking…';
     askId=uid();parent.postMessage({uds:'office-ask',id:askId,history:B.chat.slice(-16),page:B.html||''},'*')}
   send.onclick=go;box.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();go()}});
