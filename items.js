@@ -869,14 +869,14 @@ window.ITEMS = [
   "slug": "randis-office",
   "name": "Randis Office",
   "by": "Randy",
-  "blurb": "An office suite in one page: Randis Writer, Sheets, Slides, Notes, Draw, Database and Planner, each with many documents open as their own tabs. Opens and saves Word (.docx), Excel (.xlsx), CSV and calendar (.ics) files, and prints to PDF.",
+  "blurb": "An office suite in one page: Randis Writer, Sheets, Slides, Notes, Draw, Database and Planner, each with many documents open as their own tabs. Opens and saves Word (.docx), Excel (.xlsx), CSV and calendar (.ics) files, and prints to PDF. Add office product: describe a new office app and the AI builds it as its own tab (in the shop, with your own Anthropic API key).",
   "status": "ok",
   "real_items": null,
   "reviews": {
    "randy": null,
    "maker": null
   },
-  "version": 4,
+  "version": 5,
   "open_with": "randisuds://open?item=apps/randis-office",
   "file": "apps/randis-office/item.html",
   "logo": "apps/randis-office/logo.svg",
