@@ -681,7 +681,7 @@ window.ITEMS = [
   "version": 1,
   "open_with": "randisuds://open?item=apps/intelligence-hijacking",
   "file": "apps/intelligence-hijacking/item.html",
-  "logo": "apps/intelligence-hijacking/logo.svg",
+  "logo": "apps/intelligence-hijacking/logo.png",
   "video_pic": "apps/intelligence-hijacking/video.png"
  },
  {
