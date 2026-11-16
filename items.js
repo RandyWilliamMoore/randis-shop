@@ -675,14 +675,14 @@ window.ITEMS = [
   "status": "ok",
   "real_items": "https://www.etsy.com/shop/UberRandis",
   "reviews": {
-   "randy": null,
+   "randy": "https://youtu.be/zjy_Y-DMeiI",
    "maker": null
   },
   "version": 1,
   "open_with": "randisuds://open?item=apps/intelligence-hijacking",
   "file": "apps/intelligence-hijacking/item.html",
   "logo": "apps/intelligence-hijacking/logo.svg",
-  "video_pic": null
+  "video_pic": "apps/intelligence-hijacking/video.png"
  },
  {
   "kind": "apps",
