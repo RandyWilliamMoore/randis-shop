@@ -667,6 +667,24 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "intelligence-hijacking",
+  "name": "Intelligence Hijacking",
+  "by": "Randy",
+  "blurb": "Train 8 thinking skills (speed, memory, attention, reasoning and more) with adaptive tasks, track progress with charts and sealed progress certificates, and learn how learning works. Commander Randis guides you as a hologram with his own recorded voice. Test Center, Gyms, Autism suite, tours and a setup wizard. Nothing to install; Mentor AI and voice cloning come with Randis UDS.",
+  "status": "ok",
+  "real_items": "https://www.etsy.com/shop/UberRandis",
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 1,
+  "open_with": "randisuds://open?item=apps/intelligence-hijacking",
+  "file": "apps/intelligence-hijacking/item.html",
+  "logo": "apps/intelligence-hijacking/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "life-tree",
   "name": "Life Tree",
   "by": "Randy",
