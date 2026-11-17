@@ -20,6 +20,10 @@ python tools/add_music.py "C:/path/My Song.wav" --name "My Song" --genre "Elevat
 
 On the Jukebox's stage, the Raisin Band plays along with whatever song is on, dressed for its genre, and bounces on its beat (`site/band.js`). Randis Sound Forge and Hotdog Tycoon carry their own copy of it; after changing `site/band.js`, run `python tools/sync_band.py`.
 
+## Skins, theme music and Commander Randis
+
+The rail on the left reskins the whole shop: Classic, Steam Store, StarCraft II, Xbox 360 / Halo 3, Half-Life HEV, TempleOS, Windows 95 and XP, Mac OS 9, macOS, Material, The Matrix, LCARS, Pip-Boy, Tron, JARVIS, Cyberpunk, Comic Book, GeoCities, Vaporwave, Bloomberg, BIOS, Doom, Minecraft, Wii, XMB, Netflix and Barbie (colours, fonts and shapes only, no logos or art from them). **Sound** gives each skin its own theme music, off until you switch it on and made live in code, with volume, tempo, brightness, echo and reverb. In the StarCraft II skin, Commander Randis sits in the corner and says his six lines, recorded by Randy, through the Intelligence Hijacking voice effects. Fake ads for things in the shop can be turned off at the bottom of the rail. It all lives in `site/skins.css` and `site/skins.js` (his lines load from `site/randis_lines.js` the first time he speaks), is made from the Randis UDS Shop tab's skins, and keeps its settings in your browser only.
+
 ## Share links
 
 Every item, song and download has a **Share** button that copies a link like `https://randywilliammoore.github.io/randis-shop/share/games/blockwild/`. Pasted in Discord, it shows the item's picture card, name and blurb, and it opens the item in the shop. The header's **Share the shop** and **Share Randis UDS** copy the shop's and the app's links. `tools/build_share.py` writes the share pages (`share/`) and picture cards (`site/share/`, made with Microsoft Edge); `build_index.py` runs it for you.
