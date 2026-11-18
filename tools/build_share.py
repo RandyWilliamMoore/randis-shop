@@ -168,7 +168,15 @@ def main():
     with open(STAMPS, "w", encoding="utf-8", newline="\n") as f:
         json.dump({k: stamps[k] for k in sorted(stamps) if k in keep_cards}, f, indent=1)
         f.write("\n")
+    write_sitemap(sorted(keep_pages))
     print(f"build_share: {len(keep_pages)} share pages, {made} new picture cards")
+
+
+def write_sitemap(pages):
+    urls = [PUBLIC] + [f"{PUBLIC}share/{p}/" for p in pages]
+    body = "".join(f"  <url><loc>{html.escape(u)}</loc></url>\n" for u in urls)
+    with open(os.path.join(ROOT, "sitemap.xml"), "w", encoding="utf-8", newline="\n") as f:
+        f.write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + body + "</urlset>\n")
 
 
 if __name__ == "__main__":
