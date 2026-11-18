@@ -90,7 +90,7 @@ PAGE = """<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'self'; base-uri 'none'; form-action 'none'">
 <title>{title}</title>
 <meta name="description" content="{desc}">
 <meta property="og:site_name" content="The Randis Shop">
@@ -103,11 +103,18 @@ PAGE = """<!doctype html>
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="{image}">
 <meta name="theme-color" content="#ffd23f">
-<meta http-equiv="refresh" content="0; url={go}">
 <link rel="canonical" href="{url}">
+<link rel="stylesheet" href="../../../site/share.css">
 </head>
 <body>
-<p><a href="{go}">{title}</a></p>
+<main class="card">
+<p class="crumb"><a href="../../../index.html">The Randis Shop</a></p>
+<h1>{name}</h1>
+<img src="../../../{pic}" alt="{alt}">
+<p>{blurb}</p>
+<p><a class="go" href="{go}">{action}</a></p>
+<p class="made">Made with <a href="https://github.com/RandyWilliamMoore/randis-uds">Randis UDS</a>, a free desktop app that builds the tools you describe.</p>
+</main>
 </body>
 </html>
 """
@@ -124,7 +131,7 @@ def write_page(kind, slug, name, blurb, image):
     os.makedirs(folder, exist_ok=True)
     with open(os.path.join(folder, "index.html"), "w", encoding="utf-8", newline="\n") as f:
         f.write(PAGE.format(title=html.escape(f"{name} | The Randis Shop"), desc=html.escape(f"{NOUN[kind]} on the Randis Shop. {blurb}"),
-                            url=url, image=PUBLIC + image, alt=html.escape(f"{name} on the Randis Shop"),
+                            url=url, image=PUBLIC + image, pic=image, name=html.escape(name), blurb=html.escape(blurb), action=ACTION[kind], alt=html.escape(f"{name} on the Randis Shop"),
                             go=f"../../../index.html#/{kind}/{slug}",
                             dims="" if kind == "music" else CARD_SIZE))
     return url
