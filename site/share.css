@@ -1,0 +1,12 @@
+/* share pages (tools/build_share.py): one item, a picture, and a Play button. Same look as the shop. */
+body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px;
+  font: 16px/1.45 "Trebuchet MS", Tahoma, Verdana, sans-serif; color: #101010; background: #0f7f7f; }
+.card { max-width: 640px; background: #fffef2; border: 2px solid #101010; box-shadow: 4px 4px 0 #2c2c2c; padding: 16px 20px; }
+.card h1 { margin: 4px 0 12px; font-size: 1.6em; }
+.card img { display: block; width: 100%; height: auto; border: 1px solid #7b7b7b; }
+.crumb { margin: 0; font-size: .9em; }
+.go { display: inline-block; padding: 10px 18px; background: #ffd23f; color: #101010; font-weight: bold; text-decoration: none;
+  border: 2px solid #101010; box-shadow: 2px 2px 0 #2c2c2c; }
+.go:visited { color: #101010; }
+.made { font-size: .9em; color: #2c2c2c; }
+a { color: #0000c8; }
