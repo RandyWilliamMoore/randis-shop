@@ -121,6 +121,28 @@ def write_list(name, var, entries):
     print(f"{name}: {len(entries)} item(s)")
 
 
+NOSCRIPT = re.compile(r"<noscript>.*?</noscript>", re.S)
+
+
+def write_noscript(items, software, music):
+    import html
+    e = lambda s: html.escape(s, quote=True)
+    rows = [f'<li><a href="{e(s["download"])}">Download {e(s["name"])} {e(s["version"])}</a>: {e(s["blurb"])}</li>' for s in software]
+    rows += [f'<li><a href="share/{e(i["kind"])}/{e(i["slug"])}/">{e(i["name"])}</a>: {e(i["blurb"])}</li>' for i in items]
+    rows += [f'<li><a href="share/music/{e(m["slug"])}/">{e(m["name"])}</a> ({e(m["genre"])}): {e(m["blurb"])}</li>' for m in music]
+    block = ("<noscript><div class=\"noscript\"><p>The Randis Shop needs JavaScript to play. Here is everything on its shelves:</p>\n<ul>\n"
+             + "\n".join(rows) + "\n</ul>\n<p><a href=\"https://www.etsy.com/shop/UberRandis\">Real in-game items on Etsy</a> · "
+             "<a href=\"https://ko-fi.com/moorescombinatoricsmatrix\">Support on Ko-fi</a></p></div></noscript>")
+    path = os.path.join(ROOT, "index.html")
+    with open(path, encoding="utf-8") as f:
+        page = f.read()
+    if len(NOSCRIPT.findall(page)) != 1:
+        problem("index.html", "needs exactly one <noscript> block")
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
+        f.write(NOSCRIPT.sub(lambda _: block, page))
+    print(f"index.html: noscript list of {len(rows)} item(s)")
+
+
 def main():
     items = []
     for kind in KINDS:
@@ -135,6 +157,7 @@ def main():
     write_list("items.js", "ITEMS", items)
     write_list("software.js", "SOFTWARE", software)
     write_list("music.js", "MUSIC", music)
+    write_noscript(items, software, music)
     import build_share
     build_share.main()
 
