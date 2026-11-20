@@ -105,6 +105,7 @@ PAGE = """<!doctype html>
 <meta name="theme-color" content="#ffd23f">
 <link rel="canonical" href="{url}">
 <link rel="stylesheet" href="../../../site/share.css">
+<script type="application/ld+json">{ld}</script>
 </head>
 <body>
 <main class="card">
@@ -125,6 +126,27 @@ CARD_SIZE = """<meta property="og:image:width" content="1200">
 """
 
 
+SHELF = {"games": "Games", "apps": "Apps", "music": "Music", "software": "Downloads"}
+
+
+def structured(kind, name, blurb, url, image):
+    maker = {"@type": "Person", "name": "Randy William Moore"}
+    if kind == "music":
+        thing = {"@type": "MusicRecording", "byArtist": maker}
+    else:
+        thing = {"@type": "VideoGame" if kind == "games" else "SoftwareApplication",
+                 "applicationCategory": "GameApplication" if kind == "games" else "UtilitiesApplication",
+                 "operatingSystem": "Windows" if kind == "software" else "Any (runs in a web browser)", "author": maker}
+    thing.update({"name": name, "description": blurb, "url": url, "image": PUBLIC + image,
+                  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}})
+    crumbs = {"@type": "BreadcrumbList", "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "The Randis Shop", "item": PUBLIC},
+        {"@type": "ListItem", "position": 2, "name": SHELF[kind], "item": f"{PUBLIC}#/{kind}"},
+        {"@type": "ListItem", "position": 3, "name": name}]}
+    text = json.dumps({"@context": "https://schema.org", "@graph": [thing, crumbs]}, ensure_ascii=False)
+    return text.replace("<", chr(92) + "u003c")
+
+
 def write_page(kind, slug, name, blurb, image):
     url = f"{PUBLIC}share/{kind}/{slug}/"
     folder = os.path.join(PAGES, kind, slug)
@@ -133,7 +155,7 @@ def write_page(kind, slug, name, blurb, image):
         f.write(PAGE.format(title=html.escape(f"{name} | The Randis Shop"), desc=html.escape(f"{NOUN[kind]} on the Randis Shop. {blurb}"),
                             url=url, image=PUBLIC + image, pic=image, name=html.escape(name), blurb=html.escape(blurb), action=ACTION[kind], alt=html.escape(f"{name} on the Randis Shop"),
                             go=f"../../../index.html#/{kind}/{slug}",
-                            dims="" if kind == "music" else CARD_SIZE))
+                            dims="" if kind == "music" else CARD_SIZE, ld=structured(kind, name, blurb, url, image)))
     return url
 
 
