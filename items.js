@@ -793,24 +793,6 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
-  "slug": "omnisight-xint-suite",
-  "name": "Omnisight xINT Suite",
-  "by": "Randy",
-  "blurb": "A lawful open-source research workbench: cases and entities, a pivot launcher for 228 public sources, username, email, header and image labs (EXIF, hashes, ELA), geo and time tools, a link graph, timeline, analysis of competing hypotheses, an evidence locker with hashes and a report builder, plus radio and mesh tools.",
-  "status": "ok",
-  "real_items": null,
-  "reviews": {
-   "randy": null,
-   "maker": null
-  },
-  "version": 1,
-  "open_with": "randisuds://open?item=apps/omnisight-xint-suite",
-  "file": "apps/omnisight-xint-suite/item.html",
-  "logo": "apps/omnisight-xint-suite/logo.svg",
-  "video_pic": null
- },
- {
-  "kind": "apps",
   "slug": "pdf-maker",
   "name": "PDF Maker",
   "by": "Randy",
