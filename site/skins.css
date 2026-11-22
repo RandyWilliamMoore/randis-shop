@@ -182,7 +182,7 @@ body[data-skin="aero"] {
   --s-shadow: 0 8px 24px rgba(0,70,130,.3), inset 0 1px 0 rgba(255,255,255,.95);
   --s-accent: linear-gradient(180deg, #a8f07a 0, #5cc63a 48%, #3aa61f 52%, #6fd84a 100%); --s-accent-text: #fff;
   --s-btn: linear-gradient(180deg, #e6f8ff 0, #9fdcfb 48%, #5fc0f0 52%, #9ee3ff 100%); --s-btn-text: #06425f; --s-btn-border: 1px solid #3a9fd6; --s-btn-radius: 999px;
-  --s-font: "Segoe UI", Frutiger, "Frutiger Linotype", Myriad, "Trebuchet MS", sans-serif; --s-card-solid: #f2fbff; --s-text-solid: #0c3550;
+  --s-font: "Segoe UI", Myriad, "Trebuchet MS", sans-serif; --s-card-solid: #f2fbff; --s-text-solid: #0c3550;
 }
 body[data-skin]:not([data-skin="classic"]) { background: var(--s-bg); background-attachment: fixed; color: var(--s-text); font-family: var(--s-font, var(--ui)); }
 body[data-skin]:not([data-skin="classic"]) a:not(.btn):not(.cab):not(.box):not(.tv):not(.front-shot):not(.slot-tv) { color: var(--s-head, var(--s-text)); }
@@ -232,7 +232,6 @@ body[data-skin="sc2"] .btn { text-transform: uppercase; letter-spacing: 1px; tex
 body[data-skin="halo"] .sign b, body[data-skin="halo"] .bar { text-transform: uppercase; letter-spacing: 3px; font-weight: 400; }
 body[data-skin="halo"] .cab:hover, body[data-skin="halo"] .box:hover { box-shadow: 0 0 16px rgba(180,225,255,.6); }
 body[data-skin="hl"] { text-shadow: 0 0 6px rgba(255,160,0,.4); }
-body[data-skin="hl"] .sign b::before { content: "\2622  "; }
 body[data-skin="hl"] .bar { text-transform: uppercase; letter-spacing: 3px; }
 body[data-skin="hl"]::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 50; background: repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 1px, transparent 1px 3px); }
 body[data-skin="temple"] { --s-bar: #0000aa; --s-bar-ink: #fff; }
@@ -422,3 +421,30 @@ body[data-skin="classic"] .shop-ad { background: #fffef2; color: #101010; border
 body[data-skin="classic"] .shop-ad-cta { background: #ffd23f; color: #000; border-radius: 0; border: 2px solid; border-color: #fff #2c2c2c #2c2c2c #fff; }
 .shop-ad { margin-bottom: 20px; }
 .shop-ad-slot { margin: 0; }
+
+body[data-skin] .sign::before { display: inline-flex; align-items: center; gap: 4px; width: max-content; font: 700 13px/1.2 "Segoe UI", Arial, sans-serif; letter-spacing: 1px; text-transform: uppercase; padding: 3px 9px; border: 1.5px dashed currentColor; border-radius: 999px; opacity: .9; transform: rotate(-2deg); -webkit-text-fill-color: currentColor; text-shadow: none; filter: none; }
+body[data-skin="steam"] .sign::before { content: "\2668 \FE0F   STEEMED HAMS GAME STORE"; }
+body[data-skin="sc2"] .sign::before { content: "\1F6F8   SPACE PAPERWORK II"; }
+body[data-skin="halo"] .sign::before { content: "\1F369   GREEN DONUT 360"; }
+body[data-skin="hl"] .sign::before { content: url("parody_half_baked.svg") " HALF-BAKED"; }
+body[data-skin="temple"] .sign::before { content: "\1F56F \FE0F   HOLY 16 COLOURS"; }
+body[data-skin="win95"] .sign::before { content: "\1F9C7   WAFFLES 95"; }
+body[data-skin="xp"] .sign::before { content: "\1F9C7   WAFFLES XD"; }
+body[data-skin="mac9"] .sign::before { content: "\1F350   PEAR OS 9\BE "; }
+body[data-skin="macos"] .sign::before { content: "\1F350   PEAR OS: EXTRA BLURRY"; }
+body[data-skin="material"] .sign::before { content: "\1F97D   GOGGLE CARDS"; }
+body[data-skin="matrix"] .sign::before { content: "\1F944   THERE IS NO SHOP"; }
+body[data-skin="lcars"] .sign::before { content: "\1FA90   UNITED SHOP OF PLANETS"; }
+body[data-skin="pipboy"] .sign::before { content: "\1F44D   WRIST-BOY 3000"; }
+body[data-skin="tron"] .sign::before { content: "\1F94F   FRISBEE GRID"; }
+body[data-skin="jarvis"] .sign::before { content: "\1FAD6   HOLO-BUTLER (UNPAID)"; }
+body[data-skin="cyber"] .sign::before { content: "\1F6D2   CYBERSHOPPER 2O77\BD "; }
+body[data-skin="bloomberg"] .sign::before { content: "\1F354   BLOOMBURGER TERMINAL"; }
+body[data-skin="doom"] .sign::before { content: "\1F608   GLOOM"; }
+body[data-skin="minecraft"] .sign::before { content: "\1F954   DIGGY DIGGY CRAFT"; }
+body[data-skin="wii"] .sign::before { content: "\1F3B3   OUI MENU"; }
+body[data-skin="xmb"] .sign::before { content: "\1F4CE   PLAY-STATIONERY"; }
+body[data-skin="netflix"] .sign::before { content: "\1F37F   NOTFLIX"; }
+body[data-skin="barbie"] .sign::before { content: "\1F3CB \FE0F   BARBELL DREAMGYM"; }
+body[data-skin="aero"] .sign::before { content: "\1FAE7   BUBBLE OS"; }
+body[data-skin="hl"] .sign::before { color: #ffa000; }
