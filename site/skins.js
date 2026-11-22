@@ -132,6 +132,7 @@ const SHOP_SOUND = (function () {
     xmb: { bpm: 60, root: 50, sc: "maj", prog: [0, 4, 5, 3], lead: { w: "bell", p: "sparse", o: 3 }, pad: "lush", bass: "none", dr: "none", verbBoost: .3, name: "Wave Background" },
     netflix: { bpm: 70, root: 41, sc: "min", prog: [0, 5, 3, 6], lead: { w: "piano", p: "sparse", o: 2 }, pad: "sawdark", bass: "root4", dr: "boom", name: "Are You Still Shopping?" },
     barbie: { bpm: 122, root: 62, sc: "maj", prog: [0, 4, 5, 3], lead: { w: "square", p: "melody", o: 1 }, pad: "saw", bass: "root8", dr: "pop", name: "Pink Convertible" },
+    aero: { bpm: 92, root: 60, sc: "lyd", prog: [0, 4, 1, 5], seventh: 1, lead: { w: "bell", p: "arp", o: 2 }, pad: "lush", bass: "root4", bassW: "triangle", dr: "light", verbBoost: .3, name: "Bubbles Over Clear Water" },
   };
   const hz = m => 440 * Math.pow(2, (m - 69) / 12);
   function rng(seed) { let s = seed >>> 0; return () => { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 4294967296; }; }
@@ -612,6 +613,7 @@ const SHOP_SKINS_LIST = [
   ["xmb", "PlayStation XMB", "#1b4a8c", "#ffffff"],
   ["netflix", "Netflix", "#141414", "#e50914"],
   ["barbie", "Barbie Dreamhouse", "#ff8fcf", "#e0218a"],
+  ["aero", "Frutiger Aero", "#5ec2f2", "#5cc63a"],
 ];
 
 const SK_SKINS = [["classic", "Classic shop", "#0f7f7f", "#ffd23f"]].concat(SHOP_SKINS_LIST.filter(s => s[0] !== "default"));
