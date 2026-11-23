@@ -1,4 +1,4 @@
-import json, time
+import json, re, time
 
 import harness
 
@@ -74,7 +74,10 @@ def shop_side(page, check, base):
     check("a rejected key is forgotten and the app is told why",
           "didn't accept" in str(last.get("error")) and page.js("!sessionStorage.getItem('office_ai_key')") is True, last)
     rules = page.js("document.querySelector('meta[http-equiv=Content-Security-Policy]').content") or ""
-    check("the shop page may reach only itself and Anthropic", "connect-src 'self' https://api.anthropic.com;" in rules, rules)
+    connect = (re.search(r"connect-src ([^;]+)", rules) or [None, ""])[1].split()
+    extra = [h for h in connect if h not in ("'self'", "https://api.anthropic.com") and not re.fullmatch(r"https://[a-z-]+\.open-meteo\.com", h)]
+    check("the shop page may reach only itself, Anthropic and Open-Meteo (the Weather app, no key)",
+          "'self'" in connect and "https://api.anthropic.com" in connect and not extra, rules)
 
 
 def test(page, check):

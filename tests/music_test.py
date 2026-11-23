@@ -47,6 +47,7 @@ def tools_check(check):
         shutil.copytree(os.path.join(harness.SHOP, "tools"), os.path.join(top, "tools"))
         os.makedirs(os.path.join(top, "site"))
         shutil.copyfile(os.path.join(harness.SHOP, "site", "band.js"), os.path.join(top, "site", "band.js"))
+        shutil.copyfile(os.path.join(harness.SHOP, "index.html"), os.path.join(top, "index.html"))
         sys.path.insert(0, os.path.join(top, "tools"))
         sys.modules["add_music_tools"] = __import__("add_music")
         song = os.path.join(top, "My Lobby Song.wav")
