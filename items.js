@@ -847,6 +847,24 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "randis-academy",
+  "name": "Randis Academy",
+  "by": "Randy",
+  "blurb": "Every subject from 0 to infinity: 25 realms with ladders that go deeper, kids' sets, K-12 by grade, 30 exam-practice sets, flashcards with spaced repetition, a personal assistant, Randis Lab (a matrix-style math language with plots and a block-diagram Wire Lab), 50+ calculators and proof certificates. Works offline. The AI Mentor and Tutor need Randis UDS and say so.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 1,
+  "open_with": "randisuds://open?item=apps/randis-academy",
+  "file": "apps/randis-academy/item.html",
+  "logo": "apps/randis-academy/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "randis-antivirus",
   "name": "Randis Antivirus",
   "by": "Randy",
