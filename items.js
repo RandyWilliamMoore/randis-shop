@@ -731,7 +731,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
-  "version": 3,
+  "version": 4,
   "open_with": "randisuds://open?item=apps/mintworks-exchange",
   "file": "apps/mintworks-exchange/item.html",
   "logo": "apps/mintworks-exchange/logo.svg",

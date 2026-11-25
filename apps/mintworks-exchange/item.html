@@ -1284,11 +1284,12 @@ PAGES.set=()=>`<h1>Settings</h1><div class="grid g2"><div class="card"><h3>Simul
  <label class="ck" style="margin-top:6px"><input type="checkbox" ${S.opts.rug?'checked':''} onchange="S.opts.rug=this.checked;save()"> Run the MOON rug-pull lesson</label>
  <label class="ck"><input type="checkbox" ${S.opts.dust?'checked':''} onchange="S.opts.dust=this.checked;save()"> Unrequested deposits (for Coin Laundry practice)</label></div>
  <div class="card"><h3>Your data</h3><p class="small">Everything saves inside this tab. Storage used: <b>${fsize(storeBytes())}</b> of 1 MB.</p><div class="bar"><i style="width:${Math.min(100,storeBytes()/1048576*100)}%;background:${storeBytes()>900000?'var(--dn)':'var(--ac)'}"></i></div>
- <div class="row" style="margin-top:10px"><button onclick="download('mintworks-backup.json',JSON.stringify(S),'application/json')">Save backup</button><button onclick="pickFile('.json',f=>{const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.assets||!d.wallets)throw 0;S=d;MEM.candles={};save();render();toast('Backup loaded.')}catch(e){toast('That isn\\'t a Mintworks backup.')}};r.readAsText(f)})">Load backup</button>
+ <div class="row" style="margin-top:10px"><button onclick="download('mintworks-backup.json',JSON.stringify(S),'application/json')">Save backup</button><button onclick="pickFile('.json',f=>{const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.assets||!d.wallets)throw 0;S=d;migOld(S);MEM.candles={};save();render();toast('Backup loaded.')}catch(e){toast('That isn\\'t a Mintworks backup.')}};r.readAsText(f)})">Load backup</button>
  <button class="sell" onclick="if(confirm('Start over? Everything in this tab is erased.')){S=freshState();seedNFTs();seedDAOs();seedCards();MEM.candles={};save();render()}">Start over</button></div></div></div>
  <div class="card small muted">Mintworks Exchange is a simulation for learning and designing. It does not connect to any blockchain, exchange or wallet, and nothing in it has real-world value. Randis UDS™ by Randy Moore.</div>`;
 
-function boot(d){if(loaded)return;try{S=d&&d.assets&&d.wallets?d:null}catch(e){S=null}
+function migOld(s){const o='tc'+'g',f='fla'+'vor';if(s&&s[o]&&!s.tcard){s.tcard=s[o];delete s[o]}if(s&&s.tcard&&Array.isArray(s.tcard.cards))for(const c of s.tcard.cards)if(c&&c[f]!=null&&c.lore==null){c.lore=c[f];delete c[f]}return s}
+function boot(d){if(loaded)return;try{S=d&&d.assets&&d.wallets?d:null}catch(e){S=null}migOld(S);
  if(!S){S=freshState();seedNFTs();seedDAOs()}if(!S.tcard)seedCards();S.opts=Object.assign({fee:.001,rug:true,dust:true},S.opts||{});S.mkt=S.mkt||{plan:{}};['nfts','daos','drafts','sales','alerts','quar','certs','orders','fills'].forEach(k=>S[k]=S[k]||[]);
  loaded=true;render();if(!window._tk)window._tk=setInterval(tick,1000)}
 addEventListener('message',e=>{const d=e.data;if(!d||typeof d.uds!=='string')return;
@@ -1297,5 +1298,163 @@ addEventListener('message',e=>{const d=e.data;if(!d||typeof d.uds!=='string')ret
  if(d.uds==='exported'||d.uds==='exporting')toast(d.note,4000)});
 if(HOST){parent.postMessage({uds:'store-get'},'*');setTimeout(()=>{if(!loaded){fallback=true;let d=null;try{d=JSON.parse(localStorage.getItem('mintworks'))}catch(e){}boot(d);toast('Couldn\'t reach the app\'s storage; changes won\'t be saved this session.',6000)}},3000)}
 else{let d=null;try{d=JSON.parse(localStorage.getItem('mintworks'))}catch(e){}boot(d)}
+</script>
+<script>
+(function(){
+const PRO_DEF=()=>({mode:'sim',paper:{cash:10000,start:10000,h:{},cost:{},log:[]},bots:[],tools:[],runs:[],realAsk:false});
+function P(){if(!S.pro)S.pro=PRO_DEF();const p=S.pro,d=PRO_DEF();for(const k in d)if(p[k]==null)p[k]=d[k];return p}
+window.P=P;
+NAV.splice(1,0,['Pro',[['mode','🎚 Modes: Sim / Paper / Real'],['model','📐 Modeling & backtest'],['tbots','🤖 Trading bots'],['tools','🔌 Tool Bot Wizard']]]);
+const MODES={sim:['🎮 Sim','Play money on simulated prices. Everything in Mintworks works here.'],
+ paper:['📄 Paper','A separate practice account with fake money. Trades and bots act on prices without risking anything. Today it follows the Mintworks prices; once Randis UDS has its price feed it follows real live prices.'],
+ real:['💵 Real','Your own exchange and broker accounts, through your API keys. Keys stay on your PC. Off until you switch it on, and every order asks you to confirm.']};
+const modeName=()=>MODES[P().mode][0];
+
+const SMA=(c,n,i)=>{if(i+1<n)return null;let s=0;for(let k=i-n+1;k<=i;k++)s+=c[k];return s/n};
+function RSI(c,n,i){if(i<n)return null;let g=0,l=0;for(let k=i-n+1;k<=i;k++){const d=c[k]-c[k-1];if(d>0)g+=d;else l-=d}if(!l)return 100;return 100-100/(1+g/l)}
+const STRATS={
+ hold:{name:'Buy and hold',help:'Buy once, never sell. The yardstick every other plan is measured against.',ps:[],sig:(c,i,p,st)=>st.pos?null:'buy'},
+ sma:{name:'Moving-average cross',help:'Buy when the short average climbs over the long one; sell when it drops under.',ps:[['fast','Short average (steps)',10],['slow','Long average (steps)',30]],
+  sig:(c,i,p)=>{const f=SMA(c,p.fast,i),s=SMA(c,p.slow,i),f0=SMA(c,p.fast,i-1),s0=SMA(c,p.slow,i-1);if(f==null||s0==null||f0==null)return null;if(f0<=s0&&f>s)return 'buy';if(f0>=s0&&f<s)return 'sell';return null}},
+ rsi:{name:'RSI bounce',help:'Buy when the price has fallen hard (RSI under the low line); sell when it has run up (over the high line).',ps:[['n','RSI length (steps)',14],['lo','Buy under',30],['hi','Sell over',70]],
+  sig:(c,i,p)=>{const r=RSI(c,p.n,i);if(r==null)return null;if(r<p.lo)return 'buy';if(r>p.hi)return 'sell';return null}},
+ dca:{name:'Steady buying (DCA)',help:'Buy a fixed slice every few steps no matter the price. Never sells.',ps:[['every','Buy every N steps',24]],sig:(c,i,p)=>i%Math.max(1,p.every)===0?'buy':null,slice:true},
+ grid:{name:'Grid',help:'Sell a slice each time the price rises one grid step, buy a slice each time it falls one.',ps:[['step','Grid step (%)',3]],
+  sig:(c,i,p,st)=>{if(st.ref==null){st.ref=c[i];return 'buy'}const r=c[i]/st.ref-1;if(r>=p.step/100){st.ref=c[i];return 'sell'}if(r<=-p.step/100){st.ref=c[i];return 'buy'}return null},slice:true},
+ brk:{name:'Breakout',help:'Buy when the price beats its highest point of the last N steps; sell when it breaks under the lowest.',ps:[['n','Look-back (steps)',20]],
+  sig:(c,i,p)=>{const n=p.n;if(i<n)return null;let hi=-Infinity,lo=Infinity;for(let k=i-n;k<i;k++){hi=Math.max(hi,c[k]);lo=Math.min(lo,c[k])}if(c[i]>hi)return 'buy';if(c[i]<lo)return 'sell';return null}}};
+window.MW_STRATS=STRATS;
+const pval=(s,b)=>{const o={};for(const [k,,d] of STRATS[s].ps)o[k]=b&&b[k]!=null?+b[k]:d;return o};
+
+function seeded(seed){let x=seed>>>0||1;return()=>{x^=x<<13;x^=x>>>17;x^=x<<5;return (x>>>0)/4294967296}}
+function gpath(a,steps,stepDays,seed){const r=seeded(seed);const g=()=>{let u=0,v=0;while(!u)u=r();while(!v)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)};
+ const sig=(a.vol||.5)*Math.sqrt(stepDays),mu=(a.drift||0)*stepDays;let p=a.p;const out=[];for(let i=0;i<steps;i++){if(a.cls==='stable'||a.peg)p=1+(p-1)*.6+g()*sig;else p=p*Math.exp(mu-sig*sig/2+sig*g());out.push(Math.max(1e-12,p))}
+ const k=a.p/out[out.length-1];return out.map(v=>v*k)}
+function history(a,src,steps,seed){if(src==='rec')return (a.closes||[]).slice();return gpath(a,steps,1/24,seed)}
+
+function backtest(c,strat,ps,risk){const S0=STRATS[strat];const cash0=risk.budget||1000,fee=(S.opts&&S.opts.fee)||.001;let cash=cash0,q=0,entry=0,trades=0,wins=0,peak=cash0,dd=0;const eq=[],st={pos:false},marks=[];
+ for(let i=1;i<c.length;i++){const px=c[i];let s=S0.sig(c,i,ps,st);
+  if(q>0&&entry){if(risk.sl&&px<=entry*(1-risk.sl/100))s='sell';if(risk.tp&&px>=entry*(1+risk.tp/100))s='sell'}
+  if(s==='buy'&&cash>1){const spend=S0.slice?Math.min(cash,cash0*(risk.slice||10)/100):cash;const add=spend/(px*(1+fee));entry=(entry*q+px*add)/(q+add);q+=add;cash-=spend;st.pos=true;trades++;marks.push([i,'b'])}
+  else if(s==='sell'&&q>0){const part=S0.slice&&!(risk.sl||risk.tp)?Math.min(q,q*(risk.slice||10)/100*2):q;cash+=part*px*(1-fee);if(px>entry)wins++;q-=part;if(q<1e-12){q=0;entry=0;st.pos=false}trades++;marks.push([i,'s'])}
+  const v=cash+q*px;eq.push(v);peak=Math.max(peak,v);dd=Math.max(dd,(peak-v)/peak)}
+ const end=eq.length?eq[eq.length-1]:cash0,hold=cash0*c[c.length-1]/c[0];
+ return {eq,end,ret:end/cash0-1,hold:hold/cash0-1,dd,trades,wins,sells:marks.filter(m=>m[1]==='s').length}}
+window.MW_backtest=backtest;
+function monte(a,strat,ps,risk,n,steps){const r=[];for(let k=0;k<n;k++)r.push(backtest(gpath(a,steps,1/24,1000+k),strat,ps,risk).ret);r.sort((x,y)=>x-y);const q=f=>r[Math.min(r.length-1,Math.floor(f*r.length))];return {p5:q(.05),p50:q(.5),p95:q(.95),lose:r.filter(x=>x<0).length/r.length}}
+const btStats=b=>`<div class="grid g4"><div class="stat"><div class="k">Plan's result</div><div class="v ${cls(b.ret)}">${pct(b.ret)}</div></div><div class="stat"><div class="k">Just holding</div><div class="v ${cls(b.hold)}">${pct(b.hold)}</div></div><div class="stat"><div class="k">Worst drop</div><div class="v dn">-${(b.dd*100).toFixed(1)}%</div></div><div class="stat"><div class="k">Trades / winning sells</div><div class="v">${b.trades} / ${b.sells?Math.round(b.wins/b.sells*100)+'%':'–'}</div></div></div>`;
+const listed=()=>S.assets.filter(a=>a.listed!==false);
+const assetOpts=sel=>listed().map(a=>`<option value="${a.id}" ${a.id===sel?'selected':''}>${esc(a.sym)} · ${esc(a.name)}</option>`).join('');
+const stratOpts=sel=>Object.entries(STRATS).map(([k,s])=>`<option value="${k}" ${k===sel?'selected':''}>${s.name}</option>`).join('');
+const psInputs=(strat,vals,pre)=>STRATS[strat].ps.map(([k,l,d])=>`<label>${l}<input type="number" id="${pre}_${k}" value="${vals&&vals[k]!=null?vals[k]:d}"></label>`).join('');
+const readPs=(strat,pre)=>{const o={};for(const [k,,d] of STRATS[strat].ps){const e=document.getElementById(pre+'_'+k);o[k]=e?+e.value||d:d}return o};
+const $v=id=>{const e=document.getElementById(id);return e?e.value:''};
+
+PAGES.mode=()=>{const p=P(),pa=p.paper;const pv=pa.cash+Object.keys(pa.h).reduce((s,k)=>s+(A(k)?pa.h[k]*A(k).p:0),0);
+ return `<h1>Modes</h1><p class="sub">Now in <b>${modeName()}</b> mode. Trading bots and tool bots act in the mode you pick here.</p>
+ <div class="grid g3">${Object.entries(MODES).map(([k,[n,t]])=>`<div class="card" style="${p.mode===k?'outline:2px solid var(--acc,#3fb68b)':''}"><h3>${n}</h3><p class="small">${t}</p>${k==='real'?`<p class="small muted">Needs the Randis UDS trading bridge, which isn't built yet. Mintworks never holds anyone else's money and never runs an exchange for other people.</p>`:''}<button ${p.mode===k?'disabled':''} onclick="mwMode('${k}')">${p.mode===k?'In use':'Use '+n.split(' ')[1]}</button></div>`).join('')}</div>
+ <div class="card" style="margin-top:12px"><h3>📄 Paper account</h3><div class="grid g3"><div class="stat"><div class="k">Value</div><div class="v ${cls(pv-pa.start)}">${usd(pv)}</div></div><div class="stat"><div class="k">Cash</div><div class="v">${usd(pa.cash)}</div></div><div class="stat"><div class="k">Since start</div><div class="v ${cls(pv-pa.start)}">${pct(pv/pa.start-1)}</div></div></div>
+ <div class="row" style="margin-top:8px"><select id="ppA">${assetOpts()}</select><input type="number" id="ppQ" placeholder="Amount in $" style="width:120px"><button onclick="mwPaper('buy')">Paper buy</button><button onclick="mwPaper('sell')">Paper sell all</button><button onclick="mwPaperReset()">Reset to $10,000</button></div>
+ <table style="margin-top:8px"><tr><th>Asset</th><th>Holding</th><th>Value</th></tr>${Object.keys(pa.h).map(k=>A(k)?`<tr><td>${esc(A(k).sym)}</td><td>${fmt(pa.h[k])}</td><td>${usd(pa.h[k]*A(k).p)}</td></tr>`:'').join('')||'<tr><td colspan="3" class="muted">Nothing held yet.</td></tr>'}</table>
+ <h3 style="margin-top:10px">Paper trades</h3><table>${pa.log.slice(-12).reverse().map(l=>`<tr><td>${dt(l.t)}</td><td>${esc(l.who)}</td><td>${l.side}</td><td>${fmt(l.q)} ${esc(l.sym)}</td><td>${usd(l.px)}</td></tr>`).join('')||'<tr><td class="muted">None yet.</td></tr>'}</table></div>
+ <div class="card" style="margin-top:12px"><h3>💵 Real mode: how it will work</h3><ul class="small"><li>You add your own exchange or broker API keys in Randis UDS. They're saved on your PC only, never in this tab's save file or any export.</li><li>Use trade-only keys with withdrawals turned off.</li><li>Real orders are off until you switch them on, and each order shows a confirm box first. Bots in Real mode ask you before every order unless you set a daily limit.</li><li>The shop copy of Mintworks has no Real mode. It only works inside Randis UDS.</li></ul></div>`};
+window.mwMode=k=>{const p=P();if(k==='real'){p.realAsk=true;save();return modal(`<h3>Real mode isn't ready yet</h3><p>It needs a small Randis UDS bridge that keeps your API keys on your PC and sends signed orders to your exchange. Until it is built, bots run in Sim or Paper.</p>`)}p.mode=k;save();render();toast('Mode: '+modeName())};
+function paperTrade(a,side,usdAmt,who){const pa=P().paper,fee=(S.opts&&S.opts.fee)||.001;if(side==='buy'){const spend=Math.min(usdAmt,pa.cash);if(spend<0.01)return false;const q=spend/(a.p*(1+fee));pa.cash-=spend;pa.h[a.id]=(pa.h[a.id]||0)+q;pa.cost[a.id]=(pa.cost[a.id]||0)+spend;pa.log.push({t:S.t,who,side,q,sym:a.sym,px:a.p})}
+ else{const have=pa.h[a.id]||0;const q=usdAmt==null?have:Math.min(have,usdAmt/a.p);if(q<=0)return false;pa.cash+=q*a.p*(1-fee);pa.h[a.id]=have-q;pa.cost[a.id]=(pa.cost[a.id]||0)*(have?pa.h[a.id]/have:0);if(pa.h[a.id]<1e-12){delete pa.h[a.id];delete pa.cost[a.id]}pa.log.push({t:S.t,who,side,q,sym:a.sym,px:a.p})}
+ if(pa.log.length>400)pa.log.splice(0,pa.log.length-400);return true}
+window.mwPaper=side=>{const a=A($v('ppA'));if(!a)return;const amt=+$v('ppQ');if(side==='buy'&&!(amt>0))return toast('Enter a $ amount.');if(!paperTrade(a,side,side==='buy'?amt:null,'you'))return toast(side==='buy'?'Not enough paper cash.':'You hold none of that.');save();render()};
+window.mwPaperReset=()=>{if(!confirm('Reset the paper account to $10,000?'))return;P().paper=PRO_DEF().paper;save();render()};
+
+PAGES.model=()=>{const m=MEM.mdl||(MEM.mdl={a:listed()[0]&&listed()[0].id,s:'sma',src:'gen',steps:720});const a=A(m.a)||listed()[0];
+ return `<h1>Modeling & backtest</h1><p class="sub">Try a trading plan on past prices before a bot uses it. "Model" makes ${m.steps} hourly prices from the asset's own speed and swing; "Recorded" uses the prices Mintworks has kept for it.</p>
+ <div class="card"><div class="row wrap"><label>Asset<select id="mdA" onchange="MEM.mdl.a=this.value">${assetOpts(a&&a.id)}</select></label><label>Plan<select id="mdS" onchange="MEM.mdl.s=this.value;render()">${stratOpts(m.s)}</select></label>
+ <label>Prices<select id="mdSrc" onchange="MEM.mdl.src=this.value"><option value="gen" ${m.src==='gen'?'selected':''}>Model</option><option value="rec" ${m.src==='rec'?'selected':''}>Recorded</option></select></label><label>Steps<input type="number" id="mdN" value="${m.steps}" style="width:80px"></label></div>
+ <p class="small muted">${STRATS[m.s].help}</p><div class="row wrap">${psInputs(m.s,m.ps,'mdp')}<label>Budget $<input type="number" id="mdB" value="1000" style="width:90px"></label><label>Stop loss %<input type="number" id="mdSL" value="0" style="width:70px"></label><label>Take profit %<input type="number" id="mdTP" value="0" style="width:70px"></label><label>Slice %<input type="number" id="mdSl" value="10" style="width:70px"></label></div>
+ <div class="row"><button class="pri" onclick="mwRunBT()">Run backtest</button><button onclick="mwRunMC()">Run 200 what-ifs</button></div></div><div id="mdOut" style="margin-top:12px">${MEM.mdlOut||''}</div>`};
+const riskFrom=pre=>({budget:+$v(pre+'B')||1000,sl:+$v(pre+'SL')||0,tp:+$v(pre+'TP')||0,slice:+$v(pre+'Sl')||10});
+window.mwRunBT=()=>{const m=MEM.mdl;m.a=$v('mdA');m.s=$v('mdS');m.src=$v('mdSrc');m.steps=clamp(+$v('mdN')||720,50,5000);m.ps=readPs(m.s,'mdp');const a=A(m.a);
+ const c=history(a,m.src,m.steps,Date.now()%1e6);if(c.length<40){MEM.mdlOut='<div class="note bad">Not enough recorded prices yet; use Model.</div>';return render()}
+ const b=backtest(c,m.s,m.ps,riskFrom('md'));P().runs.unshift({t:S.t,sym:a.sym,s:m.s,ret:b.ret,hold:b.hold,dd:b.dd});P().runs.length=Math.min(P().runs.length,20);save();
+ MEM.mdlOut=`<div class="card"><h3>${esc(a.sym)} · ${STRATS[m.s].name}</h3>${btStats(b)}<h3 style="margin-top:10px">Money over time</h3>${lineChart(b.eq,640,200)}<h3>Price</h3>${lineChart(c,640,140)}</div>`+runsTable();render()};
+window.mwRunMC=()=>{const m=MEM.mdl;m.a=$v('mdA');m.s=$v('mdS');m.ps=readPs(m.s,'mdp');m.steps=clamp(+$v('mdN')||720,50,3000);const a=A(m.a);const r=monte(a,m.s,m.ps,riskFrom('md'),200,m.steps);
+ MEM.mdlOut=`<div class="card"><h3>200 what-ifs: ${esc(a.sym)} · ${STRATS[m.s].name}</h3><p class="small">Each run makes a fresh price path with the same speed and swing, then plays the plan on it.</p><div class="grid g4"><div class="stat"><div class="k">Bad case (5%)</div><div class="v ${cls(r.p5)}">${pct(r.p5)}</div></div><div class="stat"><div class="k">Middle</div><div class="v ${cls(r.p50)}">${pct(r.p50)}</div></div><div class="stat"><div class="k">Good case (95%)</div><div class="v ${cls(r.p95)}">${pct(r.p95)}</div></div><div class="stat"><div class="k">Runs that lost money</div><div class="v">${Math.round(r.lose*100)}%</div></div></div></div>`;render()};
+const runsTable=()=>P().runs.length?`<div class="card" style="margin-top:12px"><h3>Recent backtests</h3><table><tr><th>When</th><th>Asset</th><th>Plan</th><th>Result</th><th>Holding</th><th>Worst drop</th></tr>${P().runs.map(r=>`<tr><td>${dt(r.t)}</td><td>${esc(r.sym)}</td><td>${STRATS[r.s].name}</td><td class="${cls(r.ret)}">${pct(r.ret)}</td><td class="${cls(r.hold)}">${pct(r.hold)}</td><td>-${(r.dd*100).toFixed(1)}%</td></tr>`).join('')}</table></div>`:'';
+
+PAGES.tbots=()=>{const p=P();return `<h1>Trading bots</h1><p class="sub">Bots trade on each price tick in their own mode (Sim uses the wallet you pick, Paper uses the paper account). Pause or delete any time.</p>
+ <div class="row"><button class="pri" onclick="mwWiz(1)">🧙 Trading Bot Wizard</button></div>
+ <table style="margin-top:10px"><tr><th>Bot</th><th>Asset</th><th>Plan</th><th>Mode</th><th>Trades</th><th>Result</th><th></th></tr>${p.bots.map((b,i)=>{const a=A(b.a);const v=botValue(b);return `<tr><td>${esc(b.name)}</td><td>${a?esc(a.sym):'?'}</td><td>${STRATS[b.s].name}</td><td>${MODES[b.mode][0]}</td><td>${b.trades}</td><td class="${cls(v-b.risk.budget)}">${usd(v)} (${pct(v/b.risk.budget-1)})</td>
+ <td><button onclick="mwBot(${i},'tog')">${b.on?'⏸ Pause':'▶ Run'}</button> <button onclick="mwBot(${i},'del')">🗑</button></td></tr>`}).join('')||'<tr><td colspan="7" class="muted">No bots yet. Start the wizard.</td></tr>'}</table>
+ ${p.bots.length?`<h3 style="margin-top:12px">Bot log</h3><table>${p.bots.flatMap(b=>b.log.map(l=>({...l,n:b.name}))).sort((x,y)=>y.t-x.t).slice(0,15).map(l=>`<tr><td>${dt(l.t)}</td><td>${esc(l.n)}</td><td>${esc(l.m)}</td></tr>`).join('')}</table>`:''}`};
+function botValue(b){const a=A(b.a);return b.cash+(a?b.q*a.p:0)}
+window.mwBot=(i,act)=>{const p=P(),b=p.bots[i];if(!b)return;if(act==='tog')b.on=!b.on;if(act==='del'){if(!confirm('Delete '+b.name+'? Its coins stay where they are.'))return;p.bots.splice(i,1)}save();render()};
+const WSTEPS=['Name','Market','Plan','Safety','Test','Mode'];
+window.mwWiz=(step,keep)=>{const w=keep?MEM.wiz:(MEM.wiz=MEM.wiz&&step>1?MEM.wiz:{name:'Bot '+(P().bots.length+1),a:listed()[0].id,s:'sma',ps:null,risk:{budget:500,sl:8,tp:0,slice:10,maxDay:6},mode:P().mode==='real'?'paper':P().mode,w:S.active});w.step=step;
+ const head=`<h3>🧙 Trading Bot Wizard · step ${step} of 6: ${WSTEPS[step-1]}</h3><div class="tabs">${WSTEPS.map((s,i)=>`<button class="${i+1===step?'on':''}" onclick="mwWizSave();mwWiz(${i+1},1)">${i+1}. ${s}</button>`).join('')}</div>`;
+ let body='';
+ if(step===1)body=`<label>Bot name<input id="wzN" value="${esc(w.name)}"></label><p class="small muted">Pick a name you'll know in the log, like "BTC dip buyer".</p>`;
+ if(step===2)body=`<label>What should it trade?<select id="wzA">${assetOpts(w.a)}</select></label>`;
+ if(step===3)body=`<label>Plan<select id="wzS" onchange="mwWizSave();MEM.wiz.ps=null;mwWiz(3,1)">${stratOpts(w.s)}</select></label><p class="small">${STRATS[w.s].help}</p><div class="row wrap">${psInputs(w.s,w.ps,'wzp')}</div>`;
+ if(step===4)body=`<div class="row wrap"><label>Budget $<input type="number" id="wzB" value="${w.risk.budget}"></label><label>Stop loss % (0 = none)<input type="number" id="wzSL" value="${w.risk.sl}"></label><label>Take profit % (0 = none)<input type="number" id="wzTP" value="${w.risk.tp}"></label><label>Slice % (DCA/grid)<input type="number" id="wzSl" value="${w.risk.slice}"></label><label>Max trades a day<input type="number" id="wzMD" value="${w.risk.maxDay}"></label></div><p class="small muted">The bot only ever spends its own budget.</p>`;
+ if(step===5){const a=A(w.a);const b=backtest(gpath(a,720,1/24,4242),w.s,pval(w.s,w.ps),w.risk);const r=monte(a,w.s,pval(w.s,w.ps),w.risk,100,720);body=`<p class="small">Tried on 30 days of modeled ${esc(a.sym)} prices, then 100 what-ifs.</p>${btStats(b)}${lineChart(b.eq,560,150)}<p class="small">What-ifs: bad case ${pct(r.p5)}, middle ${pct(r.p50)}, good case ${pct(r.p95)}; ${Math.round(r.lose*100)}% of runs lost money.</p>`}
+ if(step===6)body=`<label>Mode<select id="wzM"><option value="sim" ${w.mode==='sim'?'selected':''}>🎮 Sim (play money)</option><option value="paper" ${w.mode==='paper'?'selected':''}>📄 Paper (practice account)</option><option disabled>💵 Real (needs the UDS bridge)</option></select></label>
+  <label>Sim wallet<select id="wzW">${S.wallets.map(x=>`<option value="${x.id}" ${x.id===w.w?'selected':''}>${esc(x.name)} (${usd(x.cash)} cash)</option>`).join('')}</select></label><p class="small muted">In Sim the budget comes out of this wallet's cash when the bot starts and goes back when you delete it.</p>`;
+ modal(head+`<div style="margin-top:10px">${body}</div><div class="row end" style="margin-top:12px">${step>1?`<button onclick="mwWizSave();mwWiz(${step-1},1)">◀ Back</button>`:''}${step<6?`<button class="pri" onclick="mwWizSave();mwWiz(${step+1},1)">Next ▶</button>`:`<button class="pri" onclick="mwWizSave();mwWizMake()">Create bot</button>`}</div>`)};
+window.mwWizSave=()=>{const w=MEM.wiz;if(!w)return;const g=id=>document.getElementById(id);
+ if(g('wzN'))w.name=g('wzN').value.trim()||w.name;if(g('wzA'))w.a=g('wzA').value;if(g('wzS'))w.s=g('wzS').value;if(g('wzp_'+(STRATS[w.s].ps[0]||[])[0]))w.ps=readPs(w.s,'wzp');
+ if(g('wzB'))w.risk={budget:Math.max(1,+g('wzB').value||500),sl:+g('wzSL').value||0,tp:+g('wzTP').value||0,slice:+g('wzSl').value||10,maxDay:Math.max(1,+g('wzMD').value||6)};if(g('wzM'))w.mode=g('wzM').value;if(g('wzW'))w.w=g('wzW').value};
+window.mwWizMake=()=>{const w=MEM.wiz,p=P();let src=null;if(w.mode==='sim'){src=S.wallets.find(x=>x.id===w.w);if(!src||src.cash<w.risk.budget)return toast('That wallet has less cash than the budget.');src.cash-=w.risk.budget}
+ else{if(p.paper.cash<w.risk.budget)return toast('The paper account has less cash than the budget.');p.paper.cash-=w.risk.budget}
+ p.bots.push({id:uid(),name:w.name,a:w.a,s:w.s,ps:pval(w.s,w.ps),risk:w.risk,mode:w.mode,w:w.w,on:true,cash:w.risk.budget,q:0,entry:0,st:{},trades:0,day:0,dayN:0,log:[{t:S.t,m:'Created with '+usd(w.risk.budget)}]});
+ MEM.wiz=null;closeModal();save();go('tbots');toast('Bot created and running.')};
+function botStep(b){const a=A(b.a);if(!a||!b.on)return;const c=a.closes||[];const i=c.length-1;if(i<2)return;
+ if(b.lastN===c.length&&b.lastP===c[i])return;b.lastN=c.length;b.lastP=c[i];const day=Math.floor(S.t/864e5);if(day!==b.day){b.day=day;b.dayN=0}if(b.dayN>=b.risk.maxDay)return;
+ let s=STRATS[b.s].sig(c,i,b.ps,b.st);const px=a.p;if(b.q>0&&b.entry){if(b.risk.sl&&px<=b.entry*(1-b.risk.sl/100))s='sell';if(b.risk.tp&&px>=b.entry*(1+b.risk.tp/100))s='sell'}
+ const fee=(S.opts&&S.opts.fee)||.001,sl=STRATS[b.s].slice;
+ if(s==='buy'&&b.cash>1){const spend=sl?Math.min(b.cash,b.risk.budget*b.risk.slice/100):b.cash;const q=spend/(px*(1+fee));b.entry=(b.entry*b.q+px*q)/(b.q+q);b.q+=q;b.cash-=spend;b.trades++;b.dayN++;b.st.pos=true;botLog(b,`Bought ${fmt(q)} ${a.sym} at ${usd(px)}`);mirror(b,a,'buy',q,px,spend)}
+ else if(s==='sell'&&b.q>0){const q=sl&&!(b.risk.sl||b.risk.tp)?Math.min(b.q,b.q*b.risk.slice/50):b.q;b.cash+=q*px*(1-fee);b.q-=q;if(b.q<1e-12){b.q=0;b.entry=0;b.st.pos=false}b.trades++;b.dayN++;botLog(b,`Sold ${fmt(q)} ${a.sym} at ${usd(px)}`);mirror(b,a,'sell',q,px)}}
+function botLog(b,m){b.log.push({t:S.t,m});if(b.log.length>60)b.log.shift();fire('bot',{bot:b.name,m})}
+function mirror(b,a,side,q,px){if(b.mode==='paper')P().paper.log.push({t:S.t,who:b.name,side,q,sym:a.sym,px});else{const w=S.wallets.find(x=>x.id===b.w);if(w&&typeof addTx==='function')try{addTx(w.addr,'bot:'+b.name,a.id,q,'bot '+side,'')}catch(e){}}}
+window.mwBotStep=botStep;
+
+const TRIG={above:['Price goes above','asset+num'],below:['Price goes below','asset+num'],move:['Price moves more than % in a day','asset+num'],bot:['A trading bot trades','none'],every:['Every N sim hours','num'],nft:['A File NFT sale happens','none']};
+const ACTS={alert:['Send me an alert','text'],buy:['Buy $ of an asset (active mode)','asset+num'],sell:['Sell all of an asset (active mode)','asset'],pause:['Pause all trading bots','none'],resume:['Resume all trading bots','none'],note:['Write a line to the tool log','text'],app:['Send to another Randis UDS app','text']};
+PAGES.tools=()=>{const p=P();return `<h1>🔌 Tool Bot Wizard</h1><p class="sub">Plumb things together: <b>when</b> something happens, <b>do</b> one step after another. Tools run on every price tick.</p>
+ <div class="row"><button class="pri" onclick="mwTool()">➕ New tool bot</button></div>
+ <table style="margin-top:10px"><tr><th>Tool</th><th>When</th><th>Then</th><th>Runs</th><th></th></tr>${p.tools.map((t,i)=>`<tr><td>${esc(t.name)}</td><td>${trigText(t.tr)}</td><td>${t.acts.map(actText).join(' → ')}</td><td>${t.runs}</td><td><button onclick="mwToolAct(${i},'tog')">${t.on?'⏸':'▶'}</button> <button onclick="mwToolAct(${i},'test')">Test</button> <button onclick="mwToolAct(${i},'del')">🗑</button></td></tr>`).join('')||'<tr><td colspan="5" class="muted">No tool bots yet.</td></tr>'}</table>
+ ${p.tools.some(t=>t.log.length)?`<h3 style="margin-top:12px">Tool log</h3><table>${p.tools.flatMap(t=>t.log.map(l=>({...l,n:t.name}))).sort((x,y)=>y.t-x.t).slice(0,15).map(l=>`<tr><td>${dt(l.t)}</td><td>${esc(l.n)}</td><td>${esc(l.m)}</td></tr>`).join('')}</table>`:''}
+ <p class="small muted" style="margin-top:10px">"Send to another Randis UDS app" queues the message; apps can pick it up once Randis UDS links tabs together.</p>`};
+const sym=id=>A(id)?A(id).sym:'?';
+const trigText=t=>TRIG[t.k][0].replace('N',t.n||'')+(t.a?' · '+esc(sym(t.a)):'')+(t.n!=null&&t.k!=='every'?' '+(t.k==='move'?t.n+'%':usd(t.n)):'');
+const actText=x=>ACTS[x.k][0].replace('$',x.n?usd(x.n):'$')+(x.a?' '+esc(sym(x.a)):'')+(x.t?' "'+esc(x.t)+'"':'');
+const field=(kind,pre,v)=>(kind.includes('asset')?`<select id="${pre}A">${assetOpts(v&&v.a)}</select>`:'')+(kind.includes('num')?`<input type="number" id="${pre}N" placeholder="number" value="${v&&v.n!=null?v.n:''}" style="width:110px">`:'')+(kind==='text'?`<input id="${pre}T" placeholder="message" value="${v&&v.t?esc(v.t):''}">`:'');
+window.mwTool=()=>{const d=MEM.tool||(MEM.tool={name:'Tool '+(P().tools.length+1),tr:{k:'below'},acts:[{k:'alert'}]});
+ modal(`<h3>➕ New tool bot</h3><label>Name<input id="tlN" value="${esc(d.name)}"></label><h3>When</h3><div class="row wrap"><select id="tlK" onchange="mwToolRead();MEM.tool.tr={k:this.value};mwTool()">${Object.entries(TRIG).map(([k,[l]])=>`<option value="${k}" ${k===d.tr.k?'selected':''}>${l}</option>`).join('')}</select>${field(TRIG[d.tr.k][1],'tlT',d.tr)}</div>
+ <h3>Then do (in order)</h3>${d.acts.map((x,i)=>`<div class="row wrap">${i+1}. <select id="tlA${i}K" onchange="mwToolRead();MEM.tool.acts[${i}]={k:this.value};mwTool()">${Object.entries(ACTS).map(([k,[l]])=>`<option value="${k}" ${k===x.k?'selected':''}>${l}</option>`).join('')}</select>${field(ACTS[x.k][1],'tlA'+i,x)}${d.acts.length>1?`<button onclick="mwToolRead();MEM.tool.acts.splice(${i},1);mwTool()">✕</button>`:''}</div>`).join('')}
+ <div class="row"><button onclick="mwToolRead();MEM.tool.acts.push({k:'alert'});mwTool()">➕ Add a step</button></div><div class="row end"><button class="pri" onclick="mwToolRead();mwToolMake()">Save tool bot</button></div>`)};
+window.mwToolRead=()=>{const d=MEM.tool,g=id=>document.getElementById(id);if(!d)return;if(g('tlN'))d.name=g('tlN').value.trim()||d.name;
+ const rd=(pre,o)=>{if(g(pre+'A'))o.a=g(pre+'A').value;if(g(pre+'N')&&g(pre+'N').value!=='')o.n=+g(pre+'N').value;if(g(pre+'T'))o.t=g(pre+'T').value};rd('tlT',d.tr);d.acts.forEach((x,i)=>rd('tlA'+i,x))};
+window.mwToolMake=()=>{const d=MEM.tool;if(TRIG[d.tr.k][1].includes('num')&&!(d.tr.n>0))return toast('Enter a number for "When".');P().tools.push({id:uid(),name:d.name,tr:d.tr,acts:d.acts,on:true,runs:0,log:[],armed:true,last:S.t});MEM.tool=null;closeModal();save();render();toast('Tool bot saved.')};
+window.mwToolAct=(i,act)=>{const p=P(),t=p.tools[i];if(!t)return;if(act==='tog')t.on=!t.on;if(act==='del'){if(!confirm('Delete '+t.name+'?'))return;p.tools.splice(i,1)}if(act==='test')runActs(t,'test run');save();render()};
+function runActs(t,why){t.runs++;for(const x of t.acts){const a=x.a&&A(x.a);let m='';
+ if(x.k==='alert'){(typeof alertMsg==='function'?alertMsg:toast)(t.name+': '+(x.t||why));m='alert sent'}
+ if(x.k==='note')m=x.t||why;
+ if(x.k==='pause'||x.k==='resume'){P().bots.forEach(b=>b.on=x.k==='resume');m=x.k==='pause'?'paused all bots':'resumed all bots'}
+ if((x.k==='buy'||x.k==='sell')&&a){const mode=P().mode==='real'?'paper':P().mode;if(mode==='paper'){m=paperTrade(a,x.k,x.k==='buy'?x.n||0:null,t.name)?`paper ${x.k} ${a.sym}`:`paper ${x.k} ${a.sym} skipped`}
+  else{const w=W();if(x.k==='buy'){const q=(x.n||0)/(a.p*(1+S.opts.fee));m=q>0&&trade(w,a,'buy',q,a.p,'tool')!==false?`bought ${a.sym}`:'buy skipped'}else{const q=w.h[a.id]||0;m=q>0&&trade(w,a,'sell',q,a.p,'tool')!==false?`sold ${a.sym}`:'nothing to sell'}}}
+ if(x.k==='app'){(P().outbox=P().outbox||[]).push({t:S.t,from:t.name,m:x.t||why});if(P().outbox.length>100)P().outbox.shift();m='queued for other apps'}
+ t.log.push({t:S.t,m:why+' → '+m});if(t.log.length>60)t.log.shift()}}
+function fire(kind,info){for(const t of P().tools)if(t.on&&t.tr.k===kind)runActs(t,kind==='bot'?info.bot+': '+info.m:kind)}
+window.mwFire=fire;
+function toolStep(t){if(!t.on)return;const tr=t.tr,a=tr.a&&A(tr.a);
+ if(tr.k==='every'){if(S.t-t.last>=(tr.n||1)*36e5){t.last=S.t;runActs(t,'every '+tr.n+' h')}return}
+ if(!a)return;let hit=false;if(tr.k==='above')hit=a.p>=tr.n;if(tr.k==='below')hit=a.p<=tr.n;if(tr.k==='move')hit=Math.abs(chg(a))*100>=tr.n;
+ if(hit&&t.armed){t.armed=false;runActs(t,trigText(tr))}else if(!hit)t.armed=true}
+let lastT=null,nftSeen=null;
+setInterval(()=>{if(!loaded||!S||S.paused)return;if(S.t===lastT)return;lastT=S.t;const p=P();
+ try{for(const b of p.bots)if(b.mode!=='real')botStep(b);for(const t of p.tools)toolStep(t);
+  const tx=(S.chain&&S.chain.txs||[]).filter(x=>x.k==='nft-sale');const nt=tx.length?tx[tx.length-1].t:0;if(nftSeen!=null&&nt>nftSeen)fire('nft',{});nftSeen=nt}catch(e){console.error(e)}
+ if(['tbots','tools','mode'].includes(MEM.page)&&!document.querySelector('#modal.on')&&!(document.activeElement&&/INPUT|SELECT/.test(document.activeElement.tagName)))render()},1000);
+if(loaded&&S)render();
+})();
 </script>
 </body></html>
