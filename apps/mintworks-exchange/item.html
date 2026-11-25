@@ -1306,9 +1306,28 @@ function P(){if(!S.pro)S.pro=PRO_DEF();const p=S.pro,d=PRO_DEF();for(const k in 
 window.P=P;
 NAV.splice(1,0,['Pro',[['mode','🎚 Modes: Sim / Paper / Real'],['model','📐 Modeling & backtest'],['tbots','🤖 Trading bots'],['tools','🔌 Tool Bot Wizard']]]);
 const MODES={sim:['🎮 Sim','Play money on simulated prices. Everything in Mintworks works here.'],
- paper:['📄 Paper','A separate practice account with fake money. Trades and bots act on prices without risking anything. Today it follows the Mintworks prices; once Randis UDS has its price feed it follows real live prices.'],
+ paper:['📄 Paper','A separate practice account with fake money. Your paper trades use real live prices (Randis UDS price feed, read-only) for the coins it covers, and the Mintworks price for the rest. Nothing real is bought or sold.'],
  real:['💵 Real','Your own exchange and broker accounts, through your API keys. Keys stay on your PC. Off until you switch it on, and every order asks you to confirm.']};
 const modeName=()=>MODES[P().mode][0];
+const LIVEPX={};let liveT=0,liveErr='',liveSrc='',WAL=null;
+function prCall(op,args){return new Promise(res=>{if(!HOST)return res({error:'Open Mintworks inside Randis UDS for live prices.'});const id='pr'+uid(8);
+ const h=e=>{if(e.data&&e.data.uds==='prices'&&e.data.id===id){removeEventListener('message',h);res(e.data.r||{})}};addEventListener('message',h);
+ parent.postMessage({uds:'prices',id,op,args},'*');setTimeout(()=>{removeEventListener('message',h);res({error:'No answer from Randis UDS.'})},20000)})}
+async function pxRefresh(){const r=await prCall('quotes',{symbols:S.assets.map(a=>a.sym)});if(r.error){liveErr=r.error;return false}
+ liveErr='';for(const k in LIVEPX)delete LIVEPX[k];Object.assign(LIVEPX,r.quotes||{});liveT=Date.now();liveSrc=r.source||'';return true}
+function PX(a){const q=a&&LIVEPX[a.sym];return q&&P().mode==='paper'?q.p:a.p}
+window.PX=PX;window.LIVEPX=LIVEPX;window.pxRefresh=pxRefresh;
+window.mwLive=async()=>{toast('Getting live prices…');const ok=await pxRefresh();toast(ok?'Live prices for '+Object.keys(LIVEPX).length+' coins.':liveErr);render()};
+window.mwWallet=async()=>{const addr=$v('wlA').trim(),chain=/^0x/i.test(addr)?'eth':'btc';WAL={busy:true,addr};render();WAL=await prCall('wallet',{chain,address:addr});WAL.addr=addr;render()};
+setInterval(()=>{if(loaded&&S&&P().mode==='paper')pxRefresh().then(ok=>{if(ok&&MEM.page==='mode')render()})},60000);
+function liveCard(){const n=Object.keys(LIVEPX).length,age=liveT?Math.round((Date.now()-liveT)/1000):null,pa=P().mode==='paper';
+ return `<div class="card" style="margin-top:12px"><h3>📡 Live prices</h3><p class="small">Read-only prices from a public service through Randis UDS (no keys, no account, no orders). ${pa?'<b>Paper mode uses them</b> for the coins below; everything else keeps the Mintworks price.':'Switch to Paper to trade at these prices. Sim keeps its simulated prices.'}</p>
+ ${liveErr?`<p class="small dn">${esc(liveErr)}</p>`:''}${n?`<p class="small muted">${n} coins, updated ${age} s ago${liveSrc?' · '+esc(liveSrc):''}. Refreshes every minute in Paper mode.</p>
+ <table><tr><th>Coin</th><th class="n">Live price</th><th class="n">24 h</th><th class="n">Mintworks sim price</th></tr>${Object.entries(LIVEPX).map(([k,q])=>{const a=S.assets.find(x=>x.sym===k);return `<tr><td>${esc(k)}</td><td class="n">${usd(q.p)}</td><td class="n ${q.chg24==null?'':cls(q.chg24)}">${q.chg24==null?'–':pct(q.chg24)}</td><td class="n muted">${a?usd(a.p):'–'}</td></tr>`}).join('')}</table>`:''}
+ <div class="row" style="margin-top:6px"><button onclick="mwLive()">↻ Get live prices now</button></div>
+ <h3 style="margin-top:12px">🔎 Wallet lookup</h3><p class="small">Look up the balance of any public Bitcoin or Ether address (read-only; Mintworks can't move anything).</p>
+ <div class="row"><input id="wlA" placeholder="bc1… / 1… / 3… or 0x…" style="width:360px" value="${esc(WAL&&WAL.addr||'')}"><button onclick="mwWallet()">Look up</button></div>
+ ${WAL?WAL.busy?'<p class="small muted">Looking up…</p>':WAL.error?`<p class="small dn">${esc(WAL.error)}</p>`:`<p><b>${fmt(WAL.balance)} ${esc(WAL.unit)}</b>${LIVEPX[WAL.unit]?` ≈ ${usd(WAL.balance*LIVEPX[WAL.unit].p)}`:''}${WAL.pending?` <span class="small muted">(+${fmt(WAL.pending)} unconfirmed)</span>`:''}${WAL.txs!=null?` <span class="small muted">· ${WAL.txs} transactions</span>`:''} <span class="small muted">· ${esc(WAL.source||'')}</span></p>`:''}</div>`}
 
 const SMA=(c,n,i)=>{if(i+1<n)return null;let s=0;for(let k=i-n+1;k<=i;k++)s+=c[k];return s/n};
 function RSI(c,n,i){if(i<n)return null;let g=0,l=0;for(let k=i-n+1;k<=i;k++){const d=c[k]-c[k-1];if(d>0)g+=d;else l-=d}if(!l)return 100;return 100-100/(1+g/l)}
@@ -1350,17 +1369,18 @@ const psInputs=(strat,vals,pre)=>STRATS[strat].ps.map(([k,l,d])=>`<label>${l}<in
 const readPs=(strat,pre)=>{const o={};for(const [k,,d] of STRATS[strat].ps){const e=document.getElementById(pre+'_'+k);o[k]=e?+e.value||d:d}return o};
 const $v=id=>{const e=document.getElementById(id);return e?e.value:''};
 
-PAGES.mode=()=>{const p=P(),pa=p.paper;const pv=pa.cash+Object.keys(pa.h).reduce((s,k)=>s+(A(k)?pa.h[k]*A(k).p:0),0);
+PAGES.mode=()=>{const p=P(),pa=p.paper;const pv=pa.cash+Object.keys(pa.h).reduce((s,k)=>s+(A(k)?pa.h[k]*PX(A(k)):0),0);
  return `<h1>Modes</h1><p class="sub">Now in <b>${modeName()}</b> mode. Trading bots and tool bots act in the mode you pick here.</p>
  <div class="grid g3">${Object.entries(MODES).map(([k,[n,t]])=>`<div class="card" style="${p.mode===k?'outline:2px solid var(--acc,#3fb68b)':''}"><h3>${n}</h3><p class="small">${t}</p>${k==='real'?`<p class="small muted">Needs the Randis UDS trading bridge, which isn't built yet. Mintworks never holds anyone else's money and never runs an exchange for other people.</p>`:''}<button ${p.mode===k?'disabled':''} onclick="mwMode('${k}')">${p.mode===k?'In use':'Use '+n.split(' ')[1]}</button></div>`).join('')}</div>
  <div class="card" style="margin-top:12px"><h3>📄 Paper account</h3><div class="grid g3"><div class="stat"><div class="k">Value</div><div class="v ${cls(pv-pa.start)}">${usd(pv)}</div></div><div class="stat"><div class="k">Cash</div><div class="v">${usd(pa.cash)}</div></div><div class="stat"><div class="k">Since start</div><div class="v ${cls(pv-pa.start)}">${pct(pv/pa.start-1)}</div></div></div>
  <div class="row" style="margin-top:8px"><select id="ppA">${assetOpts()}</select><input type="number" id="ppQ" placeholder="Amount in $" style="width:120px"><button onclick="mwPaper('buy')">Paper buy</button><button onclick="mwPaper('sell')">Paper sell all</button><button onclick="mwPaperReset()">Reset to $10,000</button></div>
- <table style="margin-top:8px"><tr><th>Asset</th><th>Holding</th><th>Value</th></tr>${Object.keys(pa.h).map(k=>A(k)?`<tr><td>${esc(A(k).sym)}</td><td>${fmt(pa.h[k])}</td><td>${usd(pa.h[k]*A(k).p)}</td></tr>`:'').join('')||'<tr><td colspan="3" class="muted">Nothing held yet.</td></tr>'}</table>
+ <table style="margin-top:8px"><tr><th>Asset</th><th>Holding</th><th>Value</th></tr>${Object.keys(pa.h).map(k=>A(k)?`<tr><td>${esc(A(k).sym)}</td><td>${fmt(pa.h[k])}</td><td>${usd(pa.h[k]*PX(A(k)))}${LIVEPX[A(k).sym]&&P().mode==='paper'?' <span class="small muted">live</span>':''}</td></tr>`:'').join('')||'<tr><td colspan="3" class="muted">Nothing held yet.</td></tr>'}</table>
  <h3 style="margin-top:10px">Paper trades</h3><table>${pa.log.slice(-12).reverse().map(l=>`<tr><td>${dt(l.t)}</td><td>${esc(l.who)}</td><td>${l.side}</td><td>${fmt(l.q)} ${esc(l.sym)}</td><td>${usd(l.px)}</td></tr>`).join('')||'<tr><td class="muted">None yet.</td></tr>'}</table></div>
+ ${liveCard()}
  <div class="card" style="margin-top:12px"><h3>💵 Real mode: how it will work</h3><ul class="small"><li>You add your own exchange or broker API keys in Randis UDS. They're saved on your PC only, never in this tab's save file or any export.</li><li>Use trade-only keys with withdrawals turned off.</li><li>Real orders are off until you switch them on, and each order shows a confirm box first. Bots in Real mode ask you before every order unless you set a daily limit.</li><li>The shop copy of Mintworks has no Real mode. It only works inside Randis UDS.</li></ul></div>`};
-window.mwMode=k=>{const p=P();if(k==='real'){p.realAsk=true;save();return modal(`<h3>Real mode isn't ready yet</h3><p>It needs a small Randis UDS bridge that keeps your API keys on your PC and sends signed orders to your exchange. Until it is built, bots run in Sim or Paper.</p>`)}p.mode=k;save();render();toast('Mode: '+modeName())};
-function paperTrade(a,side,usdAmt,who){const pa=P().paper,fee=(S.opts&&S.opts.fee)||.001;if(side==='buy'){const spend=Math.min(usdAmt,pa.cash);if(spend<0.01)return false;const q=spend/(a.p*(1+fee));pa.cash-=spend;pa.h[a.id]=(pa.h[a.id]||0)+q;pa.cost[a.id]=(pa.cost[a.id]||0)+spend;pa.log.push({t:S.t,who,side,q,sym:a.sym,px:a.p})}
- else{const have=pa.h[a.id]||0;const q=usdAmt==null?have:Math.min(have,usdAmt/a.p);if(q<=0)return false;pa.cash+=q*a.p*(1-fee);pa.h[a.id]=have-q;pa.cost[a.id]=(pa.cost[a.id]||0)*(have?pa.h[a.id]/have:0);if(pa.h[a.id]<1e-12){delete pa.h[a.id];delete pa.cost[a.id]}pa.log.push({t:S.t,who,side,q,sym:a.sym,px:a.p})}
+window.mwMode=k=>{const p=P();if(k==='real'){p.realAsk=true;save();return modal(`<h3>Real mode isn't ready yet</h3><p>It needs a small Randis UDS bridge that keeps your API keys on your PC and sends signed orders to your exchange. Until it is built, bots run in Sim or Paper.</p>`)}p.mode=k;save();render();toast('Mode: '+modeName());if(k==='paper')pxRefresh().then(()=>render())};
+function paperTrade(a,side,usdAmt,who){const px=PX(a),pa=P().paper,fee=(S.opts&&S.opts.fee)||.001;if(side==='buy'){const spend=Math.min(usdAmt,pa.cash);if(spend<0.01)return false;const q=spend/(px*(1+fee));pa.cash-=spend;pa.h[a.id]=(pa.h[a.id]||0)+q;pa.cost[a.id]=(pa.cost[a.id]||0)+spend;pa.log.push({t:S.t,who,side,q,sym:a.sym,px:px})}
+ else{const have=pa.h[a.id]||0;const q=usdAmt==null?have:Math.min(have,usdAmt/px);if(q<=0)return false;pa.cash+=q*px*(1-fee);pa.h[a.id]=have-q;pa.cost[a.id]=(pa.cost[a.id]||0)*(have?pa.h[a.id]/have:0);if(pa.h[a.id]<1e-12){delete pa.h[a.id];delete pa.cost[a.id]}pa.log.push({t:S.t,who,side,q,sym:a.sym,px:px})}
  if(pa.log.length>400)pa.log.splice(0,pa.log.length-400);return true}
 window.mwPaper=side=>{const a=A($v('ppA'));if(!a)return;const amt=+$v('ppQ');if(side==='buy'&&!(amt>0))return toast('Enter a $ amount.');if(!paperTrade(a,side,side==='buy'?amt:null,'you'))return toast(side==='buy'?'Not enough paper cash.':'You hold none of that.');save();render()};
 window.mwPaperReset=()=>{if(!confirm('Reset the paper account to $10,000?'))return;P().paper=PRO_DEF().paper;save();render()};

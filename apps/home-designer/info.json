@@ -1,0 +1,12 @@
+{
+ "name": "Home Designer",
+ "by": "Randy",
+ "blurb": "Plan a house: floors, rooms on a 10 cm grid, shared walls, doors and windows in metric or imperial, then design each room. Some parts (the linked AI, saving files, opening web pages) need Randis UDS.",
+ "status": "ok",
+ "real_items": null,
+ "reviews": {
+  "randy": null,
+  "maker": null
+ },
+ "version": 5
+}

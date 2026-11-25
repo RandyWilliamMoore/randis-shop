@@ -451,6 +451,24 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "ad-dev-suite",
+  "name": "Ad Dev Suite",
+  "by": "Randy",
+  "blurb": "Write ads for 8 platforms that fit each field's character limit, using the AIDA, PAS, BAB and 4U formulas, with live counters and variations. Some parts (the linked AI, saving files, opening web pages) need Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 1,
+  "open_with": "randisuds://open?item=apps/ad-dev-suite",
+  "file": "apps/ad-dev-suite/item.html",
+  "logo": "apps/ad-dev-suite/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "atelier-fashion-suite",
   "name": "Atelier: Fashion Suite",
   "by": "Randy",
@@ -483,6 +501,42 @@ window.ITEMS = [
   "open_with": "randisuds://open?item=apps/aura-assistant",
   "file": "apps/aura-assistant/item.html",
   "logo": "apps/aura-assistant/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "chip-design-suite",
+  "name": "Chip Design Suite",
+  "by": "Randy",
+  "blurb": "Design a chip from concept to spec, RTL, simulation, synthesis, layout and checks, across 8 chip types, with its own engines. Fab orders stay drafts. Some parts (the linked AI, saving files, opening web pages) need Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 6,
+  "open_with": "randisuds://open?item=apps/chip-design-suite",
+  "file": "apps/chip-design-suite/item.html",
+  "logo": "apps/chip-design-suite/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "circuit-pcb-studio",
+  "name": "Circuit & PCB Studio",
+  "by": "Randy",
+  "blurb": "Draw a schematic with an electrical rules check, simulate it, get a parts list, auto-place, route a 2-layer board with vias, run design checks and export Gerbers. Some parts (the linked AI, saving files, opening web pages) need Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 6,
+  "open_with": "randisuds://open?item=apps/circuit-pcb-studio",
+  "file": "apps/circuit-pcb-studio/item.html",
+  "logo": "apps/circuit-pcb-studio/logo.svg",
   "video_pic": null
  },
  {
@@ -541,6 +595,24 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "dig-lab",
+  "name": "Dig Lab",
+  "by": "Randy",
+  "blurb": "An archaeology suite: site record and datum, excavation grid, context register with Munsell colours, finds and reports. Some parts (the linked AI, saving files, opening web pages) need Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 7,
+  "open_with": "randisuds://open?item=apps/dig-lab",
+  "file": "apps/dig-lab/item.html",
+  "logo": "apps/dig-lab/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "discord-bot-design-suite",
   "name": "Discord Bot Design Suite",
   "by": "Randy",
@@ -555,6 +627,24 @@ window.ITEMS = [
   "open_with": "randisuds://open?item=apps/discord-bot-design-suite",
   "file": "apps/discord-bot-design-suite/item.html",
   "logo": "apps/discord-bot-design-suite/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "forge-cad",
+  "name": "Forge CAD",
+  "by": "Randy",
+  "blurb": "Parametric plate parts (rounded rectangles, circles, polygons with holes, 9 materials), a 3D extrude view and mass properties. Some parts (the linked AI, saving files, opening web pages) need Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 8,
+  "open_with": "randisuds://open?item=apps/forge-cad",
+  "file": "apps/forge-cad/item.html",
+  "logo": "apps/forge-cad/logo.svg",
   "video_pic": null
  },
  {
@@ -591,6 +681,24 @@ window.ITEMS = [
   "open_with": "randisuds://open?item=apps/free-money-finder",
   "file": "apps/free-money-finder/item.html",
   "logo": "apps/free-money-finder/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "funnel-suite",
+  "name": "Funnel Suite",
+  "by": "Randy",
+  "blurb": "Build a sales funnel from 5 templates: counts, % moving on, people per stage, a drawn funnel, and the money side (customers, revenue, profit). Some parts (the linked AI, saving files, opening web pages) need Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 1,
+  "open_with": "randisuds://open?item=apps/funnel-suite",
+  "file": "apps/funnel-suite/item.html",
+  "logo": "apps/funnel-suite/logo.svg",
   "video_pic": null
  },
  {
@@ -667,6 +775,42 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "home-designer",
+  "name": "Home Designer",
+  "by": "Randy",
+  "blurb": "Plan a house: floors, rooms on a 10 cm grid, shared walls, doors and windows in metric or imperial, then design each room. Some parts (the linked AI, saving files, opening web pages) need Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 5,
+  "open_with": "randisuds://open?item=apps/home-designer",
+  "file": "apps/home-designer/item.html",
+  "logo": "apps/home-designer/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "hyperspace-portal-studio",
+  "name": "Hyperspace Portal Studio",
+  "by": "Randy",
+  "blurb": "How to open, run and travel through a portal: what physics allows on paper, what it costs, and which proven limits stop it.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 2,
+  "open_with": "randisuds://open?item=apps/hyperspace-portal-studio",
+  "file": "apps/hyperspace-portal-studio/item.html",
+  "logo": "apps/hyperspace-portal-studio/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "intelligence-hijacking",
   "name": "Intelligence Hijacking",
   "by": "Randy",
@@ -685,6 +829,42 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "iot-command",
+  "name": "IoT Command",
+  "by": "Randy",
+  "blurb": "An IoT suite with 16 device templates, a live simulator with faults, and a rules engine to try ideas before real hardware. Some parts (the linked AI, saving files, opening web pages) need Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 6,
+  "open_with": "randisuds://open?item=apps/iot-command",
+  "file": "apps/iot-command/item.html",
+  "logo": "apps/iot-command/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "kitwright-edc-studio",
+  "name": "Kitwright EDC Studio",
+  "by": "Randy",
+  "blurb": "Everyday-carry design: a catalog, 13 design tools, kits, make-or-buy and idea-to-real drafts. Some parts (the linked AI, saving files, opening web pages) need Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 9,
+  "open_with": "randisuds://open?item=apps/kitwright-edc-studio",
+  "file": "apps/kitwright-edc-studio/item.html",
+  "logo": "apps/kitwright-edc-studio/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "life-tree",
   "name": "Life Tree",
   "by": "Randy",
@@ -699,6 +879,24 @@ window.ITEMS = [
   "open_with": "randisuds://open?item=apps/life-tree",
   "file": "apps/life-tree/item.html",
   "logo": "apps/life-tree/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "machine-shop",
+  "name": "Machine Shop",
+  "by": "Randy",
+  "blurb": "A CNC G-code simulator (G0-G3 arcs, drilling cycles, spindle) with top, front and 3D backplot and a progress slider, plus shop tools. Some parts (the linked AI, saving files, opening web pages) need Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 6,
+  "open_with": "randisuds://open?item=apps/machine-shop",
+  "file": "apps/machine-shop/item.html",
+  "logo": "apps/machine-shop/logo.svg",
   "video_pic": null
  },
  {
@@ -721,6 +919,24 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "miner-design-suite",
+  "name": "Miner Design Suite",
+  "by": "Randy",
+  "blurb": "Design miners from the ground up and learn how crowd computing works. Local only: no pools, no wallets, no network.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 1,
+  "open_with": "randisuds://open?item=apps/miner-design-suite",
+  "file": "apps/miner-design-suite/item.html",
+  "logo": "apps/miner-design-suite/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "mintworks-exchange",
   "name": "Mintworks Exchange",
   "by": "Randy",
@@ -731,7 +947,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
-  "version": 4,
+  "version": 5,
   "open_with": "randisuds://open?item=apps/mintworks-exchange",
   "file": "apps/mintworks-exchange/item.html",
   "logo": "apps/mintworks-exchange/logo.svg",
@@ -789,6 +1005,24 @@ window.ITEMS = [
   "open_with": "randisuds://open?item=apps/notepad",
   "file": "apps/notepad/item.html",
   "logo": "apps/notepad/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "open-hardware-studio",
+  "name": "Open Hardware Studio",
+  "by": "Randy",
+  "blurb": "Mark parts on circuit board photos and identify them: resistor colour bands, SMD and capacitor codes, reference letters, then a parts list. Some parts (the linked AI, saving files, opening web pages) need Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 4,
+  "open_with": "randisuds://open?item=apps/open-hardware-studio",
+  "file": "apps/open-hardware-studio/item.html",
+  "logo": "apps/open-hardware-studio/logo.svg",
   "video_pic": null
  },
  {
@@ -857,7 +1091,7 @@ window.ITEMS = [
    "randy": null,
    "maker": null
   },
-  "version": 1,
+  "version": 7,
   "open_with": "randisuds://open?item=apps/randis-academy",
   "file": "apps/randis-academy/item.html",
   "logo": "apps/randis-academy/logo.svg",
@@ -897,6 +1131,24 @@ window.ITEMS = [
   "open_with": "randisuds://open?item=apps/randis-bench-lab",
   "file": "apps/randis-bench-lab/item.html",
   "logo": "apps/randis-bench-lab/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "randis-engines",
+  "name": "Randis Engines",
+  "by": "Randy",
+  "blurb": "Engines of every kind (search, physics, game and more), our own code, each one measured.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 2,
+  "open_with": "randisuds://open?item=apps/randis-engines",
+  "file": "apps/randis-engines/item.html",
+  "logo": "apps/randis-engines/logo.svg",
   "video_pic": null
  },
  {
@@ -955,6 +1207,24 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "reach-visualizer",
+  "name": "Reach Visualizer",
+  "by": "Randy",
+  "blurb": "Import a CSV from any ad, email, social, analytics or shop tool; columns match themselves; see KPIs, trends and channel bars. Some parts (the linked AI, saving files, opening web pages) need Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 2,
+  "open_with": "randisuds://open?item=apps/reach-visualizer",
+  "file": "apps/reach-visualizer/item.html",
+  "logo": "apps/reach-visualizer/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "repo-scout",
   "name": "Repo Scout",
   "by": "Randy",
@@ -969,6 +1239,24 @@ window.ITEMS = [
   "open_with": "randisuds://open?item=apps/repo-scout",
   "file": "apps/repo-scout/item.html",
   "logo": "apps/repo-scout/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "roost-chat",
+  "name": "Roost Chat",
+  "by": "Randy",
+  "blurb": "An original multi-account XMPP chat client written from scratch, with a mobile layout. Connecting to servers needs Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 6,
+  "open_with": "randisuds://open?item=apps/roost-chat",
+  "file": "apps/roost-chat/item.html",
+  "logo": "apps/roost-chat/logo.svg",
   "video_pic": null
  },
  {
@@ -1009,6 +1297,24 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "sim-phone",
+  "name": "Sim Phone",
+  "by": "Randy",
+  "blurb": "A simulated phone and tablet in 9 profiles (notch, punch-hole and more) to test mobile pages: open or paste an HTML page and try it.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 2,
+  "open_with": "randisuds://open?item=apps/sim-phone",
+  "file": "apps/sim-phone/item.html",
+  "logo": "apps/sim-phone/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "sing-in-my-voice",
   "name": "Sing in My Voice",
   "by": "Randy",
@@ -1023,6 +1329,24 @@ window.ITEMS = [
   "open_with": "randisuds://open?item=apps/sing-in-my-voice",
   "file": "apps/sing-in-my-voice/item.html",
   "logo": "apps/sing-in-my-voice/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "tallyglass-analytics",
+  "name": "Tallyglass Analytics",
+  "by": "Randy",
+  "blurb": "A data analytics suite: web analytics, a data lab, dashboards and replay. Comes with made-up demo data; open your own events file.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 10,
+  "open_with": "randisuds://open?item=apps/tallyglass-analytics",
+  "file": "apps/tallyglass-analytics/item.html",
+  "logo": "apps/tallyglass-analytics/logo.svg",
   "video_pic": null
  },
  {
@@ -1059,6 +1383,24 @@ window.ITEMS = [
   "open_with": "randisuds://open?item=apps/the-dispatch",
   "file": "apps/the-dispatch/item.html",
   "logo": "apps/the-dispatch/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "type-studio",
+  "name": "Type Studio",
+  "by": "Randy",
+  "blurb": "Design a typeface (pixel or TrueType curves), kern it, and write a real .ttf file, with an installed-font inspector.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 7,
+  "open_with": "randisuds://open?item=apps/type-studio",
+  "file": "apps/type-studio/item.html",
+  "logo": "apps/type-studio/logo.svg",
   "video_pic": null
  },
  {
@@ -1149,6 +1491,24 @@ window.ITEMS = [
   "open_with": "randisuds://open?item=apps/weather",
   "file": "apps/weather/item.html",
   "logo": "apps/weather/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "web-ux-studio",
+  "name": "Web + UX Studio",
+  "by": "Randy",
+  "blurb": "Web and UX tools: a page builder that writes accessible, responsive HTML and CSS for phone, tablet and desktop, and a code playground. Some parts (the linked AI, saving files, opening web pages) need Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 5,
+  "open_with": "randisuds://open?item=apps/web-ux-studio",
+  "file": "apps/web-ux-studio/item.html",
+  "logo": "apps/web-ux-studio/logo.svg",
   "video_pic": null
  },
  {

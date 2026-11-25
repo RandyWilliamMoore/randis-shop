@@ -1,0 +1,12 @@
+{
+ "name": "Open Hardware Studio",
+ "by": "Randy",
+ "blurb": "Mark parts on circuit board photos and identify them: resistor colour bands, SMD and capacitor codes, reference letters, then a parts list. Some parts (the linked AI, saving files, opening web pages) need Randis UDS.",
+ "status": "ok",
+ "real_items": null,
+ "reviews": {
+  "randy": null,
+  "maker": null
+ },
+ "version": 4
+}

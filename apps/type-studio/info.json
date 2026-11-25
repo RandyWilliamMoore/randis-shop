@@ -1,0 +1,12 @@
+{
+ "name": "Type Studio",
+ "by": "Randy",
+ "blurb": "Design a typeface (pixel or TrueType curves), kern it, and write a real .ttf file, with an installed-font inspector.",
+ "status": "ok",
+ "real_items": null,
+ "reviews": {
+  "randy": null,
+  "maker": null
+ },
+ "version": 7
+}

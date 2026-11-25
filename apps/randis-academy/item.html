@@ -315,7 +315,7 @@ function go(v, a, noHist) {
 }
 function back() { const h = hist.pop(); if (h) go(h.v, h.a, true); else go("home", null, true); }
 const backBtn = () => `<button class="btn sm noprint" onclick="back()">← Back</button>`;
-const NAV_GROUPS = [["Learn", ["home", "tkhome", "atlas", "kids", "k12", "tests", "udsu", "mind"]], ["Practice", ["practice", "review", "cards", "tutor", "proof"]], ["Tools", ["pa", "lab", "calc", "tools", "rounds", "parts"]], ["You", ["me"]]];
+const NAV_GROUPS = [["Learn", ["home", "tkhome", "atlas", "kids", "k12", "tests", "paths", "udsu", "mind"]], ["Practice", ["practice", "review", "cards", "tutor", "proof"]], ["Tools", ["pa", "lab", "calc", "tools", "rounds", "parts"]], ["You", ["me"]]];
 function drawNav() {
   const mine = NAV.filter(n => n.apps.includes(APP)), used = new Set(); let h = "";
   const btn = n => { const m = n.label.match(/^(\S+)\s+(.*)$/); return `<button data-v="${n.id}" onclick="go('${n.id}')"><span class="e">${m ? m[1] : ""}</span><span>${esc(m ? m[2] : n.label)}</span></button>`; };
@@ -3818,6 +3818,409 @@ VIEWS.rounds = el => {
 if (APP === "toolkit") VIEWS.home = VIEWS.tkhome;
 if (APP === "mind") { VIEWS.home = VIEWS.mind; VIEWS.mind.parent = "mind"; }
 const START = null;
+const epN = v => { const n = parseFloat(v); return isFinite(n) ? n : 0; };
+const EP_UNCHK = src => { const m = /^(fact|tried):(\w+)(?:\|(.*))?$/.exec(String(src)); if (m && typeof EP_FACT === "function") return EP_FACT(m[1], m[2], m[3]); return EP_UNCHK0(src); };
+const EP_UNCHK0 = src => `<span class="tag y" title="Not checked against an official source yet. Confirm at: ${esc(src)}">unchecked · confirm: ${esc(src)}</span>`;
+const EP_LEVELS = [["baby", "Baby / toddler (0-2)"], ["pre", "Preschool (3-5)"], ["elem", "Elementary (K-5)"], ["mid", "Middle school (6-8)"], ["high", "High school (9-12)"], ["nohs", "Adult without a high school diploma"], ["hs", "Finished high school / GED"], ["some", "Some college, no degree"], ["assoc", "Associate degree"], ["bach", "Bachelor's degree"], ["mast", "Master's degree"], ["doc", "Doctorate / professional degree"]];
+const EP_GOALS = [["skills", "Skills / a job, no degree needed"], ["trade", "A trade (electrician, welder, nurse aide...)"], ["cert", "Certificate"], ["assoc", "Associate degree (2 yr)"], ["bach", "Bachelor's degree (4 yr)"], ["mast", "Master's degree"], ["phd", "PhD (research doctorate)"], ["prof", "Professional degree (MD, JD, PharmD, DDS, DVM)"], ["explore", "Not sure yet: explore"]];
+const EP_CREDITS = { cert: 30, assoc: 60, bach: 120, mast: 36, phd: 72, prof: 0 };
+const EP_STAGES = [
+  ["baby", "👶 Birth to 2", ["Talk, read and sing every day: vocabulary at 3 tracks how much children are spoken with.", "Play is the curriculum: blocks, sand, water, books, outside time.", "Free help: Early Head Start (low income), library story times, state early-intervention programs if development seems slow (free evaluation in the US under IDEA Part C)."], [["Library story time", "free"], ["Early intervention evaluation", "free"]]],
+  ["pre", "🧸 Ages 3-5", ["Pre-K / preschool: public pre-K, Head Start (income-based), co-op preschools, Montessori, Waldorf, play-based, or at home.", "Kindergarten readiness: letters and sounds, counting to 20, taking turns, toilet and coat on alone.", "In the Academy: 🧸 Kids sets."], [["Head Start", "free (income-based)"], ["Kids sets in this Academy", "free"]]],
+  ["elem", "🏫 Elementary (K-5)", ["Options: public, charter, magnet, private, religious, homeschool, online public school, microschool, unschooling.", "Gifted testing usually starts in 2nd-3rd grade; ask the school.", "In the Academy: 🏫 K-12 by grade."], [["K-12 pages in this Academy", "free"]]],
+  ["mid", "🧭 Middle (6-8)", ["Algebra 1 in 8th grade opens the path to calculus in high school (matters for STEM degrees).", "Try clubs: robotics, debate, music, sports, coding.", "Early college awareness: visit a campus, look at what jobs need."], []],
+  ["high", "🎓 High school (9-12)", ["College credit now: dual enrollment (community college classes, often free or cheap for HS students), AP exams, IB diploma, early college high schools.", "Career/technical (CTE) pathways and pre-apprenticeships give certificates by graduation.", "Grade 11: PSAT/NMSQT (National Merit), SAT or ACT; grade 12: applications in fall, FAFSA from October 1.", "In the Academy: 📝 Test Prep for SAT, ACT, AP."], [["Dual enrollment", "often free/low cost"], ["AP exam", "fee per exam"]]],
+];
+const EP_ROUTES = [
+  { id: "cc2", name: "Community college, then transfer (2 + 2)", goals: ["assoc", "bach"], cost: 1, years: 4, style: ["class", "online"], steps: ["Pick a transfer degree (AA/AS) at a community college", "Check the state transfer agreement or the 4-year school's transfer guide in year 1", "Keep GPA up; apply to transfer in year 2", "Finish the bachelor's in 2 more years"], why: "Same diploma as starting at the 4-year school, often for much less." },
+  { id: "direct", name: "Straight to a 4-year college", goals: ["bach"], cost: 3, years: 4, style: ["class"], steps: ["Apply in fall of grade 12 (Early Action/Decision if sure)", "File the FAFSA (and CSS Profile if asked)", "Compare net price, not sticker price", "Live on campus or commute"], why: "Most campus life, research and internships from day one." },
+  { id: "dual", name: "Dual enrollment / early college in high school", goals: ["assoc", "bach", "cert"], cost: 0, years: 2, style: ["class"], minLevel: "high", maxLevel: "high", steps: ["Ask the high school counselor about dual enrollment or an early college high school", "Take general-education classes that transfer", "Some students finish an associate degree with the diploma"], why: "Up to two years of college done before age 18, often free." },
+  { id: "testout", name: "Test-out heavy (CLEP, DSST + a credit-friendly college)", goals: ["assoc", "bach"], cost: 1, years: 2, style: ["self"], testOut: true, steps: ["Choose a college that takes lots of exam and transfer credit (check its credit policy page)", "Plan which exams fill which requirements", "Prep in the Academy's Test Prep (CLEP page) and take one exam every 2-4 weeks", "Finish remaining required courses online"], why: "Fastest and cheapest route for disciplined self-learners." },
+  { id: "cbe", name: "Competency-based online degree", goals: ["bach", "mast"], cost: 1, years: 2.5, style: ["self", "online"], steps: ["Pick an accredited competency-based program (flat rate per term)", "Prove what you already know through assessments", "Take as many courses per term as you can finish"], why: "Working adults with experience move fast; pay per term, not per course." },
+  { id: "online", name: "Online degree from a state or nonprofit university", goals: ["assoc", "bach", "mast"], cost: 2, years: 4, style: ["online"], steps: ["Check accreditation (regional/institutional)", "Compare per-credit price (in-state vs out-of-state online rates)", "Ask about transfer credit and prior-learning credit"], why: "Study from anywhere around work and family." },
+  { id: "appr", name: "Registered apprenticeship (earn while you learn)", goals: ["trade", "skills", "cert"], cost: 0, years: 4, style: ["hands"], steps: ["Find programs at apprenticeship.gov or a local union / employer", "Start paid, with classroom hours alongside work", "Finish as a certified journey-level worker; some add college credit"], why: "Paid from day one, no tuition debt." },
+  { id: "trade", name: "Technical / trade school", goals: ["trade", "cert", "assoc"], cost: 1, years: 1.5, style: ["hands", "class"], steps: ["Compare programs' job placement and licensing pass rates", "Check it's accredited (needed for federal aid)", "Finish and sit the licensing exam if the trade has one"], why: "Short, focused, straight to a job." },
+  { id: "military", name: "Military + education benefits", goals: ["skills", "trade", "cert", "assoc", "bach", "mast"], cost: 0, years: 4, style: ["hands", "class"], steps: ["Talk to recruiters of more than one branch; ASVAB score sets job choices", "Use Tuition Assistance while serving", "Use the GI Bill after (tuition + housing)", "Service academies and ROTC pay for a bachelor's in return for service"], why: "Paid training and college benefits, in return for a service commitment." },
+  { id: "boot", name: "Bootcamp / short course + portfolio", goals: ["skills"], cost: 1, years: 0.5, style: ["class", "online", "self"], steps: ["Check outcomes reports, not ads", "Build a portfolio of real projects", "Network and apply"], why: "Fast for some tech fields; no degree, so some employers won't count it." },
+  { id: "self", name: "Free self-study + portfolio (MOOCs, open courseware, library)", goals: ["skills", "explore"], cost: 0, years: 1, style: ["self", "online"], steps: ["Pick a structured free curriculum (open courseware, audit MOOCs, this Academy's realms)", "Make proof: projects, certificates, a public portfolio", "Optionally turn it into credit later with exams or prior-learning assessment"], why: "Free, at your pace; proof of skill matters more than the certificate in many fields." },
+  { id: "grad", name: "Graduate school (master's / PhD)", goals: ["mast", "phd"], cost: 2, years: 2, style: ["class"], minLevel: "bach", steps: ["Research programs and advisors (PhD: email professors whose work you like)", "Take the GRE/GMAT only if programs ask (many don't now)", "PhD students in many sciences get tuition paid + a stipend (assistantships)", "Master's: look for employer-paid or assistantship-funded spots"], why: "Funded PhDs exist; unfunded master's can be expensive." },
+  { id: "prof", name: "Professional school (medicine, law, pharmacy, dentistry, vet)", goals: ["prof"], cost: 3, years: 4, style: ["class"], minLevel: "bach", steps: ["Bachelor's with the required prerequisites", "Entrance exam: MCAT (medicine), LSAT (law), DAT (dentistry)...", "4 years (law: 3), then licensing exams; medicine adds residency (3-7 years)"], why: "Licensed careers; long and costly, so plan the money early." },
+  { id: "explore", name: "Explore first (gap year, service, work + one class)", goals: ["explore", "skills"], cost: 0, years: 1, style: ["hands", "self"], steps: ["Work, volunteer or serve (AmeriCorps pays a living stipend + education award)", "Take one cheap class a term to test interests", "Use the Academy's All Subjects to sample fields"], why: "Cheaper to find your direction before paying tuition." },
+];
+const EP_INST = [
+  ["Community college", "Open admission, 2-year degrees and certificates, transfer programs, lowest tuition; many states have free-tuition programs.", 1],
+  ["Technical / trade school", "Short programs for skilled trades, healthcare support, IT; check accreditation and licensing pass rates.", 1],
+  ["Regional state university", "Bachelor's and master's, in-state tuition, many commuters.", 2],
+  ["Flagship state university", "Large research university of a state; selective, wide majors, research labs.", 2],
+  ["Private nonprofit college", "High sticker price but often large grants; compare net price.", 3],
+  ["Liberal arts college", "Small classes, teaching-focused, broad education.", 3],
+  ["Ivy League (8) + highly selective", "Brown, Columbia, Cornell, Dartmouth, Harvard, Penn, Princeton, Yale (an athletic conference), plus Stanford, MIT, Caltech, etc. Very selective; many meet full demonstrated need, so lower-income families can pay little.", 3],
+  ["Minority-serving institutions", "HBCUs, Tribal Colleges, Hispanic-Serving Institutions: strong communities, often lower cost.", 2],
+  ["Online / competency-based university", "Flexible; check accreditation; flat-rate terms reward fast learners.", 1],
+  ["Credit-friendly 'big three' adult colleges", "Colleges known for accepting large amounts of exam, transfer and prior-learning credit (popular with test-out students).", 1],
+  ["Service academies + military colleges", "Tuition-free with a service commitment; very selective; nomination needed for most.", 0],
+  ["Work colleges / tuition-free colleges", "A few colleges charge no tuition (students work on campus or the college is endowed).", 0],
+  ["Art, music and design schools / conservatories", "Portfolio or audition based.", 3],
+  ["Research labs + national labs", "Not schools, but places to learn: summer research for undergraduates (REU), internships, co-ops; many paid.", 0],
+  ["Seminaries + religious institutes", "Ministry and theology degrees; many offer scholarships.", 2],
+];
+const EP_FREE = [
+  ["Free & cheap credit", [["CLEP and DSST exams: one exam ≈ one college course (3+ credits) if the college accepts it", "clep.collegeboard.org · getcollegecredit.com"], ["AP / IB exams in high school", "apstudents.collegeboard.org · ibo.org"], ["ACE-recommended low-cost online courses that many colleges take as transfer credit", "acenet.edu (ACE Learning Evaluations)"], ["Prior learning assessment (PLA): credit for work, military or life learning by portfolio", "the college's PLA page"], ["Dual enrollment in high school", "your high school counselor"]]],
+  ["Free learning", [["Open courseware: full university course materials free", "ocw.mit.edu and similar"], ["MOOCs: audit courses free; pay only for a certificate", "edX, Coursera"], ["Khan Academy (K-12 + intro college)", "khanacademy.org"], ["Public library: free courses, databases, language apps with a card", "your library's website"], ["This Academy: all realms, K-12, exam practice, tutor", "here"]]],
+  ["Tuition-free routes", [["State free-community-college ('promise') programs", "your state's higher-education agency"], ["Work colleges and tuition-free colleges", "each college's admissions page"], ["Service academies, ROTC scholarships", "each branch's site"], ["Employer-paid tuition programs", "your HR department"], ["Registered apprenticeships (paid)", "apprenticeship.gov"]]],
+  ["Alternative + esoteric", [["Homeschool, unschooling, worldschooling (K-12)", "your state's homeschool law"], ["Microschools and learning pods", "local listings"], ["Folk schools and craft schools (non-credit, hands-on)", "each school"], ["Great Books / classical self-study", "reading lists"], ["Self-designed majors (some colleges let you build your own degree)", "each college's catalog"], ["Monastery, yeshiva, madrasa and other religious study paths", "each community"], ["Citizen science and open research projects", "zooniverse.org and similar"]]],
+];
+const EP_MONEY = [
+  ["FAFSA first", "The free federal form for grants, work-study and federal loans. Opens for the next school year in the fall; many state and college aid deadlines are early.", "studentaid.gov"],
+  ["Pell Grant", "Federal grant for students with financial need; you don't repay it. The maximum changes each year.", "studentaid.gov"],
+  ["State grants", "Most states have their own need or merit grants with their own deadlines.", "your state's higher-education agency"],
+  ["College's own aid", "Need-based grants and merit scholarships from the school; use each college's net price calculator.", "each college's net price calculator"],
+  ["Scholarships", "Local (clubs, employers, churches, foundations) are less competitive than national ones. Never pay to apply.", "your counselor, studentaid.gov scholarship tips"],
+  ["Tuition waivers + exemptions", "Many states waive tuition for some groups (e.g. veterans' dependents, foster youth, Native American students in some states, older adults auditing, college employees' families).", "your state + each college"],
+  ["Work-study + paid internships", "Part-time jobs tied to aid, and paid co-ops/internships.", "the college's aid office"],
+  ["Employer tuition assistance", "Many employers pay tuition; in the US, up to $5,250 a year can be tax-free to the employee.", "IRS (educational assistance programs) + your HR"],
+  ["Military + service", "Tuition Assistance, GI Bill, ROTC; AmeriCorps Segal Education Award.", "va.gov · americorps.gov"],
+  ["529 plans + savings", "Tax-advantaged education savings.", "your state's 529 plan"],
+  ["Loans last", "Federal student loans before private ones (fixed rates, income-driven repayment). Borrow less than your expected first-year salary for the whole degree.", "studentaid.gov"],
+];
+const EP_ADULT = [
+  ["No diploma yet", ["Adult high school diploma programs (often free through school districts)", "High school equivalency: GED or HiSET (see 📝 Test Prep › GED)", "Adult basic education + English classes, usually free"]],
+  ["Some college, no degree", ["Get all transcripts: old credits often still count", "Look for 'degree completion' programs for returning adults", "Add exam credit (CLEP/DSST) and prior-learning credit to finish faster"]],
+  ["Career changers", ["Certificate or bootcamp for a fast switch; master's for licensed or senior roles", "Ask your employer about tuition benefits", "Take one free course first to test the field"]],
+  ["Continuing students + lifelong learners", ["Graduate certificates (4-5 courses) instead of a full master's", "Professional continuing education for licences", "Many public universities let older adults audit classes free or cheap", "This Academy's realms and proof certificates for self-study you can show"]],
+];
+
+function epS() { S.paths = S.paths || { w: { level: "hs", age: 18, goal: "bach", budget: 1, hours: 15, style: "class", testOut: true, field: "" }, calc: { level: "bach", have: 0, ap: 0, clep: 0, pla: 0, perTerm: 15, terms: 2, perCredit: 150, examFee: 100, examsPerTerm: 2 }, money: { sticker: 12000, grants: 4000, schol: 1000, work: 2000, years: 4, rate: 6.5 }, schol: [], plan: null }; return S.paths; }
+const epLevelIx = id => EP_LEVELS.findIndex(l => l[0] === id);
+function epRank(w) {
+  const lv = epLevelIx(w.level);
+  return EP_ROUTES.map(r => {
+    let sc = 0, why = [];
+    if (r.goals.includes(w.goal)) { sc += 5; why.push("fits your goal"); } else if (w.goal === "explore" && r.cost === 0) sc += 2; else sc -= 5;
+    if (r.minLevel && lv < epLevelIx(r.minLevel)) { sc -= 20; why.push("needs " + EP_LEVELS[epLevelIx(r.minLevel)][1].toLowerCase() + " first"); }
+    if (r.maxLevel && lv > epLevelIx(r.maxLevel)) sc -= 20;
+    if (r.id === "dual" && w.level !== "high") sc -= 20;
+    if (r.id === "grad" && lv < epLevelIx("bach")) sc -= 20;
+    if (r.cost <= epN(w.budget)) { sc += 2; why.push(["free", "low cost", "moderate cost", "higher cost"][r.cost]); } else { sc -= 2 * (r.cost - epN(w.budget)); why.push("over your budget unless aid covers it"); }
+    if (r.style.includes(w.style)) { sc += 2; why.push("matches how you like to learn"); }
+    if (w.testOut && r.testOut) { sc += 2; why.push("uses test-out credit"); }
+    if (epN(w.hours) < 15 && (r.style.includes("self") || r.style.includes("online"))) { sc += 1; why.push("works part-time"); }
+    if (lv <= epLevelIx("mid") && !["self", "explore"].includes(r.id)) sc -= 3;
+    return { r, sc, why };
+  }).sort((a, b) => b.sc - a.sc);
+}
+function epPlan(w, route) {
+  const lv = epLevelIx(w.level), age = epN(w.age), steps = [];
+  let y = 0;
+  const add = (yrs, what) => { steps.push({ from: age + y, to: age + y + yrs, what }); y += yrs; };
+  if (lv <= epLevelIx("high")) { const left = { baby: 18 - age, pre: 18 - age, elem: 18 - age, mid: 18 - age, high: Math.max(0.5, 18 - age) }[w.level]; add(Math.max(0.5, left), "Finish K-12 (use the Academy's K-12 pages; consider dual enrollment / AP in high school)"); }
+  if (w.level === "nohs") add(0.5, "High school equivalency (GED or HiSET) or an adult diploma");
+  const prelim = { prof: [4, "Bachelor's with pre-med/pre-law prerequisites"], phd: [4, "Bachelor's degree"], mast: [4, "Bachelor's degree"] }[w.goal];
+  if (prelim && lv < epLevelIx("bach")) add(prelim[0], prelim[1]);
+  const pace = w.goal === "prof" ? 4 : epN(w.hours) >= 30 ? route.years : route.years * (30 / Math.max(6, epN(w.hours)));
+  add(Math.round(pace * 2) / 2, route.name);
+  if (w.goal === "prof") add(4, "Residency / licensing (medicine 3-7 years; law: the bar exam)");
+  return steps;
+}
+function epTimeline(steps) {
+  if (!steps.length) return "";
+  const a0 = steps[0].from, a1 = steps[steps.length - 1].to, W = 640, sc = W / Math.max(1, a1 - a0), cols = ["var(--c1)", "var(--c2)", "var(--c3)", "var(--c4)", "var(--c5)"];
+  return `<svg viewBox="0 0 ${W + 20} ${steps.length * 30 + 30}" width="100%" style="max-width:${W + 20}px">${steps.map((s, i) => `<rect x="${(s.from - a0) * sc}" y="${i * 30}" width="${Math.max(4, (s.to - s.from) * sc)}" height="22" rx="4" fill="${cols[i % 5]}"><title>${esc(s.what)}</title></rect><text x="${(s.from - a0) * sc + 6}" y="${i * 30 + 15}" style="font-size:11px;fill:#fff">${esc(s.what.slice(0, 60))}</text>`).join("")}
+    <text x="0" y="${steps.length * 30 + 20}" style="font-size:11px;fill:#9a9a9a">age ${Math.round(a0 * 2) / 2}</text><text x="${W}" y="${steps.length * 30 + 20}" text-anchor="end" style="font-size:11px;fill:#9a9a9a">age ${Math.round(a1 * 2) / 2}</text></svg>`;
+}
+function epCalc(c) {
+  const need = c.level === "prof" ? 0 : EP_CREDITS[c.level] || 120, have = epN(c.have) + epN(c.ap) + epN(c.clep) + epN(c.pla), left = Math.max(0, need - have);
+  const terms = epN(c.perTerm) > 0 ? Math.ceil(left / epN(c.perTerm)) : 0, years = epN(c.terms) > 0 ? terms / epN(c.terms) : 0;
+  return { need, have, left, terms, years, tuition: left * epN(c.perCredit), exams: Math.ceil(epN(c.clep) / 3) * epN(c.examFee), saved: (epN(c.clep) + epN(c.ap) + epN(c.pla)) * epN(c.perCredit) };
+}
+function epLoan(m) {
+  const net = Math.max(0, epN(m.sticker) - epN(m.grants) - epN(m.schol) - epN(m.work)), borrow = net * epN(m.years), r = epN(m.rate) / 100 / 12, n = 120;
+  const pay = borrow ? (r ? borrow * r / (1 - (1 + r) ** -n) : borrow / n) : 0;
+  return { net, borrow, pay, total: pay * n };
+}
+const epBind = (el, obj, after) => el.querySelectorAll("[data-ep]").forEach(i => { const k = i.dataset.ep; i.onchange = () => { obj[k] = i.type === "checkbox" ? i.checked : i.type === "number" ? +i.value : i.value; save(); after(); }; });
+const epIn = (k, v, lab, o) => { o = o || {}; if (o.opts) return `<label class="small">${esc(lab)}<br><select data-ep="${k}">${o.opts.map(([a, b]) => `<option value="${esc(a)}"${String(v) === String(a) ? " selected" : ""}>${esc(b)}</option>`).join("")}</select></label>`;
+  if (o.check) return `<label class="small"><input type="checkbox" data-ep="${k}"${v ? " checked" : ""}> ${esc(lab)}</label>`;
+  return `<label class="small">${esc(lab)}<br><input data-ep="${k}" type="${o.text ? "text" : "number"}" value="${esc(v)}" style="width:${o.w || "110px"}"></label>`; };
+const epMoney = n => "$" + Math.round(n).toLocaleString();
+
+nav("paths", "🧭 Paths");
+VIEWS.paths = el => {
+  epS();
+  el.innerHTML = `<h1>🧭 Education Paths</h1><p class="muted">From a baby's first words to a doctorate, for every age and budget: find your route, plan the years, count the credits and the cost, and find the free and unusual ways through.</p>
+  <div class="warn" style="margin:8px 0">School, exam and aid details change every year and differ by state and country. Items marked <span class="tag y">unchecked</span> were written from general knowledge and have <b>not</b> been checked against the official source yet: confirm there before you decide. This page is US-centred for now.</div>
+  <div class="grid">${[["epwiz", "✨ Path wizard", "Answer 7 questions, get your best routes and a timeline"], ["epstages", "👶 Birth to grade 12", "What matters at each age, and the options"], ["eproutes", "🛣 All routes", "Every way to a credential, side by side"], ["epcalc", "🧮 Degree + credit planner", "Credits, test-out, years and tuition"],
+    ["epinst", "🏛 Kinds of schools", "Community college to Ivy League, tech schools to labs"], ["epfree", "🆓 Free, alternative + test-out", "Free credit, free learning, unusual paths"], ["epmoney", "💵 Money helper", "Grants, scholarships, waivers, loans, a scholarship tracker"], ["epadult", "🔁 Late starters + continuing", "Adults, returning students, career changers"]]
+    .map(([v, n, d]) => `<div class="card click" onclick="go('${v}')"><h3>${n}</h3><div class="small muted">${d}</div></div>`).join("")}</div>
+  ${S.paths.plan ? `<h3>Your saved plan</h3><div class="card"><b>${esc(S.paths.plan.route)}</b>${epTimeline(S.paths.plan.steps)}</div>` : ""}`;
+};
+VIEWS.epwiz = el => {
+  const P = epS(), w = P.w;
+  const draw = () => { const rk = epRank(w).filter(x => x.sc > 0).slice(0, 4);
+    el.innerHTML = `<div class="crumbs"><a onclick="go('paths')">Paths</a> › Wizard</div><h1>✨ Path wizard</h1>
+    <div class="card"><div class="row" style="flex-wrap:wrap;gap:12px">${epIn("level", w.level, "1. Where are you now?", { opts: EP_LEVELS })}${epIn("age", w.age, "2. Age", { w: "70px" })}${epIn("goal", w.goal, "3. What do you want?", { opts: EP_GOALS })}
+     ${epIn("budget", w.budget, "4. Budget for school", { opts: [[0, "Free only"], [1, "Low"], [2, "Moderate"], [3, "Whatever it takes"]] })}${epIn("hours", w.hours, "5. Hours a week for study", { w: "70px" })}
+     ${epIn("style", w.style, "6. How you learn best", { opts: [["class", "In a classroom"], ["online", "Online, on a schedule"], ["self", "On my own, my pace"], ["hands", "Hands-on, on the job"]] })}${epIn("testOut", w.testOut, "7. Happy to test out of classes", { check: 1 })}${epIn("field", w.field, "Field (optional)", { text: 1, w: "160px" })}</div></div>
+    <h3>Best routes for you</h3>${rk.length ? rk.map((x, i) => { const pl = epPlan(w, x.r); return `<div class="card"><h3>${i + 1}. ${esc(x.r.name)} <span class="tag">${["free", "low cost", "moderate", "higher cost"][x.r.cost]}</span></h3><p class="small">${esc(x.r.why)} <span class="muted">(${esc(x.why.join(" · "))})</span></p>
+      <ol class="small">${x.r.steps.map(s => `<li>${esc(s)}</li>`).join("")}</ol>${epTimeline(pl)}
+      <p class="small muted">Done around age ${Math.round(pl[pl.length - 1].to)}${w.field ? " in " + esc(w.field) : ""}. ${x.r.testOut || w.testOut ? `<a onclick="go('exam','clep')">CLEP prep in Test Prep ›</a>` : ""} ${w.level === "nohs" ? `<a onclick="go('exam','ged')">GED prep ›</a>` : ""} ${epLevelIx(w.level) <= epLevelIx("high") ? `<a onclick="go('k12')">K-12 pages ›</a>` : ""}</p>
+      <button class="btn sm pri" data-save="${x.r.id}">Save as my plan</button></div>`; }).join("") : `<p class="muted">No route fits all of that. Try a higher budget or a different goal.</p>`}
+    <p class="small muted">Routes are ranked by simple rules (goal, level, budget, style, time, test-out). Your counselor or an advisor knows your situation better.</p>`;
+    epBind(el, w, draw); el.querySelectorAll("[data-save]").forEach(b => b.onclick = () => { const r = EP_ROUTES.find(r => r.id === b.dataset.save); P.plan = { route: r.name, id: r.id, steps: epPlan(w, r), made: today() }; save(); toast("Saved as your plan."); go("paths"); }); };
+  draw();
+};
+VIEWS.epstages = el => {
+  el.innerHTML = `<div class="crumbs"><a onclick="go('paths')">Paths</a> › Birth to grade 12</div><h1>👶 Birth to grade 12</h1>${EP_STAGES.map(([id, n, tips, free]) => `<div class="card"><h3>${n}</h3><ul>${tips.map(t => `<li>${esc(t)}</li>`).join("")}</ul>${free.length ? `<p class="small">${free.map(([a, b]) => `<span class="tag">${esc(a)}: ${esc(b)}</span>`).join(" ")}</p>` : ""}</div>`).join("")}
+  <p class="small">${EP_UNCHK("your state department of education; Head Start: eclkc.ohs.acf.hhs.gov; early intervention: your state's IDEA Part C program")}</p><p><a onclick="go('kids')">🧸 Kids sets ›</a> · <a onclick="go('k12')">🏫 K-12 by grade ›</a> · <a onclick="go('tests')">📝 Test Prep (SAT, ACT, AP) ›</a></p>`;
+};
+VIEWS.eproutes = el => {
+  el.innerHTML = `<div class="crumbs"><a onclick="go('paths')">Paths</a> › All routes</div><h1>🛣 All routes</h1>
+  <table class="t"><tr><th>Route</th><th>Leads to</th><th>Typical time</th><th>Cost</th><th>Best for</th></tr>${EP_ROUTES.map(r => `<tr><td><b>${esc(r.name)}</b></td><td class="small">${r.goals.map(g => (EP_GOALS.find(x => x[0] === g) || ["", g])[1].split(" (")[0]).join(", ")}</td><td>${r.years} yr full-time</td><td>${["free", "low", "moderate", "high"][r.cost]}</td><td class="small">${esc(r.why)}</td></tr>`).join("")}</table>
+  <h3>Degree levels and mixes</h3><table class="t"><tr><th>Level</th><th>Typical credits (US semester)</th><th>Full-time years</th></tr>${[["Certificate", "9-30", "under 1 to 1"], ["Associate (AA, AS, AAS)", "60", "2"], ["Bachelor's (BA, BS)", "120", "4"], ["Master's (MA, MS, MBA...)", "30-60 after a bachelor's", "1-2"], ["PhD", "varies (coursework + dissertation)", "4-7 after a bachelor's"], ["Professional: MD, DO", "4 years of medical school", "4 + residency 3-7"], ["Professional: JD", "about 90", "3"], ["Professional: PharmD, DDS/DMD, DVM", "4 years each", "4"]].map(r => `<tr>${r.map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</table>
+  <p class="small">Mixes: double major (both in 4 years if planned early), major + minor, dual degree (two diplomas, often 5 years), accelerated bachelor's + master's (4 + 1), BS/MD and BA/JD combined programs, stacking certificates into a degree. How many degrees? Most careers need one; licensed and research careers need more; stack only what a job you want asks for.</p>
+  <p class="small">${EP_UNCHK("each college's catalog; professional schools' admissions pages (AAMC, LSAC...)")}</p>`;
+};
+VIEWS.epcalc = el => {
+  const P = epS(), c = P.calc;
+  const draw = () => { const r = epCalc(c);
+    el.innerHTML = `<div class="crumbs"><a onclick="go('paths')">Paths</a> › Degree + credit planner</div><h1>🧮 Degree + credit planner</h1>
+    <div class="card"><div class="row" style="flex-wrap:wrap;gap:12px">${epIn("level", c.level, "Degree", { opts: [["cert", "Certificate (30)"], ["assoc", "Associate (60)"], ["bach", "Bachelor's (120)"], ["mast", "Master's (36)"], ["phd", "PhD coursework (~72)"]] })}
+     ${epIn("have", c.have, "Transfer credits you have")}${epIn("ap", c.ap, "AP / IB / dual-enrollment credits")}${epIn("clep", c.clep, "Credits you'll test out (CLEP/DSST)")}${epIn("pla", c.pla, "Prior-learning credits")}
+     ${epIn("perTerm", c.perTerm, "Credits per term")}${epIn("terms", c.terms, "Terms per year")}${epIn("perCredit", c.perCredit, "Tuition per credit ($)")}${epIn("examFee", c.examFee, "Fee per exam ($)")}</div></div>
+    <div class="grid"><div class="card"><h3>${r.left}</h3><div class="small muted">credits left of ${r.need}</div></div><div class="card"><h3>${r.terms} terms</h3><div class="small muted">≈ ${Math.round(r.years * 10) / 10} years</div></div>
+     <div class="card"><h3>${epMoney(r.tuition)}</h3><div class="small muted">tuition for what's left</div></div><div class="card"><h3>${epMoney(r.saved - r.exams)}</h3><div class="small muted">saved by credit you didn't pay tuition for (minus ${epMoney(r.exams)} exam fees)</div></div></div>
+    <p class="small muted">Assumes each exam is worth 3 credits and that your college accepts it. Many colleges cap exam/transfer credit and require a number of credits taken with them ("residency"): check its credit policy page. ${EP_UNCHK("the college's transfer + credit-by-exam policy; exam fees: clep.collegeboard.org, getcollegecredit.com")}</p>
+    <p><a onclick="go('exam','clep')">Prepare for CLEP in Test Prep ›</a></p>`;
+    epBind(el, c, draw); };
+  draw();
+};
+VIEWS.epinst = el => {
+  el.innerHTML = `<div class="crumbs"><a onclick="go('paths')">Paths</a> › Kinds of schools</div><h1>🏛 Kinds of schools</h1><p class="muted">Local, city, state, private, Ivy, technical and more. Sticker price is not what most students pay: always run each school's net price calculator.</p>
+  <div class="grid">${EP_INST.map(([n, d, c]) => `<div class="card"><h3>${esc(n)}</h3><p class="small">${esc(d)}</p><span class="tag">${["often free", "low cost", "moderate", "high sticker price"][c]}</span></div>`).join("")}</div>
+  <h3>Checking a school</h3><ul class="small"><li>Accreditation by a recognized accreditor (needed for federal aid and transfer)</li><li>Graduation rate, typical debt and earnings after</li><li>Transfer and exam-credit policy</li><li>Net price for your family's income</li></ul>
+  <p class="small">${EP_UNCHK("collegescorecard.ed.gov (official US data on cost, graduation and earnings); accreditation: ed.gov / chea.org")}</p>`;
+};
+VIEWS.epfree = el => {
+  el.innerHTML = `<div class="crumbs"><a onclick="go('paths')">Paths</a> › Free, alternative + test-out</div><h1>🆓 Free, alternative + test-out</h1>
+  ${EP_FREE.map(([g, items]) => `<div class="card"><h3>${esc(g)}</h3><table class="t">${items.map(([a, src]) => `<tr><td>${esc(a)}</td><td class="small muted">${src === "here" ? `<a onclick="go('atlas')">open ›</a>` : EP_UNCHK(src)}</td></tr>`).join("")}</table></div>`).join("")}
+  <p><a onclick="go('tests')">📝 Test Prep (CLEP, GED, AP...) ›</a> · <a onclick="go('atlas')">🌌 All Subjects ›</a></p>`;
+};
+VIEWS.epmoney = el => {
+  const P = epS(), m = P.money;
+  const draw = () => { const l = epLoan(m);
+    el.innerHTML = `<div class="crumbs"><a onclick="go('paths')">Paths</a> › Money helper</div><h1>💵 Money helper</h1><p class="muted">Free money first, earned money second, borrowed money last.</p>
+    <table class="t">${EP_MONEY.map(([n, d, src]) => `<tr><td><b>${esc(n)}</b></td><td class="small">${esc(d)}</td><td class="small">${EP_UNCHK(src)}</td></tr>`).join("")}</table>
+    <h3>What will it really cost?</h3><div class="card"><div class="row" style="flex-wrap:wrap;gap:12px">${epIn("sticker", m.sticker, "Cost per year (tuition + fees + housing)")}${epIn("grants", m.grants, "Grants per year")}${epIn("schol", m.schol, "Scholarships per year")}${epIn("work", m.work, "Work / savings per year")}${epIn("years", m.years, "Years")}${epIn("rate", m.rate, "Loan interest %")}</div>
+     <p>Net price: <b>${epMoney(l.net)}</b> a year · borrowing <b>${epMoney(l.borrow)}</b> in total → <b>${epMoney(l.pay)}</b> a month for 10 years (${epMoney(l.total)} paid back).</p>
+     <p class="small muted">Standard 10-year repayment maths; federal loans also offer income-driven plans. Rule of thumb: keep total borrowing below your expected first-year salary.</p></div>
+    <h3>Scholarship tracker</h3><table class="t"><tr><th>Name</th><th>Amount</th><th>Deadline</th><th>Status</th><th></th></tr>${P.schol.map((s, i) => `<tr><td>${esc(s.n)}</td><td>${epMoney(epN(s.a))}</td><td>${esc(s.d)}${s.d && dayDiff(today(), s.d) >= 0 ? ` <span class="tag ${dayDiff(today(), s.d) < 14 ? "y" : ""}">${dayDiff(today(), s.d)} days</span>` : ""}</td><td>${esc(s.s)}</td><td><button class="btn sm bad" data-del="${i}">✕</button></td></tr>`).join("")}</table>
+    <div class="row" style="gap:6px;flex-wrap:wrap"><input id="sn" placeholder="Scholarship name"><input id="sa" type="number" placeholder="Amount" style="width:100px"><input id="sd" type="date"><select id="ss"><option>To apply</option><option>Applied</option><option>Won</option><option>Not won</option></select><button class="btn sm pri" id="sadd">Add</button></div>
+    <p class="small">Total won: <b>${epMoney(P.schol.filter(s => s.s === "Won").reduce((t, s) => t + epN(s.a), 0))}</b> · Never pay a fee to apply for a scholarship or to "find" one.</p>`;
+    epBind(el, m, draw);
+    el.querySelectorAll("[data-del]").forEach(b => b.onclick = () => { P.schol.splice(+b.dataset.del, 1); save(); draw(); });
+    $("#sadd", el).onclick = () => { const n = $("#sn", el).value.trim(); if (!n) return toast("Name it first."); P.schol.push({ n, a: $("#sa", el).value, d: $("#sd", el).value, s: $("#ss", el).value }); save(); draw(); }; };
+  draw();
+};
+VIEWS.epadult = el => {
+  el.innerHTML = `<div class="crumbs"><a onclick="go('paths')">Paths</a> › Late starters + continuing</div><h1>🔁 Late starters + continuing students</h1><p class="muted">It is never too late: adults are a large share of college students, and experience can count as credit.</p>
+  ${EP_ADULT.map(([n, items]) => `<div class="card"><h3>${esc(n)}</h3><ul>${items.map(i => `<li>${esc(i)}</li>`).join("")}</ul></div>`).join("")}
+  <p class="small">${EP_UNCHK("your state's adult education office; ged.com / hiset.org; each college's adult or returning-student page")}</p><p><a onclick="go('epwiz')">✨ Run the wizard for your situation ›</a> · <a onclick="go('exam','ged')">GED prep ›</a></p>`;
+};
+
+const DM_EXAMS = [
+  ["comp", "CLEP", "College Composition", 6, "comp"], ["hum", "CLEP", "Humanities", 6, "hum art"], ["anlit", "CLEP", "Analyzing and Interpreting Literature", 6, "lit hum"],
+  ["amlit", "CLEP", "American Literature", 6, "lit hum"], ["enlit", "CLEP", "English Literature", 6, "lit hum"], ["sosc", "CLEP", "Social Sciences and History", 6, "soc hist"],
+  ["natsci", "CLEP", "Natural Sciences", 6, "sci"], ["bio", "CLEP", "Biology", 6, "sci bio"], ["chem", "CLEP", "Chemistry", 6, "sci chem"],
+  ["cmath", "CLEP", "College Mathematics", 6, "math"], ["calg", "CLEP", "College Algebra", 3, "math alg"], ["precalc", "CLEP", "Precalculus", 3, "math"], ["calc", "CLEP", "Calculus", 4, "math calc"],
+  ["amgov", "CLEP", "American Government", 3, "gov soc"], ["ush1", "CLEP", "History of the United States I", 3, "hist ush soc"], ["ush2", "CLEP", "History of the United States II", 3, "hist ush soc"],
+  ["wc1", "CLEP", "Western Civilization I", 3, "hist soc"], ["wc2", "CLEP", "Western Civilization II", 3, "hist soc"], ["psy", "CLEP", "Introductory Psychology", 3, "psy soc"],
+  ["soc", "CLEP", "Introductory Sociology", 3, "soc"], ["hgd", "CLEP", "Human Growth and Development", 3, "dev psy soc"], ["edpsy", "CLEP", "Introduction to Educational Psychology", 3, "psy soc"],
+  ["macro", "CLEP", "Principles of Macroeconomics", 3, "macro econ soc"], ["micro", "CLEP", "Principles of Microeconomics", 3, "micro econ soc"],
+  ["facct", "CLEP", "Financial Accounting", 3, "acct"], ["blaw", "CLEP", "Introductory Business Law", 3, "blaw"], ["mgmt", "CLEP", "Principles of Management", 3, "mgmt"],
+  ["mkt", "CLEP", "Principles of Marketing", 3, "mkt"], ["is", "CLEP", "Information Systems", 3, "is"], ["span", "CLEP", "Spanish Language (score-based)", 6, "lang"],
+  ["speech", "DSST", "Principles of Public Speaking", 3, "speech"], ["stat", "DSST", "Principles of Statistics", 3, "stat math"], ["ethics", "DSST", "Ethics in America", 3, "hum phil"],
+  ["relig", "DSST", "Introduction to World Religions", 3, "hum relig"], ["art", "DSST", "Art of the Western World", 3, "art hum"], ["envsci", "DSST", "Environmental Science", 3, "sci"],
+  ["life", "DSST", "Lifespan Developmental Psychology", 3, "dev psy soc"], ["pfin", "DSST", "Personal Finance", 3, "fin"], ["hrm", "DSST", "Human Resource Management", 3, "hrm mgmt"],
+  ["introbus", "DSST", "Introduction to Business", 3, "bus"], ["crim", "DSST", "Criminal Justice", 3, "crim soc"], ["techw", "DSST", "Technical Writing", 3, "writing"],
+  ["mis", "DSST", "Management Information Systems", 3, "is"], ["health", "DSST", "Health and Human Development", 3, "health"], ["comput", "DSST", "Computing and Information Technology", 3, "is comp-sci"],
+].map(([id, prov, name, cr, tags]) => ({ id, prov, name, cr, tags: tags.split(" ") }));
+const DM_GENED = [["Composition", 6, "comp"], ["Literature / humanities", 6, "lit hum phil relig"], ["Fine arts", 3, "art"], ["Social + behavioral sciences", 6, "soc psy econ"],
+  ["History / government", 6, "hist gov"], ["College math", 3, "math"], ["Natural science (a lab may be required in person)", 8, "sci"], ["Speech", 3, "speech"]];
+const DM_PLANS = {
+  ba_gen: { name: "Bachelor's, general / liberal studies (120)", total: 120, upper: 30, reqs: [...DM_GENED, ["Foreign language", 6, "lang"], ["Concentration courses (any lower-division)", 18, "bus mgmt mkt psy dev soc hist econ is crim"]] },
+  bs_bus: { name: "Bachelor's, business administration (120)", total: 120, upper: 30, reqs: [...DM_GENED, ["Macroeconomics", 3, "macro"], ["Microeconomics", 3, "micro"], ["Financial accounting", 3, "acct"], ["Managerial accounting", 3, "-"],
+    ["Business law", 3, "blaw"], ["Management", 3, "mgmt"], ["Marketing", 3, "mkt"], ["Information systems", 3, "is"], ["Statistics", 3, "stat"], ["Finance", 3, "-"], ["Human resources or intro business", 3, "hrm bus"], ["Business capstone", 3, "-"]] },
+  ba_psy: { name: "Bachelor's, psychology (120)", total: 120, upper: 30, reqs: [...DM_GENED, ["Introductory psychology", 3, "psy"], ["Lifespan / human development", 3, "dev"], ["Statistics", 3, "stat"], ["Research methods", 3, "-"],
+    ["Abnormal psychology", 3, "-"], ["Social psychology", 3, "-"], ["Sociology", 3, "soc"], ["Psychology electives", 9, "psy dev"]] },
+  aa_tr: { name: "Associate of Arts, transfer (60)", total: 60, upper: 0, reqs: [...DM_GENED.slice(0, 7), ["Transfer-major prep", 9, "psy soc bus econ hist is"]] },
+};
+function dmS() { const p = epS(); p.dm = p.dm || { plan: "ba_gen", mode: "suggest", mine: {}, cap: 60, examFee: 100, perCredit: 350 }; return p.dm; }
+function dmMap(d) {
+  const P = DM_PLANS[d.plan] || DM_PLANS.ba_gen, pool = DM_EXAMS.filter(e => d.mode === "suggest" || d.mine[e.id]), used = new Set();
+  const rows = P.reqs.map(([name, cr, tags], i) => ({ i, name, cr, tags: tags.split(" "), fill: [], got: 0 }));
+  const fits = (r, e) => e.tags.some(t => r.tags.includes(t));
+  const order = rows.slice().sort((a, b) => pool.filter(e => fits(a, e)).length - pool.filter(e => fits(b, e)).length || a.i - b.i);
+  for (const r of order) {
+    while (r.got < r.cr) {
+      const cands = pool.filter(e => !used.has(e.id) && fits(r, e)); if (!cands.length) break;
+      const left = r.cr - r.got, score = e => rows.filter(x => x !== r && x.got < x.cr && fits(x, e)).length * 10 + Math.abs(e.cr - left);
+      const e = cands.sort((a, b) => score(a) - score(b))[0]; used.add(e.id);
+      const put = Math.min(e.cr, left); r.fill.push({ e, put, extra: e.cr - put }); r.got += put;
+    }
+  }
+  const reqCr = rows.reduce((s, r) => s + r.cr, 0), elect = Math.max(0, P.total - reqCr - P.upper);
+  const extra = rows.reduce((s, r) => s + r.fill.reduce((t, f) => t + f.extra, 0), 0);
+  const leftovers = pool.filter(e => !used.has(e.id) && d.mode !== "suggest"), electGot = Math.min(elect, extra + leftovers.reduce((s, e) => s + e.cr, 0));
+  const examCr = rows.reduce((s, r) => s + r.got, 0) + electGot, counted = Math.min(examCr, epN(d.cap)), over = examCr - counted;
+  const toTake = P.total - counted;
+  return { P, rows, elect, electGot, leftovers, examCr, counted, over, toTake, nExams: used.size + leftovers.length,
+    costMix: (used.size + leftovers.length) * epN(d.examFee) + toTake * epN(d.perCredit), costAll: P.total * epN(d.perCredit) };
+}
+VIEWS.epdeg = el => {
+  const d = dmS();
+  const draw = () => { const m = dmMap(d);
+    el.innerHTML = `<div class="crumbs"><a onclick="go('paths')">Paths</a> › Degree map</div><h1>🗺 Degree map</h1>
+    <p class="muted">See a degree course by course: which requirement each CLEP or DSST exam can fill, and what is left to take as classes. Mark the exams you have passed or plan to take, or let it suggest exams for every slot it can.</p>
+    <div class="warn" style="margin:8px 0">These plans are <b>typical examples</b>, not your college's catalog. Exam credit amounts are the usual recommendations. Each college decides which exams it takes, for which requirement, and how many exam credits count (and most need some credits taken with them). ${EP_UNCHK("collegeboard.org CLEP + getcollegecredit.com DSST (credit recommendations); your college's catalog + credit-by-exam policy")}</div>
+    <div class="card"><div class="grid">${epIn("plan", d.plan, "Degree plan", { opts: Object.entries(DM_PLANS).map(([k, p]) => [k, p.name]) })}${epIn("mode", d.mode, "Exams to use", { opts: [["suggest", "Suggest exams for every slot"], ["mine", "Only exams I marked below"]] })}
+      ${epIn("cap", d.cap, "Most exam credits the college accepts")}${epIn("examFee", d.examFee, "Fee per exam ($)")}${epIn("perCredit", d.perCredit, "Tuition per credit ($)")}</div></div>
+    <div class="grid"><div class="card"><h3>${m.counted} credits</h3><div class="small muted">by exam (of ${m.P.total}${m.over ? `; ${m.over} over the cap don't count` : ""})</div></div><div class="card"><h3>${m.toTake} credits</h3><div class="small muted">left to take as courses${m.P.upper ? ` (incl. ${m.P.upper} upper-division)` : ""}</div></div>
+      <div class="card"><h3>${epMoney(m.costMix)}</h3><div class="small muted">${m.nExams} exams + courses</div></div><div class="card"><h3>${epMoney(m.costAll - m.costMix)}</h3><div class="small muted">less than all ${m.P.total} credits as courses (${epMoney(m.costAll)})</div></div></div>
+    <h3>${esc(m.P.name)}: requirement by requirement</h3>
+    <table class="t"><tr><th>Requirement</th><th>Credits</th><th>Filled by</th><th>Left</th></tr>${m.rows.map(r => `<tr><td>${esc(r.name)}</td><td>${r.cr}</td><td>${r.fill.length ? r.fill.map(f => `${esc(f.e.prov)} ${esc(f.e.name)} (${f.put}${f.extra ? ` + ${f.extra} to electives` : ""})`).join("<br>") : `<span class="muted">${r.tags.includes("-") ? "no common exam: take the course" : "no exam picked"}</span>`}</td><td>${r.cr - r.got ? `<b>${r.cr - r.got}</b>` : "✓"}</td></tr>`).join("")}
+     <tr><td>Free electives</td><td>${m.elect}</td><td>${m.electGot ? `${m.electGot} credits from extra exam credit${m.leftovers.length ? " + " + m.leftovers.map(e => esc(e.name)).join(", ") : ""}` : `<span class="muted">any course or extra exam credit</span>`}</td><td>${m.elect - m.electGot || "✓"}</td></tr>
+     ${m.P.upper ? `<tr><td>Upper-division (300-400 level)</td><td>${m.P.upper}</td><td><span class="muted">exams are almost all lower-division: take these as courses</span></td><td><b>${m.P.upper}</b></td></tr>` : ""}</table>
+    <p><button id="dmcsv">⬇ This map (.csv)</button> <button onclick="go('exam','clep')">📝 CLEP prep in the Academy</button> <button onclick="go('epcalc')">🧮 Credit planner</button></p>
+    <h3>Exams: mark what you passed or plan</h3><table class="t"><tr><th>Exam</th><th>Credits (usual)</th><th>Fits</th><th>Mine</th></tr>${DM_EXAMS.map(e => `<tr><td>${esc(e.prov)} ${esc(e.name)}</td><td>${e.cr}</td><td class="small muted">${esc(e.tags.join(", "))}</td><td><select data-dm="${e.id}">${[["", "—"], ["plan", "planned"], ["pass", "passed"]].map(([v, n]) => `<option value="${v}"${(d.mine[e.id] || "") === v ? " selected" : ""}>${n}</option>`).join("")}</select></td></tr>`).join("")}</table>`;
+    epBind(el, d, draw);
+    el.querySelectorAll("[data-dm]").forEach(s => s.onchange = () => { if (s.value) d.mine[s.dataset.dm] = s.value; else delete d.mine[s.dataset.dm]; save(); draw(); });
+    const b = el.querySelector("#dmcsv"); if (b) b.onclick = () => { const q = c => `"${String(c).replace(/"/g, '""')}"`;
+      const csv = [["Requirement", "Credits", "Filled by", "Exam credits", "Left"], ...m.rows.map(r => [r.name, r.cr, r.fill.map(f => f.e.prov + " " + f.e.name).join("; "), r.got, r.cr - r.got]), ["Free electives", m.elect, "", m.electGot, m.elect - m.electGot], ...(m.P.upper ? [["Upper-division", m.P.upper, "", 0, m.P.upper]] : [])].map(r => r.map(q).join(",")).join("\r\n");
+      const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = "degree-map.csv"; if (window.__dl) window.__dl.push(["degree-map.csv", csv]); else a.click(); };
+  };
+  draw();
+};
+{ const p0 = VIEWS.paths; VIEWS.paths = el => { p0(el); const g = el.querySelector(".grid"); if (g && !g.querySelector("[data-dmtile]")) g.insertAdjacentHTML("beforeend", `<div class="card click" data-dmtile onclick="go('epdeg')"><h3>🗺 Degree map</h3><div class="small muted">Course by course: which CLEP/DSST exam fills which requirement</div></div>`); }; }
+
+const DM_ONLINE = [
+  ["oc_comp1", "English Composition I", 3, "comp"], ["oc_comp2", "English Composition II", 3, "comp"], ["oc_lit", "Introduction to Literature", 3, "lit hum"],
+  ["oc_art", "Art Appreciation", 3, "art hum"], ["oc_phil", "Introduction to Ethics", 3, "phil hum"], ["oc_psy", "Introduction to Psychology", 3, "psy soc"],
+  ["oc_soc", "Introduction to Sociology", 3, "soc"], ["oc_macro", "Principles of Macroeconomics", 3, "macro econ soc"], ["oc_micro", "Principles of Microeconomics", 3, "micro econ soc"],
+  ["oc_ush1", "U.S. History I", 3, "hist ush"], ["oc_ush2", "U.S. History II", 3, "hist ush"], ["oc_gov", "American Government", 3, "gov soc"],
+  ["oc_alg", "College Algebra", 3, "math alg"], ["oc_stat", "Introduction to Statistics", 3, "stat math"], ["oc_envsci", "Environmental Science", 3, "sci"],
+  ["oc_bio", "Introduction to Biology", 3, "sci bio"], ["oc_chem", "Introduction to Chemistry", 3, "sci chem"], ["oc_speech", "Public Speaking", 3, "speech"],
+  ["oc_span1", "Spanish I", 3, "lang"], ["oc_span2", "Spanish II", 3, "lang"], ["oc_facct", "Financial Accounting", 3, "acct"],
+  ["oc_macct", "Managerial Accounting", 3, "", "^Managerial accounting"], ["oc_blaw", "Business Law", 3, "blaw"], ["oc_mgmt", "Principles of Management", 3, "mgmt"],
+  ["oc_mkt", "Principles of Marketing", 3, "mkt"], ["oc_is", "Introduction to Information Systems", 3, "is"], ["oc_fin", "Principles of Finance", 3, "", "^Finance"],
+  ["oc_hrm", "Human Resource Management", 3, "hrm"], ["oc_bus", "Introduction to Business", 3, "bus"], ["oc_life", "Lifespan Development", 3, "dev psy"],
+  ["oc_rm", "Research Methods in Psychology", 3, "", "^Research methods"], ["oc_abpsy", "Abnormal Psychology", 3, "", "^Abnormal psychology"], ["oc_socpsy", "Social Psychology", 3, "", "^Social psychology"],
+].map(([id, name, cr, tags, re]) => ({ id, prov: "Online", name, cr, tags: tags ? tags.split(" ") : [], re: re ? new RegExp(re, "i") : null }));
+function dmOnS() { const d = dmS(); if (d.on == null) Object.assign(d, { on: true, onMonthly: 99, onPace: 2, onFee: 0, resid: 30 }); return d; }
+function dmMapOnline(d) {
+  const m = dmMap(d), P = m.P, rows = m.rows.map(r => Object.assign({}, r, { on: [], gotOn: 0 }));
+  const fits = (r, c) => c.tags.some(t => r.tags.includes(t)) || (c.re && c.re.test(r.name));
+  const used = new Set(), limit = Math.max(0, P.total - epN(d.resid));
+  let room = Math.max(0, limit - m.counted);
+  if (d.on) {
+    const order = rows.slice().sort((a, b) => DM_ONLINE.filter(c => fits(a, c)).length - DM_ONLINE.filter(c => fits(b, c)).length || a.i - b.i);
+    for (const r of order) while (r.got + r.gotOn < r.cr && room > 0) {
+      const left = r.cr - r.got - r.gotOn, c = DM_ONLINE.filter(c => !used.has(c.id) && fits(r, c)).sort((a, b) => Math.abs(a.cr - left) - Math.abs(b.cr - left))[0]; if (!c) break;
+      const put = Math.min(c.cr, left, room); used.add(c.id); r.on.push({ c, put }); r.gotOn += put; room -= c.cr;
+    }
+  }
+  const nOn = used.size, onCr = rows.reduce((s, r) => s + r.on.reduce((t, f) => t + f.c.cr, 0), 0), outside = Math.min(limit, m.counted + onCr);
+  const months = nOn ? Math.ceil(nOn / Math.max(0.1, epN(d.onPace))) : 0, onCost = months * epN(d.onMonthly) + nOn * epN(d.onFee);
+  const atCollege = P.total - outside, examCost = m.nExams * epN(d.examFee);
+  return { m, P, rows, nOn, onCr, months, onCost, limit, outside, atCollege, examCost,
+    costAll: P.total * epN(d.perCredit), costExams: m.costMix, costThree: examCost + onCost + atCollege * epN(d.perCredit) };
+}
+function dmOnlineCard() {
+  const d = dmOnS(), o = dmMapOnline(d), open = o.rows.filter(r => r.cr - r.got - r.gotOn > 0);
+  return `<div class="card" data-oncard style="margin-top:12px"><h3>🖥 Third source: online courses with a credit recommendation</h3>
+   <p class="muted small">Self-paced online courses evaluated by ACE (American Council on Education) or NCCRS for college credit. Exams fill first; these fill what exams can't. Most colleges want a number of credits taken with them (residency), so everything from outside is capped. ${EP_UNCHK("ACE National Guide (acenet.edu), NCCRS directory (nccrs.org), your college's transfer + residency policy")}</p>
+   <div class="grid">${epIn("on", d.on, "Use online courses", { check: 1 })}${epIn("onMonthly", d.onMonthly, "Subscription per month ($, example)")}${epIn("onPace", d.onPace, "Courses you finish per month")}${epIn("onFee", d.onFee, "Fee per course ($)")}${epIn("resid", d.resid, "Credits that must be taken at the college")}</div>
+   <div class="grid"><div class="card"><h3>${o.nOn} courses</h3><div class="small muted">${o.onCr} credits online, about ${o.months} month${o.months === 1 ? "" : "s"}</div></div>
+    <div class="card"><h3>${o.atCollege} credits</h3><div class="small muted">left at the college (from outside: ${o.outside} of ${o.limit} allowed)</div></div>
+    <div class="card"><h3>${epMoney(o.costThree)}</h3><div class="small muted">exams + online + college</div></div></div>
+   <table class="t"><tr><th>Way</th><th>Cost</th><th>vs all courses at the college</th></tr>
+    <tr><td>All ${o.P.total} credits at the college</td><td>${epMoney(o.costAll)}</td><td>-</td></tr>
+    <tr><td>Exams + college</td><td>${epMoney(o.costExams)}</td><td>${epMoney(o.costAll - o.costExams)} less</td></tr>
+    <tr><td><b>Exams + online + college</b></td><td><b>${epMoney(o.costThree)}</b></td><td><b>${epMoney(o.costAll - o.costThree)} less</b></td></tr></table>
+   <h4>Where the online courses go</h4><table class="t"><tr><th>Requirement</th><th>By exam</th><th>Online course</th><th>Left</th></tr>${o.rows.map(r => `<tr><td>${esc(r.name)}</td><td>${r.got || "-"}</td><td>${r.on.length ? r.on.map(f => esc(f.c.name) + " (" + f.c.cr + ")").join("<br>") : `<span class="muted">-</span>`}</td><td>${r.cr - r.got - r.gotOn > 0 ? `<b>${r.cr - r.got - r.gotOn}</b>` : "✓"}</td></tr>`).join("")}</table>
+   <p class="small muted">${open.length ? "Still open: " + open.map(r => esc(r.name)).join(", ") + (o.outside >= o.limit ? ". The outside-credit limit is reached: the rest is taken at the college." : ". Take these at the college.") : "Every listed requirement is filled."} Upper-division credits${o.P.upper ? " (" + o.P.upper + ")" : ""} and free electives are left to the college here.</p>
+   <p><button data-oncsv>⬇ Three-way plan (.csv)</button></p></div>`;
+}
+function dmOnlineMount(el) {
+  const h = el.querySelector("h1"); if (!h || !/Degree map/.test(h.textContent) || el.querySelector("[data-oncard]")) return;
+  el.insertAdjacentHTML("beforeend", dmOnlineCard()); const card = el.querySelector("[data-oncard]"), d = dmOnS();
+  let pend = false; const redraw = () => { if (pend) return; pend = true; setTimeout(() => { pend = false; const c = el.querySelector("[data-oncard]"); if (c) c.remove(); dmOnlineMount(el); }, 0); };
+  epBind(card, d, redraw);
+  card.querySelector("[data-oncsv]").onclick = () => { const o = dmMapOnline(d), q = c => `"${String(c).replace(/"/g, '""')}"`;
+    const csv = [["Requirement", "Credits", "Exam credits", "Online courses", "Online credits", "Left at college"], ...o.rows.map(r => [r.name, r.cr, r.got, r.on.map(f => f.c.name).join("; "), r.gotOn, Math.max(0, r.cr - r.got - r.gotOn)]),
+      [], ["Way", "Cost"], ["All at the college", o.costAll], ["Exams + college", o.costExams], ["Exams + online + college", o.costThree]].map(r => r.map(q).join(",")).join("\r\n");
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = "degree-three-way.csv"; if (window.__dl) window.__dl.push(["degree-three-way.csv", csv]); else a.click(); };
+}
+VIEWS._dmOnline = true;
+{ const p0 = VIEWS.epdeg; VIEWS.epdeg = el => { p0(el); dmOnlineMount(el);
+    if (!el._onObs) { el._onObs = new MutationObserver(() => dmOnlineMount(el)); el._onObs.observe(el, { childList: true }); } }; }
+
+const EP_CHECKED_ON = "11/24/2026";
+const EP_FACTS = [
+  { id: "irs127", topic: "Employer tuition assistance", value: "$5,250 a year tax-free (2026); made permanent; can include student loan payments", url: "https://www.irs.gov/publications/p15b",
+    quote: "You can exclude up to $5,250 of educational assistance you provide to an employee … P.L. 119-21 permanently extends the $5,250 exclusion", applies: "Tax year 2026 (Publication 15-B 'For use in 2026')", ok: true,
+    note: "Payments to a lender for the employee's student loans count too (payments made after March 27, 2020). The page does not say the amount will rise with inflation." },
+  { id: "irscredits", topic: "Education tax credits", value: "American Opportunity Credit up to $2,500 per student (40% refundable); Lifetime Learning Credit up to $2,000 per return; modified adjusted gross income under $90,000 ($180,000 joint)", url: "https://www.irs.gov/credits-deductions/individuals/education-credits-aotc-llc",
+    quote: "AOTC allows a credit up to $2,500 per eligible student … LLC allows a credit up to $2,000 per return … must be less than $90,000, ($180,000 if married filing jointly)", applies: "2026 returns (page updated 11/18/2026)", ok: true,
+    note: "The page states the income figure as a limit (less than $90,000 / $180,000), not as a phase-out range." },
+  { id: "clep", topic: "CLEP exam fee", value: "$97 per exam + the test centre's (or remote proctor's) own fee; 34 exams listed", url: "https://clep.collegeboard.org/register-for-an-exam",
+    quote: "Exams cost only $97 plus your test center or remote proctoring administration fee.", applies: "Current fee on 11/24/2026", ok: true,
+    note: "Exam count from https://clep.collegeboard.org/clep-exams (counted: 34). Credits per exam are set by each college; the site does not give one number." },
+  { id: "dsst", topic: "DSST exam fee", value: "$100 per exam + the testing site's own fee", url: "https://getcollegecredit.com/test-takers/students-adults/",
+    quote: "The test fee is $100 per exam. This fee does not include any administrative costs the testing site may require.", applies: "Current fee on 11/24/2026", ok: true, note: "" },
+  { id: "ged", topic: "GED test", value: "4 subjects; price depends on the state", url: "https://ged.com/",
+    quote: "The GED® test covers 4 subjects: Math, Science, Social Studies, and Reasoning Through Language Arts.", applies: "11/24/2026", ok: true,
+    note: "Pricing page: https://www.ged.com/about-test/price-and-rules.html ('Select your area to see your pricing')." },
+  { id: "hiset", topic: "HiSET test", value: "5 subtests; fees and retest rules vary by state", url: "https://hiset.org/about-hiset/",
+    quote: "The HiSET exam includes five core subject areas – often referred to as a battery of subtests.", applies: "11/24/2026", ok: true,
+    note: "State rules: https://hiset.org/get-started/state-requirements/ ('fees and retesting rules may vary')." },
+  { id: "va911", topic: "Post-9/11 GI Bill tuition", value: "Public schools: net tuition + mandatory fees; private or foreign schools: up to $30,908.34 a year", url: "https://www.va.gov/education/benefit-rates/post-9-11-gi-bill-rates/",
+    quote: "We'll pay the net tuition and mandatory fees up to $30,908.34.", applies: "August 1, 2026 to July 31, 2027", ok: true, note: "The private-school cap changes every August 1." },
+  { id: "pell", topic: "Pell Grant maximum", value: "", url: "https://studentaid.gov/understand-aid/types/grants/pell", ok: false, why: "studentaid.gov timed out (4 tries)" },
+  { id: "fafsa", topic: "FAFSA opening date + deadline", value: "", url: "https://studentaid.gov/h/apply-for-aid/fafsa", ok: false, why: "studentaid.gov timed out" },
+  { id: "loans", topic: "Federal student loan rates + limits", value: "", url: "https://studentaid.gov/understand-aid/types/loans/interest-rates", ok: false, why: "studentaid.gov timed out (4 tries)" },
+  { id: "segal", topic: "AmeriCorps Segal Education Award", value: "", url: "https://americorps.gov/members-volunteers/segal-americorps-education-award", ok: false, why: "the site refuses automated reading (HTTP 403)" },
+  { id: "headstart", topic: "Head Start ages + income rule", value: "", url: "https://headstart.gov/", ok: false, why: "the site refuses automated reading (HTTP 403)" },
+  { id: "scorecard", topic: "College Scorecard", value: "", url: "https://collegescorecard.ed.gov/", ok: false, why: "the connection was reset (2 tries)" },
+];
+const epFact = id => EP_FACTS.find(f => f.id === id);
+function EP_FACT(kind, id, where) {
+  const f = epFact(id);
+  if (kind === "fact" && f && f.ok) return `<span class="tag g" data-fact="${esc(id)}" title="Checked on ${EP_CHECKED_ON} at ${esc(f.url)}: “${esc(f.quote)}” (${esc(f.applies)})">checked ${EP_CHECKED_ON} · ${esc(f.url.replace(/^https?:\/\/(www\.)?/, "").split("/")[0])}</span>`;
+  const w = where || (f ? f.url.replace(/^https?:\/\//, "") : "the official site");
+  return `<span class="tag y" data-fact="${esc(id)}" title="Not checked: ${esc(f && f.why ? "tried " + EP_CHECKED_ON + ", " + f.why : "no official source read yet")}. Confirm at: ${esc(w)}">unchecked${f && f.why ? " (tried " + EP_CHECKED_ON + ")" : ""} · confirm: ${esc(w)}</span>`;
+}
+(() => {
+  const row = (tbl, name) => tbl.find(r => r[0] === name);
+  let r = row(EP_MONEY, "Employer tuition assistance"); if (r) { r[1] = "Many employers pay tuition; in the US, up to $5,250 a year can be tax-free to the employee (2026; now permanent, and it can also go to the employee's student loan payments)."; r[2] = "fact:irs127"; }
+  r = row(EP_MONEY, "Pell Grant"); if (r) r[2] = "tried:pell|studentaid.gov";
+  r = row(EP_MONEY, "FAFSA first"); if (r) r[2] = "tried:fafsa|studentaid.gov";
+  r = row(EP_MONEY, "Loans last"); if (r) r[2] = "tried:loans|studentaid.gov";
+  r = row(EP_MONEY, "Military + service"); if (r) { r[1] = "Tuition Assistance, GI Bill, ROTC. Post-9/11 GI Bill: net tuition + fees at public schools, up to $30,908.34 a year at private or foreign schools (Aug 1, 2026 - Jul 31, 2027). AmeriCorps Segal Education Award: not checked yet."; r[2] = "fact:va911"; }
+  const i = EP_MONEY.findIndex(x => x[0] === "529 plans + savings");
+  if (!row(EP_MONEY, "Education tax credits")) EP_MONEY.splice(i < 0 ? EP_MONEY.length : i, 0, ["Education tax credits", "American Opportunity Credit: up to $2,500 per student a year (40% refundable, so up to $1,000 back even with no tax owed). Lifetime Learning Credit: up to $2,000 per return. Both need modified income under $90,000 ($180,000 married filing jointly).", "fact:irscredits"]);
+  const free = EP_FREE.find(g => g[0] === "Free & cheap credit"); if (free) { const c = free[1].find(x => /^CLEP and DSST/.test(x[0])); if (c) { c[0] = "CLEP ($97 per exam) and DSST ($100 per exam) exams, plus the test centre's own fee: one exam ≈ one college course (3+ credits) if the college accepts it"; c[1] = "fact:clep"; } }
+})();
+VIEWS.epfacts = el => {
+  const ok = EP_FACTS.filter(f => f.ok), no = EP_FACTS.filter(f => !f.ok);
+  el.innerHTML = `<div class="crumbs"><a onclick="go('paths')">Paths</a> › Fact checks</div><h1>✔ Fact checks</h1>
+  <p class="muted">Read on the official sites on ${EP_CHECKED_ON} (web pages only). Numbers like fees, caps and grant maximums change every year: the year each one applies to is shown. ${ok.length} checked · ${no.length} not reached yet.</p>
+  <table class="t" id="epfacttbl"><tr><th>Topic</th><th>What the official page says</th><th>Applies to</th><th>Source</th></tr>${ok.map(f => `<tr><td><b>${esc(f.topic)}</b><br>${EP_FACT("fact", f.id)}</td><td class="small">${esc(f.value)}<br><i>“${esc(f.quote)}”</i>${f.note ? `<br><span class="muted">${esc(f.note)}</span>` : ""}</td><td class="small">${esc(f.applies)}</td><td class="small">${esc(f.url)}</td></tr>`).join("")}</table>
+  <h3>Not reached yet</h3><table class="t" id="epfactno"><tr><th>Topic</th><th>Why</th><th>Where to confirm</th></tr>${no.map(f => `<tr><td>${esc(f.topic)}</td><td class="small">${esc(f.why)} (${EP_CHECKED_ON})</td><td class="small">${esc(f.url)}</td></tr>`).join("")}</table>
+  <p class="small muted">Everything else in Education Paths (routes, typical plans, the online course list) is still general guidance marked unchecked. Exam fee boxes in the planners start at $100: CLEP is $97 and DSST $100 per exam, plus the centre's fee.</p>`;
+};
+{ const p0 = VIEWS.paths; VIEWS.paths = el => { p0(el); const ok = EP_FACTS.filter(f => f.ok).length;
+  el.insertAdjacentHTML("beforeend", `<div class="card click" id="epfactcard" onclick="go('epfacts')"><h3>✔ Fact checks</h3><div class="small muted">${ok} facts read on the official sites on ${EP_CHECKED_ON} (fees, tax limits, GI Bill cap); ${EP_FACTS.length - ok} sites still to reach.</div></div>`); }; }
+
 function boot(data) {
   if (loaded) return; loaded = true;
   S = merge(freshState(), data && typeof data === "object" ? data : {});
