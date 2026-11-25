@@ -1,0 +1,12 @@
+{
+ "name": "Larder Lab",
+ "by": "Randy",
+ "blurb": "A food lab: recipe scaling, cost and batch sheets, an ingredient database, nutrition labels with allergens, pH and water activity, drinks, and cottage food rules for every US state. Some parts (the linked AI, saving files, opening web pages) need Randis UDS.",
+ "status": "ok",
+ "real_items": null,
+ "reviews": {
+  "randy": null,
+  "maker": null
+ },
+ "version": 11
+}

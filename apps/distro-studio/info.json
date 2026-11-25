@@ -1,0 +1,12 @@
+{
+ "name": "Distro Studio",
+ "by": "Randy",
+ "blurb": "Design your own Linux system: an Alpine designer that checks every setting, a from-scratch layer stack checker (firmware to desktop), a real 512-byte boot sector and bootable ISO you can download, a driver starter kit, a patch maker and the Randis UDOS phone design. Building and booting the ISO needs Randis UDS.",
+ "status": "ok",
+ "real_items": null,
+ "reviews": {
+  "randy": null,
+  "maker": null
+ },
+ "version": 1
+}

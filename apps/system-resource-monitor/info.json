@@ -1,0 +1,12 @@
+{
+ "name": "System Resource Monitor",
+ "by": "Randy",
+ "blurb": "Live, honest readings of what your browser can measure: frame rate and jank graph, a page-busy estimate from timer delay, JavaScript memory, CPU cores, device memory, storage, screen, network and battery where the browser shows them. Pause and export to CSV. Whole-computer CPU, RAM, disk and temperature need Randis UDS.",
+ "status": "ok",
+ "real_items": null,
+ "reviews": {
+  "randy": null,
+  "maker": null
+ },
+ "version": 1
+}

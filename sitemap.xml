@@ -4,6 +4,7 @@
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/ad-dev-suite/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/atelier-fashion-suite/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/aura-assistant/</loc></url>
+  <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/bot-farm/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/chip-design-suite/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/circuit-pcb-studio/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/club-wiki/</loc></url>
@@ -11,11 +12,15 @@
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/codex-academy/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/dig-lab/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/discord-bot-design-suite/</loc></url>
+  <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/distro-studio/</loc></url>
+  <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/email-terminal/</loc></url>
+  <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/emoji-forge/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/forge-cad/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/forge-rd-suite/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/free-money-finder/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/funnel-suite/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/game-emulator-suite/</loc></url>
+  <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/hearthly/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/heirloom-boxes/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/heirloom-design-lab/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/heritage/</loc></url>
@@ -23,19 +28,26 @@
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/hyperspace-portal-studio/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/intelligence-hijacking/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/iot-command/</loc></url>
+  <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/kettle-and-column/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/kitwright-edc-studio/</loc></url>
+  <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/larder-lab/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/life-tree/</loc></url>
+  <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/loomwork-automations/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/machine-shop/</loc></url>
+  <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/mcm-software/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/media-network/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/miner-design-suite/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/mintworks-exchange/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/money-lab/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/music-studio/</loc></url>
+  <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/my-wiki/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/notepad/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/open-hardware-studio/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/pdf-maker/</loc></url>
+  <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/promo-studio/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/publishing-suite/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/quak-quak/</loc></url>
+  <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/questloom-game-studio/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/randis-academy/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/randis-antivirus/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/randis-bench-lab/</loc></url>
@@ -50,9 +62,11 @@
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/shop-studio/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/sim-phone/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/sing-in-my-voice/</loc></url>
+  <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/system-resource-monitor/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/tallyglass-analytics/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/templeos/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/the-dispatch/</loc></url>
+  <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/trading-card-studio/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/type-studio/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/vm-suite/</loc></url>
   <url><loc>https://randywilliammoore.github.io/randis-shop/share/apps/voice-forge/</loc></url>

@@ -505,6 +505,24 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "bot-farm",
+  "name": "Bot Farm",
+  "by": "Randy",
+  "blurb": "A cozy 3D farm where every bot is a cute animal. Play with 7 sample bots: shiny collectible cards, pet and play in the farm places, dress them in the wardrobe, design their looks, go on adventures, earn items and hear each animal's own tune. Farming your own real bots and AI chats needs Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 1,
+  "open_with": "randisuds://open?item=apps/bot-farm",
+  "file": "apps/bot-farm/item.html",
+  "logo": "apps/bot-farm/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "chip-design-suite",
   "name": "Chip Design Suite",
   "by": "Randy",
@@ -631,6 +649,60 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "distro-studio",
+  "name": "Distro Studio",
+  "by": "Randy",
+  "blurb": "Design your own Linux system: an Alpine designer that checks every setting, a from-scratch layer stack checker (firmware to desktop), a real 512-byte boot sector and bootable ISO you can download, a driver starter kit, a patch maker and the Randis UDOS phone design. Building and booting the ISO needs Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 1,
+  "open_with": "randisuds://open?item=apps/distro-studio",
+  "file": "apps/distro-studio/item.html",
+  "logo": "apps/distro-studio/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "email-terminal",
+  "name": "Email Terminal",
+  "by": "Randy",
+  "blurb": "A cheerful retro green-screen email terminal. Type commands to list, read, search, flag, delete, reply and compose mail in a sample inbox, or import your own .eml or .mbox file. New messages save as .eml files or open in your mail app. Connecting a live mail account (IMAP/SMTP) needs Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 1,
+  "open_with": "randisuds://open?item=apps/email-terminal",
+  "file": "apps/email-terminal/item.html",
+  "logo": "apps/email-terminal/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "emoji-forge",
+  "name": "Emoji Forge",
+  "by": "Randy",
+  "blurb": "A bright gallery of hand-drawn Randis Emoji. Search, copy codes, try them in a sentence, download any one or all as PNG, an emoji sheet or a pack, and draw your own on a 64 x 64 grid. Showing them in every page at once needs Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 1,
+  "open_with": "randisuds://open?item=apps/emoji-forge",
+  "file": "apps/emoji-forge/item.html",
+  "logo": "apps/emoji-forge/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "forge-cad",
   "name": "Forge CAD",
   "by": "Randy",
@@ -717,6 +789,24 @@ window.ITEMS = [
   "open_with": "randisuds://open?item=apps/game-emulator-suite",
   "file": "apps/game-emulator-suite/item.html",
   "logo": "apps/game-emulator-suite/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "hearthly",
+  "name": "Hearthly",
+  "by": "Randy",
+  "blurb": "A warm community chat app with halls, channels, roles, reactions, replies, pins, search and direct messages. In the browser you get a lively demo hall with friendly made-up members, all on this page. Chatting with real people needs Randis UDS, which runs the Hearthly server.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 1,
+  "open_with": "randisuds://open?item=apps/hearthly",
+  "file": "apps/hearthly/item.html",
+  "logo": "apps/hearthly/logo.svg",
   "video_pic": null
  },
  {
@@ -847,6 +937,24 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "kettle-and-column",
+  "name": "Kettle & Column",
+  "by": "Randy",
+  "blurb": "Design brews and distilled drinks: 38 drink types in 10 families with law notes and non-alcoholic versions, recipes with live ABV, bitterness and colour, and process sheets. Some parts (the linked AI, saving files, opening web pages) need Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 12,
+  "open_with": "randisuds://open?item=apps/kettle-and-column",
+  "file": "apps/kettle-and-column/item.html",
+  "logo": "apps/kettle-and-column/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "kitwright-edc-studio",
   "name": "Kitwright EDC Studio",
   "by": "Randy",
@@ -861,6 +969,24 @@ window.ITEMS = [
   "open_with": "randisuds://open?item=apps/kitwright-edc-studio",
   "file": "apps/kitwright-edc-studio/item.html",
   "logo": "apps/kitwright-edc-studio/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "larder-lab",
+  "name": "Larder Lab",
+  "by": "Randy",
+  "blurb": "A food lab: recipe scaling, cost and batch sheets, an ingredient database, nutrition labels with allergens, pH and water activity, drinks, and cottage food rules for every US state. Some parts (the linked AI, saving files, opening web pages) need Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 11,
+  "open_with": "randisuds://open?item=apps/larder-lab",
+  "file": "apps/larder-lab/item.html",
+  "logo": "apps/larder-lab/logo.svg",
   "video_pic": null
  },
  {
@@ -883,6 +1009,24 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "loomwork-automations",
+  "name": "Loomwork Automations",
+  "by": "Randy",
+  "blurb": "Build workflow automations as a graph: branches, merges, loops, error branches, retries and time limits, with 14 templates. Running them on a schedule needs the Loomwork engine in Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 7,
+  "open_with": "randisuds://open?item=apps/loomwork-automations",
+  "file": "apps/loomwork-automations/item.html",
+  "logo": "apps/loomwork-automations/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "machine-shop",
   "name": "Machine Shop",
   "by": "Randy",
@@ -897,6 +1041,24 @@ window.ITEMS = [
   "open_with": "randisuds://open?item=apps/machine-shop",
   "file": "apps/machine-shop/item.html",
   "logo": "apps/machine-shop/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "mcm-software",
+  "name": "MCM Software",
+  "by": "Randy",
+  "blurb": "Moore's Combinatorics Matrix: cross two words to spark new ideas. Coverage grid, production navigator, matrix maths, a prompt builder you can copy, live idea checks, hand grading and a library you can export. AI writing needs Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 1,
+  "open_with": "randisuds://open?item=apps/mcm-software",
+  "file": "apps/mcm-software/item.html",
+  "logo": "apps/mcm-software/logo.svg",
   "video_pic": null
  },
  {
@@ -991,6 +1153,24 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "my-wiki",
+  "name": "My Wiki",
+  "by": "Randy",
+  "blurb": "Your own little wiki: write pages, link them with [[double brackets]], search every word and edit with a live preview. Export and import your wiki as a file.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 1,
+  "open_with": "randisuds://open?item=apps/my-wiki",
+  "file": "apps/my-wiki/item.html",
+  "logo": "apps/my-wiki/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "notepad",
   "name": "Notepad",
   "by": "Randy",
@@ -1045,6 +1225,24 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "promo-studio",
+  "name": "Promo Studio",
+  "by": "Randy",
+  "blurb": "Writes video titles, descriptions, tags, hashtags, a pinned comment, posts for every social and a thumbnail prompt for any Randis Shop item or your own (add one or import a JSON/CSV list). Fill in your own channel links and save your setup as a file. The AI rewrite needs Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 1,
+  "open_with": "randisuds://open?item=apps/promo-studio",
+  "file": "apps/promo-studio/item.html",
+  "logo": "apps/promo-studio/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "publishing-suite",
   "name": "Publishing Suite",
   "by": "Randy",
@@ -1077,6 +1275,24 @@ window.ITEMS = [
   "open_with": "randisuds://open?item=apps/quak-quak",
   "file": "apps/quak-quak/item.html",
   "logo": "apps/quak-quak/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "questloom-game-studio",
+  "name": "Questloom Game Studio",
+  "by": "Randy",
+  "blurb": "Design games: a game design core, the Questloom engine (platformer, top-down, first-person), board games, tabletop RPGs, card games and a card-crawl deck builder. Some parts (the linked AI, saving files, opening web pages) need Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 8,
+  "open_with": "randisuds://open?item=apps/questloom-game-studio",
+  "file": "apps/questloom-game-studio/item.html",
+  "logo": "apps/questloom-game-studio/logo.svg",
   "video_pic": null
  },
  {
@@ -1333,6 +1549,24 @@ window.ITEMS = [
  },
  {
   "kind": "apps",
+  "slug": "system-resource-monitor",
+  "name": "System Resource Monitor",
+  "by": "Randy",
+  "blurb": "Live, honest readings of what your browser can measure: frame rate and jank graph, a page-busy estimate from timer delay, JavaScript memory, CPU cores, device memory, storage, screen, network and battery where the browser shows them. Pause and export to CSV. Whole-computer CPU, RAM, disk and temperature need Randis UDS.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 1,
+  "open_with": "randisuds://open?item=apps/system-resource-monitor",
+  "file": "apps/system-resource-monitor/item.html",
+  "logo": "apps/system-resource-monitor/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
   "slug": "tallyglass-analytics",
   "name": "Tallyglass Analytics",
   "by": "Randy",
@@ -1383,6 +1617,24 @@ window.ITEMS = [
   "open_with": "randisuds://open?item=apps/the-dispatch",
   "file": "apps/the-dispatch/item.html",
   "logo": "apps/the-dispatch/logo.svg",
+  "video_pic": null
+ },
+ {
+  "kind": "apps",
+  "slug": "trading-card-studio",
+  "name": "Trading Card Studio",
+  "by": "Randy",
+  "blurb": "Design a trading card game: rules and a keyword glossary, a card database with CSV import and export, card layouts, and print sheets with bleed and cut marks.",
+  "status": "ok",
+  "real_items": null,
+  "reviews": {
+   "randy": null,
+   "maker": null
+  },
+  "version": 2,
+  "open_with": "randisuds://open?item=apps/trading-card-studio",
+  "file": "apps/trading-card-studio/item.html",
+  "logo": "apps/trading-card-studio/logo.svg",
   "video_pic": null
  },
  {

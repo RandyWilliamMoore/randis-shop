@@ -1,0 +1,12 @@
+{
+ "name": "Email Terminal",
+ "by": "Randy",
+ "blurb": "A cheerful retro green-screen email terminal. Type commands to list, read, search, flag, delete, reply and compose mail in a sample inbox, or import your own .eml or .mbox file. New messages save as .eml files or open in your mail app. Connecting a live mail account (IMAP/SMTP) needs Randis UDS.",
+ "status": "ok",
+ "real_items": null,
+ "reviews": {
+  "randy": null,
+  "maker": null
+ },
+ "version": 1
+}

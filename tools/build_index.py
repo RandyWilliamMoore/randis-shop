@@ -117,7 +117,7 @@ def read_song(slug):
 def write_list(name, var, entries):
     text = json.dumps(entries, ensure_ascii=True, indent=1).replace("<", "\\u003c")
     with open(os.path.join(ROOT, name), "w", encoding="utf-8", newline="\n") as f:
-        f.write("// Written by tools/build_index.py. Change the item folders, not this file.\nwindow." + var + " = " + text + ";\n")
+        f.write("window." + var + " = " + text + ";\n")
     print(f"{name}: {len(entries)} item(s)")
 
 
