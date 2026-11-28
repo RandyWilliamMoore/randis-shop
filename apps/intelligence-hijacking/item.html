@@ -248,7 +248,7 @@ function grabJSON(t) {
   try { return JSON.parse(s.slice(a, b + 1)); } catch (e) { return null; }
 }
 
-let S = null;
+let S = freshState();
 function freshState() {
   return {
     v: 1, created: today(), xp: 0, streak: { last: "", n: 0, best: 0 },
@@ -272,6 +272,7 @@ function freshState() {
 let saveTimer = null, useLocal = false;
 const LKEY = "randis-" + APP;
 function save() {
+  if (!loaded) return;
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
     trimState();
@@ -5326,8 +5327,9 @@ NAV_GROUPS.splice(1, 0, ["Test Center", ["iq", "iqres"]], ["Gyms", ["flow", "sou
     list.forEach(x => scan(x));
   }
   function observe(rootEl) {
-    rootEl = rootEl || document.body; scan(rootEl); let q = [], pend = false;
-    const mo = new MutationObserver(ms => { ms.forEach(m => { if (m.type === "characterData") q.push(m.target); else m.addedNodes.forEach(a => q.push(a)); }); if (!pend) { pend = true; requestAnimationFrame(() => { pend = false; const l = q; q = []; l.forEach(x => x.isConnected && scan(x)); }); } });
+    rootEl = rootEl || document.body; scan(rootEl); let q = new Set(), pend = false;
+    const flush = () => { if (!pend) return; pend = false; const l = q; q = new Set(); l.forEach(x => x.isConnected && scan(x)); };
+    const mo = new MutationObserver(ms => { ms.forEach(m => { if (m.type === "characterData") q.add(m.target); else m.addedNodes.forEach(a => q.add(a)); }); if (!pend) { pend = true; requestAnimationFrame(flush); setTimeout(flush, 250); } });
     mo.observe(rootEl, { childList: true, subtree: true, characterData: true }); return mo;
   }
   const png = (name, px) => new Promise((res, rej) => { px = px || 128; const im = new Image(); im.onload = () => { const c = document.createElement("canvas"); c.width = c.height = px; c.getContext("2d").drawImage(im, 0, 0, px, px); try { res(c.toDataURL("image/png")); } catch (e) { rej(e); } }; im.onerror = rej; im.src = url(name); });
